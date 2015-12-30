@@ -3,7 +3,7 @@
 ****    Source code of Crusoe's Island Engine.
 ****    Copyright (C) 2009 - 2015 Crusoe's Island LLC.
 ****
-****    8th December 2015 / 14th August 2009.
+****    Started at 14th August 2009.
 ****    Description: three-component vector definition.
 ****
 ****************************************************************************************/

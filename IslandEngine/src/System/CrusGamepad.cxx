@@ -3,7 +3,7 @@
 ****    Source code of Crusoe's Island Engine.
 ****    Copyright (C) 2009 - 2015 Crusoe's Island LLC.
 ****
-****    11th July 2013  / 22th June 2013.
+****    Started at 22th June 2013.
 ****    Description: supporting a gamepad xbox 360 controller.
 ****
 ****************************************************************************************/

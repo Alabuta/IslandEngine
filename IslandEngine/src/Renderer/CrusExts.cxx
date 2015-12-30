@@ -3,7 +3,7 @@
 ****    Source code of Crusoe's Island Engine.
 ****    Copyright (C) 2009 - 2015 Crusoe's Island LLC.
 ****
-****    8th April 2013 / 27th November 2010.
+****    Started at 27th November 2010.
 ****    Description: OpenGL extensions implementations.
 ****
 ****************************************************************************************/

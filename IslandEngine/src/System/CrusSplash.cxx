@@ -3,7 +3,7 @@
 ****    Source code of Crusoe's Island Engine.
 ****    Copyright (C) 2009 - 2015 Crusoe's Island LLC.
 ****
-****    21th June 2013 / 23th July 2009.
+****    Started at 23th July 2009.
 ****    Description: splash screen are used for hidden application initialization.
 ****
 ****************************************************************************************/

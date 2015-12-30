@@ -3,7 +3,7 @@
 ****    Source code of Crusoe's Island Engine.
 ****    Copyright (C) 2009 - 2015 Crusoe's Island LLC.
 ****
-****    14th March 2013 / 3rd July 2011.
+****    Started at 3rd July 2011.
 ****    Description: uniform buffer objects initialization shader.
 ****
 ****************************************************************************************/

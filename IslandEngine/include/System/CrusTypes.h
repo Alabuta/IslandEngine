@@ -3,7 +3,7 @@
 ****    Source code of Crusoe's Island Engine.
 ****    Copyright (C) 2009 - 2015 Crusoe's Island LLC.
 ****
-****    20th April 2012 / 8th July 2009.
+****    Started at 8th July 2009.
 ****    Description: engine types - all of user types must be here.
 ****
 ****************************************************************************************/

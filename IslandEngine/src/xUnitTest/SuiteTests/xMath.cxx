@@ -3,7 +3,7 @@
 ****    xUnitTest source code.
 ****    Copyright (C) 2009 - 2015 Crusoe's Island LLC.
 ****
-****    7th April 2012 / 6th April 2012.
+****    Started at 6th April 2012.
 ****    Description: mathlib routines unit-testing.
 ****
 ****************************************************************************************/

@@ -3,7 +3,7 @@
 ****    xUnitTest source code.
 ****    Copyright (C) 2009 - 2015 Crusoe's Island LLC.
 ****
-****    27th November 2013 / 6th April 2012.
+****    Started at 6th April 2012.
 ****    Description: Matrix class unit-testing.
 ****
 ****************************************************************************************/

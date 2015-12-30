@@ -3,7 +3,7 @@
 ****    Source code of Crusoe's Island Engine.
 ****    Copyright (C) 2009 - 2014 Crusoe's Island LLC.
 ****
-****    27th November 2013 / 10th March 2010.
+****    Started at 10th March 2010.
 ****    Description: Matrix4x4 implementation.
 ****
 ****************************************************************************************/

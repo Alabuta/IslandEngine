@@ -3,7 +3,7 @@
 ****    Source code of Crusoe's Island Engine.
 ****    Copyright (C) 2009 - 2015 Crusoe's Island LLC.
 ****
-****    28th April 2012 / 11th July 2009.
+****    Started at 11th July 2009.
 ****    Description: indices of color - all of used colors must be here.
 ****
 ****************************************************************************************/

@@ -3,7 +3,7 @@
 ****    Source code of Crusoe's Island Engine.
 ****    Copyright (C) 2009 - 2014 Crusoe's Island LLC.
 ****
-****    8th December 2015 / 14th March 2010.
+****    Started at 14th March 2010.
 ****    Description: camera frame routines.
 ****
 ****************************************************************************************/

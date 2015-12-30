@@ -3,7 +3,7 @@
 ****    ...
 ****    Copyright (C) 2009 - 2015 Crusoe's Island LLC.
 ****
-****    27th November 2013 / 14th March 2012.
+****    Started at 14th March 2012.
 ****    Description: unit test declaration.
 ****
 ****************************************************************************************/

@@ -3,7 +3,7 @@
 ****    Source code of Crusoe's Island Engine.
 ****    Copyright (C) 2009 - 2015 Crusoe's Island LLC.
 ****
-****	19th September 2010 / 11th April 2010.
+****    Started at 11th April 2010.
 ****	Description: TARGA image loader header file.
 ****
 ****************************************************************************************/

@@ -3,7 +3,7 @@
 ****    ...
 ****    Copyright (C) 2009 - 2015 Crusoe's Island LLC.
 ****
-****    24th March 2012 / 24th March 2012.
+****    Started at 24th March 2012.
 ****    Description: unit test results class.
 ****
 ****************************************************************************************/

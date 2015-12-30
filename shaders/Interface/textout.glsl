@@ -3,7 +3,7 @@
 ****    Source code of Crusoe's Island Engine.
 ****    Copyright (C) 2009 - 2015 Crusoe's Island LLC.
 ****
-****    17h December 2015 / 17h December 2015 .
+****    Started at 17h December 2015 .
 ****    Description: text out render shader file.
 ****
 ****************************************************************************************/

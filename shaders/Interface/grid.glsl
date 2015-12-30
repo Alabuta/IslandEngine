@@ -3,7 +3,7 @@
 ****    Source code of Crusoe's Island Engine.
 ****    Copyright (C) 2009 - 2015 Crusoe's Island LLC.
 ****
-****    14th March 2013 / 31th October 2010.
+****    Started at 31th October 2010.
 ****    Description: grid render shader file.
 ****
 ****************************************************************************************/

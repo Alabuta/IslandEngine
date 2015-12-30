@@ -3,7 +3,7 @@
 ****    Source code of Crusoe's Island Engine.
 ****    Copyright (C) 2009 - 2015 Crusoe's Island LLC.
 ****
-****    9th September 2012 / 30th June 2010.
+****    Started at 30th June 2010.
 ****    Description: sky render shader file.
 ****
 ****************************************************************************************/

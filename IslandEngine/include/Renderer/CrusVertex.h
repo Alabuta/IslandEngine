@@ -3,7 +3,7 @@
 ****    Source code of Crusoe's Island Engine.
 ****    Copyright (C) 2009 - 2015 Crusoe's Island LLC.
 ****
-****    26th April 2012 / 12th March 2010.
+****    Started at 12th March 2010.
 ****    Description: mesh attributes declaration.
 ****
 ****************************************************************************************/
