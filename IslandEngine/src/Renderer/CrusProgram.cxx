@@ -18,6 +18,11 @@
 #include "Renderer\CrusRenderer.h"
 #include "Renderer\CrusProgram.h"
 
+namespace
+{
+acstr kGLSL_VERSION = "#version 450 core";
+};
+
 namespace isle
 {
 int32 Program::lastAttribute_{-1};
@@ -63,61 +68,6 @@ bool ReadShaderSources(std::vector<std::string> &_sources, std::initializer_list
     }
 
     return true;
-}
-
-void Program::SwitchOn() const
-{
-    glUseProgram(program_);
-
-#if _CRUS_OBSOLETE
-    if (glGetError() != GL_NO_ERROR) {
-        Book::AddEvent(NOTE::nERROR, "invalid program number: %d (%s)", program_, name_.c_str());
-    }
-#endif
-}
-
-/*static*/ void Program::SwitchOff()
-{
-    glUseProgram(0);
-}
-
-uint32 Program::GetName() const
-{
-    return program_;
-}
-
-int32 Program::GetAttributeLoc(astr _name) const
-{
-    lastAttribute_ = glGetAttribLocation(program_, _name);
-
-#if _CRUS_SHADER_DEBUG
-    if (lastAttribute_ < 0 && !checked_)
-        Book::AddEvent(NOTE::nWARN, "attribute \"%s\" unexist or are not used.", _name);
-#endif
-
-    return lastAttribute_;
-}
-
-int32 Program::GetUniformLoc(astr _name) const
-{
-    lastUniform_ = glGetUniformLocation(program_, _name);
-
-#if _CRUS_SHADER_DEBUG
-    if (lastUniform_ < 0 && !checked_)
-        Book::AddEvent(NOTE::nWARN, "uniform \"%s\" unexist or are not used.", _name);
-#endif
-
-    return lastUniform_;
-}
-
-/*static*/ int32 Program::GetLastAttributeLoc()
-{
-    return lastAttribute_;
-}
-
-/*static*/ int32 Program::GetLasUniformLoc()
-{
-    return lastUniform_;
 }
 
 bool Program::AssignNew(std::initializer_list<std::string> _names, astr _options, ...)
@@ -237,31 +187,32 @@ bool Program::CreateShader(std::string _name, std::vector<std::string> _sources,
     // Fill determinants.
     if(_type == GL_VERTEX_SHADER){
         sprintf_s(prepross, sizeof(prepross),
-                  "\n#version 330 core\n\
+                  "\n%s\n\
                   \n#define CRUS_VERTEX_SHADER 1\n\
                   \n#define nVERTEX %u\
                   \n#define nNORMAL %u\
                   \n#define nTEXCRD %u\
                   \n#define nTRANSFORM %u\
                   \n#define nATLAS %u\n",
-                  nVERTEX, nNORMAL, nTEXCRD, nTRANSFORM, nATLAS);
+                  kGLSL_VERSION, nVERTEX, nNORMAL, nTEXCRD, nTRANSFORM, nATLAS);
 
         type = "vertex shader";
     }
 
     else if(_type == GL_FRAGMENT_SHADER){
-        sprintf_s(prepross, sizeof(prepross), "\n#version 330 core\n\
+        sprintf_s(prepross, sizeof(prepross), "\n%s\n\
                                                \n#define CRUS_FRAGMENT_SHADER 1\n\
                                                \n#define nMATERIAL %u\
                                                \n#define nFRAG_COLOR %u\n",
-                                               nMATERIAL, nFRAG_COLOR);
+                                               kGLSL_VERSION, nMATERIAL, nFRAG_COLOR);
 
         type = "fragment shader";
     }
 
     else if(_type == GL_GEOMETRY_SHADER){
-        sprintf_s(prepross, sizeof(prepross), "\n#version 330 core\n\
-                                               \n#define CRUS_GEOMETRY_SHADER 1\n");
+        sprintf_s(prepross, sizeof(prepross), "\n%s\n\
+                                               \n#define CRUS_GEOMETRY_SHADER 1\n",
+                                               kGLSL_VERSION);
 
         //glProgramParameteri(program_, GL_GEOMETRY_INPUT_TYPE, GL_TRIANGLES);
         //glProgramParameteri(program_, GL_GEOMETRY_OUTPUT_TYPE, GL_TRIANGLE_STRIP);

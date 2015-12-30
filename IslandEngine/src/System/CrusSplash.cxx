@@ -11,7 +11,7 @@
 #include "System\CrusWindow.h"
 #include "System\CrusSplash.h"
 
-__covert::CSplash::CSplash(wcstr _imagePath)
+__hidden::CSplash::CSplash(wcstr _imagePath)
 {
     HANDLE const hBitmap = LoadImageW(nullptr, _imagePath, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
 
@@ -55,7 +55,7 @@ __covert::CSplash::CSplash(wcstr _imagePath)
     DeleteDC(hSComp);
 }
 
-__covert::CSplash::~CSplash()
+__hidden::CSplash::~CSplash()
 {
     if(hDC_ != nullptr && hWnd_ != nullptr){
         ReleaseDC(hWnd_, hDC_);

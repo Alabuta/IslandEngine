@@ -64,6 +64,61 @@ private:
     bool CheckShader(std::string name, astr type, uint32 shader) const;
     bool CheckProgram(std::string name) const;
 };
+
+__forceinline void Program::SwitchOn() const
+{
+    glUseProgram(program_);
+
+#if _CRUS_OBSOLETE
+    if (glGetError() != GL_NO_ERROR) {
+        Book::AddEvent(NOTE::nERROR, "invalid program number: %d (%s)", program_, name_.c_str());
+    }
+#endif
+}
+
+__forceinline /*static*/ void Program::SwitchOff()
+{
+    glUseProgram(0);
+}
+
+__forceinline uint32 Program::GetName() const
+{
+    return program_;
+}
+
+__forceinline int32 Program::GetAttributeLoc(astr _name) const
+{
+    lastAttribute_ = glGetAttribLocation(program_, _name);
+
+#if _CRUS_SHADER_DEBUG
+    if (lastAttribute_ < 0 && !checked_)
+        Book::AddEvent(NOTE::nWARN, "attribute \"%s\" unexist or are not used.", _name);
+#endif
+
+    return lastAttribute_;
+}
+
+__forceinline int32 Program::GetUniformLoc(astr _name) const
+{
+    lastUniform_ = glGetUniformLocation(program_, _name);
+
+#if _CRUS_SHADER_DEBUG
+    if (lastUniform_ < 0 && !checked_)
+        Book::AddEvent(NOTE::nWARN, "uniform \"%s\" unexist or are not used.", _name);
+#endif
+
+    return lastUniform_;
+}
+
+__forceinline /*static*/ int32 Program::GetLastAttributeLoc()
+{
+    return lastAttribute_;
+}
+
+__forceinline /*static*/ int32 Program::GetLasUniformLoc()
+{
+    return lastUniform_;
+}
 };
 
 #endif // CRUS_PROGRAM_H

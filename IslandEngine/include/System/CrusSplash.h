@@ -12,7 +12,7 @@
 #ifndef CRUS_SPLASH_H               // Include guard "CrusSplash.h"
 #define CRUS_SPLASH_H
 
-namespace __covert
+namespace __hidden
 {
 class CSplash {
 public:
