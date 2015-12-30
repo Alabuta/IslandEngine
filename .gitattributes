@@ -1,0 +1,6 @@
+ // Defining whole solution attributes
+
+*.sln eol=crlf
+*.vcproj eol=crlf
+*.vcxproj.filters eol=crlf
+*.bat eol=crlf
