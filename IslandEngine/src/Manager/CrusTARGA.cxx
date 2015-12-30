@@ -83,7 +83,7 @@ bool LoadTARGA(Image &_image, std::string const &_name)
     std::ifstream file(path, std::ios::binary);
 
     if (!file.is_open()) {
-        Book::AddEvent(NOTE::nERROR, "can't open shader source file: \"%s\".", _name.data());
+        Book::AddEvent(NOTE::nERROR, "can't open texture file: \"%s\".", _name.data());
         return false;
     }
 

@@ -7,7 +7,7 @@
 ****    Description: uniform buffer objects initialization shader.
 ****
 ****************************************************************************************/
-#extension GL_ARB_shading_language_420pack : enable
+
 #if CRUS_VERTEX_SHADER
 
 layout(location = nVERTEX) in vec3 inVertex;

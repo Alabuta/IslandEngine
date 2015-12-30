@@ -4,6 +4,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 14.0.24720.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "IslandEngine", "IslandEngine\IslandEngine.vcxproj", "{69AB9DB7-6B45-41D3-BEAE-E677DA10752E}"
+	ProjectSection(ProjectDependencies) = postProject
+		{D2450369-4591-4CAA-BD6A-D370B8BE007A} = {D2450369-4591-4CAA-BD6A-D370B8BE007A}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = ".xUnitTest", "IslandEngine\xUnitTest.vcxproj", "{D2450369-4591-4CAA-BD6A-D370B8BE007A}"
 EndProject

@@ -49,6 +49,15 @@
     <Filter Include="Core\Math\Vector">
       <UniqueIdentifier>{9dd04859-baff-401e-b8e3-dcaca644b3c5}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Shader sources\FlappyBird">
+      <UniqueIdentifier>{68e89e59-ec53-4279-b931-db5fcec5f4ae}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shader sources\Interface">
+      <UniqueIdentifier>{2ecfa14d-5f19-47b6-86d3-66a183391438}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shader sources\Atmosphere">
+      <UniqueIdentifier>{af0690b5-d3c1-4a51-9e12-45f8dbcbc63b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\engine.cxx" />
@@ -223,6 +232,30 @@
     </None>
     <None Include="include\Math\CrusMatrix.inl">
       <Filter>Core\Math\Matrix</Filter>
+    </None>
+    <None Include="..\shaders\ubo_init.glsl">
+      <Filter>Shader sources</Filter>
+    </None>
+    <None Include="..\shaders\test.glsl">
+      <Filter>Shader sources</Filter>
+    </None>
+    <None Include="..\shaders\FlappyBird\background.glsl">
+      <Filter>Shader sources\FlappyBird</Filter>
+    </None>
+    <None Include="..\shaders\FlappyBird\animated.glsl">
+      <Filter>Shader sources\FlappyBird</Filter>
+    </None>
+    <None Include="..\shaders\Interface\grid.glsl">
+      <Filter>Shader sources\Interface</Filter>
+    </None>
+    <None Include="..\shaders\Interface\textout.glsl">
+      <Filter>Shader sources\Interface</Filter>
+    </None>
+    <None Include="..\shaders\Atmosphere\atmosphere.glsl">
+      <Filter>Shader sources\Atmosphere</Filter>
+    </None>
+    <None Include="..\shaders\Atmosphere\sky.glsl">
+      <Filter>Shader sources\Atmosphere</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>

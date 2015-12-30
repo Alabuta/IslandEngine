@@ -212,6 +212,14 @@
     <ResourceCompile Include="resources\resource.rc" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\shaders\Atmosphere\atmosphere.glsl" />
+    <None Include="..\shaders\Atmosphere\sky.glsl" />
+    <None Include="..\shaders\FlappyBird\animated.glsl" />
+    <None Include="..\shaders\FlappyBird\background.glsl" />
+    <None Include="..\shaders\Interface\grid.glsl" />
+    <None Include="..\shaders\Interface\textout.glsl" />
+    <None Include="..\shaders\test.glsl" />
+    <None Include="..\shaders\ubo_init.glsl" />
     <None Include="include\Math\CrusMatrix.inl" />
     <None Include="include\Math\CrusQuaternion.inl" />
     <None Include="include\Math\CrusVector.inl" />
