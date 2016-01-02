@@ -39,7 +39,7 @@ Object::Object()
 void Object::Init(Texture const *_texture, float _zoom, uint16 _x, uint16 _y, uint16 _w, uint16 _h)
 {
     if (_texture == nullptr) {
-        Book::AddEvent(NOTE::nERROR, "texture pointer is invalid.");
+        Book::AddEvent(eNOTE::nERROR, "texture pointer is invalid.");
         return;
     }
 

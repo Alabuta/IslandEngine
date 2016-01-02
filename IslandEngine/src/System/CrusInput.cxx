@@ -80,13 +80,13 @@ void CInput::Setup()
     uint32 nDevs;
 
     if(GetRawInputDeviceList(nullptr, &nDevs, sizeof(RAWINPUTDEVICELIST)) == (UINT)-1)
-        Book::AddEvent(NOTE::nCRITIC, "%s(%d) : return an error.", __FILE__, __LINE__);
+        Book::AddEvent(eNOTE::nCRITIC, "%s(%d) : return an error.", __FILE__, __LINE__);
 
     // Doubled size - just in case.
     RAWINPUTDEVICELIST ridl[kMAX_HIDS * 2];
 
     if(GetRawInputDeviceList(ridl, &nDevs, sizeof(RAWINPUTDEVICELIST)) != nDevs)
-        Book::AddEvent(NOTE::nCRITIC, "can't to get list of attached HID devices.");
+        Book::AddEvent(eNOTE::nCRITIC, "can't to get list of attached HID devices.");
 
     // Shorter name, that's reason.
     HWND const hTargetWnd = Window::inst().hWnd();
@@ -137,13 +137,13 @@ void CInput::Setup()
                     // XBox 360 (or like) controllers.
                     case HID_USAGE_GENERIC_GAMEPAD:
                         dev_type = nGAMEPAD;
-                        Book::AddEvent(NOTE::nDEBUG, "gpad: 0x%X", ridl[i].hDevice);
+                        Book::AddEvent(eNOTE::nDEBUG, "gpad: 0x%X", ridl[i].hDevice);
                         break;
 
                     // Other HID devices (joysticks, gamepads etc).
                     case HID_USAGE_GENERIC_JOYSTICK:
                         dev_type = nJOYSTICK;
-                        Book::AddEvent(NOTE::nDEBUG, "joy: 0x%X", ridl[i].hDevice);
+                        Book::AddEvent(eNOTE::nDEBUG, "joy: 0x%X", ridl[i].hDevice);
                         break;
                 } break;
 
@@ -158,18 +158,18 @@ void CInput::Setup()
         return;
 
     if(RegisterRawInputDevices(rid, nHID_, sizeof(RAWINPUTDEVICE)) == FALSE)
-        Book::AddEvent(NOTE::nCRITIC, "failed to register types of HID devices.");
+        Book::AddEvent(eNOTE::nCRITIC, "failed to register types of HID devices.");
 
     if(GetRegisteredRawInputDevices(nullptr, &nHID_, sizeof(RAWINPUTDEVICE)) == (UINT)-1)
-        Book::AddEvent(NOTE::nCRITIC, "can't get number of registered types of HID devices.");
+        Book::AddEvent(eNOTE::nCRITIC, "can't get number of registered types of HID devices.");
 
-    Book::AddEvent(NOTE::nINFO, "%u types of HID device%s is registered.", nHID_, nHID_ > 1 ? "s" : "");
+    Book::AddEvent(eNOTE::nINFO, "%u types of HID device%s is registered.", nHID_, nHID_ > 1 ? "s" : "");
 }
 
 void CInput::Destroy()
 {
     if(GetRegisteredRawInputDevices(nullptr, &nHID_, sizeof(RAWINPUTDEVICE)) == (UINT)-1)
-        Book::AddEvent(NOTE::nERROR, "%s(%d) : return an error.", __FILE__, __LINE__);
+        Book::AddEvent(eNOTE::nERROR, "%s(%d) : return an error.", __FILE__, __LINE__);
 
     if(nHID_ < 1)
         return;
@@ -177,7 +177,7 @@ void CInput::Destroy()
     RAWINPUTDEVICE rid[kMAX_HIDS];
 
     if(GetRegisteredRawInputDevices(rid, &nHID_, sizeof(RAWINPUTDEVICE)) != nHID_)
-        Book::AddEvent(NOTE::nERROR, "failed to get list of registered HID devices.");
+        Book::AddEvent(eNOTE::nERROR, "failed to get list of registered HID devices.");
 
     else {
         for(uint32 i = 0; i < nHID_; ++i){
@@ -186,7 +186,7 @@ void CInput::Destroy()
         }
 
         if(RegisterRawInputDevices(rid, nHID_, sizeof(RAWINPUTDEVICE)) == FALSE)
-            Book::AddEvent(NOTE::nCRITIC, "failed to unregister of HID devices.");
+            Book::AddEvent(eNOTE::nCRITIC, "failed to unregister of HID devices.");
     }
 
     if(raw_ != nullptr)
@@ -210,7 +210,7 @@ void CInput::DeviceChanged(WPARAM, LPARAM _lParam)
         if(strstr(temp, "Vid_8888") != nullptr)
             return;
 
-        Book::AddEvent(NOTE::nDEBUG, "%s", temp);
+        Book::AddEvent(eNOTE::nDEBUG, "%s", temp);
     }*/
 
     RID_DEVICE_INFO rdi = {
@@ -247,10 +247,10 @@ void CInput::DeviceChanged(WPARAM, LPARAM _lParam)
         return;*/
 
     /*if(GET_DEVICE_CHANGE_WPARAM(_wParam) == GIDC_ARRIVAL)
-        Book::AddEvent(NOTE::nDEBUG, "A new device has been added to the system.");
+        Book::AddEvent(eNOTE::nDEBUG, "A new device has been added to the system.");
 
     else if(GET_DEVICE_CHANGE_WPARAM(_wParam) == GIDC_REMOVAL)
-        Book::AddEvent(NOTE::nDEBUG, "A device has been removed from the system.");*/
+        Book::AddEvent(eNOTE::nDEBUG, "A device has been removed from the system.");*/
 }
 
 void CInput::Process(WPARAM _wParam, LPARAM _lParam)
@@ -275,15 +275,15 @@ void CInput::Process(WPARAM _wParam, LPARAM _lParam)
 
     switch(raw_->header.dwType){
         case RIM_TYPEMOUSE:
-            Book::AddEvent(NOTE::nDEBUG, "0x%X", raw_->header.hDevice);
+            Book::AddEvent(eNOTE::nDEBUG, "0x%X", raw_->header.hDevice);
             break;
 
         case RIM_TYPEKEYBOARD:
-            Book::AddEvent(NOTE::nDEBUG, "0x%X", raw_->header.hDevice);
+            Book::AddEvent(eNOTE::nDEBUG, "0x%X", raw_->header.hDevice);
             break;
 
         case RIM_TYPEHID:
-            Book::AddEvent(NOTE::nDEBUG, "0x%X", raw_->header.hDevice);
+            Book::AddEvent(eNOTE::nDEBUG, "0x%X", raw_->header.hDevice);
             break;
     }
 }

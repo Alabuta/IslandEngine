@@ -61,14 +61,14 @@ Time System::time;
 
 /*static*/ void System::Destroy()
 {
-    Book::AddEvent(NOTE::nSEPAR);
+    Book::AddEvent(eNOTE::nSEPAR);
 
     Renderer::inst().DeleteRC();
     Window::inst().Destroy();
 
     Input::Destroy();
 
-    Book::AddEvent(NOTE::nNOTICE, "application destroyed.");
+    Book::AddEvent(eNOTE::nNOTICE, "application destroyed.");
     Book::Close();
 
     ::_fcloseall();
@@ -77,7 +77,7 @@ Time System::time;
 /*static*/ int32 System::Loop()
 {
     /*if(_appLoop == nullptr)
-        Book::AddEvent(NOTE::nCRITIC, "application loop functor are void.");*/
+        Book::AddEvent(eNOTE::nCRITIC, "application loop functor are void.");*/
 
     MSG msg;
     time.Restart();

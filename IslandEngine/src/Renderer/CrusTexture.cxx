@@ -41,7 +41,7 @@ bool Texture::Init(std::string const &_name)
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, maxAnisotrophy);
 
     if (glGetError() != GL_NO_ERROR) {
-        Book::AddEvent(NOTE::nERROR, "%s (%d)", __FUNCTION__, __LINE__);
+        Book::AddEvent(eNOTE::nERROR, "%s (%d)", __FUNCTION__, __LINE__);
         return false;
     }
 

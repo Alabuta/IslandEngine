@@ -82,7 +82,7 @@ void Textout::SetText(std::string const &_text)
 void Textout::SetTexture(Texture const *const _texture)
 {
     if (_texture == nullptr)
-        Book::AddEvent(NOTE::nERROR, "texture pointer is invalid.");
+        Book::AddEvent(eNOTE::nERROR, "texture pointer is invalid.");
 
     else texture_ = _texture;
 }

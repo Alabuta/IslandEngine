@@ -98,7 +98,7 @@ void Grid::Update(float _law, float _grle, uint16 _subdivs)
 
     free(data);
 
-    Book::AddEvent(NOTE::nNOTICE, "grid updated (%0.2f; %0.2f; %hu).", _law, _grle, _subdivs);
+    Book::AddEvent(eNOTE::nNOTICE, "grid updated (%0.2f; %0.2f; %hu).", _law, _grle, _subdivs);
 }
 
 void Grid::Draw()

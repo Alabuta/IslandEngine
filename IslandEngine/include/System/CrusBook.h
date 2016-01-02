@@ -14,14 +14,12 @@
 
 namespace isle
 {
-namespace NOTE {
-    enum eNOTE {
-        nSEPAR = 0, nEMPTY, nHYPHEN,
-        nINFO, nNOTICE,
-        nDEBUG,
-        nWARN, nERROR,
-        nALERT, nCRITIC, nEMERG
-    };
+enum class eNOTE : size_t {
+    nSEPAR = 0, nEMPTY, nHYPHEN,
+    nINFO, nNOTICE,
+    nDEBUG,
+    nWARN, nERROR,
+    nALERT, nCRITIC, nEMERG
 };
 
 namespace Book
@@ -30,8 +28,8 @@ namespace Book
  void Close();
 
  // The note argument is severity level and some kind of 
- void AddEvent(isle::NOTE::eNOTE note, acstr str = "\0", ...);
- void NoteTime(isle::NOTE::eNOTE note, acstr str = "\0");
+ void AddEvent(isle::eNOTE note, acstr str = "\0", ...);
+ void NoteTime(isle::eNOTE note, acstr str = "\0");
 };
 };
 

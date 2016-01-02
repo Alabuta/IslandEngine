@@ -35,7 +35,7 @@ void FindVendorDeviceID(USBIDs &_vendor, USBIDs &_device)
 
     fopen_s(&list, "..\\data\\usb.ids", "r");
     if(list == nullptr || ferror(list) != 0){
-        Book::AddEvent(NOTE::nERROR, "can't open USBIDs list file.");
+        Book::AddEvent(eNOTE::nERROR, "can't open USBIDs list file.");
         return;
     }
 

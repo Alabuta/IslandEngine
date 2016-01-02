@@ -1,4 +1,4 @@
-/****************************************************************************************
+/********************************************************************************************************************************
 ****
 ****    Source code of Crusoe's Island Engine.
 ****    Copyright (C) 2009 - 2015 Crusoe's Island LLC.
@@ -6,11 +6,12 @@
 ****    Started at 4th June 2010.
 ****    Description: book log.
 ****
-****************************************************************************************/
+********************************************************************************************************************************/
 #include <cstdio>
 #include <cstdlib>
 #include <cstdarg>
 #include <clocale>
+#include <type_traits>
 
 #ifndef _UNICODE
 #define _UNICODE
@@ -85,8 +86,8 @@ public:
     void Open();
     void Close();
 
-    void AddEvent(isle::NOTE::eNOTE note, acstr str, va_list ap);
-    void NoteTime(isle::NOTE::eNOTE note, acstr str);
+    void AddEvent(isle::eNOTE note, acstr str, va_list ap);
+    void NoteTime(isle::eNOTE note, acstr str);
 
     static CBook &book();
 };
@@ -97,12 +98,15 @@ public:
     return book;
 }
 
-__forceinline void CBook::AddEvent(isle::NOTE::eNOTE _note, acstr _str, va_list _ap)
+__forceinline void CBook::AddEvent(isle::eNOTE _note, acstr _str, va_list _ap)
 {
     if(_str == nullptr || sheets_ == nullptr) return;
 
+    using utype = std::underlying_type<isle::eNOTE>::type;
+    auto const note = static_cast<utype>(_note);
+
     _vsprintf_s_l(line_, sizeof(line_), _str, locale_, _ap);
-    _fprintf_s_l(sheets_, kNOTES[_note], locale_, line_);
+    _fprintf_s_l(sheets_, kNOTES[note], locale_, line_);
 
 #if _CRUS_DEBUG_CONSOLE
     HANDLE const hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -110,9 +114,9 @@ __forceinline void CBook::AddEvent(isle::NOTE::eNOTE _note, acstr _str, va_list 
     CONSOLE_SCREEN_BUFFER_INFO info;
     GetConsoleScreenBufferInfo(hConsole, &info);
 
-    _printf_s_l(kNOTES[_note], locale_, line_);
+    _printf_s_l(kNOTES[note], locale_, line_);
 
-    if(_note > isle::NOTE::nEMPTY){
+    if(_note > isle::eNOTE::nEMPTY){
         COORD const pos = {0, 0};
         COORD const rect = {10, 1};
 
@@ -121,11 +125,11 @@ __forceinline void CBook::AddEvent(isle::NOTE::eNOTE _note, acstr _str, va_list 
             10, info.dwCursorPosition.Y
         };
 
-        WriteConsoleOutputW(hConsole, kMARKERS[_note - 2], rect, pos, &rcDraw);
+        WriteConsoleOutputW(hConsole, kMARKERS[note - 2], rect, pos, &rcDraw);
     }
 #endif
 
-    if(_note > isle::NOTE::nERROR){
+    if(_note > isle::eNOTE::nERROR){
 #if _CRUS_DEBUG_CONSOLE
         FlushConsoleInputBuffer(hConsole);
 #endif
@@ -231,19 +235,22 @@ void CBook::Open()
     }
 #endif
 
+    using utype = std::underlying_type<isle::eNOTE>::type;
+    auto const note = static_cast<utype>(isle::eNOTE::nSEPAR);
+
     _fprintf_s_l(sheets_, "%s at %s (%s).\n%s", locale_,
                  crus::names_a::kPROJECT, crus::names_a::kBUILD_DATE,
-                 crus::names_a::kBUILD_VERSION, kNOTES[isle::NOTE::nSEPAR]);
+                 crus::names_a::kBUILD_VERSION, kNOTES[note]);
 
-    isle::Book::NoteTime(isle::NOTE::nNOTICE, "started");
+    isle::Book::NoteTime(isle::eNOTE::nNOTICE, "started");
 }
 
 void CBook::Close()
 {
     if(sheets_ == nullptr || ::ferror(sheets_)) return;
 
-    isle::Book::AddEvent(isle::NOTE::nSEPAR);
-    isle::Book::NoteTime(isle::NOTE::nNOTICE, "shutdown");
+    isle::Book::AddEvent(isle::eNOTE::nSEPAR);
+    isle::Book::NoteTime(isle::eNOTE::nNOTICE, "shutdown");
 
     ::fclose(sheets_);
     sheets_ = nullptr;
@@ -267,7 +274,7 @@ void Book::Close()
     CBook::book().Close();
 }
 
-void Book::AddEvent(isle::NOTE::eNOTE _note, acstr _str, ...)
+void Book::AddEvent(isle::eNOTE _note, acstr _str, ...)
 {
     va_list ap;
     va_start(ap, _str);
@@ -275,7 +282,7 @@ void Book::AddEvent(isle::NOTE::eNOTE _note, acstr _str, ...)
     CBook::book().AddEvent(_note, _str, ap);
 }
 
-void Book::NoteTime(isle::NOTE::eNOTE _note, acstr _str)
+void Book::NoteTime(isle::eNOTE _note, acstr _str)
 {
     SYSTEMTIME time;
     GetLocalTime(&time);

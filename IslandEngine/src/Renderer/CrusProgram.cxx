@@ -36,7 +36,7 @@ bool ReadShaderSources(std::vector<std::string> &_sources, std::initializer_list
 {
     for (auto const &name : _names) {
         if (name.data() == nullptr) {
-            Book::AddEvent(NOTE::nERROR, "shader file name is invalid: \"%s\".", name.data());
+            Book::AddEvent(eNOTE::nERROR, "shader file name is invalid: \"%s\".", name.data());
             continue;
         }
 
@@ -45,7 +45,7 @@ bool ReadShaderSources(std::vector<std::string> &_sources, std::initializer_list
         std::ifstream file(path, std::ios::ate);
 
         if(!file.is_open()) {
-            Book::AddEvent(NOTE::nERROR, "can't open shader source file: \"%s\".", name.data());
+            Book::AddEvent(eNOTE::nERROR, "can't open shader source file: \"%s\".", name.data());
             return false;
         }
 
@@ -62,7 +62,7 @@ bool ReadShaderSources(std::vector<std::string> &_sources, std::initializer_list
         _sources.push_back(str.data());
 
         if (_sources.back().data() == nullptr) {
-            Book::AddEvent(NOTE::nERROR, "can't read shader source file: \"%s\".", path.data());
+            Book::AddEvent(eNOTE::nERROR, "can't read shader source file: \"%s\".", path.data());
             return false;
         }
     }
@@ -96,7 +96,7 @@ bool Program::AssignNew(std::initializer_list<std::string> _names, astr _options
     std::vector<std::string> sources = {"", ""};
 
     if (!ReadShaderSources(sources, _names)) {
-        Book::AddEvent(NOTE::nERROR, "invalid shader: \"%s\".", _names.begin()->data());
+        Book::AddEvent(eNOTE::nERROR, "invalid shader: \"%s\".", _names.begin()->data());
         return false;
     }
 
@@ -124,13 +124,13 @@ bool Program::AssignNew(std::initializer_list<std::string> _names, astr _options
     glLinkProgram(program_);
 
     if(glGetError() != GL_NO_ERROR)
-        Book::AddEvent(NOTE::nERROR, "...");
+        Book::AddEvent(eNOTE::nERROR, "...");
 
     if (CheckProgram(reinterpret_cast<astr>(_names.begin()->data()))) {
         glUseProgram(program_);
 
         if (glIsProgram(program_) != GL_TRUE) {
-            Book::AddEvent(NOTE::nERROR, "invalid program number: %d (%s)", program_, _names.begin()->c_str());
+            Book::AddEvent(eNOTE::nERROR, "invalid program number: %d (%s)", program_, _names.begin()->c_str());
             return false;
         }
 
@@ -176,7 +176,7 @@ bool Program::CreateShader(std::string _name, std::vector<std::string> _sources,
     uint32 shader = glCreateShader(_type);
 
     if(glGetError() != GL_NO_ERROR){
-        Book::AddEvent(NOTE::nERROR, "can't create shader.");
+        Book::AddEvent(eNOTE::nERROR, "can't create shader.");
         return false;
     }
 
@@ -256,8 +256,8 @@ bool Program::CheckShader(std::string _name, astr _type, uint32 _shader) const
     if(length < 1)
         return false;
 
-    Book::AddEvent(NOTE::nERROR, "\"%s\" {%s}:", _name.data(), _type);
-    Book::AddEvent(NOTE::nHYPHEN, "%s", log);
+    Book::AddEvent(eNOTE::nERROR, "\"%s\" {%s}:", _name.data(), _type);
+    Book::AddEvent(eNOTE::nHYPHEN, "%s", log);
 
     return false;
 }
@@ -285,8 +285,8 @@ bool Program::CheckProgram(std::string _name) const
     if(length < 1)
         return false;
 
-    Book::AddEvent(NOTE::nERROR, "\"%s\":", _name.data());
-    Book::AddEvent(NOTE::nHYPHEN, "%s", log);
+    Book::AddEvent(eNOTE::nERROR, "\"%s\":", _name.data());
+    Book::AddEvent(eNOTE::nHYPHEN, "%s", log);
 
     return false;
 }

@@ -39,7 +39,7 @@ void Mouse::Setup()
     hCursor = CreateCursor(GetModuleHandle(nullptr), 0, 0, w, h, &mask[0][0], &mask[1][0]);
 
     if(hCursor == nullptr)
-        Book::AddEvent(NOTE::nERROR, "transparent cursor is null.");
+        Book::AddEvent(eNOTE::nERROR, "transparent cursor is null.");
 #endif
 }
 
@@ -77,7 +77,7 @@ void Mouse::Destroy()
     }
 
     catch (std::out_of_range const &oor) {
-        Book::AddEvent(isle::NOTE::nERROR, "Out of Range error: %s", oor.what());
+        Book::AddEvent(isle::eNOTE::nERROR, "Out of Range error: %s", oor.what());
     }
 }
 
@@ -92,15 +92,15 @@ void Mouse::Process(RAWMOUSE const *const _data)
             break;
 
         case MOUSE_MOVE_ABSOLUTE:
-            Book::AddEvent(NOTE::nDEBUG, "MOUSE_MOVE_ABSOLUTE");
+            Book::AddEvent(eNOTE::nDEBUG, "MOUSE_MOVE_ABSOLUTE");
             break;
 
         case MOUSE_VIRTUAL_DESKTOP:             // For a multiple monitor system.
-            Book::AddEvent(NOTE::nDEBUG, "MOUSE_VIRTUAL_DESKTOP");
+            Book::AddEvent(eNOTE::nDEBUG, "MOUSE_VIRTUAL_DESKTOP");
             break;
 
         case MOUSE_ATTRIBUTES_CHANGED:          // Needs to query the attributes.
-            Book::AddEvent(NOTE::nWARN, "MOUSE_ATTRIBUTES_CHANGED");
+            Book::AddEvent(eNOTE::nWARN, "MOUSE_ATTRIBUTES_CHANGED");
             break;
     }
 

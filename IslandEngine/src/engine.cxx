@@ -51,7 +51,7 @@ void InitBackground()
 
     glBufferData(GL_ARRAY_BUFFER, sizeof(quad_plane), quad_plane, GL_STATIC_DRAW);
 
-    glVertexAttribPointer(isle::Program::nVERTEX, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 5, nullptr);
+    glVertexAttribPointer(isle::Program::eLAYOUT_ID::nVERTEX, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 5, nullptr);
     glEnableVertexAttribArray(isle::Program::nVERTEX);
 
     glVertexAttribPointer(isle::Program::nTEXCRD, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 5, reinterpret_cast<void const *>(sizeof(float) * 3));
@@ -229,8 +229,8 @@ void DrawFrame()
 //
 //    Window::inst().Create("w-", /*288, 512,*/450, 800);
 //     
-//    Book::AddEvent(isle::NOTE::nSEPAR);
-//    Book::AddEvent(isle::NOTE::nDEBUG, "...");
+//    Book::AddEvent(isle::eNOTE::nSEPAR);
+//    Book::AddEvent(isle::eNOTE::nDEBUG, "...");
 //
 //    Camera::inst().Create(Camera::eCAM_BEHAVIOR::nFREE);
 //    Camera::inst().SetPos(0.0f, 0.0f, 4.0f);
@@ -247,7 +247,7 @@ void EnumScreenModes()
     };
 
     for (auto iDevNum = 0; EnumDisplayDevicesA(nullptr, iDevNum, &device, 0) != 0; ++iDevNum) {
-        isle::Book::AddEvent(isle::NOTE::nDEBUG, "%s|%s", device.DeviceName, device.DeviceString);
+        isle::Book::AddEvent(isle::eNOTE::nDEBUG, "%s|%s", device.DeviceName, device.DeviceString);
     }
 
     DEVMODEW devmode = {
@@ -289,7 +289,7 @@ void EnumScreenModes()
     settings.erase(last, settings.end());
 
     for (auto const &setting : settings)
-        isle::Book::AddEvent(isle::NOTE::nDEBUG, "%dx%d @%d", setting.width, setting.height, setting.frequency);
+        isle::Book::AddEvent(isle::eNOTE::nDEBUG, "%dx%d @%d", setting.width, setting.height, setting.frequency);
 }
 
 int32 WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int32 nShowCmd)
@@ -298,8 +298,8 @@ int32 WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
     Window::inst().Create("w-", 450, 800);
 
-    Book::AddEvent(isle::NOTE::nSEPAR);
-    Book::AddEvent(isle::NOTE::nDEBUG, "...");
+    Book::AddEvent(isle::eNOTE::nSEPAR);
+    Book::AddEvent(isle::eNOTE::nDEBUG, "...");
 
     EnumScreenModes();
 
