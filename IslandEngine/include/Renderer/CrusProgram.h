@@ -1,4 +1,4 @@
-/****************************************************************************************
+/********************************************************************************************************************************
 ****
 ****    Source code of Crusoe's Island Engine.
 ****    Copyright (C) 2009 - 2015 Crusoe's Island LLC.
@@ -6,7 +6,7 @@
 ****    Started at 27th June 2010.
 ****    Description: shader programs loading routines.
 ****
-****************************************************************************************/
+********************************************************************************************************************************/
 #pragma once
 
 #ifndef CRUS_PROGRAM_H              // Include guard "CrusProgram.h"
@@ -71,7 +71,7 @@ __forceinline void Program::SwitchOn() const
 
 #if _CRUS_OBSOLETE
     if (glGetError() != GL_NO_ERROR) {
-        Book::AddEvent(NOTE::nERROR, "invalid program number: %d (%s)", program_, name_.c_str());
+        Book::AddEvent(eNOTE::nERROR, "invalid program number: %d (%s)", program_, name_.c_str());
     }
 #endif
 }
@@ -92,7 +92,7 @@ __forceinline int32 Program::GetAttributeLoc(astr _name) const
 
 #if _CRUS_SHADER_DEBUG
     if (lastAttribute_ < 0 && !checked_)
-        Book::AddEvent(NOTE::nWARN, "attribute \"%s\" unexist or are not used.", _name);
+        Book::AddEvent(eNOTE::nWARN, "attribute \"%s\" unexist or are not used.", _name);
 #endif
 
     return lastAttribute_;
@@ -104,7 +104,7 @@ __forceinline int32 Program::GetUniformLoc(astr _name) const
 
 #if _CRUS_SHADER_DEBUG
     if (lastUniform_ < 0 && !checked_)
-        Book::AddEvent(NOTE::nWARN, "uniform \"%s\" unexist or are not used.", _name);
+        Book::AddEvent(eNOTE::nWARN, "uniform \"%s\" unexist or are not used.", _name);
 #endif
 
     return lastUniform_;

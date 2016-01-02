@@ -1,4 +1,4 @@
-/****************************************************************************************
+/********************************************************************************************************************************
 ****
 ****    Source code of Crusoe's Island Engine.
 ****    Copyright (C) 2009 - 2014 Crusoe's Island LLC.
@@ -6,7 +6,7 @@
 ****    Started at 23th July 2009.
 ****    Description: main cpp file - the beginning and the application end.
 ****
-****************************************************************************************/
+********************************************************************************************************************************/
 #include "engine.h"
 
 #include <string>
@@ -94,7 +94,9 @@ void Init()
     {
         float const zoom = kMetersInPxl * Renderer::inst().vp_.w() * 52 * 0.5f / 288.0f;
 
+        // The seed.
         std::random_device rd;
+        // Mersenne-Twister engine.
         std::mt19937 mt(rd());
         std::uniform_real_distribution<float> dist(1.0f, 1.2f), height(-0.24f, 0.64f);
 
