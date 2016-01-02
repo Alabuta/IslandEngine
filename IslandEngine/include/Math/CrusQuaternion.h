@@ -30,6 +30,8 @@ public:
     explicit Quaternion(float const q[]);
     explicit Quaternion(float w, float x, float y, float z);
 
+    Quaternion(Quaternion &&q);
+
     float w() const;
     float x() const;
     float y() const;
@@ -60,6 +62,8 @@ public:
 
     Quaternion const &operator= (Quaternion const &q);
     Quaternion const &operator= (float s);
+
+    Quaternion const &operator= (Quaternion &&q);
 
     bool operator== (Quaternion const &q) const;
     bool operator!= (Quaternion const &q) const;

@@ -7,6 +7,7 @@
 ****    Description: quaternion.
 ****
 ****************************************************************************************/
+#include <utility>
 
 namespace isle
 {
@@ -23,6 +24,14 @@ inline Quaternion::Quaternion(float const _q[])
 
 inline Quaternion::Quaternion(float _w, float _x, float _y, float _z)
     : w_(_w), x_(_x), y_(_y), z_(_z) {}
+
+inline Quaternion::Quaternion(Quaternion &&_q)
+{
+    x_ = std::move(_q.x_);
+    y_ = std::move(_q.y_);
+    z_ = std::move(_q.z_);
+    w_ = std::move(_q.w_);
+}
 
 inline float Quaternion::w() const
 {
@@ -157,6 +166,15 @@ inline Quaternion const &Quaternion::operator= (Quaternion const &_q)
 inline Quaternion const &Quaternion::operator= (float _s)
 {
     w_ =_s;  x_ =_s;  y_ =_s;  z_ =_s;
+    return *this;
+}
+inline Quaternion const &Quaternion::operator= (Quaternion &&_q)
+{
+    x_ = std::move(_q.x_);
+    y_ = std::move(_q.y_);
+    z_ = std::move(_q.z_);
+    w_ = std::move(_q.w_);
+
     return *this;
 }
 

@@ -30,6 +30,8 @@ public:
     explicit Vector(float const v[]);
     explicit Vector(float x, float y, float z);
 
+    Vector(Vector &&v);
+
     float x() const;
     float y() const;
     float z() const;
@@ -58,6 +60,8 @@ public:
 
     Vector const &operator= (Vector const &v);
     Vector const &operator= (float s);
+
+    Vector const &operator= (Vector &&v);
 
     bool operator== (Vector const &v) const;
     bool operator!= (Vector const &v) const;

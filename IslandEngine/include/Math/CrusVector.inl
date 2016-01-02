@@ -7,6 +7,7 @@
 ****    Description: three-component vector implementation.
 ****
 ****************************************************************************************/
+#include <utility>
 
 namespace isle
 {
@@ -19,6 +20,13 @@ inline Vector::Vector(Vector const &_v) : Vector::Vector(_v.x_, _v.y_, _v.z_) {}
 
 inline Vector::Vector(float const _v[]) : Vector::Vector(_v[0],_v[1], _v[2]) {}
 inline Vector::Vector(float _x, float _y, float _z) : x_(_x), y_(_y), z_(_z) {}
+
+inline Vector::Vector(Vector &&_v)
+{
+    x_ = std::move(_v.x_);
+    y_ = std::move(_v.y_);
+    z_ = std::move(_v.z_);
+}
 
 inline float Vector::x() const
 {
@@ -133,6 +141,14 @@ inline Vector const &Vector::operator= (Vector const &_v)
 inline Vector const &Vector::operator= (float _s)
 {
     x_ = _s;  y_ = _s;  z_ = _s;
+    return *this;
+}
+
+inline Vector const &Vector::operator= (Vector &&_v)
+{
+    x_ = std::move(_v.x_);
+    y_ = std::move(_v.y_);
+    z_ = std::move(_v.z_);
     return *this;
 }
 
