@@ -1,4 +1,11 @@
-IslandEngine/x64/
+
 *.sdf
 *.opendb
+*.ilk
+*.pdb
+*.exe
+*.log
+
+.vs/
+IslandEngine/x64/
 textures/
