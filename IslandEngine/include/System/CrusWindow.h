@@ -31,7 +31,7 @@ class Window {
 public:
 
     // Args: mode, width and height in pixels.
-    void Create(char const mode[], int16 w, int16 h);
+    void Create(HINSTANCE hInstance, char const mode[], int16 w, int16 h);
     void Destroy();
 
     // Adjust to the sizes of the desktop rectangle.

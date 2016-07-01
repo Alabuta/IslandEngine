@@ -11,7 +11,13 @@
 #include "System\CrusWindow.h"
 #include "System\CrusSplash.h"
 
-__hidden::CSplash::CSplash(wcstr _imagePath)
+
+namespace __hidden
+{
+HINSTANCE hInstance;
+}
+
+__hidden::CSplash::CSplash(HINSTANCE _hInstance, wcstr _imagePath)
 {
     HANDLE const hBitmap = LoadImageW(nullptr, _imagePath, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
 
@@ -19,11 +25,13 @@ __hidden::CSplash::CSplash(wcstr _imagePath)
     GetObjectW(hBitmap, sizeof(BITMAP), &bm);
     int32 ws[4] = {0, 0, bm.bmWidth, bm.bmHeight};
 
+    hInstance = _hInstance;
+
     WNDCLASSW const wcs = {
         CS_NOCLOSE,
         (WNDPROC)DefWindowProcW,
         0, 0,
-        GetModuleHandle(nullptr),
+        /*GetModuleHandleW(nullptr)*/hInstance,
         LoadIconW(wcs.hInstance, MAKEINTRESOURCEW(0x4000)),
         nullptr,
         nullptr, nullptr,
@@ -67,5 +75,5 @@ __hidden::CSplash::~CSplash()
         hWnd_ = nullptr;
     };
 
-    UnregisterClassW(L"CrusSplash", GetModuleHandle(nullptr));
+    UnregisterClassW(L"CrusSplash", /*GetModuleHandle(nullptr)*/hInstance);
 }

@@ -17,7 +17,7 @@ namespace __hidden
 class CSplash {
 public:
 
-    CSplash(wcstr);
+    CSplash(HINSTANCE hInstance, wcstr);
     ~CSplash();
 
     HWND hWnd() const;
