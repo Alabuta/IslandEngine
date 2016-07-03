@@ -79,7 +79,7 @@ bool LoadUncompressedTARGA(Image &_image, std::ifstream &_file)
 
 bool LoadTARGA(Image &_image, std::string const &_name)
 {
-    std::string path("../textures/" + _name);
+    std::string path("../content/textures/" + _name);
     std::ifstream file(path, std::ios::binary);
 
     if (!file.is_open()) {

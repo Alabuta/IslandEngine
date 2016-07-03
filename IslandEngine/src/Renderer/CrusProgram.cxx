@@ -41,7 +41,7 @@ bool ReadShaderSources(std::vector<std::string> &_sources, std::initializer_list
         }
 
         //SetFullPath("..\\shaders\\", name);
-        std::string path("../shaders/" + name);
+        std::string path("../content/shaders/" + name);
         std::ifstream file(path, std::ios::ate);
 
         if(!file.is_open()) {
