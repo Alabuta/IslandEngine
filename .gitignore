@@ -5,7 +5,11 @@
 *.pdb
 *.exe
 *.log
+*.ipdb
+*.iobj
 
 .vs/
+[Bb]in/
 IslandEngine/x64/
-textures/
+IslandEngine/x86/
+[Tt]extures/

@@ -9,6 +9,8 @@
 ********************************************************************************************************************************/
 #include "engine.h"
 
+#include <iostream>
+
 #include <string>
 #include <random>
 #include <algorithm>
@@ -21,7 +23,7 @@ float const kMetersInPxl = 0.002511f;
 Texture atlas;
 Textout text;
 
-isle::Program background;
+Program background;
 uint32 background_vao;
 
 Ground ground;
@@ -298,12 +300,20 @@ int32 WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 {
     using namespace isle;
 
-    Window::inst().Create("w-", 450, 800);
+    Window::inst().Create(hInstance, "w-", 450, 800);
 
     Book::AddEvent(isle::eNOTE::nSEPAR);
     Book::AddEvent(isle::eNOTE::nDEBUG, "...");
 
     EnumScreenModes();
+
+    int a[] = {25, 36, 49, 64, 81, 100};
+    for (int i = 0; i < 5; ++i) {
+        a[i] = (a[i + 1] - a[i]) / 2;
+    }
+
+    for (auto const &x : a)
+        std::cout << x << '\0';
 
     return isle::System::Loop();
 }
