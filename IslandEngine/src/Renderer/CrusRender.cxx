@@ -1,7 +1,7 @@
 /********************************************************************************************************************************
 ****
 ****    Source code of Crusoe's Island Engine.
-****    Copyright (C) 2009 - 2014 Crusoe's Island LLC.
+****    Copyright (C) 2009 - 2017 Crusoe's Island LLC.
 ****
 ****    Started at 12th March 2010.
 ****    Description: implementation of renderer system.
@@ -11,15 +11,14 @@
 #include "System\CrusWindow.h"
 #include "System\CrusSplash.h"
 
-#include "Renderer\CrusRenderer.h"
+#include "Renderer\CrusRender.h"
 #include "Renderer\CrusProgram.h"
 
-#include "Interface\CrusCamera.h"
+#include "Camera\CrusCamera.h"
 
-namespace isle
-{
-Renderer::Renderer(){};
-Renderer::~Renderer(){};
+namespace isle {
+Render::Render() {};
+Render::~Render() {};
 
 HWND hDummyWnd{nullptr};
 HDC hDummyDC{nullptr};
@@ -69,7 +68,7 @@ void CreateDummy()
     ShowWindow(hDummyWnd, SW_HIDE);
 }
 
-void Renderer::SetupContext()
+void Render::SetupContext()
 {
     CreateDummy();
 
@@ -137,7 +136,7 @@ void Renderer::SetupContext()
     wglSwapIntervalEXT(1);
 
     //glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS_ARB);
-    //glDebugMessageCallbackARB(Renderer::DebugCallback, nullptr);
+    //glDebugMessageCallbackARB(Render::DebugCallback, nullptr);
 
     if (glGetError() != GL_NO_ERROR) {
         Book::AddEvent(eNOTE::nERROR, "%d", __LINE__);
@@ -164,22 +163,23 @@ void Renderer::SetupContext()
         return;
     }
 
-    //glClearColor(kCLEARGRAY.r(), kCLEARGRAY.g(), kCLEARGRAY.b(), 1.0f);
-    glClearColor(41 / 256.0f, 34 / 256.0f, 37 / 256.0f, 1.0f);
+    using namespace colors;
+    glClearColor(kCLEARGRAY.r(), kCLEARGRAY.g(), kCLEARGRAY.b(), 1.0f);
+    //glClearColor(41 / 256.0f, 34 / 256.0f, 37 / 256.0f, 1.0f);
 }
 
-void Renderer::DeleteRC()
+void Render::DeleteRC()
 {
     HGLRC const hRC = wglGetCurrentContext();
 
-    if(hRC != nullptr){
+    if (hRC != nullptr) {
         CleanUp();
 
         wglMakeCurrent(nullptr, nullptr);
         wglDeleteContext(hRC);
     }
 
-    if(hDC_ != nullptr && Window::inst().hWnd() != nullptr){
+    if (hDC_ != nullptr && Window::inst().hWnd() != nullptr) {
         ReleaseDC(Window::inst().hWnd(), hDC_);
         hDC_ = nullptr;
     }
@@ -187,9 +187,9 @@ void Renderer::DeleteRC()
     Book::AddEvent(eNOTE::nNOTICE, "renderer context deleted.");
 }
 
-bool Renderer::CreateProgram(uint32 &_program)
+bool Render::CreateProgram(uint32 &_program)
 {
-    if(glIsProgram(_program) == GL_TRUE){
+    if (glIsProgram(_program) == GL_TRUE) {
         Book::AddEvent(eNOTE::nWARN, "already used program index: #%u.", _program);
         return false;
     }
@@ -207,9 +207,9 @@ bool Renderer::CreateProgram(uint32 &_program)
     return true;
 }
 
-bool Renderer::CreateVBO(uint32 _target, uint32 &_vbo)
+bool Render::CreateVBO(uint32 _target, uint32 &_vbo)
 {
-    if(_vbo != 0 && glIsBuffer(_vbo) == GL_TRUE){
+    if (_vbo != 0 && glIsBuffer(_vbo) == GL_TRUE) {
         Book::AddEvent(eNOTE::nWARN, "already used VBO index: #%u.", _vbo);
         return false;
     }
@@ -217,7 +217,7 @@ bool Renderer::CreateVBO(uint32 _target, uint32 &_vbo)
     glGenBuffers(1, &_vbo);
     glBindBuffer(_target, _vbo);
 
-    if(glGetError() != GL_NO_ERROR){
+    if (glGetError() != GL_NO_ERROR) {
         Book::AddEvent(eNOTE::nERROR, "some problem with vertex buffer index.");
         return false;
     }
@@ -226,9 +226,9 @@ bool Renderer::CreateVBO(uint32 _target, uint32 &_vbo)
     return true;
 }
 
-bool Renderer::CreateVAO(uint32 &_vao)
+bool Render::CreateVAO(uint32 &_vao)
 {
-    if(glIsVertexArray(_vao) == GL_TRUE){
+    if (glIsVertexArray(_vao) == GL_TRUE) {
         Book::AddEvent(eNOTE::nWARN, "already used VAO index: #%u.", _vao);
         return false;
     }
@@ -236,7 +236,7 @@ bool Renderer::CreateVAO(uint32 &_vao)
     glGenVertexArrays(1, &_vao);
     glBindVertexArray(_vao);
 
-    if(glGetError() != GL_NO_ERROR){
+    if (glGetError() != GL_NO_ERROR) {
         Book::AddEvent(eNOTE::nERROR, "some problem with vertex array index.");
         return false;
     }
@@ -245,9 +245,9 @@ bool Renderer::CreateVAO(uint32 &_vao)
     return true;
 }
 
-bool Renderer::CreateTBO(uint32 _target, uint32 &_tbo)
+bool Render::CreateTBO(uint32 _target, uint32 &_tbo)
 {
-    if(glIsTexture(_tbo) == GL_TRUE){
+    if (glIsTexture(_tbo) == GL_TRUE) {
         Book::AddEvent(eNOTE::nWARN, "already used TBO index: #%u.", _tbo);
         return false;
     }
@@ -255,7 +255,7 @@ bool Renderer::CreateTBO(uint32 _target, uint32 &_tbo)
     glGenTextures(1, &_tbo);
     glBindTexture(_target, _tbo);
 
-    if(glGetError() != GL_NO_ERROR){
+    if (glGetError() != GL_NO_ERROR) {
         Book::AddEvent(eNOTE::nERROR, "some problem with texture buffer index.");
         return false;
     }
@@ -264,16 +264,15 @@ bool Renderer::CreateTBO(uint32 _target, uint32 &_tbo)
     return true;
 }
 
-void Renderer::SetViewport(int16 _x, int16 _y, int16 _w, int16 _h)
+void Render::SetViewport(int16 _x, int16 _y, int16 _w, int16 _h)
 {
     vp_.SetViewport(_x, _y, _w, _h);
 }
 
-void Renderer::Update()
-{
-}
+void Render::Update()
+{}
 
-void Renderer::DrawFrame()
+void Render::DrawFrame()
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -283,8 +282,6 @@ void Renderer::DrawFrame()
     math::Matrix matrices[] = {vp_.projView(), vp_.cam().view(), vp_.proj()};
 
     UpdateTRSM(2, 3, matrices);
-
-    //(*_appLoop)();
 
     app::DrawFrame();
 
@@ -298,13 +295,13 @@ void Renderer::DrawFrame()
 #endif
 }
 
-/*static*/ __declspec(noinline) Renderer &Renderer::inst()
+/*static*/ __declspec(noinline) Render &Render::inst()
 {
-    static Renderer inst;
+    static Render inst;
     return inst;
 }
 
-void Renderer::InitUniformBuffer()
+void Render::InitUniformBuffer()
 {
     Program ubo;
 
@@ -336,9 +333,10 @@ void Renderer::InitUniformBuffer()
         uint32 index = glGetUniformBlockIndex(ubo.GetName(), "CMTS");
         glGetActiveUniformBlockiv(ubo.GetName(), Program::nMATERIAL, GL_UNIFORM_BLOCK_DATA_SIZE, &size);
 
-        if(index == GL_INVALID_INDEX || size < 1)
+        if (index == GL_INVALID_INDEX || size < 1)
             Book::AddEvent(eNOTE::nCRITIC, "can't init the UBO: invalid index param (%s).", "CMTS");
 
+        using namespace colors;
         Color const colors[4] = {
             kDARKGREEN, kSPRINGGREEN, kRED, kNAVYBLUE
         };
@@ -355,7 +353,7 @@ void Renderer::InitUniformBuffer()
         uint32 index = glGetUniformBlockIndex(ubo.GetName(), "TRSM");
         glGetActiveUniformBlockiv(ubo.GetName(), Program::nTRANSFORM, GL_UNIFORM_BLOCK_DATA_SIZE, &size);
 
-        if(index == GL_INVALID_INDEX || size < 1)
+        if (index == GL_INVALID_INDEX || size < 1)
             Book::AddEvent(eNOTE::nCRITIC, "can't init the UBO: invalid index param (%s).", "TRSM");
 
         CreateVBO(GL_UNIFORM_BUFFER, TRSM_);
@@ -367,8 +365,8 @@ void Renderer::InitUniformBuffer()
     }
 }
 
-void CALLBACK Renderer::DebugCallback(GLenum _source, GLenum _type, GLuint _id, GLenum _severity,
-                                      GLsizei _length, char const *_message, void const *_userParam)
+void CALLBACK Render::DebugCallback(GLenum _source, GLenum _type, GLuint _id, GLenum _severity,
+    GLsizei _length, char const *_message, void const *_userParam)
 {
     UNREFERENCED_PARAMETER(_source);
     UNREFERENCED_PARAMETER(_id);
@@ -378,7 +376,7 @@ void CALLBACK Renderer::DebugCallback(GLenum _source, GLenum _type, GLuint _id, 
 
     eNOTE note;
 
-    switch(_type){
+    switch (_type) {
         case GL_DEBUG_TYPE_ERROR_ARB:
             note = eNOTE::nERROR;
             break;
@@ -412,10 +410,10 @@ void CALLBACK Renderer::DebugCallback(GLenum _source, GLenum _type, GLuint _id, 
     Book::AddEvent(note, _message);
 }
 
-void Renderer::CleanUp()
+void Render::CleanUp()
 {
     Book::AddEvent(eNOTE::nINFO, "VBOs|VAOs|TBOs|PBOs: %u|%u|%u|%u.",
-                                 VBOs_++, VAOs_++, TBOs_++, POs_++);
+        VBOs_++, VAOs_++, TBOs_++, POs_++);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
@@ -431,36 +429,36 @@ void Renderer::CleanUp()
     uint32 shaders[3];
     int32 count;
 
-    while(--POs_){
-        if(glIsProgram(POs_) == GL_FALSE)
+    while (--POs_) {
+        if (glIsProgram(POs_) == GL_FALSE)
             continue;
 
-            glGetAttachedShaders(POs_, 3, &count, shaders);
+        glGetAttachedShaders(POs_, 3, &count, shaders);
 
-            while(--count > -1){
-                if(glIsShader(shaders[count]) == GL_FALSE)
-                    continue;
+        while (--count > -1) {
+            if (glIsShader(shaders[count]) == GL_FALSE)
+                continue;
 
-                glDetachShader(POs_, shaders[count]);
-                glDeleteShader(shaders[count]);
-            }
+            glDetachShader(POs_, shaders[count]);
+            glDeleteShader(shaders[count]);
+        }
 
-            glDeleteProgram(POs_);
+        glDeleteProgram(POs_);
     }
 
-    while(--TBOs_)
-        if(glIsTexture(TBOs_) == GL_TRUE)
+    while (--TBOs_)
+        if (glIsTexture(TBOs_) == GL_TRUE)
             glDeleteTextures(1, &TBOs_);
 
-    while(--VAOs_)
-        if(glIsVertexArray(VAOs_) == GL_TRUE)
+    while (--VAOs_)
+        if (glIsVertexArray(VAOs_) == GL_TRUE)
             glDeleteVertexArrays(1, &VAOs_);
 
-    while(--VBOs_)
-        if(glIsBuffer(VBOs_) == GL_TRUE)
+    while (--VBOs_)
+        if (glIsBuffer(VBOs_) == GL_TRUE)
             glDeleteBuffers(1, &VBOs_);
 
-    Book::AddEvent(eNOTE::nHYPHEN, "VBOs|VAOs|TBOs|PBOs: %u|%u|%u|%u.", 
-                                   VBOs_, VAOs_, TBOs_, POs_);
+    Book::AddEvent(eNOTE::nHYPHEN, "VBOs|VAOs|TBOs|PBOs: %u|%u|%u|%u.",
+        VBOs_, VAOs_, TBOs_, POs_);
 }
 };

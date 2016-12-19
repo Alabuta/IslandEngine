@@ -1,7 +1,7 @@
 /********************************************************************************************************************************
 ****
 ****    Source code of Crusoe's Island Engine.
-****    Copyright (C) 2009 - 2015 Crusoe's Island LLC.
+****    Copyright (C) 2009 - 2017 Crusoe's Island LLC.
 ****
 ****    Started at 12th March 2010.
 ****    Description: declaration of renderer system.
@@ -23,7 +23,7 @@
 
 namespace isle
 {
-class Renderer {
+class Render {
 public:
 
     intf::Viewport vp_;
@@ -46,7 +46,7 @@ public:
     void UpdateTRSM(size_t offset, size_t count, math::Matrix const *const matrices) const;
     void UpdateATLAS(size_t offset, std::vector<float> vecs) const;
 
-    static Renderer &inst();
+    static Render &inst();
 
 private:
     HDC hDC_{nullptr};
@@ -59,8 +59,8 @@ private:
 
     //intf::Viewport vp_;
 
-    Renderer();
-    ~Renderer();
+    Render();
+    ~Render();
 
     void InitUniformBuffer();
 
@@ -70,17 +70,17 @@ private:
     void CleanUp();
 };
 
-inline void Renderer::UpdateCMTS(size_t _offset, size_t _size, Color const *const _colors) const
+inline void Render::UpdateCMTS(size_t _offset, size_t _size, Color const *const _colors) const
 {
     glNamedBufferSubDataEXT(CMTS_, _offset, _size, _colors->c());
 }
 
-inline void Renderer::UpdateTRSM(size_t _offset, size_t _count, math::Matrix const *const _matrices) const
+inline void Render::UpdateTRSM(size_t _offset, size_t _count, math::Matrix const *const _matrices) const
 {
     glNamedBufferSubDataEXT(TRSM_, _offset * sizeof(math::Matrix), _count * sizeof(math::Matrix), _matrices->m());
 }
 
-inline void Renderer::UpdateATLAS(size_t _offset, std::vector<float> _vecs) const
+inline void Render::UpdateATLAS(size_t _offset, std::vector<float> _vecs) const
 {
     glNamedBufferSubDataEXT(ATLAS_, _offset * sizeof(float) * 2, _vecs.size() * sizeof(float), _vecs.data());
 }

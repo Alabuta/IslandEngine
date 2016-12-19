@@ -1,7 +1,7 @@
 /********************************************************************************************************************************
 ****
 ****    Source code of Crusoe's Island Engine.
-****    Copyright (C) 2009 - 2015 Crusoe's Island LLC.
+****    Copyright (C) 2009 - 2017 Crusoe's Island LLC.
 ****
 ****    Started at 28th October 2010.
 ****    Description: animated sprite shader file.

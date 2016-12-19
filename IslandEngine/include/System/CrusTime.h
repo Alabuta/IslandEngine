@@ -1,7 +1,7 @@
 /********************************************************************************************************************************
 ****
 ****    Source code of Crusoe's Island Engine.
-****    Copyright (C) 2009 - 2014 Crusoe's Island LLC.
+****    Copyright (C) 2009 - 2017 Crusoe's Island LLC.
 ****
 ****    Started at 12th March 2010.
 ****	Description: engine's time routines file.
@@ -14,10 +14,9 @@
 
 #include <cmath>
 #include "System\CrusTypes.h"
-#include <System\CrusWindow.h>
+#include "System\CrusWindow.h"
 
-namespace isle
-{
+namespace isle {
 class Time {
 public:
     Time();
@@ -25,8 +24,8 @@ public:
     void Restart();
     void Update();
 
-    float delta() const {return delta_;};
-    float elapsed() const {return elapsed_;};
+    float delta() const { return delta_; };
+    float elapsed() const { return elapsed_; };
 
 private:
     size_t const kBufferSize{50};

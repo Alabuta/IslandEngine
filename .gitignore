@@ -7,9 +7,13 @@
 *.log
 *.ipdb
 *.iobj
+*.tmp
 
 .vs/
 [Bb]in/
 IslandEngine/x64/
 IslandEngine/x86/
 [Tt]extures/
+[Tt]emp/
+.mayaSwatches/
+.vscode/

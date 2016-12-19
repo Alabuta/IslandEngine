@@ -1,7 +1,7 @@
 /********************************************************************************************************************************
 ****
 ****    Source code of Crusoe's Island Engine.
-****    Copyright (C) 2009 - 2015 Crusoe's Island LLC.
+****    Copyright (C) 2009 - 2017 Crusoe's Island LLC.
 ****
 ****    Started at 27th June 2010.
 ****    Description: shader programs loading routines.
@@ -14,11 +14,11 @@
 
 #include <vector>
 #include <initializer_list>
+#include "System\CrusSystem.h"
 
 #define _CRUS_SHADER_DEBUG 1
 
-namespace isle
-{
+namespace isle {
 class Program {
 public:
     enum eLAYOUT_ID {
@@ -72,7 +72,7 @@ __forceinline void Program::SwitchOn() const
 #if _CRUS_OBSOLETE
     if (glGetError() != GL_NO_ERROR) {
         Book::AddEvent(eNOTE::nERROR, "invalid program number: %d (%s)", program_, name_.c_str());
-    }
+}
 #endif
 }
 

@@ -1,7 +1,7 @@
 /********************************************************************************************************************************
 ****
 ****    Source code of Crusoe's Island Engine.
-****    Copyright (C) 2009 - 2015 Crusoe's Island LLC.
+****    Copyright (C) 2009 - 2017 Crusoe's Island LLC.
 ****
 ****    Started at 14th August 2009.
 ****    Description: three-component vector definition.
@@ -14,15 +14,13 @@
 
 #include "Math\CrusMath.h"
 
-namespace isle
-{
-namespace math
-{
+namespace isle {
+namespace math {
 class Vector {
 public:
     UNIT_TEST_HERITABLE_CLASS
 
-    Vector();
+        Vector();
     ~Vector();
 
     Vector(Vector const &v);
@@ -88,6 +86,8 @@ public:
 
     static Vector GetNormalized(float const *const v);
     static Vector GetNormalized(float x, float y, float z);
+
+    static Vector One();
 
 private:
     union {

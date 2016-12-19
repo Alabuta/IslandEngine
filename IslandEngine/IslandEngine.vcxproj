@@ -184,8 +184,16 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\Crusoe%27s Island LLC\Island Engine\IslandEngine\src\Camera\CrusCamera.cxx" />
+    <ClCompile Include="..\..\..\Crusoe%27s Island LLC\Island Engine\IslandEngine\src\Game\CrusBounds.cxx" />
+    <ClCompile Include="..\..\..\Crusoe%27s Island LLC\Island Engine\IslandEngine\src\Game\CrusComponent.cxx" />
+    <ClCompile Include="..\..\..\Crusoe%27s Island LLC\Island Engine\IslandEngine\src\Game\CrusRay.cxx" />
+    <ClCompile Include="..\..\..\Crusoe%27s Island LLC\Island Engine\IslandEngine\src\Game\CrusRect.cxx" />
+    <ClCompile Include="..\..\..\Crusoe%27s Island LLC\Island Engine\IslandEngine\src\Game\CrusRenderer.cxx" />
+    <ClCompile Include="..\..\..\Crusoe%27s Island LLC\Island Engine\IslandEngine\src\Game\CrusSprite.cxx" />
+    <ClCompile Include="src\Game\CrusEntity.cxx" />
+    <ClCompile Include="..\..\..\Crusoe%27s Island LLC\Island Engine\IslandEngine\src\Game\CrusTransform.cxx" />
     <ClCompile Include="src\Game\CrusObject.cxx" />
-    <ClCompile Include="src\Interface\CrusCamera.cxx" />
     <ClCompile Include="src\Interface\CrusGrid.cxx" />
     <ClCompile Include="src\Interface\CrusPlayer.cxx" />
     <ClCompile Include="src\Interface\CrusTextOut.cxx" />
@@ -194,7 +202,7 @@
     <ClCompile Include="src\Math\CrusMatrix.cxx" />
     <ClCompile Include="src\Renderer\CrusExts.cxx" />
     <ClCompile Include="src\Renderer\CrusProgram.cxx" />
-    <ClCompile Include="src\Renderer\CrusRenderer.cxx" />
+    <ClCompile Include="src\Renderer\CrusRender.cxx" />
     <ClCompile Include="src\Renderer\CrusTexture.cxx" />
     <ClCompile Include="src\System\CrusBook.cxx" />
     <ClCompile Include="src\System\CrusGamepad.cxx" />
@@ -227,6 +235,18 @@
     <None Include="resources\resource.aps" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\..\Crusoe%27s Island LLC\Island Engine\IslandEngine\include\Camera\CameraBehaviour.h" />
+    <ClInclude Include="..\..\..\Crusoe%27s Island LLC\Island Engine\IslandEngine\include\Camera\CrusCamera.h" />
+    <ClInclude Include="..\..\..\Crusoe%27s Island LLC\Island Engine\IslandEngine\include\Game\CrusBounds.h" />
+    <ClInclude Include="..\..\..\Crusoe%27s Island LLC\Island Engine\IslandEngine\include\Game\CrusComponent.h" />
+    <ClInclude Include="include\Game\CrusRect.h" />
+    <ClInclude Include="include\Game\CrusSprite.h" />
+    <ClInclude Include="include\Game\CrusRay.h" />
+    <ClInclude Include="include\Game\CrusSpriteRenderer.h" />
+    <ClInclude Include="..\..\..\Crusoe%27s Island LLC\Island Engine\IslandEngine\include\Renderer\CrusMaterial.h" />
+    <ClInclude Include="include\Game\CrusRenderer.h" />
+    <ClInclude Include="include\Game\CrusEntity.h" />
+    <ClInclude Include="..\..\..\Crusoe%27s Island LLC\Island Engine\IslandEngine\include\Game\CrusTransform.h" />
     <ClInclude Include="include\Game\CrusObject.h" />
     <ClInclude Include="include\Manager\CrusTARGA.h" />
     <ClInclude Include="include\Math\CrusMath.h" />
@@ -236,7 +256,7 @@
     <ClInclude Include="include\Renderer\CrusColors.h" />
     <ClInclude Include="include\Renderer\CrusExts.h" />
     <ClInclude Include="include\Renderer\CrusProgram.h" />
-    <ClInclude Include="include\Renderer\CrusRenderer.h" />
+    <ClInclude Include="include\Renderer\CrusRender.h" />
     <ClInclude Include="include\Renderer\CrusTexture.h" />
     <ClInclude Include="include\Renderer\CrusVertex.h" />
     <ClInclude Include="include\System\CrusBook.h" />
@@ -251,7 +271,6 @@
     <ClInclude Include="include\System\CrusTypes.h" />
     <ClInclude Include="include\System\CrusWindow.h" />
     <ClInclude Include="include\engine.h" />
-    <ClInclude Include="include\Interface\CrusCamera.h" />
     <ClInclude Include="include\Interface\CrusGrid.h" />
     <ClInclude Include="include\Interface\CrusPlayer.h" />
     <ClInclude Include="include\Interface\CrusViewport.h" />

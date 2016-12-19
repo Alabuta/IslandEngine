@@ -1,7 +1,7 @@
 /********************************************************************************************************************************
 ****
 ****    Source code of Crusoe's Island Engine.
-****    Copyright (C) 2009 - 2015 Crusoe's Island LLC.
+****    Copyright (C) 2009 - 2017 Crusoe's Island LLC.
 ****
 ****    Started at 1th April 2010.
 ****	Description: font render routines implementation file.
@@ -10,7 +10,7 @@
 #include <string>
 
 #include "System\CrusSystem.h"
-#include "Renderer\CrusRenderer.h"
+#include "Renderer\CrusRender.h"
 
 #include "Renderer\CrusTexture.h"
 #include "Interface\CrusTextOut.h"
@@ -53,11 +53,11 @@ bool Textout::Init(Texture const *const _texture, float _zoom, uint16 _x, uint16
 
     program_.AssignNew({"Interface/textout.glsl"});
 
-    isle::Renderer::inst().CreateVAO(vao_);
+    isle::Render::inst().CreateVAO(vao_);
 
     {
         uint32 vbo = 0;
-        isle::Renderer::inst().CreateVBO(GL_ARRAY_BUFFER, vbo);
+        isle::Render::inst().CreateVBO(GL_ARRAY_BUFFER, vbo);
     }
 
     glBufferData(GL_ARRAY_BUFFER, sizeof(quad_plane), quad_plane, GL_STATIC_DRAW);
@@ -92,7 +92,7 @@ void Textout::Render()
     program_.SwitchOn();
     texture_->Bind();
 
-    float const width = 0.64f * 0.002511f * Renderer::inst().vp_.w() * 28 / 288.0f;
+    float const width = 0.64f * 0.002511f * Render::inst().vp_.w() * 28 / 288.0f;
     float x = 0;
 
     if (text_.size() > 1)
@@ -104,7 +104,7 @@ void Textout::Render()
 
         glProgramUniform4fv(program_.GetName(), program_.GetUniformLoc("inDispCoord"), 1, texDispCoord_.rect_);
 
-        Renderer::inst().UpdateTRSM(0, 1, &mNumbers.Translate(x + Camera::inst().pos().x(), mNumbers.m()[7], 0));
+        Render::inst().UpdateTRSM(0, 1, &mNumbers.Translate(x + Camera::inst().pos().x(), mNumbers.m()[7], 0));
 
         glBindVertexArray(vao_);
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);

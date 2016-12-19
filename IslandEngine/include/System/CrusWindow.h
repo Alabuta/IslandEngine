@@ -1,7 +1,7 @@
 /********************************************************************************************************************************
 ****
 ****    Source code of Crusoe's Island Engine.
-****    Copyright (C) 2009 - 2015 Crusoe's Island LLC.
+****    Copyright (C) 2009 - 2017 Crusoe's Island LLC.
 ****
 ****    Started at 10th March 2010.
 ****    Description: main application window header file.
@@ -25,8 +25,9 @@
 #include <windows.h>
 #endif
 
-namespace isle
-{
+#include "System\CrusTypes.h"
+
+namespace isle {
 class Window {
 public:
 
@@ -47,14 +48,14 @@ public:
 
 private:
     HWND hWnd_{nullptr};
-    
-// :COMPILER: nameless struct/union warning.
+
+    // :COMPILER: nameless struct/union warning.
 #pragma warning(push, 3)
 #pragma warning(disable: 4201)
     struct {
-        bool bWindowed_: 1;
-        bool bInFocus_: 1;
-        bool _reserved_: 6;
+        bool bWindowed_ : 1;
+        bool bInFocus_ : 1;
+        bool _reserved_ : 6;
     };
 #pragma warning(pop)
 

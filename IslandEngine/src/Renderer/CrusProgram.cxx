@@ -1,7 +1,7 @@
 /********************************************************************************************************************************
 ****
 ****    Source code of Crusoe's Island Engine.
-****    Copyright (C) 2009 - 2014 Crusoe's Island LLC.
+****    Copyright (C) 2009 - 2017 Crusoe's Island LLC.
 ****
 ****    Started at 27th June 2010.
 ****    Description: shader programs loading routines.
@@ -12,19 +12,16 @@
 #include <fstream>
 #include <streambuf>
 
-#include "System\CrusSystem.h"
 #include "System\CrusWindow.h"
 
-#include "Renderer\CrusRenderer.h"
+#include "Renderer\CrusRender.h"
 #include "Renderer\CrusProgram.h"
 
-namespace
-{
+namespace {
 acstr kGLSL_VERSION = "#version 450 core";
 };
 
-namespace isle
-{
+namespace isle {
 int32 Program::lastAttribute_{-1};
 int32 Program::lastUniform_{-1};
 
@@ -44,7 +41,7 @@ bool ReadShaderSources(std::vector<std::string> &_sources, std::initializer_list
         std::string path("../shaders/" + name);
         std::ifstream file(path, std::ios::ate);
 
-        if(!file.is_open()) {
+        if (!file.is_open()) {
             Book::AddEvent(eNOTE::nERROR, "can't open shader source file: \"%s\".", name.data());
             return false;
         }
@@ -75,7 +72,7 @@ bool Program::AssignNew(std::initializer_list<std::string> _names, astr _options
     //name_.shrink_to_fit();
 
     // If current shader program exist, destroy it and create the new shader.
-    if(glIsProgram(program_) == GL_TRUE){
+    if (glIsProgram(program_) == GL_TRUE) {
         Delete();
 
         va_list ap;
@@ -101,18 +98,18 @@ bool Program::AssignNew(std::initializer_list<std::string> _names, astr _options
     }
 
     // Read the passed options and write them in sources[1].
-    if(_options != nullptr && _options[0] != '\0'){
+    if (_options != nullptr && _options[0] != '\0') {
         char options[128];
         va_list ap;
 
         va_start(ap, _options);
-            vsprintf_s(options, sizeof(options), _options, ap);
+        vsprintf_s(options, sizeof(options), _options, ap);
         va_end(ap);
 
         sources[1] = options;
     }
 
-    if(!Renderer::inst().CreateProgram(program_))
+    if (!Render::inst().CreateProgram(program_))
         return false;
 
     if (!CreateShader(_names.begin()->data(), sources, GL_VERTEX_SHADER))
@@ -123,7 +120,7 @@ bool Program::AssignNew(std::initializer_list<std::string> _names, astr _options
 
     glLinkProgram(program_);
 
-    if(glGetError() != GL_NO_ERROR)
+    if (glGetError() != GL_NO_ERROR)
         Book::AddEvent(eNOTE::nERROR, "...");
 
     if (CheckProgram(reinterpret_cast<astr>(_names.begin()->data()))) {
@@ -141,7 +138,7 @@ bool Program::AssignNew(std::initializer_list<std::string> _names, astr _options
 
 void Program::Delete()
 {
-    if(glIsProgram(program_) == GL_FALSE)
+    if (glIsProgram(program_) == GL_FALSE)
         return;
 
     glUseProgram(0);
@@ -151,8 +148,8 @@ void Program::Delete()
 
     glGetAttachedShaders(program_, 3, &count, shaders);
 
-    while(--count > -1){
-        if(glIsShader(shaders[count]) != 0){
+    while (--count > -1) {
+        if (glIsShader(shaders[count]) != 0) {
             glDetachShader(program_, shaders[count]);
             glDeleteShader(shaders[count]);
         }
@@ -164,7 +161,7 @@ void Program::Delete()
 #if _CRUS_SHADER_DEBUG
 /*static*/ void Program::CheckError()
 {
-    if(lastAttribute_ < 0 || lastUniform_ < 0)
+    if (lastAttribute_ < 0 || lastUniform_ < 0)
         checked_ = true;
 
     else checked_ = false;
@@ -175,7 +172,7 @@ bool Program::CreateShader(std::string _name, std::vector<std::string> _sources,
 {
     uint32 shader = glCreateShader(_type);
 
-    if(glGetError() != GL_NO_ERROR){
+    if (glGetError() != GL_NO_ERROR) {
         Book::AddEvent(eNOTE::nERROR, "can't create shader.");
         return false;
     }
@@ -185,34 +182,34 @@ bool Program::CreateShader(std::string _name, std::vector<std::string> _sources,
     astr type = "undefined shader";
 
     // Fill determinants.
-    if(_type == GL_VERTEX_SHADER){
+    if (_type == GL_VERTEX_SHADER) {
         sprintf_s(prepross, sizeof(prepross),
-                  "\n%s\n\
+            "\n%s\n\
                   \n#define CRUS_VERTEX_SHADER 1\n\
                   \n#define nVERTEX %u\
                   \n#define nNORMAL %u\
                   \n#define nTEXCRD %u\
                   \n#define nTRANSFORM %u\
                   \n#define nATLAS %u\n",
-                  kGLSL_VERSION, nVERTEX, nNORMAL, nTEXCRD, nTRANSFORM, nATLAS);
+            kGLSL_VERSION, nVERTEX, nNORMAL, nTEXCRD, nTRANSFORM, nATLAS);
 
         type = "vertex shader";
     }
 
-    else if(_type == GL_FRAGMENT_SHADER){
+    else if (_type == GL_FRAGMENT_SHADER) {
         sprintf_s(prepross, sizeof(prepross), "\n%s\n\
                                                \n#define CRUS_FRAGMENT_SHADER 1\n\
                                                \n#define nMATERIAL %u\
                                                \n#define nFRAG_COLOR %u\n",
-                                               kGLSL_VERSION, nMATERIAL, nFRAG_COLOR);
+            kGLSL_VERSION, nMATERIAL, nFRAG_COLOR);
 
         type = "fragment shader";
     }
 
-    else if(_type == GL_GEOMETRY_SHADER){
+    else if (_type == GL_GEOMETRY_SHADER) {
         sprintf_s(prepross, sizeof(prepross), "\n%s\n\
                                                \n#define CRUS_GEOMETRY_SHADER 1\n",
-                                               kGLSL_VERSION);
+            kGLSL_VERSION);
 
         //glProgramParameteri(program_, GL_GEOMETRY_INPUT_TYPE, GL_TRIANGLES);
         //glProgramParameteri(program_, GL_GEOMETRY_OUTPUT_TYPE, GL_TRIANGLE_STRIP);
@@ -224,13 +221,13 @@ bool Program::CreateShader(std::string _name, std::vector<std::string> _sources,
     _sources[0] = prepross;
     std::vector<astr> sources;
 
-    for(auto const &src : _sources)
+    for (auto const &src : _sources)
         sources.push_back(src.data());
 
     glShaderSource(shader, static_cast<GLsizei>(_sources.size()), sources.data(), nullptr);
     glCompileShader(shader);
 
-    if(!CheckShader(_name, type, shader))
+    if (!CheckShader(_name, type, shader))
         return false;
 
     glAttachShader(program_, shader);
@@ -247,13 +244,13 @@ bool Program::CheckShader(std::string _name, astr _type, uint32 _shader) const
 #endif
 
     glGetShaderiv(_shader, GL_COMPILE_STATUS, &status);
-    if(status != 0)
+    if (status != 0)
         return true;
 
     glGetShaderiv(_shader, GL_INFO_LOG_LENGTH, &length);
     glGetShaderInfoLog(_shader, sizeof(log), &length, log);
 
-    if(length < 1)
+    if (length < 1)
         return false;
 
     Book::AddEvent(eNOTE::nERROR, "\"%s\" {%s}:", _name.data(), _type);
@@ -276,13 +273,13 @@ bool Program::CheckProgram(std::string _name) const
     glValidateProgram(program_);
     glGetProgramiv(program_, GL_VALIDATE_STATUS, &status[1]);
 
-    if(status[0] != 0 && status[1] != 0)
+    if (status[0] != 0 && status[1] != 0)
         return true;
 
     glGetProgramiv(program_, GL_INFO_LOG_LENGTH, &length);
     glGetProgramInfoLog(program_, sizeof(log), &length, log);
 
-    if(length < 1)
+    if (length < 1)
         return false;
 
     Book::AddEvent(eNOTE::nERROR, "\"%s\":", _name.data());

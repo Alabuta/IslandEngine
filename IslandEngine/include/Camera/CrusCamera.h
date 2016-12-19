@@ -1,7 +1,7 @@
 /********************************************************************************************************************************
 ****
 ****    Source code of Crusoe's Island Engine.
-****    Copyright (C) 2009 - 2015 Crusoe's Island LLC.
+****    Copyright (C) 2009 - 2017 Crusoe's Island LLC.
 ****
 ****    Started at 14th March 2010.
 ****    Description: camera frame routines.
@@ -12,12 +12,17 @@
 #ifndef CRUS_CAMERA_H               // Include guard "CrusCamera.h"
 #define CRUS_CAMERA_H
 
+#include <memory>
+
 #include "Math\CrusVector.h"
 #include "Math\CrusMatrix.h"
 #include "Math\CrusQuaternion.h"
 
-namespace isle
-{
+namespace __hidden {
+class ICameraBehaviour;
+}
+
+namespace isle {
 /**
 @brief Camera class for camera creation and control
 @detailed »спользуетс€ дл€ создани€ нескольких видов камер
@@ -58,6 +63,7 @@ public:
     static Camera &inst();
 
 private:
+    std::shared_ptr<__hidden::ICameraBehaviour> behavior;
 
     // A little tricky, but it necessary. ;)
     union {
@@ -83,7 +89,7 @@ private:
     eCAM_BEHAVIOR behavior_{eCAM_BEHAVIOR::nNIL};
 
     Camera(Camera const &cam);
-    Camera const &operator= (Camera const &cam);
+    //Camera const &operator= (Camera const &cam);
 
     float RestricPitch(float pitch);
     float RestricYaw(float yaw);

@@ -58,6 +58,9 @@
     <Filter Include="Shader sources\Atmosphere">
       <UniqueIdentifier>{af0690b5-d3c1-4a51-9e12-45f8dbcbc63b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Core\Camera">
+      <UniqueIdentifier>{ce4a1daa-e565-4163-ac5c-1e36422b7717}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\engine.cxx" />
@@ -73,13 +76,7 @@
     <ClCompile Include="src\Interface\CrusPlayer.cxx">
       <Filter>Core\Interface</Filter>
     </ClCompile>
-    <ClCompile Include="src\Interface\CrusCamera.cxx">
-      <Filter>Core\Interface</Filter>
-    </ClCompile>
     <ClCompile Include="src\Renderer\CrusProgram.cxx">
-      <Filter>Core\Renderer</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Renderer\CrusRenderer.cxx">
       <Filter>Core\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="src\Interface\CrusTextOut.cxx">
@@ -127,6 +124,36 @@
     <ClCompile Include="src\System\CrusTime.cxx">
       <Filter>Core\System</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\Crusoe%27s Island LLC\Island Engine\IslandEngine\src\Camera\CrusCamera.cxx">
+      <Filter>Core\Camera</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Crusoe%27s Island LLC\Island Engine\IslandEngine\src\Game\CrusComponent.cxx">
+      <Filter>Game</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Crusoe%27s Island LLC\Island Engine\IslandEngine\src\Game\CrusTransform.cxx">
+      <Filter>Game</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Game\CrusEntity.cxx">
+      <Filter>Game</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Crusoe%27s Island LLC\Island Engine\IslandEngine\src\Game\CrusRenderer.cxx">
+      <Filter>Game</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Renderer\CrusRender.cxx">
+      <Filter>Core\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Crusoe%27s Island LLC\Island Engine\IslandEngine\src\Game\CrusBounds.cxx">
+      <Filter>Game</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Crusoe%27s Island LLC\Island Engine\IslandEngine\src\Game\CrusRay.cxx">
+      <Filter>Game</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Crusoe%27s Island LLC\Island Engine\IslandEngine\src\Game\CrusRect.cxx">
+      <Filter>Game</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Crusoe%27s Island LLC\Island Engine\IslandEngine\src\Game\CrusSprite.cxx">
+      <Filter>Game</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\engine.h">
@@ -134,9 +161,6 @@
     </ClInclude>
     <ClInclude Include="resources\resource.h">
       <Filter>.resources</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Interface\CrusCamera.h">
-      <Filter>Core\Interface</Filter>
     </ClInclude>
     <ClInclude Include="include\Interface\CrusGrid.h">
       <Filter>Core\Interface</Filter>
@@ -157,9 +181,6 @@
       <Filter>Core\Math</Filter>
     </ClInclude>
     <ClInclude Include="include\Renderer\CrusProgram.h">
-      <Filter>Core\Renderer</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Renderer\CrusRenderer.h">
       <Filter>Core\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="include\Renderer\CrusTexture.h">
@@ -215,6 +236,45 @@
     </ClInclude>
     <ClInclude Include="include\System\CrusTime.h">
       <Filter>Core\System</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Crusoe%27s Island LLC\Island Engine\IslandEngine\include\Camera\CrusCamera.h">
+      <Filter>Core\Camera</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Crusoe%27s Island LLC\Island Engine\IslandEngine\include\Camera\CameraBehaviour.h">
+      <Filter>Core\Camera</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Crusoe%27s Island LLC\Island Engine\IslandEngine\include\Game\CrusComponent.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Crusoe%27s Island LLC\Island Engine\IslandEngine\include\Game\CrusTransform.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Game\CrusEntity.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Game\CrusRenderer.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Renderer\CrusRender.h">
+      <Filter>Core\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Crusoe%27s Island LLC\Island Engine\IslandEngine\include\Renderer\CrusMaterial.h">
+      <Filter>Core\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Crusoe%27s Island LLC\Island Engine\IslandEngine\include\Game\CrusBounds.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Game\CrusRay.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Game\CrusRect.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Game\CrusSprite.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Game\CrusSpriteRenderer.h">
+      <Filter>Game</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -1,7 +1,7 @@
 /********************************************************************************************************************************
 ****
 ****    Source code of Crusoe's Island Engine.
-****    Copyright (C) 2009 - 2015 Crusoe's Island LLC.
+****    Copyright (C) 2009 - 2017 Crusoe's Island LLC.
 ****
 ****    Started at 30th November 2011.
 ****    Description: implementation of system's class file.
@@ -15,13 +15,12 @@
 
 #include "System\CrusInput.h"
 
-#include "Renderer\CrusRenderer.h"
-#include "Interface\CrusCamera.h"
+#include "Renderer\CrusRender.h"
+#include "Camera\CrusCamera.h"
 
-namespace isle
-{
-System::System(){};
-System::~System(){};
+namespace isle {
+System::System() {};
+System::~System() {};
 
 Time System::time;
 
@@ -40,7 +39,7 @@ Time System::time;
     // This method for only start of system and used before splash screen creation.
     HWND const hExistWnd = FindWindowW(crus::names::kWINDOW_CLASS, nullptr);
 
-    if(hExistWnd != nullptr){
+    if (hExistWnd != nullptr) {
         SetForegroundWindow(hExistWnd);
         ShowWindow(hExistWnd, SW_SHOWNORMAL);
 
@@ -51,7 +50,7 @@ Time System::time;
 
 #if _CRUS_MEMORY_CONTROL
     _CrtSetDbgFlag(_CrtSetDbgFlag(_CRTDBG_REPORT_FLAG) | _CRTDBG_ALLOC_MEM_DF |
-                   _CRTDBG_DELAY_FREE_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+        _CRTDBG_DELAY_FREE_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 
     //_CrtSetBreakAlloc(84);
 #endif
@@ -63,7 +62,7 @@ Time System::time;
 {
     Book::AddEvent(eNOTE::nSEPAR);
 
-    Renderer::inst().DeleteRC();
+    Render::inst().DeleteRC();
     Window::inst().Destroy();
 
     Input::Destroy();
@@ -82,22 +81,22 @@ Time System::time;
     MSG msg;
     time.Restart();
 
-// :COMPILER: just to shut up the compiler.
+    // :COMPILER: just to shut up the compiler.
 #pragma warning(push, 3)
 #pragma warning(disable: 4127)
-    while(true){
+    while (true) {
 #pragma warning(pop)
-        while(PeekMessageW(&msg, Window::inst().hWnd(), 0, 0, PM_REMOVE | PM_NOYIELD) != 0){
-            if(msg.message == WM_QUIT)
+        while (PeekMessageW(&msg, Window::inst().hWnd(), 0, 0, PM_REMOVE | PM_NOYIELD) != 0) {
+            if (msg.message == WM_QUIT)
                 return static_cast<int32>(msg.wParam);
 
             //TranslateMessage(&msg);
             DispatchMessageW(&msg);
         }
 
-        if(Window::inst().InFocus()){
+        if (Window::inst().InFocus()) {
             System::Update();
-            Renderer::inst().DrawFrame();
+            Render::inst().DrawFrame();
         }
 
         // :TODO: it will be necessary to understand.
@@ -116,6 +115,6 @@ Time System::time;
 
     app::Update();
 
-    //Renderer::inst().Update();
+    //Render::inst().Update();
 }
 };

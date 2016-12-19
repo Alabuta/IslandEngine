@@ -1,31 +1,30 @@
 /********************************************************************************************************************************
 ****
 ****    Source code of Crusoe's Island Engine.
-****    Copyright (C) 2009 - 2015 Crusoe's Island LLC.
+****    Copyright (C) 2009 - 2017 Crusoe's Island LLC.
 ****
 ****    Started at 11th April 2010.
 ****	Description: texture routines implementation file.
 ****
 ********************************************************************************************************************************/
 #include "System\CrusSystem.h"
-#include "Renderer\CrusRenderer.h"
+#include "Renderer\CrusRender.h"
 
 #include "Renderer\CrusTexture.h"
 #include "Manager\CrusTARGA.h"
 
-namespace isle
-{
-Texture::Texture() {};
-Texture::~Texture() {};
+namespace isle {
+Texture::Texture(std::string &&_name) : name_(std::move(_name))
+{}
 
-bool Texture::Init(std::string const &_name)
+bool Texture::Init()
 {
     Image image;
 
-    if (!LoadTARGA(image, _name))
+    if (!LoadTARGA(image, name_))
         return false;
 
-    isle::Renderer::inst().CreateTBO(GL_TEXTURE_2D, id_);
+    isle::Render::inst().CreateTBO(GL_TEXTURE_2D, id_);
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -33,7 +32,7 @@ bool Texture::Init(std::string const &_name)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-    glTexImage2D(GL_TEXTURE_2D, 0, image.bpp_, image.w_, image.h_, 0, image.type_, image.format_, image.data_.data());
+    glTexImage2D(GL_TEXTURE_2D, 0, image.bpp_, image.width_, image.height_, 0, image.type_, image.format_, image.data_.data());
     glGenerateMipmap(GL_TEXTURE_2D);
 
     auto maxAnisotrophy{0.0f};
@@ -45,8 +44,8 @@ bool Texture::Init(std::string const &_name)
         return false;
     }
 
-    w_ = static_cast<uint16>(image.w_);
-    h_ = static_cast<uint16>(image.h_);
+    w_ = static_cast<uint16>(image.width_);
+    h_ = static_cast<uint16>(image.height_);
 
     return true;
 }
