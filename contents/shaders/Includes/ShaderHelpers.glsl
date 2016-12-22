@@ -3,27 +3,22 @@
 ****    Source code of Island Engine.
 ****    Copyright (C) 2009 - 2017 Crusoe's Island LLC.
 ****
-****    Started at 22th June 2013.
-****    Description: supporting a gamepad xbox 360 controller.
+****    Description: shader helpers header file.
 ****
 ********************************************************************************************************************************/
-#include "System\CrusSystem.h"
-#include "System\CrusWindow.h"
 
-#include "System\CrusInput.h"
-#include "System\CrusGamepad.h"
+#ifndef CRUS_SHADER_HELPERS
+#define CRUS_SHADER_HELPERS
 
-#pragma comment(lib, "XInput.lib")
+#if CRUS_VERTEX_SHADER
 
-namespace isle
+vec4 TransformFromWorldToClip(in vec3 position)
 {
-namespace Input
-{
-Gamepad::Gamepad()
-    : num_(0)
-{
+    return mProjViewModel * vec4(position, 1.0);
 }
 
-Gamepad::~Gamepad(){};
-};
-};
+#elif CRUS_FRAGMENT_SHADER
+
+#endif // CRUS_VERTEX_SHADER & CRUS_FRAGMENT_SHADER
+
+#endif // CRUS_SHADER_HELPERS

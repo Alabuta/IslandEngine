@@ -1,6 +1,6 @@
 /********************************************************************************************************************************
 ****
-****    Source code of Crusoe's Island Engine.
+****    Source code of Island Engine.
 ****    Copyright (C) 2009 - 2017 Crusoe's Island LLC.
 ****
 ****    Started at 1th April 2010.
@@ -57,7 +57,7 @@ bool Textout::Init(Texture const *const _texture, float _zoom, uint16 _x, uint16
 
     {
         uint32 vbo = 0;
-        isle::Render::inst().CreateVBO(GL_ARRAY_BUFFER, vbo);
+        isle::Render::inst().CreateBO(GL_ARRAY_BUFFER, vbo);
     }
 
     glBufferData(GL_ARRAY_BUFFER, sizeof(quad_plane), quad_plane, GL_STATIC_DRAW);
@@ -102,9 +102,9 @@ void Textout::Render()
         texDispCoord_.w_ = ((symbol - 48) - floorf((symbol - 48) / 5.0f) * 5) * rectSymbol_.w_ / texture_->w();
         texDispCoord_.h_ = (1 - floorf((symbol - 48) / 5.0f)) * rectSymbol_.h_ / texture_->h();
 
-        glProgramUniform4fv(program_.GetName(), program_.GetUniformLoc("inDispCoord"), 1, texDispCoord_.rect_);
+        glProgramUniform4fv(program_.program(), program_.GetUniformLoc("inDispCoord"), 1, texDispCoord_.rect_);
 
-        Render::inst().UpdateTRSM(0, 1, &mNumbers.Translate(x + Camera::inst().pos().x(), mNumbers.m()[7], 0));
+        Render::inst().UpdateViewport(0, 1, &mNumbers.Translate(x + Camera::inst().pos().x(), mNumbers.m()[7], 0));
 
         glBindVertexArray(vao_);
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);

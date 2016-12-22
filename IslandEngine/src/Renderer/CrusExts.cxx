@@ -1,6 +1,6 @@
 /********************************************************************************************************************************
 ****
-****    Source code of Crusoe's Island Engine.
+****    Source code of Island Engine.
 ****    Copyright (C) 2009 - 2017 Crusoe's Island LLC.
 ****
 ****    Started at 27th November 2010.
@@ -30,12 +30,12 @@
 #define GL_PROC(_proc, _name)               static GL_PROC_PREFIX(_proc) _name
 
 #if _CRUS_CHECK_GL_CALLS
-    #define GL_PROC_INIT(_proc, _name)\
+#define GL_PROC_INIT(_proc, _name)\
         GL_PROC(_proc, _name) = (GL_PROC_PREFIX(_proc))wglGetProcAddress(#_name);\
         if(_name == nullptr)\
             isle::Book::AddEvent(isle::eNOTE::nALERT, "can't get \"%s()\" procedure.", #_name);
 #else
-    #define GL_PROC_INIT(_proc, _name)\
+#define GL_PROC_INIT(_proc, _name)\
         GL_PROC(_proc, _name) = (GL_PROC_PREFIX(_proc))wglGetProcAddress(#_name);
 #endif
 
@@ -325,10 +325,10 @@ __forceinline void APIENTRY glDeleteVertexArrays(GLsizei n, const GLuint *arrays
     return glDeleteVertexArrays(n, arrays);
 }
 
-__forceinline void APIENTRY glDepthRangedNV(GLdouble zNear, GLdouble zFar)
+__forceinline void APIENTRY glDepthRange(GLdouble zNear, GLdouble zFar)
 {
-    GL_PROC_INIT(GLDEPTHRANGEDNV, glDepthRangedNV);
-    return glDepthRangedNV(zNear, zFar);
+    GL_PROC_INIT(GLDEPTHRANGE, glDepthRange);
+    return glDepthRange(zNear, zFar);
 }
 
 __forceinline void APIENTRY glDetachShader(GLuint program, GLuint shader)
@@ -423,10 +423,10 @@ __forceinline void APIENTRY glFlushMappedBufferRange(GLenum target, GLintptr off
     return glFlushMappedBufferRange(target, offset, length);
 }
 
-__forceinline void APIENTRY glFlushMappedNamedBufferRangeEXT(GLenum target, GLintptr offset, GLsizeiptr length)
+__forceinline void APIENTRY glFlushMappedNamedBufferRange(GLenum target, GLintptr offset, GLsizeiptr length)
 {
-    GL_PROC_INIT(GLFLUSHMAPPEDNAMEDBUFFERRANGEEXT, glFlushMappedNamedBufferRangeEXT);
-    return glFlushMappedNamedBufferRangeEXT(target, offset, length);
+    GL_PROC_INIT(GLFLUSHMAPPEDNAMEDBUFFERRANGE, glFlushMappedNamedBufferRange);
+    return glFlushMappedNamedBufferRange(target, offset, length);
 }
 
 __forceinline void APIENTRY glFramebufferRenderbuffer(GLenum target, GLenum attachment, GLenum renderbuffertarget, GLuint renderbuffer)
@@ -454,10 +454,10 @@ __forceinline void APIENTRY glGenBuffers(GLsizei n, GLuint *buffers)
     return glGenBuffers(n, buffers);
 }
 
-__forceinline void APIENTRY glGenerateTextureMipmapEXT(GLuint texture, GLenum target)
+__forceinline void APIENTRY glGenerateTextureMipmap(GLuint texture)
 {
-    GL_PROC_INIT(GLGENERATETEXTUREMIPMAPEXT, glGenerateTextureMipmapEXT);
-    return glGenerateTextureMipmapEXT(texture, target);
+    GL_PROC_INIT(GLGENERATETEXTUREMIPMAP, glGenerateTextureMipmap);
+    return glGenerateTextureMipmap(texture);
 }
 
 __forceinline void APIENTRY glGenFramebuffers(GLsizei n, GLuint *framebuffers)
@@ -859,16 +859,16 @@ __forceinline GLvoid* APIENTRY glMapBufferRange(GLenum target, GLintptr offset, 
     return glMapBufferRange(target, offset, length, access);
 }
 
-__forceinline GLvoid* APIENTRY glMapNamedBufferEXT(GLuint buffer, GLenum access)
+__forceinline GLvoid* APIENTRY glMapNamedBuffer(GLuint buffer, GLenum access)
 {
-    GL_PROC_INIT(GLMAPNAMEDBUFFEREXT, glMapNamedBufferEXT);
-    return glMapNamedBufferEXT(buffer, access);
+    GL_PROC_INIT(GLMAPNAMEDBUFFER, glMapNamedBuffer);
+    return glMapNamedBuffer(buffer, access);
 }
 
-__forceinline GLvoid* APIENTRY glMapNamedBufferRangeEXT(GLenum target, GLintptr offset, GLsizeiptr length, GLbitfield access)
+__forceinline GLvoid* APIENTRY glMapNamedBufferRange(GLenum target, GLintptr offset, GLsizeiptr length, GLbitfield access)
 {
-    GL_PROC_INIT(GLMAPNAMEDBUFFERRANGEEXT, glMapNamedBufferRangeEXT);
-    return glMapNamedBufferRangeEXT(target, offset, length, access);
+    GL_PROC_INIT(GLMAPNAMEDBUFFERRANGE, glMapNamedBufferRange);
+    return glMapNamedBufferRange(target, offset, length, access);
 }
 
 __forceinline void APIENTRY glMultiDrawArrays(GLenum mode, const GLint *first, const GLsizei *count, GLsizei primcount)
@@ -890,22 +890,24 @@ __forceinline void APIENTRY glMultiDrawElementsBaseVertex(GLenum mode, const GLs
 }
 
 // glN ---------------------------------------------------------------------------------
+#if CRUS_USE_GL_EXTENSIONS
 __forceinline void APIENTRY glNamedCopyBufferSubDataEXT(GLuint readBuffer, GLuint writeBuffer, GLintptr readOffset, GLintptr writeOffset, GLsizeiptr size)
 {
     GL_PROC_INIT(GLNAMEDCOPYBUFFERSUBDATAEXT, glNamedCopyBufferSubDataEXT);
     return glNamedCopyBufferSubDataEXT(readBuffer, writeBuffer, readOffset, writeOffset, size);
 }
+#endif
 
-__forceinline void APIENTRY glNamedBufferDataEXT(GLuint buffer, GLsizeiptr size, const GLvoid *data, GLenum usage)
+__forceinline void APIENTRY glNamedBufferData(GLuint buffer, GLsizeiptr size, const GLvoid *data, GLenum usage)
 {
-    GL_PROC_INIT(GLNAMEDBUFFERDATAEXT, glNamedBufferDataEXT);
-    return glNamedBufferDataEXT(buffer, size, data, usage);
+    GL_PROC_INIT(GLNAMEDBUFFERDATA, glNamedBufferData);
+    return glNamedBufferData(buffer, size, data, usage);
 }
 
-__forceinline void APIENTRY glNamedBufferSubDataEXT(GLuint buffer, GLintptr offset, GLsizeiptr size, const GLvoid *data)
+__forceinline void APIENTRY glNamedBufferSubData(GLuint buffer, GLintptr offset, GLsizeiptr size, const GLvoid *data)
 {
-    GL_PROC_INIT(GLNAMEDBUFFERSUBDATAEXT, glNamedBufferSubDataEXT);
-    return glNamedBufferSubDataEXT(buffer, offset, size, data);
+    GL_PROC_INIT(GLNAMEDBUFFERSUBDATA, glNamedBufferSubData);
+    return glNamedBufferSubData(buffer, offset, size, data);
 }
 
 // glP ---------------------------------------------------------------------------------
@@ -1182,6 +1184,12 @@ __forceinline void APIENTRY glSamplerParameteri(GLuint sampler, GLenum pname, GL
     return glSamplerParameteri(sampler, pname, param);
 }
 
+__forceinline void APIENTRY glShaderStorageBlockBinding(GLuint program, GLuint storageBlockIndex, GLuint storageBlockBinding)
+{
+    GL_PROC_INIT(GLSHADERSTORAGEBLOCKBINDING, glShaderStorageBlockBinding);
+    return glShaderStorageBlockBinding(program, storageBlockIndex, storageBlockBinding);
+}
+
 __forceinline void APIENTRY glShaderSource(GLuint shader, GLsizei count, const GLchar* const *string, const GLint *length)
 {
     GL_PROC_INIT(GLSHADERSOURCE, glShaderSource);
@@ -1454,10 +1462,10 @@ __forceinline GLboolean APIENTRY glUnmapBuffer(GLenum target)
     return glUnmapBuffer(target);
 }
 
-__forceinline GLboolean APIENTRY glUnmapNamedBufferEXT(GLenum target)
+__forceinline GLboolean APIENTRY glUnmapNamedBuffer(GLenum target)
 {
-    GL_PROC_INIT(GLUNMAPNAMEDBUFFEREXT, glUnmapNamedBufferEXT);
-    return glUnmapNamedBufferEXT(target);
+    GL_PROC_INIT(GLUNMAPNAMEDBUFFER, glUnmapNamedBuffer);
+    return glUnmapNamedBuffer(target);
 }
 
 __forceinline void APIENTRY glUseProgram(GLuint program)
@@ -1856,10 +1864,10 @@ __forceinline void APIENTRY glWaitSync(GLsync sync, GLbitfield flags, GLuint64 t
 BOOL APIENTRY wglChoosePixelFormatARB(HDC hDC, const int *piAttribIList, const FLOAT *pfAttribFList, UINT nMaxFormats, int *piFormats, UINT *nNumFormats)
 {
     PFNWGLCHOOSEPIXELFORMATARBPROC wglChoosePixelFormatARB = nullptr;
-    wglChoosePixelFormatARB = 
+    wglChoosePixelFormatARB =
         (PFNWGLCHOOSEPIXELFORMATARBPROC)wglGetProcAddress("wglChoosePixelFormatARB");
 
-    if(wglChoosePixelFormatARB == nullptr)
+    if (wglChoosePixelFormatARB == nullptr)
         isle::Book::AddEvent(isle::eNOTE::nALERT, "can't get \"wglChoosePixelFormatARB()\" procedure address.");
 
     return wglChoosePixelFormatARB(hDC, piAttribIList, pfAttribFList, nMaxFormats, piFormats, nNumFormats);
@@ -1868,10 +1876,10 @@ BOOL APIENTRY wglChoosePixelFormatARB(HDC hDC, const int *piAttribIList, const F
 HGLRC APIENTRY wglCreateContextAttribsARB(HDC hDC, HGLRC hShareContext, const int *attribList)
 {
     PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB = nullptr;
-    wglCreateContextAttribsARB = 
+    wglCreateContextAttribsARB =
         (PFNWGLCREATECONTEXTATTRIBSARBPROC)wglGetProcAddress("wglCreateContextAttribsARB");
 
-    if(wglCreateContextAttribsARB == nullptr)
+    if (wglCreateContextAttribsARB == nullptr)
         isle::Book::AddEvent(isle::eNOTE::nALERT, "can't get \"wglCreateContextAttribsARB( )\" procedure address.");
 
     return wglCreateContextAttribsARB(hDC, hShareContext, attribList);
@@ -1881,10 +1889,10 @@ HGLRC APIENTRY wglCreateContextAttribsARB(HDC hDC, HGLRC hShareContext, const in
 int WINAPI wglGetSwapIntervalEXT(void)
 {
     PFNWGLGETSWAPINTERVALEXTPROC wglGetSwapIntervalEXT = nullptr;
-    wglGetSwapIntervalEXT = 
+    wglGetSwapIntervalEXT =
         (PFNWGLGETSWAPINTERVALEXTPROC)wglGetProcAddress("wglGetSwapIntervalEXT");
 
-    if(wglGetSwapIntervalEXT == nullptr)
+    if (wglGetSwapIntervalEXT == nullptr)
         isle::Book::AddEvent(isle::eNOTE::nALERT, "can't get \"wglGetSwapIntervalEXT()\" procedure address.");
 
     return wglGetSwapIntervalEXT();
@@ -1894,10 +1902,10 @@ int WINAPI wglGetSwapIntervalEXT(void)
 BOOL WINAPI wglSwapIntervalEXT(int interval)
 {
     PFNWGLSWAPINTERVALEXTPROC wglSwapIntervalEXT = nullptr;
-    wglSwapIntervalEXT = 
+    wglSwapIntervalEXT =
         (PFNWGLSWAPINTERVALEXTPROC)wglGetProcAddress("wglSwapIntervalEXT");
 
-    if(wglSwapIntervalEXT == nullptr)
+    if (wglSwapIntervalEXT == nullptr)
         isle::Book::AddEvent(isle::eNOTE::nALERT, "can't get \"wglSwapIntervalEXT()\" procedure address.");
 
     return wglSwapIntervalEXT(interval);

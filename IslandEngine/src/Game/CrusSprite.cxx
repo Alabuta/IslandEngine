@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <numeric>
 #include <vector>
 #include <string>
 
@@ -44,11 +45,11 @@ isle::Rect GetCroppedTextureRect(isle::Image const &image, isle::Rect const &rec
                 if (j > rightmost)
                     rightmost = j;
 
-                if (i < topmosts[i])
-                    topmosts[i] = i;
+                if (i < topmosts[i - top])
+                    topmosts[i - top] = i;
 
-                if (i > bottommosts[i])
-                    bottommosts[i] = i;
+                if (i > bottommosts[i - top])
+                    bottommosts[i - top] = i;
             }
         }
     }
@@ -72,21 +73,19 @@ namespace isle {
 {
     Sprite sprite;
 
-    sprite.texture_ = _texture;
+    sprite.textureSheet_ = _texture;
     sprite.rect_ = _rect;
     sprite.pivot_ = _pivot;
     sprite.pixelsPerUnit_ = _pixelsPerUnit;
 
     Image image;
 
-    if (!sprite.texture_.expired())
-        if (!LoadTARGA(image, sprite.texture_.lock()->name()))
-            return sprite;
+    if (!sprite.textureSheet_.expired())
+        if (!LoadTARGA(image, sprite.textureSheet_.lock()->name()))
+            return{};
 
 
     sprite.textureRect_ = std::move(GetCroppedTextureRect(image, sprite.rect_));
-    Book::AddEvent(eNOTE::nDEBUG, "%f|%f|%f", sprite.textureRect_.x(), sprite.textureRect_.width(), sprite.textureRect_.xmax());
-    Book::AddEvent(eNOTE::nDEBUG, "%f|%f|%f", sprite.textureRect_.y(), sprite.textureRect_.height(), sprite.textureRect_.ymax());
 
     sprite.BuildGeometry();
 
@@ -95,12 +94,44 @@ namespace isle {
 
 void Sprite::BuildGeometry()
 {
-    auto x = textureRect_.x() - rect_.x();
-    auto y = textureRect_.y() - rect_.y();
+    // Convert from pixels to world units.
+    auto left = (textureRect_.x() - rect_.x() - pivot_.x) / pixelsPerUnit_;
+    auto top = -(textureRect_.y() - rect_.y() - pivot_.y) / pixelsPerUnit_;
 
-    auto w = textureRect_.width();
-    auto h = textureRect_.height();
+    auto right = (textureRect_.xmax() - rect_.x() - pivot_.x) / pixelsPerUnit_;
+    auto bottom = -(textureRect_.ymax() - rect_.y() - pivot_.y) / pixelsPerUnit_;
 
-    Book::AddEvent(eNOTE::nDEBUG, "%f|%f|%f|%f", x, y, w, h);
+    // :TODO: just simple rectangle that bounds a cropped sprite texture.
+    // Lower left vertex -> top left vertex -> lower right vertex -> top right vertex (GL_TRIANGLE_STRIP).
+    vertices_.emplace_back(Position(left, bottom));
+    vertices_.emplace_back(Position(left, top));
+    vertices_.emplace_back(Position(right, bottom));
+    vertices_.emplace_back(Position(right, top));
+    vertices_.shrink_to_fit();
+
+    Rect textureSheetRect;
+
+    if (!textureSheet_.expired())
+        textureSheetRect = Rect(0, 0, textureSheet_.lock()->w(), textureSheet_.lock()->h());
+
+    else {
+        Book::AddEvent(eNOTE::nERROR, "texture doesn't exist.");
+        return;
+    }
+
+    // Getting normalized coordinates for uv rectangle.
+    auto normalizedSpriteMins = std::move(textureSheetRect.PointToNormalized(math::Point{textureRect_.x(), textureRect_.y()}));
+    auto normalizedSpriteMaxs = std::move(textureSheetRect.PointToNormalized(math::Point{textureRect_.xmax(), textureRect_.ymax()}));
+
+    uvs_.emplace_back(UV(normalizedSpriteMins.x, 1 - normalizedSpriteMaxs.y));
+    uvs_.emplace_back(UV(normalizedSpriteMins.x, 1 - normalizedSpriteMins.y));
+    uvs_.emplace_back(UV(normalizedSpriteMaxs.x, 1 - normalizedSpriteMaxs.y));
+    uvs_.emplace_back(UV(normalizedSpriteMaxs.x, 1 - normalizedSpriteMins.y));
+    uvs_.shrink_to_fit();
+
+    // A simple index buffer for quad.
+    indices_.resize(4);
+    std::iota(indices_.begin(), indices_.end(), 0);
+    indices_.shrink_to_fit();
 }
 };

@@ -1,6 +1,6 @@
 /********************************************************************************************************************************
 ****
-****    Source code of Crusoe's Island Engine.
+****    Source code of Island Engine.
 ****    Copyright (C) 2009 - 2017 Crusoe's Island LLC.
 ****
 ****    Started at 12th March 2010.
@@ -21,8 +21,7 @@
 
 #include "Interface\CrusViewport.h"
 
-namespace isle
-{
+namespace isle {
 class Render {
 public:
 
@@ -33,7 +32,7 @@ public:
 
     bool CreateProgram(uint32 &program);
 
-    bool CreateVBO(uint32 target, uint32 &vbo);
+    bool CreateBO(uint32 target, uint32 &vbo);
     bool CreateVAO(uint32 &vao);
     bool CreateTBO(uint32 target, uint32 &tbo);
 
@@ -43,46 +42,46 @@ public:
     void DrawFrame();
 
     void UpdateCMTS(size_t offset, size_t size, Color const *const colors) const;
-    void UpdateTRSM(size_t offset, size_t count, math::Matrix const *const matrices) const;
-    void UpdateATLAS(size_t offset, std::vector<float> vecs) const;
+    void UpdateViewport(size_t offset, size_t count, math::Matrix const *const matrices) const;
+    void UpdateTransform(size_t offset, size_t count, math::Matrix const *const matrices) const;
 
     static Render &inst();
 
 private:
     HDC hDC_{nullptr};
 
-    uint32 VBOs_{0}, VAOs_{0}, TBOs_{0};
+    uint32 BOs_{0}, VAOs_{0}, TBOs_{0};
     uint32 POs_{0};                            // The POs is the program objects.
 
     // Transform-scale-rotate matrices and color values UBOs indices.
-    uint32 TRSM_{0}, CMTS_{0}, ATLAS_{0};
+    uint32 VIEWPORT_{0}, CMTS_{0}, TRANSFORM_{0};
 
     //intf::Viewport vp_;
 
     Render();
     ~Render();
 
-    void InitUniformBuffer();
+    void InitBufferObjects();
 
     static void CALLBACK DebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity,
-                                       GLsizei length, char const *message, void const *userParam);
+        GLsizei length, char const *message, void const *userParam);
 
     void CleanUp();
 };
 
 inline void Render::UpdateCMTS(size_t _offset, size_t _size, Color const *const _colors) const
 {
-    glNamedBufferSubDataEXT(CMTS_, _offset, _size, _colors->c());
+    glNamedBufferSubData(CMTS_, _offset, _size, _colors->c());
 }
 
-inline void Render::UpdateTRSM(size_t _offset, size_t _count, math::Matrix const *const _matrices) const
+inline void Render::UpdateViewport(size_t _offset, size_t _count, math::Matrix const *const _matrices) const
 {
-    glNamedBufferSubDataEXT(TRSM_, _offset * sizeof(math::Matrix), _count * sizeof(math::Matrix), _matrices->m());
+    glNamedBufferSubData(VIEWPORT_, _offset * sizeof(math::Matrix), _count * sizeof(math::Matrix), _matrices->m());
 }
 
-inline void Render::UpdateATLAS(size_t _offset, std::vector<float> _vecs) const
+inline void Render::UpdateTransform(size_t _offset, size_t _count, math::Matrix const *const _matrices) const
 {
-    glNamedBufferSubDataEXT(ATLAS_, _offset * sizeof(float) * 2, _vecs.size() * sizeof(float), _vecs.data());
+    glNamedBufferSubData(TRANSFORM_, _offset * sizeof(math::Matrix), _count * sizeof(math::Matrix), _matrices->m());
 }
 };
 

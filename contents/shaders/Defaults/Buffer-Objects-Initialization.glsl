@@ -3,27 +3,20 @@
 ****    Source code of Island Engine.
 ****    Copyright (C) 2009 - 2017 Crusoe's Island LLC.
 ****
-****    Started at 22th June 2013.
-****    Description: supporting a gamepad xbox 360 controller.
+****    Description: buffer objects initialization shader.
 ****
 ********************************************************************************************************************************/
-#include "System\CrusSystem.h"
-#include "System\CrusWindow.h"
 
-#include "System\CrusInput.h"
-#include "System\CrusGamepad.h"
+#pragma include("Includes/ShaderVariables.glsl")
 
-#pragma comment(lib, "XInput.lib")
+#if CRUS_VERTEX_SHADER
 
-namespace isle
-{
-namespace Input
-{
-Gamepad::Gamepad()
-    : num_(0)
-{
-}
+void main()
+{}
 
-Gamepad::~Gamepad(){};
-};
-};
+#elif CRUS_FRAGMENT_SHADER
+
+void main()
+{}
+
+#endif

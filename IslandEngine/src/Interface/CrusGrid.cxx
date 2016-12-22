@@ -1,6 +1,6 @@
 /********************************************************************************************************************************
 ****
-****    Source code of Crusoe's Island Engine.
+****    Source code of Island Engine.
 ****    Copyright (C) 2009 - 2017 Crusoe's Island LLC.
 ****
 ****    Started at 12th March 2010.
@@ -12,24 +12,24 @@
 #include "Renderer\CrusRender.h"
 #include "Renderer\CrusProgram.h"
 
-#include "Renderer\CrusVertex.h"
+#include "Renderer\CrusPosition.h"
 #include "Interface\CrusGrid.h"
 
 namespace isle {
 namespace intf {
-Vertex *Grid::Build(float _law, float _grle, uint16 _subdivs)
+Position *Grid::Build(float _law, float _grle, uint16 _subdivs)
 {
     float const div = _law / _grle;
 
     count_[0] = 8 * (uint16(div * (_subdivs - 1)) + 1);
     count_[1] = 8 * uint16(div - 1);
 
-    Vertex *const data = (Vertex *)malloc(sizeof(Vertex) * (count_[0] + count_[1] + 4 + 2 * 3));
+    Position *const data = (Position *)malloc(sizeof(Position) * (count_[0] + count_[1] + 4 + 2 * 3));
 
-    data[0] = Vertex(_law, 0.0f, -_law);    data[4] = Vertex(-_law, 0.0f, -_law);
-    data[1] = Vertex(-_law, 0.0f, -_law);    data[5] = Vertex(-_law, 0.0f, _law);
-    data[2] = Vertex(-_law, 0.0f, _law);    data[6] = Vertex(_law, 0.0f, _law);
-    data[3] = Vertex(_law, 0.0f, _law);    data[7] = Vertex(_law, 0.0f, -_law);
+    data[0] = Position(_law, 0.0f, -_law);    data[4] = Position(-_law, 0.0f, -_law);
+    data[1] = Position(-_law, 0.0f, -_law);    data[5] = Position(-_law, 0.0f, _law);
+    data[2] = Position(-_law, 0.0f, _law);    data[6] = Position(_law, 0.0f, _law);
+    data[3] = Position(_law, 0.0f, _law);    data[7] = Position(_law, 0.0f, -_law);
 
     float incr = _grle / _subdivs, i = 0.0f;
     uint16 j = 8;
@@ -38,43 +38,43 @@ Vertex *Grid::Build(float _law, float _grle, uint16 _subdivs)
         if ((k % (_subdivs - 1)) == 0ui16)
             i += incr;
 
-        data[j++] = Vertex(-i, 0.0f, -_law);    data[j++] = Vertex(-i, 0.0f, _law);
-        data[j++] = Vertex(i, 0.0f, _law);    data[j++] = Vertex(i, 0.0f, -_law);
-        data[j++] = Vertex(-_law, 0.0f, -i);    data[j++] = Vertex(_law, 0.0f, -i);
-        data[j++] = Vertex(_law, 0.0f, i);    data[j++] = Vertex(-_law, 0.0f, i);
+        data[j++] = Position(-i, 0.0f, -_law);    data[j++] = Position(-i, 0.0f, _law);
+        data[j++] = Position(i, 0.0f, _law);    data[j++] = Position(i, 0.0f, -_law);
+        data[j++] = Position(-_law, 0.0f, -i);    data[j++] = Position(_law, 0.0f, -i);
+        data[j++] = Position(_law, 0.0f, i);    data[j++] = Position(-_law, 0.0f, i);
     }
 
     i = _grle;
 
     for (; j < count_[0] + count_[1]; i += _grle) {
-        data[j++] = Vertex(-i, 0.0f, -_law);    data[j++] = Vertex(-i, 0.0f, _law);
-        data[j++] = Vertex(i, 0.0f, _law);    data[j++] = Vertex(i, 0.0f, -_law);
-        data[j++] = Vertex(-_law, 0.0f, -i);    data[j++] = Vertex(_law, 0.0f, -i);
-        data[j++] = Vertex(_law, 0.0f, i);    data[j++] = Vertex(-_law, 0.0f, i);
+        data[j++] = Position(-i, 0.0f, -_law);    data[j++] = Position(-i, 0.0f, _law);
+        data[j++] = Position(i, 0.0f, _law);    data[j++] = Position(i, 0.0f, -_law);
+        data[j++] = Position(-_law, 0.0f, -i);    data[j++] = Position(_law, 0.0f, -i);
+        data[j++] = Position(_law, 0.0f, i);    data[j++] = Position(-_law, 0.0f, i);
     }
 
     if (_grle == 0.0f || _subdivs == 0.0f)
         return data;
 
-    data[j++] = Vertex(_law, 0.0f, 0.0f);    data[j++] = Vertex(-_law, 0.0f, 0.0f);
-    data[j++] = Vertex(0.0f, 0.0f, _law);    data[j++] = Vertex(0.0f, 0.0f, -_law);
+    data[j++] = Position(_law, 0.0f, 0.0f);    data[j++] = Position(-_law, 0.0f, 0.0f);
+    data[j++] = Position(0.0f, 0.0f, _law);    data[j++] = Position(0.0f, 0.0f, -_law);
 
-    data[j++] = Vertex(0.0f, 0.0f, 0.0f);     data[j++] = Vertex(1.0f, 0.0f, 0.0f);
-    data[j++] = Vertex(0.0f, 0.0f, 0.0f);     data[j++] = Vertex(0.0f, 1.0f, 0.0f);
-    data[j++] = Vertex(0.0f, 0.0f, 0.0f);     data[j++] = Vertex(0.0f, 0.0f, 1.0f);
+    data[j++] = Position(0.0f, 0.0f, 0.0f);     data[j++] = Position(1.0f, 0.0f, 0.0f);
+    data[j++] = Position(0.0f, 0.0f, 0.0f);     data[j++] = Position(0.0f, 1.0f, 0.0f);
+    data[j++] = Position(0.0f, 0.0f, 0.0f);     data[j++] = Position(0.0f, 0.0f, 1.0f);
 
     return data;
 }
 
 void Grid::Update(float _law, float _grle, uint16 _subdivs)
 {
-    shader_.AssignNew({"Interface\\grid.glsl"});
+    shader_.AssignNew({"Interface/grid.glsl"});
 
-    Vertex *data = Build(_law, _grle, _subdivs);
+    Position *data = Build(_law, _grle, _subdivs);
     if (data == nullptr)
         return;
 
-    size_t const length = sizeof(Vertex) * (count_[0] + count_[1] + 4 + 2 * 3);
+    size_t const length = sizeof(Position) * (count_[0] + count_[1] + 4 + 2 * 3);
 
     if (glIsVertexArray(vao_) == GL_TRUE)
         glDeleteVertexArrays(1, &vao_);
@@ -83,7 +83,7 @@ void Grid::Update(float _law, float _grle, uint16 _subdivs)
 
     {
         uint32 vbo = 0;
-        Render::inst().CreateVBO(GL_ARRAY_BUFFER, vbo);
+        Render::inst().CreateBO(GL_ARRAY_BUFFER, vbo);
     }
 
     glBufferData(GL_ARRAY_BUFFER, length, data, GL_STATIC_DRAW);
@@ -104,24 +104,27 @@ void Grid::Draw()
     using namespace colors;
 
     shader_.SwitchOn();
+
+    Render::inst().UpdateTransform(0, 1, &Render::inst().vp_.projView());
+
     glBindVertexArray(vao_);
 
-    glUniform4fv(shader_.GetUniformLoc("LineColor"), 1, kGRAY.c());
+    glUniform4fv(Program::eUNIFORM_ID::nMAIN_COLOR, 1, kGRAY.c());
     glDrawArrays(GL_LINES, 0, count_[0]);
 
-    glUniform4fv(Program::GetLasUniformLoc(), 1, kDARKGRAY.c());
+    glUniform4fv(Program::eUNIFORM_ID::nMAIN_COLOR, 1, kDARKGRAY.c());
     glDrawArrays(GL_LINES, count_[0], count_[1]);
 
-    glUniform4fv(Program::GetLasUniformLoc(), 1, kBLACK.c());
+    glUniform4fv(Program::eUNIFORM_ID::nMAIN_COLOR, 1, kBLACK.c());
     glDrawArrays(GL_LINES, count_[0] + count_[1], 4);
 
-    glUniform4fv(Program::GetLasUniformLoc(), 1, kRED.c());
+    glUniform4fv(Program::eUNIFORM_ID::nMAIN_COLOR, 1, kRED.c());
     glDrawArrays(GL_LINES, count_[0] + count_[1] + 4, 2);
 
-    glUniform4fv(Program::GetLasUniformLoc(), 1, kGREEN.c());
+    glUniform4fv(Program::eUNIFORM_ID::nMAIN_COLOR, 1, kGREEN.c());
     glDrawArrays(GL_LINES, count_[0] + count_[1] + 4 + 2, 2);
 
-    glUniform4fv(Program::GetLasUniformLoc(), 1, kBLUE.c());
+    glUniform4fv(Program::eUNIFORM_ID::nMAIN_COLOR, 1, kBLUE.c());
     glDrawArrays(GL_LINES, count_[0] + count_[1] + 4 + 2 + 2, 2);
 }
 };

@@ -12,6 +12,8 @@
 #include "Game\CrusObject.h"
 #include "Game\CrusBounds.h"
 #include "Game\CrusRect.h"
+#include "Renderer\CrusPosition.h"
+#include "Renderer\CrusUV.h"
 
 namespace isle {
 class Sprite final : CrusObject {
@@ -19,7 +21,7 @@ public:
 
     static Sprite Create(std::shared_ptr<Texture> const &texture, Rect const &rect, math::Point const &pivot, float pixelsPerUnit = 100);
 
-    Texture const &texture() const;
+    Texture const &textureSheet() const;
 
     Bounds const &bounds() const;
     Rect const &rect() const;
@@ -28,12 +30,12 @@ public:
     Rect const &textureRect() const;
     Rect const &textureRectOffset() const;
 
-    uint16 const *const triangles() const;
-    math::Point const *const vertices() const;
-    math::Point const *const uvs() const;
+    std::vector<uint16> const &indices() const;
+    std::vector<Position> const &vertices() const;
+    std::vector<UV> const &uvs() const;
 
 private:
-    std::weak_ptr<Texture> texture_;
+    std::weak_ptr<Texture> textureSheet_;
 
     Bounds bounds_;
     Rect rect_;
@@ -41,18 +43,19 @@ private:
 
     Rect textureRect_, textureRectOffset_;
 
-    std::vector<uint16> triangles_;
-    std::vector<math::Point> vertices_, uvs_;
+    std::vector<uint16> indices_;
+    std::vector<Position> vertices_;
+    std::vector<UV> uvs_;
 
     float pixelsPerUnit_;
 
     void BuildGeometry();
 };
 
-__forceinline Texture const &Sprite::Sprite::texture() const
+__forceinline Texture const &Sprite::Sprite::textureSheet() const
 {
-    if (!texture_.expired())
-        return *texture_.lock();
+    if (!textureSheet_.expired())
+        return *textureSheet_.lock();
 
     return Texture("");
 }
@@ -82,19 +85,19 @@ __forceinline Rect const &Sprite::textureRectOffset() const
     return textureRectOffset_;
 }
 
-__forceinline uint16 const *const Sprite::triangles() const
+__forceinline std::vector<uint16> const &Sprite::indices() const
 {
-    return triangles_.data();
+    return indices_;
 }
 
-__forceinline math::Point const *const Sprite::vertices() const
+__forceinline std::vector<Position> const &Sprite::vertices() const
 {
-    return vertices_.data();
+    return vertices_;
 }
 
-__forceinline math::Point const *const Sprite::uvs() const
+__forceinline std::vector<UV> const &Sprite::uvs() const
 {
-    return uvs_.data();
+    return uvs_;
 }
 };
 

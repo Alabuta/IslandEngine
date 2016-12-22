@@ -20,7 +20,7 @@ public:
     void RotateAround(math::Vector axis);
     void Translate(math::Vector direction, float distance);
 
-    eCOMPONENT_TYPES type() const override { return eCOMPONENT_TYPES::nTRANSFORM; }
+    eCOMPONENT_TYPES type() const override { return eCOMPONENT_TYPES::nVIEWPORT; }
 
 private:
 };

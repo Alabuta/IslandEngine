@@ -1,6 +1,6 @@
 /********************************************************************************************************************************
 ****
-****    Source code of Crusoe's Island Engine.
+****    Source code of Island Engine.
 ****    Copyright (C) 2009 - 2017 Crusoe's Island LLC.
 ****
 ****    Started at 26th June 2013.

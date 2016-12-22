@@ -9,7 +9,7 @@
 class Transform;
 
 enum class eCOMPONENT_TYPES {
-    nTRANSFORM = 1,
+    nVIEWPORT = 1,
     nMESH_RENDERER
 };
 

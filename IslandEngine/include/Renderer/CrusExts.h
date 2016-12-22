@@ -1,9 +1,8 @@
 /********************************************************************************************************************************
 ****
-****    Source code of Crusoe's Island Engine.
+****    Source code of Island Engine.
 ****    Copyright (C) 2009 - 2017 Crusoe's Island LLC.
 ****
-****    Started at 27th November 2010.
 ****    Description: OpenGL extensions declarations.
 ****
 ********************************************************************************************************************************/
@@ -20,9 +19,10 @@
 
 #define GL_GLEXT_PROTOTYPES 1
 #define WGL_WGLEXT_PROTOTYPES 1
+#define CRUS_USE_GL_EXTENSIONS 0
 
 #include <GL\GLcoreARB.h>
-#include <GL\GLext.h>
+//#include <GL\GLext.h>
 #include <GL\wGLext.h>
 
 #define _CRUS_CHECK_GL_CALLS  1

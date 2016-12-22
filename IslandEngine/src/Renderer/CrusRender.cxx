@@ -1,6 +1,6 @@
 /********************************************************************************************************************************
 ****
-****    Source code of Crusoe's Island Engine.
+****    Source code of Island Engine.
 ****    Copyright (C) 2009 - 2017 Crusoe's Island LLC.
 ****
 ****    Started at 12th March 2010.
@@ -143,7 +143,7 @@ void Render::SetupContext()
         return;
     }
 
-    InitUniformBuffer();
+    InitBufferObjects();
 
     if (glGetError() != GL_NO_ERROR) {
         Book::AddEvent(eNOTE::nERROR, "%d", __LINE__);
@@ -158,10 +158,14 @@ void Render::SetupContext()
     vp_.Create(intf::Viewport::eVIEWPORT_TYPE::nPERSPECTIVE);
     vp_.SetCamera(&Camera::inst());
 
-    if (glGetError() != GL_NO_ERROR) {
+    int32 maxAttribs = -1;
+    glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &maxAttribs);
+
+    if (maxAttribs < 16)
+        Book::AddEvent(eNOTE::nCRITIC, "maximum supported number of vertex attributes is less than required.");
+
+    if (glGetError() != GL_NO_ERROR)
         Book::AddEvent(eNOTE::nERROR, "%d", __LINE__);
-        return;
-    }
 
     using namespace colors;
     glClearColor(kCLEARGRAY.r(), kCLEARGRAY.g(), kCLEARGRAY.b(), 1.0f);
@@ -207,22 +211,22 @@ bool Render::CreateProgram(uint32 &_program)
     return true;
 }
 
-bool Render::CreateVBO(uint32 _target, uint32 &_vbo)
+bool Render::CreateBO(uint32 _target, uint32 &_bo)
 {
-    if (_vbo != 0 && glIsBuffer(_vbo) == GL_TRUE) {
-        Book::AddEvent(eNOTE::nWARN, "already used VBO index: #%u.", _vbo);
+    if (_bo != 0 && glIsBuffer(_bo) == GL_TRUE) {
+        Book::AddEvent(eNOTE::nWARN, "already used BO index: #%u.", _bo);
         return false;
     }
 
-    glGenBuffers(1, &_vbo);
-    glBindBuffer(_target, _vbo);
+    glGenBuffers(1, &_bo);
+    glBindBuffer(_target, _bo);
 
     if (glGetError() != GL_NO_ERROR) {
-        Book::AddEvent(eNOTE::nERROR, "some problem with vertex buffer index.");
+        Book::AddEvent(eNOTE::nERROR, "some problem with buffer index.");
         return false;
     }
 
-    VBOs_ = _vbo;
+    BOs_ = _bo;
     return true;
 }
 
@@ -272,6 +276,8 @@ void Render::SetViewport(int16 _x, int16 _y, int16 _w, int16 _h)
 void Render::Update()
 {}
 
+math::Matrix identity = math::Matrix::GetIdentity().Translate(0, 1, 0);
+
 void Render::DrawFrame()
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -279,9 +285,9 @@ void Render::DrawFrame()
     vp_.MakeCurrent();
     vp_.cam().Update();
 
-    math::Matrix matrices[] = {vp_.projView(), vp_.cam().view(), vp_.proj()};
+    math::Matrix const matrices[] = {vp_.projView(), vp_.proj(), vp_.cam().view()};
 
-    UpdateTRSM(2, 3, matrices);
+    UpdateViewport(0, 3, matrices);
 
     app::DrawFrame();
 
@@ -301,35 +307,15 @@ void Render::DrawFrame()
     return inst;
 }
 
-void Render::InitUniformBuffer()
+void Render::InitBufferObjects()
 {
     Program ubo;
 
-    if (!ubo.AssignNew({"ubo_init.glsl"}))
-        Book::AddEvent(eNOTE::nCRITIC, "can't init the UBO.");
-
-    int32 size = -1;
+    if (!ubo.AssignNew({"Defaults/Buffer-Objects-Initialization.glsl"}))
+        Book::AddEvent(eNOTE::nCRITIC, "can't init the buffer objects.");
 
     /*{
-        uint32 index = glGetUniformBlockIndex(ubo.GetName(), "ATLAS");
-        glGetActiveUniformBlockiv(ubo.GetName(), Program::nATLAS, GL_UNIFORM_BLOCK_DATA_SIZE, &size);
 
-        if (index == GL_INVALID_INDEX || size < 1)
-            Book::AddEvent(eNOTE::nCRITIC, "can't init the UBO: invalid index param (%s).", "ATLAS");
-
-        float const vecs[2][2] = {
-            { 0, 0 },{ 0, 0 }
-        };
-
-        CreateVBO(GL_UNIFORM_BUFFER, ATLAS_);
-        glBufferData(GL_UNIFORM_BUFFER, size, vecs, GL_DYNAMIC_DRAW);
-        glBindBuffer(GL_UNIFORM_BUFFER, 0);
-
-        glBindBufferBase(GL_UNIFORM_BUFFER, index, ATLAS_);
-        glUniformBlockBinding(ubo.GetName(), Program::nATLAS, index);
-    }*/
-
-    {
         uint32 index = glGetUniformBlockIndex(ubo.GetName(), "CMTS");
         glGetActiveUniformBlockiv(ubo.GetName(), Program::nMATERIAL, GL_UNIFORM_BLOCK_DATA_SIZE, &size);
 
@@ -341,27 +327,49 @@ void Render::InitUniformBuffer()
             kDARKGREEN, kSPRINGGREEN, kRED, kNAVYBLUE
         };
 
-        CreateVBO(GL_UNIFORM_BUFFER, CMTS_);
+        CreateBO(GL_UNIFORM_BUFFER, CMTS_);
         glBufferData(GL_UNIFORM_BUFFER, size, colors, GL_DYNAMIC_DRAW);
         glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
         glBindBufferBase(GL_UNIFORM_BUFFER, index, CMTS_);
         glUniformBlockBinding(ubo.GetName(), Program::nMATERIAL, index);
+    }*/
+
+    math::Matrix const matrices[] = {
+        math::Matrix::GetIdentity(),
+        math::Matrix::GetIdentity(),
+        math::Matrix::GetIdentity()
+    };
+
+    {
+        int32 size = -1;
+        uint32 index = glGetUniformBlockIndex(ubo.program(), "VIEWPORT");
+
+        glGetActiveUniformBlockiv(ubo.program(), Program::nVIEWPORT, GL_UNIFORM_BLOCK_DATA_SIZE, &size);
+
+        if (index == GL_INVALID_INDEX || size < 1)
+            Book::AddEvent(eNOTE::nCRITIC, "can't init the UBO: invalid index param (%s).", "VIEWPORT");
+
+        CreateBO(GL_UNIFORM_BUFFER, VIEWPORT_);
+        glBufferData(GL_UNIFORM_BUFFER, size, matrices, GL_DYNAMIC_DRAW);
+        glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+        glBindBufferBase(GL_UNIFORM_BUFFER, Program::nVIEWPORT, VIEWPORT_);
+        glUniformBlockBinding(ubo.program(), index, Program::nVIEWPORT);
     }
 
     {
-        uint32 index = glGetUniformBlockIndex(ubo.GetName(), "TRSM");
-        glGetActiveUniformBlockiv(ubo.GetName(), Program::nTRANSFORM, GL_UNIFORM_BLOCK_DATA_SIZE, &size);
+        uint32 index = glGetProgramResourceIndex(ubo.program(), GL_SHADER_STORAGE_BLOCK, "TRANSFORM");
 
-        if (index == GL_INVALID_INDEX || size < 1)
-            Book::AddEvent(eNOTE::nCRITIC, "can't init the UBO: invalid index param (%s).", "TRSM");
+        if (index == GL_INVALID_INDEX)
+            Book::AddEvent(eNOTE::nCRITIC, "can't init the UBO: invalid index param (%s).", "TRANSFORM");
 
-        CreateVBO(GL_UNIFORM_BUFFER, TRSM_);
-        glBufferData(GL_UNIFORM_BUFFER, size, nullptr, GL_DYNAMIC_DRAW);
-        glBindBuffer(GL_UNIFORM_BUFFER, 0);
+        CreateBO(GL_SHADER_STORAGE_BUFFER, TRANSFORM_);
+        glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(matrices), matrices, GL_DYNAMIC_DRAW);
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 
-        glBindBufferBase(GL_UNIFORM_BUFFER, index, TRSM_);
-        glUniformBlockBinding(ubo.GetName(), Program::nTRANSFORM, index);
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, Program::nTRANSFORM, TRANSFORM_);
+        glShaderStorageBlockBinding(ubo.program(), index, Program::nTRANSFORM);
     }
 }
 
@@ -413,7 +421,7 @@ void CALLBACK Render::DebugCallback(GLenum _source, GLenum _type, GLuint _id, GL
 void Render::CleanUp()
 {
     Book::AddEvent(eNOTE::nINFO, "VBOs|VAOs|TBOs|PBOs: %u|%u|%u|%u.",
-        VBOs_++, VAOs_++, TBOs_++, POs_++);
+        BOs_++, VAOs_++, TBOs_++, POs_++);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
@@ -454,11 +462,11 @@ void Render::CleanUp()
         if (glIsVertexArray(VAOs_) == GL_TRUE)
             glDeleteVertexArrays(1, &VAOs_);
 
-    while (--VBOs_)
-        if (glIsBuffer(VBOs_) == GL_TRUE)
-            glDeleteBuffers(1, &VBOs_);
+    while (--BOs_)
+        if (glIsBuffer(BOs_) == GL_TRUE)
+            glDeleteBuffers(1, &BOs_);
 
     Book::AddEvent(eNOTE::nHYPHEN, "VBOs|VAOs|TBOs|PBOs: %u|%u|%u|%u.",
-        VBOs_, VAOs_, TBOs_, POs_);
+        BOs_, VAOs_, TBOs_, POs_);
 }
 };

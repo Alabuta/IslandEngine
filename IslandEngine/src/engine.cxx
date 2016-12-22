@@ -1,6 +1,6 @@
 /********************************************************************************************************************************
 ****
-****    Source code of Crusoe's Island Engine.
+****    Source code of Island Engine.
 ****    Copyright (C) 2009 - 2014 Crusoe's Island LLC.
 ****
 ****    Started at 23th July 2009.
@@ -11,6 +11,7 @@
 #include "Game\CrusBounds.h"
 #include "Game\CrusRect.h"
 #include "Game\CrusSprite.h"
+#include "Renderer\CrusUV.h"
 
 #include <iostream>
 
@@ -19,42 +20,91 @@
 #include <algorithm>
 #include <set>
 
-extern void f();
+int32 index = 0;
+void IncreaseIndex()
+{
+    index += index == 4 * 7 ? -index : 4;
+}
 
 namespace app {
-Program background;
-uint32 background_vao;
-
 intf::Grid grid;
 
-Texture texture("cat.tga");
+Program flipbookProgram;
+uint32 flipbook_vao;
+Texture flipbookTexture("cat.tga");
+math::Matrix transform;
+
+math::Matrix matrices[] = {
+    math::Matrix::GetIdentity(),
+    math::Matrix::GetIdentity(),
+    math::Matrix::GetIdentity()
+};
 
 void InitBackground()
 {
-    //512x288
-    float const quad_plane[] = {
-        -1.0f,  1.0f, 0.0f, 0.0f, 1.0f,
-        -1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
-         1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
-         1.0f, -1.0f, 0.0f, 1.0f, 0.0f
+    flipbookTexture.Init();
+
+    uint8 const indices[] = {
+        0, 1, 2, 3
     };
 
-    background.AssignNew({"test.glsl"});
+    transform.MakeIdentity();
+    matrices[1].Translate(1, 1, -1);
 
-    Render::inst().CreateVAO(background_vao);
+    flipbookProgram.AssignNew({"Defaults/Sprites-Default.glsl"});
 
-    {
-        uint32 vbo = 0;
-        Render::inst().CreateVBO(GL_ARRAY_BUFFER, vbo);
+    auto const imageWidth = flipbookTexture.w(), imageHeight = flipbookTexture.h();
+    auto const spritesNumberHorizontally = 2, spritesNumberVertically = 4;
+    auto const spritesNumber = spritesNumberHorizontally * spritesNumberVertically;
+    auto const spriteWidth = 512.0f, spriteHeight = 256.0f;
+    auto const pixelsPerUnit = 200.0f;
+
+    std::vector<Sprite> spriteSheet;
+
+    for (auto j = 0; j < spritesNumberVertically; ++j) {
+        for (auto i = 0; i < spritesNumberHorizontally; ++i) {
+            spriteSheet.emplace_back(Sprite::Create(
+                std::make_shared<Texture>(flipbookTexture),
+                Rect(i * spriteWidth, j * spriteHeight, spriteWidth, spriteHeight),
+                math::Point{spriteWidth * 0.5f, spriteHeight * 0.5f},
+                pixelsPerUnit));
+        }
     }
 
-    glBufferData(GL_ARRAY_BUFFER, sizeof(quad_plane), quad_plane, GL_STATIC_DRAW);
+    spriteSheet.shrink_to_fit();
 
-    glVertexAttribPointer(Program::eLAYOUT_ID::nVERTEX, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 5, nullptr);
-    glEnableVertexAttribArray(Program::nVERTEX);
+    struct Vertex {
+        Position pos;
+        UV uv;
+    };
 
-    glVertexAttribPointer(isle::Program::nTEXCRD, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 5, reinterpret_cast<void const *>(sizeof(float) * 3));
-    glEnableVertexAttribArray(isle::Program::nTEXCRD);
+    std::vector<Vertex> vertex_buffer;
+
+    for (auto const &sprite : spriteSheet)
+        for (auto i = 0; i < sprite.vertices().size(); ++i)
+            vertex_buffer.push_back(Vertex{sprite.vertices()[i], sprite.uvs()[i]});
+
+    vertex_buffer.shrink_to_fit();
+
+    Render::inst().CreateVAO(flipbook_vao);
+
+    {
+        uint32 bo = 0;
+        Render::inst().CreateBO(GL_ARRAY_BUFFER, bo);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * vertex_buffer.size(), vertex_buffer.data(), GL_STATIC_DRAW);
+    }
+
+    {
+        uint32 bo = 0;
+        Render::inst().CreateBO(GL_ELEMENT_ARRAY_BUFFER, bo);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+    }
+
+    glVertexAttribPointer(Program::eIN_OUT_ID::nVERTEX, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 5, nullptr);
+    glEnableVertexAttribArray(Program::eIN_OUT_ID::nVERTEX);
+
+    glVertexAttribPointer(isle::Program::eIN_OUT_ID::nTEXCRD, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 5, reinterpret_cast<void const *>(sizeof(float) * 3));
+    glEnableVertexAttribArray(isle::Program::eIN_OUT_ID::nTEXCRD);
 
     glBindVertexArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -62,17 +112,25 @@ void InitBackground()
 
 void DrawBackgorund()
 {
-    background.SwitchOn();
+    flipbookTexture.Bind();
+    flipbookProgram.SwitchOn();
 
-    glBindVertexArray(background_vao);
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    matrices[0] = Render::inst().vp_.projView() * matrices[1];
+
+    Render::inst().UpdateTransform(0, 3, &matrices[0]);
+
+    //glUniformMatrix4fv(Program::eUNIFORM_ID::nTRANSFORM, 1, GL_FALSE, mkas.data());
+
+    glBindVertexArray(flipbook_vao);
+    //glDrawElements(GL_TRIANGLE_STRIP, 4, GL_UNSIGNED_SHORT, nullptr);
+    glDrawElementsBaseVertex(GL_TRIANGLE_STRIP, 4, GL_UNSIGNED_BYTE, nullptr, index);
 }
 
 void Init()
 {
     Camera::inst().Create(Camera::eCAM_BEHAVIOR::nFREE);
-    Camera::inst().SetPos(0.0f, 1.0f, 2.0f);
-    Camera::inst().LookAt(0.0f, 1.0f, 0.0f);
+    Camera::inst().SetPos(0.0f, 1.0f, 1.0f);
+    Camera::inst().LookAt(0.0f, 0.0f, 0.0f);
 
     // Application intialization function.
     glDisable(GL_CULL_FACE);
@@ -82,12 +140,7 @@ void Init()
 
     grid.Update();
 
-    texture.Init();
-    texture.Bind();
-
     InitBackground();
-
-    auto sprite = Sprite::Create(std::make_shared<Texture>(texture), Rect(512, 512, 512, 256), math::Point{256, 128}, 200);
 }
 
 void Update()
