@@ -3,7 +3,6 @@
 ****    Source code of Island Engine.
 ****    Copyright (C) 2009 - 2017 Crusoe's Island LLC.
 ****
-****    Started at 12th March 2010.
 ****	Description: engine's time routines file.
 ****
 ********************************************************************************************************************************/
@@ -12,28 +11,41 @@
 #ifndef CRUS_TIME_H                 // Include guard "CrusTime.h"
 #define CRUS_TIME_H
 
-#include <cmath>
+
+#include <chrono>
 #include "System\CrusTypes.h"
-#include "System\CrusWindow.h"
 
 namespace isle {
+
+// A function execution duration measurement.
+template<typename TimeT = std::chrono::milliseconds>
+struct measure {
+    template<typename F, typename ...Args>
+    static typename TimeT::rep execution(F func, Args &&... args)
+    {
+        auto start = std::chrono::system_clock::now();
+
+        func(std::forward<Args>(args)...);
+
+        auto duration = std::chrono::duration_cast<TimeT>(std::chrono::system_clock::now() - start);
+
+        return duration.count();
+    }
+};
+
 class Time {
 public:
-    Time();
 
     void Restart();
     void Update();
 
-    float delta() const { return delta_; };
-    float elapsed() const { return elapsed_; };
+    float delta() const { return delta_ * 0.001f; };
+    float elapsed() const { return elapsed_ * 0.001f; };
 
 private:
-    size_t const kBufferSize{50};
-    float buffer[50];
 
-    LARGE_INTEGER freq_{0}, time_[3]{{0}, {0}, {0}};
-    float delta_{0.0f}, elapsed_{0.0f};
-    uint8 frames_{1}, counter_{1};
+    std::chrono::time_point<std::chrono::system_clock> appStart_, prevFrame_;
+    int64 delta_, elapsed_;
 };
 }
 
