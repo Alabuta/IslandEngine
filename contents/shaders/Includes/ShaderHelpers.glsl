@@ -6,6 +6,7 @@
 ****    Description: shader helpers header file.
 ****
 ********************************************************************************************************************************/
+#pragma include("Includes/ShaderVariables.glsl")
 
 #ifndef CRUS_SHADER_HELPERS
 #define CRUS_SHADER_HELPERS

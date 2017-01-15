@@ -6,7 +6,6 @@
 ****    Description: buffer objects initialization shader.
 ****
 ********************************************************************************************************************************/
-
 #pragma include("Includes/ShaderVariables.glsl")
 
 #if CRUS_VERTEX_SHADER

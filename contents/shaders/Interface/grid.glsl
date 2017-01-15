@@ -1,7 +1,7 @@
 /****************************************************************************************
 ****
 ****    Source code of Island Engine.
-****    Copyright (C) 2009 - 2015 Crusoe's Island LLC.
+****    Copyright (C) 2009 - 2017 Crusoe's Island LLC.
 ****
 ****    Description: grid render shader file.
 ****

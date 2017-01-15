@@ -6,7 +6,6 @@
 ****    Description: built-in shader variables header file.
 ****
 ********************************************************************************************************************************/
-
 #ifndef CRUS_SHADER_VARIABLES
 #define CRUS_SHADER_VARIABLES
 
