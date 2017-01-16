@@ -3,7 +3,6 @@
 ****    Source code of Island Engine.
 ****    Copyright (C) 2009 - 2017 Crusoe's Island LLC.
 ****
-****    Started at 4th May 2012.
 ****    Description: base class for all objects the engine references.
 ****
 ********************************************************************************************************************************/
@@ -18,21 +17,25 @@
 namespace isle {
 class CrusObject {
 public:
+    uint32 instanceID{0};
+    std::string name{""};
 
     virtual ~CrusObject() = default;
 
-    uint32 instanceID() const;
-    std::string const &name() const;
+    explicit operator bool() const;
 
-    bool operator()() const;
+    virtual std::string ToString() const = 0;
 
 protected:
-    CrusObject() = default;
+    explicit CrusObject() = default;
 
-private:
-    uint32 instanceID_{0};
-    std::string name_{""};
+    void MakeValid();
 };
+
+inline CrusObject::operator bool() const
+{
+    return instanceID > 0 ? true : false;
+}
 };
 
 #endif // CRUS_OBJECT_H

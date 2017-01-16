@@ -14,17 +14,17 @@ Bounds::Bounds(math::Vector &&_center, math::Vector &&_size) :
     min = center - extents;
 }
 
-Bounds::Bounds(Bounds &&bounds) :
-    center(std::move(bounds.center)), extents(std::move(bounds.extents))
-{}
+//Bounds::Bounds(Bounds &&bounds) :
+//    center(std::move(bounds.center)), extents(std::move(bounds.extents))
+//{}
 
-__forceinline Bounds const &Bounds::operator= (Bounds &&bounds)
-{
-    center = std::move(bounds.center);
-    extents = std::move(bounds.extents);
-
-    return *this;
-}
+//__forceinline Bounds const &Bounds::operator= (Bounds &&bounds)
+//{
+//    center = std::move(bounds.center);
+//    extents = std::move(bounds.extents);
+//
+//    return *this;
+//}
 
 __forceinline bool Bounds::IsInside(math::Vector const &point) const
 {

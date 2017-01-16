@@ -19,6 +19,8 @@ public:
     bool Contains(math::Point const &point) const;
     bool Overlaps(Rect const &rect) const;
 
+    float GetSquare() const;
+
     math::Point NormalizedToPoint(math::Point const &normalizedCoords) const;
     math::Point PointToNormalized(math::Point const &point) const;
 
@@ -88,6 +90,11 @@ private:
         };
     };
 };
+
+__forceinline float Rect::GetSquare() const
+{
+    return width_ * height_;
+}
 
 __forceinline float Rect::x() const
 {

@@ -3,7 +3,6 @@
 ****    Source code of Island Engine.
 ****    Copyright (C) 2009 - 2017 Crusoe's Island LLC.
 ****
-****    Started at 30th November 2011.
 ****    Description: implementation of system's class file.
 ****
 ********************************************************************************************************************************/
@@ -26,16 +25,6 @@ Time System::time;
 
 /*static*/ void System::Setup()
 {
-#if _CRUS_DEBUG_CONSOLE
-    AllocConsole();
-
-    FILE *outfile;
-    ::freopen_s(&outfile, "conout$", "w", stdout);
-    //ShowWindow(GetConsoleWindow(), SW_HIDE);
-#else
-    //FreeConsole();
-#endif
-
     // This method for only start of system and used before splash screen creation.
     HWND const hExistWnd = FindWindowW(crus::names::kWINDOW_CLASS, nullptr);
 
@@ -55,28 +44,26 @@ Time System::time;
     //_CrtSetBreakAlloc(84);
 #endif
 
-    Book::Open();
+    //Book::Open();
 }
 
 /*static*/ void System::Destroy()
 {
-    Book::AddEvent(eNOTE::nSEPAR);
-
     Render::inst().DeleteRC();
     Window::inst().Destroy();
 
     Input::Destroy();
 
-    Book::AddEvent(eNOTE::nNOTICE, "application destroyed.");
-    Book::Close();
+    log::Info() << "application destroyed.";
+    //Book::Close();
 
-    ::_fcloseall();
+    //::_fcloseall();
 }
 
 /*static*/ int32 System::Loop()
 {
     /*if(_appLoop == nullptr)
-        Book::AddEvent(eNOTE::nCRITIC, "application loop functor are void.");*/
+        log::Fatal() << "application loop functor are void.");*/
 
     MSG msg;
     time.Restart();

@@ -3,7 +3,6 @@
 ****    Source code of Island Engine.
 ****    Copyright (C) 2009 - 2017 Crusoe's Island LLC.
 ****
-****    Started at 11th April 2010.
 ****	Description: texture routines header file.
 ****
 ********************************************************************************************************************************/
@@ -12,9 +11,39 @@
 #ifndef CRUS_TEXTURE_H              // Include guard "CrusTexture.h"
 #define CRUS_TEXTURE_H
 
+#include <vector>
+#include "Game\CrusObject.h"
+
 namespace isle {
-class Texture {
+struct Image {
+    int32 bpp_{0};
+    int32 width_{0}, height_{0};
+    uint32 format_{0}, type_{0};
+
+    std::vector<byte> data_;
+
+    uint8 BytesPerPixel() const;
+};
+
+class Texture final : CrusObject {
 public:
+#if _CRUS_NOT_YET_IMPLEMENTED
+    enum class eTEXTURE_TYPE {
+        nUNKNOWN = 0, nNONE, n2D, n3D, nCUBE, n2D_ARRAY, nCUBE_ARRAY
+    } type{eTEXTURE_TYPE::nUNKNOWN};
+
+    enum class eFILTERING_MODE {
+        nPOINT = 0, nBILINEAR, nTRILINEAR
+    } filteringMode{eFILTERING_MODE::nPOINT};
+
+    enum class eWRAP_MODE {
+        nCLAMP = 0, nREPEAT
+    } wrapMode{eWRAP_MODE::nREPEAT};
+
+    int8 anisotrophyLevel{0};
+#endif
+
+    Image image;
 
     Texture(std::string &&_name);
 
@@ -28,6 +57,11 @@ public:
     auto h() const { return h_; }
 
     auto name() const { return name_; }
+
+    std::string ToString() const override
+    {
+        return{};
+    }
 
 private:
     uint32 id_{0};

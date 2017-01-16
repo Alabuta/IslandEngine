@@ -3,35 +3,59 @@
 ****    Source code of Island Engine.
 ****    Copyright (C) 2009 - 2014 Crusoe's Island LLC.
 ****
-****    Started at 23th July 2009.
 ****    Description: main cpp file - the beginning and the application end.
 ****
 ********************************************************************************************************************************/
+#include <iostream>
+
+#include <map>
+#include <string>
+#include <random>
+#include <algorithm>
+#include <set>
+
 #include "engine.h"
 #include "Game\CrusBounds.h"
 #include "Game\CrusRect.h"
 #include "Game\CrusSprite.h"
 #include "Renderer\CrusUV.h"
 
-#include <iostream>
-
-#include <string>
-#include <random>
-#include <algorithm>
-#include <set>
-
 int32 index = 0;
-void IncreaseIndex()
-{
-    index += index == 4 * 7 ? -index : 4;
-}
+int32 spritesNumber = 0;
+int32 samples = 0;
+
+class ISystem {
+public:
+
+    virtual ~ISystem() = default;
+
+    virtual void Update() = 0;
+};
+
+class RenderSystem final : public ISystem {
+public:
+
+    void Update() override
+    {
+        isle::log::Debug() << __FUNCTION__;
+    }
+};
+
+class MoveSystem final : public ISystem {
+public:
+
+    void Update() override
+    {
+        isle::log::Debug() << __FUNCTION__;
+    }
+};
 
 namespace app {
 intf::Grid grid;
 
 Program flipbookProgram;
 uint32 flipbook_vao;
-Texture flipbookTexture("cat.tga");
+Texture flipbookTexture("cat.tga");//RobotBoyWalkSprite
 math::Matrix transform;
 
 math::Matrix matrices[] = {
@@ -42,36 +66,58 @@ math::Matrix matrices[] = {
 
 void InitBackground()
 {
-    flipbookTexture.Init();
+    std::map<int, std::unique_ptr<ISystem>> systems;
 
-    uint8 const indices[] = {
-        0, 1, 2, 3
-    };
+    systems.emplace(0, std::make_unique<RenderSystem>());
+    systems.emplace(1, std::make_unique<MoveSystem>());
+
+    for (auto const &system : systems)
+        system.second->Update();
 
     transform.MakeIdentity();
-    matrices[1].Translate(1, 1, -1);
+    matrices[1].Translate(0, 1, 0);
+
+    flipbookTexture.Init();
 
     flipbookProgram.AssignNew({"Defaults/Sprites-Default.glsl"});
 
-    auto const imageWidth = flipbookTexture.w(), imageHeight = flipbookTexture.h();
-    auto const spritesNumberHorizontally = 2, spritesNumberVertically = 4;
-    auto const spritesNumber = spritesNumberHorizontally * spritesNumberVertically;
-    auto const spriteWidth = 512.0f, spriteHeight = 256.0f;
+    auto imageWidth = flipbookTexture.w(), imageHeight = flipbookTexture.h();
+    auto spritesNumberHorizontally = 2, spritesNumberVertically = 4;
+    //auto spritesNumberHorizontally = 7, spritesNumberVertically = 3;
+    auto spriteWidth = 512.0f, spriteHeight = 256.0f;
+    //auto const spriteWidth = 275.0f, spriteHeight = 275.0f;
     auto const pixelsPerUnit = 200.0f;
+    samples = 12;
+    //samples = 24;
+
+    if (spritesNumberHorizontally * spriteWidth > imageWidth) {
+        spritesNumberHorizontally = static_cast<int32>(imageWidth / spriteWidth);
+        log::Warning() << "sprite number was fitted horizontally.";
+    }
+
+    if (spritesNumberVertically * spriteHeight > imageHeight) {
+        spritesNumberVertically = static_cast<int32>(imageHeight / spriteHeight);
+        log::Warning() << "sprite number was fitted vertically.";
+    }
 
     std::vector<Sprite> spriteSheet;
 
     for (auto j = 0; j < spritesNumberVertically; ++j) {
         for (auto i = 0; i < spritesNumberHorizontally; ++i) {
-            spriteSheet.emplace_back(Sprite::Create(
+            auto sprite = Sprite::Create(
                 std::make_shared<Texture>(flipbookTexture),
                 Rect(i * spriteWidth, j * spriteHeight, spriteWidth, spriteHeight),
                 math::Point{spriteWidth * 0.5f, spriteHeight * 0.5f},
-                pixelsPerUnit));
+                pixelsPerUnit);
+
+            if (sprite)
+                spriteSheet.emplace_back(sprite);
         }
     }
 
     spriteSheet.shrink_to_fit();
+
+    spritesNumber = static_cast<int32>(spriteSheet.size());
 
     struct Vertex {
         Position pos;
@@ -82,22 +128,26 @@ void InitBackground()
 
     for (auto const &sprite : spriteSheet)
         for (auto i = 0; i < sprite.vertices().size(); ++i)
-            vertex_buffer.push_back(Vertex{sprite.vertices()[i], sprite.uvs()[i]});
+            vertex_buffer.emplace_back(Vertex{sprite.vertices()[i], sprite.uvs()[i]});
 
     vertex_buffer.shrink_to_fit();
 
     Render::inst().CreateVAO(flipbook_vao);
 
     {
+        uint16 const indices[] = {
+            0, 1, 2, 3
+        };
+
         uint32 bo = 0;
-        Render::inst().CreateBO(GL_ARRAY_BUFFER, bo);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * vertex_buffer.size(), vertex_buffer.data(), GL_STATIC_DRAW);
+        Render::inst().CreateBO(GL_ELEMENT_ARRAY_BUFFER, bo);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
     }
 
     {
         uint32 bo = 0;
-        Render::inst().CreateBO(GL_ELEMENT_ARRAY_BUFFER, bo);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+        Render::inst().CreateBO(GL_ARRAY_BUFFER, bo);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * vertex_buffer.size(), vertex_buffer.data(), GL_STATIC_DRAW);
     }
 
     glVertexAttribPointer(Program::eIN_OUT_ID::nVERTEX, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 5, nullptr);
@@ -121,15 +171,17 @@ void DrawBackgorund()
 
     //glUniformMatrix4fv(Program::eUNIFORM_ID::nTRANSFORM, 1, GL_FALSE, mkas.data());
 
+    index = static_cast<int32>(std::fmodf(System::time.elapsed() * samples, static_cast<float>(spritesNumber)) * 1);
+
     glBindVertexArray(flipbook_vao);
     //glDrawElements(GL_TRIANGLE_STRIP, 4, GL_UNSIGNED_SHORT, nullptr);
-    glDrawElementsBaseVertex(GL_TRIANGLE_STRIP, 4, GL_UNSIGNED_BYTE, nullptr, index);
+    glDrawElementsBaseVertex(GL_TRIANGLE_STRIP, 4, GL_UNSIGNED_SHORT, nullptr, index * 4);
 }
 
 void Init()
 {
     Camera::inst().Create(Camera::eCAM_BEHAVIOR::nFREE);
-    Camera::inst().SetPos(0.0f, 1.0f, 1.0f);
+    Camera::inst().SetPos(0.0f, 1.0f, 2.0f);
     Camera::inst().LookAt(0.0f, 0.0f, 0.0f);
 
     // Application intialization function.
@@ -162,7 +214,7 @@ void EnumScreenModes()
     };
 
     for (auto iDevNum = 0; EnumDisplayDevicesA(nullptr, iDevNum, &device, 0) != 0; ++iDevNum)
-        isle::Book::AddEvent(isle::eNOTE::nDEBUG, "%s|%s", device.DeviceName, device.DeviceString);
+        isle::log::Debug() << device.DeviceName << "|" << device.DeviceString;
 
     DEVMODEW devmode = {
         L"", 0, 0,
@@ -219,18 +271,18 @@ void EnumScreenModes()
     settings.erase(last, settings.end());*/
 
     for (auto const &setting : settings)
-        isle::Book::AddEvent(isle::eNOTE::nDEBUG, "%dx%d @%d", setting.width, setting.height, setting.frequency);
+        isle::log::Debug() << setting.width << "x" << setting.height << "@" << setting.frequency;
 }
 
 int32 WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int32 nShowCmd)
 {
-    using namespace isle;
+    UNREFERENCED_PARAMETER(hPrevInstance);
+    UNREFERENCED_PARAMETER(lpCmdLine);
+    UNREFERENCED_PARAMETER(nShowCmd);
 
-    Window::inst().Create(hInstance, "w-", 600, 400);
-
-    Book::AddEvent(isle::eNOTE::nSEPAR);
+    isle::Window::inst().Create(hInstance, "w-", 600, 400);
 
     //EnumScreenModes();
 
-    return System::Loop();
+    return isle::System::Loop();
 }

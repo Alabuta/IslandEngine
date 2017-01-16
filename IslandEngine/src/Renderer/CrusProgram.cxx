@@ -22,10 +22,7 @@
 
 namespace {
 acstr kGLSL_VERSION = "#version 450 core";
-
-std::initializer_list<std::string> const kINCLUDE_SHADERS{
-    "Includes/ShaderVariables.glsl"
-};
+acstr kSHADERS_PATH = "../contents/shaders/";
 };
 
 namespace isle {
@@ -40,7 +37,7 @@ bool ReadShaderSource(std::string &_source, std::string const &_parentPath, std:
 std::string Program::PreprocessIncludes(std::string const &_source, std::string const &_name, int32 _includingLevel) const
 {
     if (_includingLevel > Program::kINCLUDING_LEVEL) {
-        Book::AddEvent(eNOTE::nERROR, "maximum source file including level is .", Program::kINCLUDING_LEVEL);
+        log::Error() << "maximum source file including level is" << Program::kINCLUDING_LEVEL;
         return _source;
     }
 
@@ -62,7 +59,7 @@ std::string Program::PreprocessIncludes(std::string const &_source, std::string 
             std::string include_file = matches[1];
             std::string include_string;
 
-            if (!ReadShaderSource(include_string, "../contents/shaders/", include_file))
+            if (!ReadShaderSource(include_string, kSHADERS_PATH, include_file))
                 return _source;
 
             output << PreprocessIncludes(include_string, include_file, _includingLevel + 1) << std::endl;
@@ -83,7 +80,7 @@ std::string Program::PreprocessIncludes(std::string const &_source, std::string 
 bool ReadShaderSource(std::string &_source, std::string const &_parentPath, std::string const &_name)
 {
     if (_parentPath.empty() || _name.empty()) {
-        Book::AddEvent(eNOTE::nERROR, "file name is invalid.");
+        log::Error() << "file name is invalid.";
         return false;
     }
 
@@ -91,7 +88,7 @@ bool ReadShaderSource(std::string &_source, std::string const &_parentPath, std:
     std::ifstream file(path, std::ios::in);
 
     if (!file.is_open()) {
-        Book::AddEvent(eNOTE::nERROR, "can't open file: \"%s\".", _name.c_str());
+        log::Error() << "can't open file:" << _name;
         return false;
     }
 
@@ -99,13 +96,13 @@ bool ReadShaderSource(std::string &_source, std::string const &_parentPath, std:
         std::ostringstream stream;
         stream << file.rdbuf() << '\n';
 
-        return stream.good() ? stream.str() : nullptr;
+        return stream.good() ? stream.str() : "\0";
     } ();
 
     file.close();
 
-    if (_source.c_str() == nullptr) {
-        Book::AddEvent(eNOTE::nERROR, "can't read file: \"%s\".", _name.c_str());
+    if (_source.empty()) {
+        log::Error() << "can't read file:" << _name;
         return false;
     }
 
@@ -127,7 +124,7 @@ bool Program::AssignNew(std::initializer_list<std::string> _names)
     std::string source;
 
     for (auto const &name : _names) {
-        if (!ReadShaderSource(source, "../contents/shaders/", name))
+        if (!ReadShaderSource(source, kSHADERS_PATH, name))
             return false;
 
         source = PreprocessIncludes(source, name);
@@ -142,13 +139,13 @@ bool Program::AssignNew(std::initializer_list<std::string> _names)
     glLinkProgram(program_);
 
     if (glGetError() != GL_NO_ERROR)
-        Book::AddEvent(eNOTE::nERROR, "...");
+        log::Error() << "...";
 
     if (CheckProgram(reinterpret_cast<astr>(_names.begin()->data()))) {
         glUseProgram(program_);
 
         if (glIsProgram(program_) != GL_TRUE) {
-            Book::AddEvent(eNOTE::nERROR, "invalid program number: %d (%s)", program_, _names.begin()->c_str());
+            log::Error() << "invalid program number:" << program_ << "from" << _names.begin();
             return false;
         }
 
@@ -195,7 +192,7 @@ bool Program::CreateShader(std::string const &_name, std::string _source, uint32
     ShaderInfo shaderInfo{"undefined shader", glCreateShader(_type)};
 
     if (glGetError() != GL_NO_ERROR) {
-        Book::AddEvent(eNOTE::nERROR, "can't create shader.");
+        log::Error() << "can't create shader.";
         return false;
     }
 
@@ -274,8 +271,8 @@ bool Program::CheckShader(std::string _name, ShaderInfo const &_shaderInfo) cons
     if (length < 1)
         return false;
 
-    Book::AddEvent(eNOTE::nERROR, "\"%s\" {%s}:", _name.data(), _shaderInfo.type.c_str());
-    Book::AddEvent(eNOTE::nHYPHEN, "%s", log);
+    log::Error() << _name.data() << "{" << _shaderInfo.type << "}";
+    log::Error() << log;
 
     return false;
 }
@@ -303,9 +300,58 @@ bool Program::CheckProgram(std::string _name) const
     if (length < 1)
         return false;
 
-    Book::AddEvent(eNOTE::nERROR, "\"%s\":", _name.c_str());
-    Book::AddEvent(eNOTE::nHYPHEN, "%s", log);
+    log::Error() << _name;
+    log::Error() << log;
 
     return false;
+}
+
+void Program::SwitchOn() const
+{
+    glUseProgram(program_);
+}
+
+/*static*/ void Program::SwitchOff()
+{
+    glUseProgram(0);
+}
+
+uint32 Program::program() const
+{
+    return program_;
+}
+
+int32 Program::GetAttributeLoc(astr _name) const
+{
+    lastAttribute_ = glGetAttribLocation(program_, _name);
+
+#if _CRUS_SHADER_DEBUG
+    if (lastAttribute_ < 0 && !checked_)
+        log::Warning() << "attribute unexist or are not used:" << _name;
+#endif
+
+    return lastAttribute_;
+}
+
+int32 Program::GetUniformLoc(astr _name) const
+{
+    lastUniform_ = glGetUniformLocation(program_, _name);
+
+#if _CRUS_SHADER_DEBUG
+    if (lastUniform_ < 0 && !checked_)
+        log::Warning() << "uniform unexist or are not used:" << _name;
+#endif
+
+    return lastUniform_;
+}
+
+/*static*/ int32 Program::GetLastAttributeLoc()
+{
+    return lastAttribute_;
+}
+
+/*static*/ int32 Program::GetLasUniformLoc()
+{
+    return lastUniform_;
 }
 };

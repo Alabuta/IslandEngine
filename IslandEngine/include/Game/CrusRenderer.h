@@ -5,19 +5,17 @@
 
 #include "Game\CrusComponent.h"
 #include "Game\CrusBounds.h"
+#include "Renderer\CrusMaterial.h"
 
 namespace isle {
 class Renderer : Component {
 public:
     bool enabled{true};
-
-    Renderer() = default;
-    ~Renderer() = default;
-
-    Bounds const &bounds() const;
+    bool isVisible{true};
+    uint8 sortingLayer{0}, sortingOrder{0};
+    Bounds bounds_;
 
 private:
-    Bounds bounds_;
 
 };
 };

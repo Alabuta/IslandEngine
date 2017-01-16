@@ -3,27 +3,17 @@
 ****    Source code of Island Engine.
 ****    Copyright (C) 2009 - 2017 Crusoe's Island LLC.
 ****
-****    Started at 4th May 2012.
+****    Description: base class for all objects the engine references.
 ****
 ********************************************************************************************************************************/
-
-#include "System\CrusSystem.h"
+#include "System\CrusTypes.h"
 #include "Game\CrusObject.h"
 
 namespace isle {
-
-__forceinline uint32 CrusObject::instanceID() const
+__declspec(noinline)void CrusObject::MakeValid()
 {
-    return instanceID_;
-}
+    static uint32 totalNumberOfInstancedObjects = 0;
 
-__forceinline std::string const &CrusObject::name() const
-{
-    return name_;
-}
-
-__forceinline bool CrusObject::operator()() const
-{
-    return instanceID_ > 0 ? true : false;
+    instanceID = ++totalNumberOfInstancedObjects;
 }
 };

@@ -3,10 +3,11 @@
 ****    Source code of Island Engine.
 ****    Copyright (C) 2009 - 2017 Crusoe's Island LLC.
 ****
-****    Started at 12th March 2010.
 ****    Description: grid rendering routines implementation.
 ****
 ********************************************************************************************************************************/
+#include <vector>
+
 #include "System\CrusSystem.h"
 
 #include "Renderer\CrusRender.h"
@@ -23,6 +24,19 @@ Position *Grid::Build(float _law, float _grle, uint16 _subdivs)
 
     count_[0] = 8 * (uint16(div * (_subdivs - 1)) + 1);
     count_[1] = 8 * uint16(div - 1);
+
+    std::vector<Position> data_;
+    data_.reserve(count_[0] + count_[1] + 4 + 2 * 3);
+
+    data_.emplace_back(Position(+_law, 0.0f, -_law));
+    data_.emplace_back(Position(-_law, 0.0f, -_law));
+    data_.emplace_back(Position(-_law, 0.0f, +_law));
+    data_.emplace_back(Position(+_law, 0.0f, +_law));
+
+    data_.emplace_back(Position(-_law, 0.0f, -_law));
+    data_.emplace_back(Position(-_law, 0.0f, +_law));
+    data_.emplace_back(Position(+_law, 0.0f, +_law));
+    data_.emplace_back(Position(+_law, 0.0f, -_law));
 
     Position *const data = (Position *)malloc(sizeof(Position) * (count_[0] + count_[1] + 4 + 2 * 3));
 
@@ -95,8 +109,6 @@ void Grid::Update(float _law, float _grle, uint16 _subdivs)
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     free(data);
-
-    Book::AddEvent(eNOTE::nNOTICE, "grid updated (%0.2f; %0.2f; %hu).", _law, _grle, _subdivs);
 }
 
 void Grid::Draw()

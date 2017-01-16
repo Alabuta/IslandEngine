@@ -22,6 +22,11 @@ public:
 
     eCOMPONENT_TYPES type() const override { return eCOMPONENT_TYPES::nVIEWPORT; }
 
+    std::string ToString() const override
+    {
+        return{};
+    }
+
 private:
 };
 };

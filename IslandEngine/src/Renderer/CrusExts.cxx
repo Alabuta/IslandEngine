@@ -33,8 +33,9 @@
 #define GL_PROC_INIT(_proc, _name)\
         GL_PROC(_proc, _name) = (GL_PROC_PREFIX(_proc))wglGetProcAddress(#_name);\
         if(_name == nullptr)\
-            isle::Book::AddEvent(isle::eNOTE::nALERT, "can't get \"%s()\" procedure.", #_name);
+            isle::log::Fatal() << "can't get procedure:" << #_name;
 #else
+
 #define GL_PROC_INIT(_proc, _name)\
         GL_PROC(_proc, _name) = (GL_PROC_PREFIX(_proc))wglGetProcAddress(#_name);
 #endif
@@ -1868,7 +1869,7 @@ BOOL APIENTRY wglChoosePixelFormatARB(HDC hDC, const int *piAttribIList, const F
         (PFNWGLCHOOSEPIXELFORMATARBPROC)wglGetProcAddress("wglChoosePixelFormatARB");
 
     if (wglChoosePixelFormatARB == nullptr)
-        isle::Book::AddEvent(isle::eNOTE::nALERT, "can't get \"wglChoosePixelFormatARB()\" procedure address.");
+        isle::log::Fatal() << "can't get \"wglChoosePixelFormatARB()\" procedure address.";
 
     return wglChoosePixelFormatARB(hDC, piAttribIList, pfAttribFList, nMaxFormats, piFormats, nNumFormats);
 }
@@ -1880,7 +1881,7 @@ HGLRC APIENTRY wglCreateContextAttribsARB(HDC hDC, HGLRC hShareContext, const in
         (PFNWGLCREATECONTEXTATTRIBSARBPROC)wglGetProcAddress("wglCreateContextAttribsARB");
 
     if (wglCreateContextAttribsARB == nullptr)
-        isle::Book::AddEvent(isle::eNOTE::nALERT, "can't get \"wglCreateContextAttribsARB( )\" procedure address.");
+        isle::log::Fatal() << "can't get \"wglCreateContextAttribsARB( )\" procedure address.";
 
     return wglCreateContextAttribsARB(hDC, hShareContext, attribList);
 }
@@ -1893,7 +1894,7 @@ int WINAPI wglGetSwapIntervalEXT(void)
         (PFNWGLGETSWAPINTERVALEXTPROC)wglGetProcAddress("wglGetSwapIntervalEXT");
 
     if (wglGetSwapIntervalEXT == nullptr)
-        isle::Book::AddEvent(isle::eNOTE::nALERT, "can't get \"wglGetSwapIntervalEXT()\" procedure address.");
+        isle::log::Fatal() << "can't get \"wglGetSwapIntervalEXT()\" procedure address.";
 
     return wglGetSwapIntervalEXT();
 }
@@ -1906,7 +1907,7 @@ BOOL WINAPI wglSwapIntervalEXT(int interval)
         (PFNWGLSWAPINTERVALEXTPROC)wglGetProcAddress("wglSwapIntervalEXT");
 
     if (wglSwapIntervalEXT == nullptr)
-        isle::Book::AddEvent(isle::eNOTE::nALERT, "can't get \"wglSwapIntervalEXT()\" procedure address.");
+        isle::log::Fatal() << "can't get \"wglSwapIntervalEXT()\" procedure address.";
 
     return wglSwapIntervalEXT(interval);
 }

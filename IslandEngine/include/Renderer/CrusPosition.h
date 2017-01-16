@@ -3,7 +3,6 @@
 ****    Source code of Island Engine.
 ****    Copyright (C) 2009 - 2017 Crusoe's Island LLC.
 ****
-****    Started at 12th March 2010.
 ****    Description: vertex attributes declaration.
 ****
 ********************************************************************************************************************************/
@@ -43,7 +42,10 @@ public:
     bool operator== (Position const &v) const;
     bool operator!= (Position const &v) const;
 
-    acstr str();
+    std::string ToString() const;
+    void ToStream(std::ostream &stream) const;
+
+    operator std::string() const;
 
 private:
     union {

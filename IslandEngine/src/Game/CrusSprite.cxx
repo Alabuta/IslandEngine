@@ -69,6 +69,7 @@ isle::Rect GetCroppedTextureRect(isle::Image const &image, isle::Rect const &rec
 }
 
 namespace isle {
+
 /*static*/ Sprite Sprite::Create(std::shared_ptr<Texture> const &_texture, Rect const &_rect, math::Point const &_pivot, float _pixelsPerUnit)
 {
     Sprite sprite;
@@ -81,18 +82,24 @@ namespace isle {
     Image image;
 
     if (!sprite.textureSheet_.expired())
-        if (!LoadTARGA(image, sprite.textureSheet_.lock()->name()))
-            return{};
+        image = sprite.textureSheet_.lock()->image;
 
+    else return{};
 
     sprite.textureRect_ = std::move(GetCroppedTextureRect(image, sprite.rect_));
 
-    sprite.BuildGeometry();
+    if (sprite.textureRect_.GetSquare() < 1.0f)
+        return{};
+
+    if (!sprite.BuildGeometry())
+        return{};
+
+    sprite.MakeValid();
 
     return sprite;
 }
 
-void Sprite::BuildGeometry()
+bool Sprite::BuildGeometry()
 {
     // Convert from pixels to world units.
     auto left = (textureRect_.x() - rect_.x() - pivot_.x) / pixelsPerUnit_;
@@ -115,8 +122,8 @@ void Sprite::BuildGeometry()
         textureSheetRect = Rect(0, 0, textureSheet_.lock()->w(), textureSheet_.lock()->h());
 
     else {
-        Book::AddEvent(eNOTE::nERROR, "texture doesn't exist.");
-        return;
+        log::Error() << "texture doesn't exist.";
+        return false;
     }
 
     // Getting normalized coordinates for uv rectangle.
@@ -133,5 +140,7 @@ void Sprite::BuildGeometry()
     indices_.resize(4);
     std::iota(indices_.begin(), indices_.end(), 0);
     indices_.shrink_to_fit();
+
+    return true;
 }
 };

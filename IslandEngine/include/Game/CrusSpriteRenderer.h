@@ -6,11 +6,14 @@
 #include "Renderer\CrusColors.h"
 
 #include "Game\CrusRenderer.h"
+#include "Game\CrusSprite.h"
 
 namespace isle {
 class SpriteRenderer : Renderer {
 public:
     Color color{colors::kWHITE};
+    bool flipX{false}, flipY{false};
+    Sprite sprite;
 
 private:
 };

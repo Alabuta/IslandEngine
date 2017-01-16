@@ -18,7 +18,7 @@ public:
 
     Bounds() = default;
     Bounds(math::Vector &&center, math::Vector &&size);
-    Bounds(Bounds &&bounds);
+    //Bounds(Bounds &&bounds);
 
     bool IsInside(math::Vector const &point) const;
     bool IsInsideOrOn(math::Vector const &point) const;
@@ -32,7 +32,7 @@ public:
 
     //bool IntersectSphere(Sphere const &sphere) const;
 
-    Bounds const &operator= (Bounds &&bounds);
+    //Bounds const &operator= (Bounds &&bounds);
 
 private:
 };

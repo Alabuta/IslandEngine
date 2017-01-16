@@ -14,7 +14,7 @@ namespace isle {
 class Entity final : CrusObject {
 public:
 
-    Entity();
+    explicit Entity();
     ~Entity() = default;
 
     template<typename T>
@@ -25,11 +25,16 @@ public:
 
     Transform const &transform() const;
 
+    std::string ToString() const override
+    {
+        return{};
+    }
+
 private:
 
     Transform transform_;
 
-    std::vector<int> componentsIDs_;
+    std::vector<uint32> componentsIDs_;
 };
 };
 

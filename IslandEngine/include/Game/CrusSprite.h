@@ -16,7 +16,7 @@
 #include "Renderer\CrusUV.h"
 
 namespace isle {
-class Sprite final : CrusObject {
+class Sprite final : public CrusObject {
 public:
 
     static Sprite Create(std::shared_ptr<Texture> const &texture, Rect const &rect, math::Point const &pivot, float pixelsPerUnit = 100);
@@ -34,22 +34,28 @@ public:
     std::vector<Position> const &vertices() const;
     std::vector<UV> const &uvs() const;
 
+    std::string ToString() const override
+    {
+        return{};
+    }
+
 private:
-    std::weak_ptr<Texture> textureSheet_;
+
+    float pixelsPerUnit_;
 
     Bounds bounds_;
-    Rect rect_;
     math::Point pivot_;
+    Rect rect_;
 
     Rect textureRect_, textureRectOffset_;
+
+    std::weak_ptr<Texture> textureSheet_;
 
     std::vector<uint16> indices_;
     std::vector<Position> vertices_;
     std::vector<UV> uvs_;
 
-    float pixelsPerUnit_;
-
-    void BuildGeometry();
+    bool BuildGeometry();
 };
 
 __forceinline Texture const &Sprite::Sprite::textureSheet() const

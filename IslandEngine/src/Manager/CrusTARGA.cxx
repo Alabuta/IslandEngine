@@ -15,6 +15,7 @@
 #include "System\CrusSystem.h"
 #include "Renderer\CrusRender.h"
 
+#include "Renderer\CrusTexture.h"
 #include "Manager\CrusTARGA.h"
 
 namespace isle {
@@ -97,13 +98,13 @@ bool LoadUncompressedTARGA(Image &_image, std::ifstream &_file)
     return true;
 }
 
-bool LoadTARGA(Image &_image, std::string const &_name)
+bool LoadTARGA(Image *const _image, std::string const &_name)
 {
     std::string path("../contents/textures/" + _name);
     std::ifstream file(path, std::ios::binary);
 
     if (!file.is_open()) {
-        Book::AddEvent(eNOTE::nERROR, "can't open texture file: \"%s\".", _name.data());
+        log::Error() << "can't open texture file:" << _name.data();
         return false;
     }
 
@@ -116,7 +117,7 @@ bool LoadTARGA(Image &_image, std::string const &_name)
 
     switch (headerTARGA) {
         case 2:
-            LoadUncompressedTARGA(_image, file);
+            LoadUncompressedTARGA(*_image, file);
             break;
 
         case 10:
@@ -126,7 +127,7 @@ bool LoadTARGA(Image &_image, std::string const &_name)
             break;
     }
 
-    _image.format_ = GL_UNSIGNED_BYTE;
+    _image->format_ = GL_UNSIGNED_BYTE;
 
     file.close();
     return true;

@@ -3,10 +3,12 @@
 ****    Source code of Island Engine.
 ****    Copyright (C) 2009 - 2017 Crusoe's Island LLC.
 ****
-****    Started at 12th March 2010.
 ****    Description: vertex attributes declaration.
 ****
 ********************************************************************************************************************************/
+#include <string>
+#include <sstream>
+#include "CrusPosition.h"
 
 namespace isle {
 
@@ -92,5 +94,31 @@ inline Position const &Position::operator= (Position &&_v)
     z_ = std::move(_v.z_);
 
     return *this;
+}
+
+inline std::string Position::ToString() const
+{
+    static std::ostringstream ss;
+    ss.str("");
+
+    ss << x_ << "; " << y_ << "; " << z_;
+
+    return ss.str();
+    //return std::to_string(x_) + "; " + std::to_string(y_) + "; " + std::to_string(z_);
+}
+
+inline void Position::ToStream(std::ostream &stream) const
+{
+    stream << x_ << "; " << y_ << "; " << z_;
+}
+
+inline Position::operator std::string() const
+{
+    static std::ostringstream ss;
+    ss.str("");
+
+    ss << x_ << "; " << y_ << "; " << z_;
+
+    return ss.str();
 }
 };

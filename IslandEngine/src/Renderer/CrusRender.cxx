@@ -74,18 +74,18 @@ void Render::SetupContext()
 
     PIXELFORMATDESCRIPTOR hPFD;
     if (SetPixelFormat(hDummyDC, 1, &hPFD) == FALSE)
-        Book::AddEvent(eNOTE::nALERT, "can't set dummy pixel format.");
+        log::Fatal() << "can't set dummy pixel format.";
 
     HGLRC const hShareRC = wglCreateContext(hDummyDC);
     if (hShareRC == nullptr)
-        Book::AddEvent(eNOTE::nALERT, "can't create share context.");
+        log::Fatal() << "can't create share context.";
 
     if (wglMakeCurrent(hDummyDC, hShareRC) == FALSE)
-        Book::AddEvent(eNOTE::nALERT, "can't make share context current.");
+        log::Fatal() << "can't make share context current.";
 
     hDC_ = GetDC(Window::inst().hWnd());
     if (hDC_ == nullptr)
-        Book::AddEvent(eNOTE::nALERT, "can't get window context.");
+        log::Fatal() << "can't get window context.";
 
     int32 const attrilist[] = {
         WGL_SUPPORT_OPENGL_ARB, GL_TRUE,
@@ -105,13 +105,13 @@ void Render::SetupContext()
     uint32 num = 0;
 
     if (wglChoosePixelFormatARB(hDC_, attrilist, nullptr, 1, &pfs, &num) == FALSE)
-        Book::AddEvent(eNOTE::nERROR, "wglChoosePixelFormatARB().");
+        log::Error() << "wglChoosePixelFormatARB().";
 
     if (pfs == -1 || num < 1)
-        Book::AddEvent(eNOTE::nALERT, "can't choose pixel format.");
+        log::Fatal() << "can't choose pixel format.";
 
     if (SetPixelFormat(hDC_, pfs, &hPFD) == FALSE)
-        Book::AddEvent(eNOTE::nALERT, "can't set renderer pixel format.");
+        log::Fatal() << "can't set renderer pixel format.";
 
     int32 const attrlist[] = {
         WGL_CONTEXT_MAJOR_VERSION_ARB,  4,
@@ -123,13 +123,13 @@ void Render::SetupContext()
 
     HGLRC const hRC = wglCreateContextAttribsARB(hDC_, nullptr, attrlist);
     if (hRC == nullptr)
-        Book::AddEvent(eNOTE::nALERT, "can't create required context.");
+        log::Fatal() << "can't create required context.";
 
     if (wglMakeCurrent(hDC_, hRC) == FALSE)
-        Book::AddEvent(eNOTE::nALERT, "can't to make required context current.");
+        log::Fatal() << "can't to make required context current.";
 
     if (wglDeleteContext(hShareRC) == FALSE)
-        Book::AddEvent(eNOTE::nALERT, "share context is not deleted.");
+        log::Fatal() << "share context is not deleted.";
 
     DestroyDummy();
 
@@ -139,14 +139,14 @@ void Render::SetupContext()
     //glDebugMessageCallbackARB(Render::DebugCallback, nullptr);
 
     if (glGetError() != GL_NO_ERROR) {
-        Book::AddEvent(eNOTE::nERROR, "%d", __LINE__);
+        log::Error() << __LINE__;
         return;
     }
 
     InitBufferObjects();
 
     if (glGetError() != GL_NO_ERROR) {
-        Book::AddEvent(eNOTE::nERROR, "%d", __LINE__);
+        log::Error() << __LINE__;
         return;
     }
 
@@ -162,10 +162,10 @@ void Render::SetupContext()
     glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &maxAttribs);
 
     if (maxAttribs < 16)
-        Book::AddEvent(eNOTE::nCRITIC, "maximum supported number of vertex attributes is less than required.");
+        log::Fatal() << "maximum supported number of vertex attributes is less than required.";
 
     if (glGetError() != GL_NO_ERROR)
-        Book::AddEvent(eNOTE::nERROR, "%d", __LINE__);
+        log::Error() << __LINE__;
 
     using namespace colors;
     glClearColor(kCLEARGRAY.r(), kCLEARGRAY.g(), kCLEARGRAY.b(), 1.0f);
@@ -187,14 +187,12 @@ void Render::DeleteRC()
         ReleaseDC(Window::inst().hWnd(), hDC_);
         hDC_ = nullptr;
     }
-
-    Book::AddEvent(eNOTE::nNOTICE, "renderer context deleted.");
 }
 
 bool Render::CreateProgram(uint32 &_program)
 {
     if (glIsProgram(_program) == GL_TRUE) {
-        Book::AddEvent(eNOTE::nWARN, "already used program index: #%u.", _program);
+        log::Warning() << "already used program index:" << _program;
         return false;
     }
 
@@ -203,7 +201,7 @@ bool Render::CreateProgram(uint32 &_program)
     auto codeError = glGetError();
 
     if (codeError != GL_NO_ERROR) {
-        Book::AddEvent(eNOTE::nERROR, "some problem with program index: 0%x.", codeError);
+        log::Error() << "some problem with program index:" << codeError;
         return false;
     }
 
@@ -214,7 +212,7 @@ bool Render::CreateProgram(uint32 &_program)
 bool Render::CreateBO(uint32 _target, uint32 &_bo)
 {
     if (_bo != 0 && glIsBuffer(_bo) == GL_TRUE) {
-        Book::AddEvent(eNOTE::nWARN, "already used BO index: #%u.", _bo);
+        log::Warning() << "already used buffer object index:" << _bo;
         return false;
     }
 
@@ -222,7 +220,7 @@ bool Render::CreateBO(uint32 _target, uint32 &_bo)
     glBindBuffer(_target, _bo);
 
     if (glGetError() != GL_NO_ERROR) {
-        Book::AddEvent(eNOTE::nERROR, "some problem with buffer index.");
+        log::Error() << "some problem with buffer index.";
         return false;
     }
 
@@ -233,7 +231,7 @@ bool Render::CreateBO(uint32 _target, uint32 &_bo)
 bool Render::CreateVAO(uint32 &_vao)
 {
     if (glIsVertexArray(_vao) == GL_TRUE) {
-        Book::AddEvent(eNOTE::nWARN, "already used VAO index: #%u.", _vao);
+        log::Warning() << "already used VAO index:" << _vao;
         return false;
     }
 
@@ -241,7 +239,7 @@ bool Render::CreateVAO(uint32 &_vao)
     glBindVertexArray(_vao);
 
     if (glGetError() != GL_NO_ERROR) {
-        Book::AddEvent(eNOTE::nERROR, "some problem with vertex array index.");
+        log::Error() << "some problem with vertex array index.";
         return false;
     }
 
@@ -252,7 +250,7 @@ bool Render::CreateVAO(uint32 &_vao)
 bool Render::CreateTBO(uint32 _target, uint32 &_tbo)
 {
     if (glIsTexture(_tbo) == GL_TRUE) {
-        Book::AddEvent(eNOTE::nWARN, "already used TBO index: #%u.", _tbo);
+        log::Warning() << "already used texture buffer object index:" << _tbo;
         return false;
     }
 
@@ -260,7 +258,7 @@ bool Render::CreateTBO(uint32 _target, uint32 &_tbo)
     glBindTexture(_target, _tbo);
 
     if (glGetError() != GL_NO_ERROR) {
-        Book::AddEvent(eNOTE::nERROR, "some problem with texture buffer index.");
+        log::Error() << "some problem with texture buffer index.";
         return false;
     }
 
@@ -294,7 +292,7 @@ void Render::DrawFrame()
     SwapBuffers(hDC_);
 
     if (glGetError() != GL_NO_ERROR)
-        Book::AddEvent(eNOTE::nERROR, "some problem with OpenGL.");
+        log::Error() << "some problem with OpenGL.";
 
 #if _CRUS_SHADER_DEBUG
     Program::CheckError();
@@ -312,7 +310,7 @@ void Render::InitBufferObjects()
     Program ubo;
 
     if (!ubo.AssignNew({"Defaults/Buffer-Objects-Initialization.glsl"}))
-        Book::AddEvent(eNOTE::nCRITIC, "can't init the buffer objects.");
+        log::Fatal() << "can't init the buffer objects.";
 
     /*{
 
@@ -320,7 +318,7 @@ void Render::InitBufferObjects()
         glGetActiveUniformBlockiv(ubo.GetName(), Program::nMATERIAL, GL_UNIFORM_BLOCK_DATA_SIZE, &size);
 
         if (index == GL_INVALID_INDEX || size < 1)
-            Book::AddEvent(eNOTE::nCRITIC, "can't init the UBO: invalid index param (%s).", "CMTS");
+            log::Fatal() << "can't init the UBO: invalid index param (%s).", "CMTS");
 
         using namespace colors;
         Color const colors[4] = {
@@ -335,12 +333,6 @@ void Render::InitBufferObjects()
         glUniformBlockBinding(ubo.GetName(), Program::nMATERIAL, index);
     }*/
 
-    math::Matrix const matrices[] = {
-        math::Matrix::GetIdentity(),
-        math::Matrix::GetIdentity(),
-        math::Matrix::GetIdentity()
-    };
-
     {
         int32 size = -1;
         uint32 index = glGetUniformBlockIndex(ubo.program(), "VIEWPORT");
@@ -348,10 +340,10 @@ void Render::InitBufferObjects()
         glGetActiveUniformBlockiv(ubo.program(), Program::nVIEWPORT, GL_UNIFORM_BLOCK_DATA_SIZE, &size);
 
         if (index == GL_INVALID_INDEX || size < 1)
-            Book::AddEvent(eNOTE::nCRITIC, "can't init the UBO: invalid index param (%s).", "VIEWPORT");
+            log::Fatal() << "can't init the UBO: invalid index param:" << "VIEWPORT";
 
         CreateBO(GL_UNIFORM_BUFFER, VIEWPORT_);
-        glBufferData(GL_UNIFORM_BUFFER, size, matrices, GL_DYNAMIC_DRAW);
+        glBufferData(GL_UNIFORM_BUFFER, size, nullptr, GL_DYNAMIC_DRAW);
         glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
         glBindBufferBase(GL_UNIFORM_BUFFER, Program::nVIEWPORT, VIEWPORT_);
@@ -362,10 +354,10 @@ void Render::InitBufferObjects()
         uint32 index = glGetProgramResourceIndex(ubo.program(), GL_SHADER_STORAGE_BLOCK, "TRANSFORM");
 
         if (index == GL_INVALID_INDEX)
-            Book::AddEvent(eNOTE::nCRITIC, "can't init the UBO: invalid index param (%s).", "TRANSFORM");
+            log::Fatal() << "can't init the UBO: invalid index param:" << "TRANSFORM";
 
         CreateBO(GL_SHADER_STORAGE_BUFFER, TRANSFORM_);
-        glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(matrices), matrices, GL_DYNAMIC_DRAW);
+        glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(math::Matrix) * 3, nullptr, GL_DYNAMIC_DRAW);
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, Program::nTRANSFORM, TRANSFORM_);
@@ -382,7 +374,7 @@ void CALLBACK Render::DebugCallback(GLenum _source, GLenum _type, GLuint _id, GL
     UNREFERENCED_PARAMETER(_length);
     UNREFERENCED_PARAMETER(_userParam);
 
-    eNOTE note;
+    /*eNOTE note;
 
     switch (_type) {
         case GL_DEBUG_TYPE_ERROR_ARB:
@@ -415,13 +407,12 @@ void CALLBACK Render::DebugCallback(GLenum _source, GLenum _type, GLuint _id, GL
             note = eNOTE::nDEBUG;
     }
 
-    Book::AddEvent(note, _message);
+    Book::AddEvent(note, _message);*/
 }
 
 void Render::CleanUp()
 {
-    Book::AddEvent(eNOTE::nINFO, "VBOs|VAOs|TBOs|PBOs: %u|%u|%u|%u.",
-        BOs_++, VAOs_++, TBOs_++, POs_++);
+    BOs_++, VAOs_++, TBOs_++, POs_++;
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
@@ -465,8 +456,5 @@ void Render::CleanUp()
     while (--BOs_)
         if (glIsBuffer(BOs_) == GL_TRUE)
             glDeleteBuffers(1, &BOs_);
-
-    Book::AddEvent(eNOTE::nHYPHEN, "VBOs|VAOs|TBOs|PBOs: %u|%u|%u|%u.",
-        BOs_, VAOs_, TBOs_, POs_);
 }
 };

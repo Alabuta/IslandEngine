@@ -7,17 +7,15 @@
 #include "Renderer\CrusTexture.h"
 #include "Renderer\CrusProgram.h"
 
-#include "Game\CrusComponent.h"
+#include "Game\CrusObject.h"
 
 namespace isle {
-class Material final : Component {
+class Material final : CrusObject {
 public:
 
     Color color{colors::kWHITE};
     Texture texture;
     Program program;
-
-    ;
 
 private:
 };

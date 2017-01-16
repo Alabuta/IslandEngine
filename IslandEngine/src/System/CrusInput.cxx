@@ -23,8 +23,7 @@ extern "C" {
 
 isle::Input::Mouse mouse;
 
-namespace
-{
+namespace {
 using namespace isle;
 using namespace Input;
 
@@ -46,25 +45,25 @@ private:
     };
 
     CInput() : nHID_(0), raw_size_(0), raw_(nullptr) {};
-    ~CInput(){};
+    ~CInput() {};
 
 public:
 
-/*
-    // A game controls.
-    enum eACTION_KEYS {
-        nFORWARD = 0, nBACK, nLEFT, nRIGHT,
-        nACTIVATE, nSPRINT, nCROUCH,
-        nACTION_FINAL
-    };
+    /*
+        // A game controls.
+        enum eACTION_KEYS {
+            nFORWARD = 0, nBACK, nLEFT, nRIGHT,
+            nACTIVATE, nSPRINT, nCROUCH,
+            nACTION_FINAL
+        };
 
-    // A game axis.
-    enum eAXIS_KEYS {
-        nAXIS_X = 0, nAXIS_Y, nAXIS_Z,
-        nAXIS_RZ, nTHROTTLE,
-        nAXIS_FINAL
-    };
-*/
+        // A game axis.
+        enum eAXIS_KEYS {
+            nAXIS_X = 0, nAXIS_Y, nAXIS_Z,
+            nAXIS_RZ, nTHROTTLE,
+            nAXIS_FINAL
+        };
+    */
 
     void Setup();
     void Destroy();
@@ -79,14 +78,14 @@ void CInput::Setup()
 {
     uint32 nDevs;
 
-    if(GetRawInputDeviceList(nullptr, &nDevs, sizeof(RAWINPUTDEVICELIST)) == (UINT)-1)
-        Book::AddEvent(eNOTE::nCRITIC, "%s(%d) : return an error.", __FILE__, __LINE__);
+    if (GetRawInputDeviceList(nullptr, &nDevs, sizeof(RAWINPUTDEVICELIST)) == (UINT)-1)
+        log::Fatal() << "an error is returned:" << __FILE__ << "at line" << __LINE__;
 
     // Doubled size - just in case.
     RAWINPUTDEVICELIST ridl[kMAX_HIDS * 2];
 
-    if(GetRawInputDeviceList(ridl, &nDevs, sizeof(RAWINPUTDEVICELIST)) != nDevs)
-        Book::AddEvent(eNOTE::nCRITIC, "can't to get list of attached HID devices.");
+    if (GetRawInputDeviceList(ridl, &nDevs, sizeof(RAWINPUTDEVICELIST)) != nDevs)
+        log::Fatal() << "can't to get list of attached HID devices.";
 
     // Shorter name, that's reason.
     HWND const hTargetWnd = Window::inst().hWnd();
@@ -110,40 +109,40 @@ void CInput::Setup()
     //uint32 gpad_num = 0;
 
     // Checking all plugged HID devices.
-    for(uint32 i = 0; i < nDevs; ++i){
+    for (uint32 i = 0; i < nDevs; ++i) {
         GetRawInputDeviceInfoW(ridl[i].hDevice, RIDI_DEVICEINFO, &rdi, &size);
 
-        switch(ridl[i].dwType){
+        switch (ridl[i].dwType) {
 #if _CRUS_TEMP_DISABLED
             case RIM_TYPEKEYBOARD:
-                if(rdi.keyboard.dwType == 0x51)     // Ignoring system keyboard.
+                if (rdi.keyboard.dwType == 0x51)     // Ignoring system keyboard.
                     continue;
 
                 dev_type = nKEYBOARD;
                 break;
 
             case RIM_TYPEMOUSE:
-                if(rdi.mouse.dwNumberOfButtons < 3)
+                if (rdi.mouse.dwNumberOfButtons < 3)
                     continue;
 
                 dev_type = nMOUSE;
                 break;
 #endif
             case RIM_TYPEHID:
-                if(rdi.hid.usUsagePage != HID_USAGE_PAGE_GENERIC)
+                if (rdi.hid.usUsagePage != HID_USAGE_PAGE_GENERIC)
                     continue;
 
-                switch(rdi.hid.usUsage){
+                switch (rdi.hid.usUsage) {
                     // XBox 360 (or like) controllers.
                     case HID_USAGE_GENERIC_GAMEPAD:
                         dev_type = nGAMEPAD;
-                        Book::AddEvent(eNOTE::nDEBUG, "gpad: 0x%X", ridl[i].hDevice);
+                        log::Debug() << "gpad:" << ridl[i].hDevice;
                         break;
 
-                    // Other HID devices (joysticks, gamepads etc).
+                        // Other HID devices (joysticks, gamepads etc).
                     case HID_USAGE_GENERIC_JOYSTICK:
                         dev_type = nJOYSTICK;
-                        Book::AddEvent(eNOTE::nDEBUG, "joy: 0x%X", ridl[i].hDevice);
+                        log::Debug() << "joy:" << ridl[i].hDevice;
                         break;
                 } break;
 
@@ -154,49 +153,49 @@ void CInput::Setup()
         memcpy(&rid[nHID_++], &kHID_GENERIC[dev_type], sizeof(RAWINPUTDEVICE));
     }
 
-    if(nHID_ < 1)
+    if (nHID_ < 1)
         return;
 
-    if(RegisterRawInputDevices(rid, nHID_, sizeof(RAWINPUTDEVICE)) == FALSE)
-        Book::AddEvent(eNOTE::nCRITIC, "failed to register types of HID devices.");
+    if (RegisterRawInputDevices(rid, nHID_, sizeof(RAWINPUTDEVICE)) == FALSE)
+        log::Fatal() << "failed to register types of HID devices.";
 
-    if(GetRegisteredRawInputDevices(nullptr, &nHID_, sizeof(RAWINPUTDEVICE)) == (UINT)-1)
-        Book::AddEvent(eNOTE::nCRITIC, "can't get number of registered types of HID devices.");
+    if (GetRegisteredRawInputDevices(nullptr, &nHID_, sizeof(RAWINPUTDEVICE)) == (UINT)-1)
+        log::Fatal() << "can't get number of registered types of HID devices.";
 
-    Book::AddEvent(eNOTE::nINFO, "%u types of HID device%s is registered.", nHID_, nHID_ > 1 ? "s" : "");
+    log::Info() << nHID_ << "types of HID device(s) is registered.";
 }
 
 void CInput::Destroy()
 {
-    if(GetRegisteredRawInputDevices(nullptr, &nHID_, sizeof(RAWINPUTDEVICE)) == (UINT)-1)
-        Book::AddEvent(eNOTE::nERROR, "%s(%d) : return an error.", __FILE__, __LINE__);
+    if (GetRegisteredRawInputDevices(nullptr, &nHID_, sizeof(RAWINPUTDEVICE)) == (UINT)-1)
+        log::Fatal() << "an error is returned:" << __FILE__ << "at line" << __LINE__;
 
-    if(nHID_ < 1)
+    if (nHID_ < 1)
         return;
 
     RAWINPUTDEVICE rid[kMAX_HIDS];
 
-    if(GetRegisteredRawInputDevices(rid, &nHID_, sizeof(RAWINPUTDEVICE)) != nHID_)
-        Book::AddEvent(eNOTE::nERROR, "failed to get list of registered HID devices.");
+    if (GetRegisteredRawInputDevices(rid, &nHID_, sizeof(RAWINPUTDEVICE)) != nHID_)
+        log::Error() << "failed to get list of registered HID devices.";
 
     else {
-        for(uint32 i = 0; i < nHID_; ++i){
+        for (uint32 i = 0; i < nHID_; ++i) {
             rid[i].dwFlags = RIDEV_REMOVE;
             rid[i].hwndTarget = nullptr;
         }
 
-        if(RegisterRawInputDevices(rid, nHID_, sizeof(RAWINPUTDEVICE)) == FALSE)
-            Book::AddEvent(eNOTE::nCRITIC, "failed to unregister of HID devices.");
+        if (RegisterRawInputDevices(rid, nHID_, sizeof(RAWINPUTDEVICE)) == FALSE)
+            log::Fatal() << "failed to unregister of HID devices.";
     }
 
-    if(raw_ != nullptr)
+    if (raw_ != nullptr)
         free(raw_);
     raw_ = nullptr;
 }
 
 void CInput::DeviceChanged(WPARAM, LPARAM _lParam)
 {
-    if(_lParam == NULL/* || raw_ == nullptr*/) return;
+    if (_lParam == NULL/* || raw_ == nullptr*/) return;
 
     /*{
         char temp[256] = "NULL";
@@ -210,7 +209,7 @@ void CInput::DeviceChanged(WPARAM, LPARAM _lParam)
         if(strstr(temp, "Vid_8888") != nullptr)
             return;
 
-        Book::AddEvent(eNOTE::nDEBUG, "%s", temp);
+        log::Debug() << "%s", temp);
     }*/
 
     RID_DEVICE_INFO rdi = {
@@ -222,7 +221,7 @@ void CInput::DeviceChanged(WPARAM, LPARAM _lParam)
         GetRawInputDeviceInfoW(reinterpret_cast<HANDLE>(_lParam), RIDI_DEVICEINFO, &rdi, &size);
     }
 
-    switch(rdi.dwType){
+    switch (rdi.dwType) {
 #if _CRUS_TEMP_DISABLED
         case RIM_TYPEMOUSE:
             break;
@@ -231,10 +230,10 @@ void CInput::DeviceChanged(WPARAM, LPARAM _lParam)
             break;
 #endif
         case RIM_TYPEHID:
-            if(rdi.hid.usUsagePage != HID_USAGE_PAGE_GENERIC)
+            if (rdi.hid.usUsagePage != HID_USAGE_PAGE_GENERIC)
                 break;
 
-            switch(rdi.hid.usUsage){
+            switch (rdi.hid.usUsage) {
                 case HID_USAGE_GENERIC_JOYSTICK:
                     break;
 
@@ -246,44 +245,44 @@ void CInput::DeviceChanged(WPARAM, LPARAM _lParam)
     /*if(rdi.dwType == RIM_TYPEHID && rdi.hid.usUsagePage != HID_USAGE_PAGE_GENERIC)
         return;*/
 
-    /*if(GET_DEVICE_CHANGE_WPARAM(_wParam) == GIDC_ARRIVAL)
-        Book::AddEvent(eNOTE::nDEBUG, "A new device has been added to the system.");
+        /*if(GET_DEVICE_CHANGE_WPARAM(_wParam) == GIDC_ARRIVAL)
+            log::Debug() << "A new device has been added to the system.");
 
-    else if(GET_DEVICE_CHANGE_WPARAM(_wParam) == GIDC_REMOVAL)
-        Book::AddEvent(eNOTE::nDEBUG, "A device has been removed from the system.");*/
+        else if(GET_DEVICE_CHANGE_WPARAM(_wParam) == GIDC_REMOVAL)
+            log::Debug() << "A device has been removed from the system.");*/
 }
 
 void CInput::Process(WPARAM _wParam, LPARAM _lParam)
 {
-    if(GET_RAWINPUT_CODE_WPARAM(_wParam) == RIM_INPUTSINK)
+    if (GET_RAWINPUT_CODE_WPARAM(_wParam) == RIM_INPUTSINK)
         return;
 
     UINT size;
 
     // Getting size of incoming raw data.
-    if(GetRawInputData(reinterpret_cast<HRAWINPUT>(_lParam), RID_INPUT, nullptr,
-                       &size, sizeof(RAWINPUTHEADER)) == (UINT)-1)
+    if (GetRawInputData(reinterpret_cast<HRAWINPUT>(_lParam), RID_INPUT, nullptr,
+        &size, sizeof(RAWINPUTHEADER)) == (UINT)-1)
         return;
 
-    if(size > raw_size_)
+    if (size > raw_size_)
         raw_ = (PRAWINPUT)realloc(raw_, static_cast<size_t>(raw_size_ = size));
 
     // Getting raw data from RAWINPUT structure.
-    if(GetRawInputData(reinterpret_cast<HRAWINPUT>(_lParam), RID_INPUT, raw_,
-                       &size, sizeof(RAWINPUTHEADER)) == (UINT)-1)
+    if (GetRawInputData(reinterpret_cast<HRAWINPUT>(_lParam), RID_INPUT, raw_,
+        &size, sizeof(RAWINPUTHEADER)) == (UINT)-1)
         return;
 
-    switch(raw_->header.dwType){
+    switch (raw_->header.dwType) {
         case RIM_TYPEMOUSE:
-            Book::AddEvent(eNOTE::nDEBUG, "0x%X", raw_->header.hDevice);
+            log::Debug() << raw_->header.hDevice;
             break;
 
         case RIM_TYPEKEYBOARD:
-            Book::AddEvent(eNOTE::nDEBUG, "0x%X", raw_->header.hDevice);
+            log::Debug() << raw_->header.hDevice;
             break;
 
         case RIM_TYPEHID:
-            Book::AddEvent(eNOTE::nDEBUG, "0x%X", raw_->header.hDevice);
+            log::Debug() << raw_->header.hDevice;
             break;
     }
 }
@@ -308,10 +307,8 @@ void CInput::Process(WPARAM _wParam, LPARAM _lParam)
 }
 };
 
-namespace isle
-{
-namespace Input
-{
+namespace isle {
+namespace Input {
 float Device::x() const
 {
     return 1.0f;
@@ -363,10 +360,8 @@ extern __forceinline void Input::Release()
 
 isle::Input::Controller controller;
 
-namespace isle
-{
-namespace Input
-{
+namespace isle {
+namespace Input {
 float Controller::x() const
 {
     return mouse.x();

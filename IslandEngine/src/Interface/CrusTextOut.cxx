@@ -15,8 +15,7 @@
 #include "Renderer\CrusTexture.h"
 #include "Interface\CrusTextOut.h"
 
-namespace isle
-{
+namespace isle {
 math::Matrix mNumbers(
     1, 0, 0, 0,
     0, 1, 0, 0.72f,
@@ -26,7 +25,7 @@ math::Matrix mNumbers(
 
 Textout::Textout()
 {
-    for(auto &a : texDispCoord_.rect_)
+    for (auto &a : texDispCoord_.rect_)
         a = 0;
 }
 
@@ -45,11 +44,11 @@ bool Textout::Init(Texture const *const _texture, float _zoom, uint16 _x, uint16
     texDispCoord_.y_ = static_cast<float>(_y) / texture_->h();
 
     float const quad_plane[] = {
-		-_zoom,  _zoom * ratio, 0.0f, 0.0f,                             rectSymbol_.h_ / texture_->h(),
-		-_zoom, -_zoom * ratio, 0.0f, 0.0f,                             0.0f,
+        -_zoom,  _zoom * ratio, 0.0f, 0.0f,                             rectSymbol_.h_ / texture_->h(),
+        -_zoom, -_zoom * ratio, 0.0f, 0.0f,                             0.0f,
          _zoom,  _zoom * ratio, 0.0f, rectSymbol_.w_ / texture_->w(),   rectSymbol_.h_ / texture_->h(),
          _zoom, -_zoom * ratio, 0.0f, rectSymbol_.w_ / texture_->w(),   0.0f
-	};
+    };
 
     program_.AssignNew({"Interface/textout.glsl"});
 
@@ -64,7 +63,7 @@ bool Textout::Init(Texture const *const _texture, float _zoom, uint16 _x, uint16
 
     glVertexAttribPointer(isle::Program::nVERTEX, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 5, nullptr);
     glEnableVertexAttribArray(isle::Program::nVERTEX);
-    
+
     glVertexAttribPointer(isle::Program::nTEXCRD, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 5, reinterpret_cast<void const *>(sizeof(float) * 3));
     glEnableVertexAttribArray(isle::Program::nTEXCRD);
 
@@ -82,7 +81,7 @@ void Textout::SetText(std::string const &_text)
 void Textout::SetTexture(Texture const *const _texture)
 {
     if (_texture == nullptr)
-        Book::AddEvent(eNOTE::nERROR, "texture pointer is invalid.");
+        log::Error() << "texture pointer is invalid.";
 
     else texture_ = _texture;
 }
