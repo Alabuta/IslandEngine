@@ -40,6 +40,9 @@ Position *Grid::Build(float _law, float _grle, uint16 _subdivs)
 
     Position *const data = (Position *)malloc(sizeof(Position) * (count_[0] + count_[1] + 4 + 2 * 3));
 
+    if (data == nullptr)
+        return nullptr;
+
     data[0] = Position(_law, 0.0f, -_law);    data[4] = Position(-_law, 0.0f, -_law);
     data[1] = Position(-_law, 0.0f, -_law);    data[5] = Position(-_law, 0.0f, _law);
     data[2] = Position(-_law, 0.0f, _law);    data[6] = Position(_law, 0.0f, _law);

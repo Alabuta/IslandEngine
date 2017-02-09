@@ -18,9 +18,9 @@ std::map<uint32, bool> Mouse::mouseKeys_ = {{VK_LBUTTON, false}, {VK_RBUTTON, fa
 Mouse::Mouse()
     : relat_x_(0), relat_y_(0), sense_x_(1.0f), sense_y_(1.0f),
     /*wheel_(0), sense_wheel_(1.0f),*/ state_(nVISIBLE)
-{}
+{ }
 
-Mouse::~Mouse() {};
+Mouse::~Mouse() { };
 
 void Mouse::Setup()
 {
@@ -51,7 +51,7 @@ void Mouse::Destroy()
 }
 
 /*static*/ void Mouse::CheckKeySync(uint32 _key, std::function<void()> _fnJustPressed, std::function<void()> _fnWhilePressed,
-    std::function<void()> _fnJustUnpressed, std::function<void()> _fnUnpressed)
+                                    std::function<void()> _fnJustUnpressed, std::function<void()> _fnUnpressed)
 {
     SHORT const keyState = GetKeyState(_key);
 
@@ -137,7 +137,7 @@ void Mouse::Process(RAWMOUSE const *const _data)
     if ((state_ & nVISIBLE) != 0)
         return;
 
-    WINDOWINFO info;
+    WINDOWINFO info = {0};
     GetWindowInfo(Window::inst().hWnd(), &info);
 
     ClipCursor(&info.rcClient);

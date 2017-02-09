@@ -174,7 +174,7 @@ void TryIt()
     _mm_free(x); _mm_free(y);
 }
 
-isle::Rect CompareSSE(Texel *texels, uint32 width, uint32 height, isle::Rect const &rect)
+isle::Rect GetCroppedTextureRectSSE(Texel *texels, uint32 width, uint32 height, isle::Rect const &rect)
 {
     // Make sure that left and right bounds are multiples of sixteen - 'cause in one cycle of the algorithm reads sixteen pixels.
     auto const left = (static_cast<uint32>(rect.x()) >> 4) << 4;
@@ -382,10 +382,10 @@ void Compare()
     /*{
         auto elapsed = isle::measure<>::execution([&] ()
         {
-            result = CompareSSE(pixels, kDIM);
+            result = GetCroppedTextureRectSSE(pixels, kDIM);
         });
 
-        isle::log::Debug() << "CompareSSE(): " << elapsed << "; Result: " << result;
+        isle::log::Debug() << "GetCroppedTextureRectSSE(): " << elapsed << "; Result: " << result;
     }*/
 
     _mm_free(pixels);
@@ -558,7 +558,7 @@ namespace isle {
             auto elapsed = measure<std::chrono::microseconds>::execution([&sprite, &image, &data] ()
             {
                 if (image.BytesPerPixel() == 4)
-                    sprite.textureRect_ = CompareSSE(data, image.width_, image.height_, sprite.rect_);
+                    sprite.textureRect_ = GetCroppedTextureRectSSE(data, image.width_, image.height_, sprite.rect_);
             });
 
             _aligned_free(data);

@@ -40,7 +40,7 @@
 #endif
 
 
-isle::log::LogStream isle::log::Book::helper_;
+isle::log::LogStream isle::log::Book::logStream;
 
 namespace {
 #if _CRUS_DEBUG_CONSOLE
@@ -209,18 +209,18 @@ void LogStream::WriteToConsole(eSEVERITY _note) const
 Book::Book(eSEVERITY _severity)
 {
 #if _CRUS_DEBUG_CONSOLE
-    helper_.WriteToConsole(_severity);
+    logStream.WriteToConsole(_severity);
 #else
-    helper_.stream_ << helper_.kSEVERITIES[static_cast<std::underlying_type<eSEVERITY>::type>(_severity)];
+    static_cast<std::ostream &>(logStream) << logStream.kSEVERITIES[static_cast<std::underlying_type<eSEVERITY>::type>(_severity)] << ' ';
 #endif
 }
 
 Book::~Book()
 {
 #if _CRUS_DEBUG_CONSOLE
-    helper_.stream_ << std::endl;
+    static_cast<std::ostream &>(logStream) << std::endl;
 #else
-    helper_.stream_ << '\n';
+    static_cast<std::ostream &>(logStream) << '\n';
 #endif
 }
 

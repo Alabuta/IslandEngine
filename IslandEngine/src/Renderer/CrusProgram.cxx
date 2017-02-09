@@ -88,7 +88,7 @@ bool ReadShaderSource(std::string &_source, std::string const &_parentPath, std:
     std::ifstream file(path, std::ios::in);
 
     if (!file.is_open()) {
-        log::Error() << "can't open file:" << _name;
+        log::Error() << "can't open file: " << _name;
         return false;
     }
 
@@ -102,7 +102,7 @@ bool ReadShaderSource(std::string &_source, std::string const &_parentPath, std:
     file.close();
 
     if (_source.empty()) {
-        log::Error() << "can't read file:" << _name;
+        log::Error() << "can't read file: " << _name;
         return false;
     }
 
@@ -145,7 +145,7 @@ bool Program::AssignNew(std::initializer_list<std::string> _names)
         glUseProgram(program_);
 
         if (glIsProgram(program_) != GL_TRUE) {
-            log::Error() << "invalid program number:" << program_ << "from" << _names.begin();
+            log::Error() << "invalid program number: " << program_ << "from" << _names.begin();
             return false;
         }
 
@@ -327,7 +327,7 @@ int32 Program::GetAttributeLoc(astr _name) const
 
 #if _CRUS_SHADER_DEBUG
     if (lastAttribute_ < 0 && !checked_)
-        log::Warning() << "attribute unexist or are not used:" << _name;
+        log::Warning() << "attribute unexist or are not used: " << _name;
 #endif
 
     return lastAttribute_;
@@ -339,7 +339,7 @@ int32 Program::GetUniformLoc(astr _name) const
 
 #if _CRUS_SHADER_DEBUG
     if (lastUniform_ < 0 && !checked_)
-        log::Warning() << "uniform unexist or are not used:" << _name;
+        log::Warning() << "uniform unexist or are not used: " << _name;
 #endif
 
     return lastUniform_;

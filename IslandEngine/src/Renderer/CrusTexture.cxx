@@ -40,7 +40,7 @@ bool Texture::Init()
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, maxAnisotrophy);*/
 
     if (glGetError() != GL_NO_ERROR) {
-        log::Error() << "an error is returned:" << __FILE__ << "at line" << __LINE__;
+        log::Error() << "an error is returned: " << __FILE__ << "at line" << __LINE__;
         return false;
     }
 

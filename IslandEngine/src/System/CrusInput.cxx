@@ -44,8 +44,8 @@ private:
         nKEYBOARD = 0, nMOUSE, nJOYSTICK, nGAMEPAD
     };
 
-    CInput() : nHID_(0), raw_size_(0), raw_(nullptr) {};
-    ~CInput() {};
+    CInput() : nHID_(0), raw_size_(0), raw_(nullptr) { };
+    ~CInput() { };
 
 public:
 
@@ -76,10 +76,10 @@ public:
 
 void CInput::Setup()
 {
-    uint32 nDevs;
+    uint32 nDevs = {0};
 
     if (GetRawInputDeviceList(nullptr, &nDevs, sizeof(RAWINPUTDEVICELIST)) == (UINT)-1)
-        log::Fatal() << "an error is returned:" << __FILE__ << "at line" << __LINE__;
+        log::Fatal() << "an error is returned: " << __FILE__ << "at line" << __LINE__;
 
     // Doubled size - just in case.
     RAWINPUTDEVICELIST ridl[kMAX_HIDS * 2];
@@ -98,7 +98,7 @@ void CInput::Setup()
         {HID_USAGE_PAGE_GENERIC, HID_USAGE_GENERIC_GAMEPAD,  RIDEV_DEVNOTIFY, hTargetWnd}
     };
 
-    RAWINPUTDEVICE rid[kMAX_HIDS];
+    RAWINPUTDEVICE rid[kMAX_HIDS] = {0};
     UINT size = sizeof(RID_DEVICE_INFO);
 
     RID_DEVICE_INFO rdi = {
@@ -136,13 +136,13 @@ void CInput::Setup()
                     // XBox 360 (or like) controllers.
                     case HID_USAGE_GENERIC_GAMEPAD:
                         dev_type = nGAMEPAD;
-                        log::Debug() << "gpad:" << ridl[i].hDevice;
+                        log::Debug() << "gpad: " << ridl[i].hDevice;
                         break;
 
                         // Other HID devices (joysticks, gamepads etc).
                     case HID_USAGE_GENERIC_JOYSTICK:
                         dev_type = nJOYSTICK;
-                        log::Debug() << "joy:" << ridl[i].hDevice;
+                        log::Debug() << "joy: " << ridl[i].hDevice;
                         break;
                 } break;
 
@@ -168,7 +168,7 @@ void CInput::Setup()
 void CInput::Destroy()
 {
     if (GetRegisteredRawInputDevices(nullptr, &nHID_, sizeof(RAWINPUTDEVICE)) == (UINT)-1)
-        log::Fatal() << "an error is returned:" << __FILE__ << "at line" << __LINE__;
+        log::Fatal() << "an error is returned: " << __FILE__ << "at line" << __LINE__;
 
     if (nHID_ < 1)
         return;
@@ -257,15 +257,19 @@ void CInput::Process(WPARAM _wParam, LPARAM _lParam)
     if (GET_RAWINPUT_CODE_WPARAM(_wParam) == RIM_INPUTSINK)
         return;
 
-    UINT size;
+    UINT size = 0;
 
     // Getting size of incoming raw data.
     if (GetRawInputData(reinterpret_cast<HRAWINPUT>(_lParam), RID_INPUT, nullptr,
         &size, sizeof(RAWINPUTHEADER)) == (UINT)-1)
         return;
 
-    if (size > raw_size_)
+    if (size > raw_size_) {
         raw_ = (PRAWINPUT)realloc(raw_, static_cast<size_t>(raw_size_ = size));
+
+        if (raw_ == nullptr)
+            return;
+    }
 
     // Getting raw data from RAWINPUT structure.
     if (GetRawInputData(reinterpret_cast<HRAWINPUT>(_lParam), RID_INPUT, raw_,

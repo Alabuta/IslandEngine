@@ -33,7 +33,7 @@
 #define GL_PROC_INIT(_proc, _name)\
         GL_PROC(_proc, _name) = (GL_PROC_PREFIX(_proc))wglGetProcAddress(#_name);\
         if(_name == nullptr)\
-            isle::log::Fatal() << "can't get procedure:" << #_name;
+            isle::log::Fatal() << "can't get procedure: " << #_name;
 #else
 
 #define GL_PROC_INIT(_proc, _name)\

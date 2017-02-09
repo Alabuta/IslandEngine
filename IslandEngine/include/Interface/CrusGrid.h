@@ -3,7 +3,6 @@
 ****    Source code of Island Engine.
 ****    Copyright (C) 2009 - 2017 Crusoe's Island LLC.
 ****
-****    Started at 12th March 2010.
 ****    Description: grid, just grid.
 ****
 ********************************************************************************************************************************/

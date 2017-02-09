@@ -8,14 +8,15 @@
 ********************************************************************************************************************************/
 #include <string>
 #include <sstream>
+
 #include "CrusPosition.h"
 
 namespace isle {
 
-inline Position::Position(Position const &_v) : Position::Position(_v.x_, _v.y_, _v.z_) {}
+inline Position::Position(Position const &_v) : Position::Position(_v.x_, _v.y_, _v.z_) { }
 
-inline Position::Position(float const _v[]) : x_(_v[0]), y_(_v[1]), z_(_v[2]) {}
-inline Position::Position(float _x, float _y, float _z) : x_(_x), y_(_y), z_(_z) {}
+inline Position::Position(float const _v[]) : x_(_v[0]), y_(_v[1]), z_(_v[2]) { }
+inline Position::Position(float _x, float _y, float _z) : x_(_x), y_(_y), z_(_z) { }
 
 inline Position::Position(Position &&_v)
 {
@@ -107,9 +108,9 @@ inline std::string Position::ToString() const
     //return std::to_string(x_) + "; " + std::to_string(y_) + "; " + std::to_string(z_);
 }
 
-inline void Position::ToStream(std::ostream &stream) const
+inline void Position::ToStream(std::ostream &_stream) const
 {
-    stream << x_ << "; " << y_ << "; " << z_;
+    _stream << x_ << "; " << y_ << "; " << z_;
 }
 
 inline Position::operator std::string() const

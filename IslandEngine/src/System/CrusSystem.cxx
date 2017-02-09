@@ -50,9 +50,10 @@ Time System::time;
 /*static*/ void System::Destroy()
 {
     Render::inst().DeleteRC();
-    Window::inst().Destroy();
 
     Input::Destroy();
+
+    Window::inst().Destroy();
 
     log::Info() << "application destroyed.";
     //Book::Close();

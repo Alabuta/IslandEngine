@@ -3,10 +3,11 @@
 ****    Source code of Island Engine.
 ****    Copyright (C) 2009 - 2017 Crusoe's Island LLC.
 ****
-****    Started at 12th March 2010.
 ****    Description: implementation of renderer system.
 ****
 ********************************************************************************************************************************/
+#include <set>
+
 #include "System\CrusSystem.h"
 #include "System\CrusWindow.h"
 #include "System\CrusSplash.h"
@@ -17,8 +18,8 @@
 #include "Camera\CrusCamera.h"
 
 namespace isle {
-Render::Render() {};
-Render::~Render() {};
+Render::Render() { };
+Render::~Render() { };
 
 HWND hDummyWnd{nullptr};
 HDC hDummyDC{nullptr};
@@ -54,15 +55,19 @@ void CreateDummy()
     if (RegisterClassW(&wcs) == 0ui16) return;
 
     hDummyWnd = CreateWindowW(wcs.lpszClassName, L"", WS_POPUP,
-        256, 256, 256, 256, nullptr, nullptr, wcs.hInstance, nullptr);
+                              256, 256, 256, 256, nullptr, nullptr, wcs.hInstance, nullptr);
 
-    if (hDummyWnd == nullptr)
+    if (hDummyWnd == nullptr) {
         DestroyDummy();
+        return;
+    }
 
     hDummyDC = GetDC(hDummyWnd);
 
-    if (hDummyDC == nullptr)
+    if (hDummyDC == nullptr) {
         DestroyDummy();
+        return;
+    }
 
     SetWindowPos(hDummyWnd, nullptr, 256, 256, 256, 256, SWP_DRAWFRAME | SWP_NOZORDER);
     ShowWindow(hDummyWnd, SW_HIDE);
@@ -72,7 +77,7 @@ void Render::SetupContext()
 {
     CreateDummy();
 
-    PIXELFORMATDESCRIPTOR hPFD;
+    PIXELFORMATDESCRIPTOR hPFD = {0};
     if (SetPixelFormat(hDummyDC, 1, &hPFD) == FALSE)
         log::Fatal() << "can't set dummy pixel format.";
 
@@ -192,7 +197,7 @@ void Render::DeleteRC()
 bool Render::CreateProgram(uint32 &_program)
 {
     if (glIsProgram(_program) == GL_TRUE) {
-        log::Warning() << "already used program index:" << _program;
+        log::Warning() << "already used program index: " << _program;
         return false;
     }
 
@@ -201,7 +206,7 @@ bool Render::CreateProgram(uint32 &_program)
     auto codeError = glGetError();
 
     if (codeError != GL_NO_ERROR) {
-        log::Error() << "some problem with program index:" << codeError;
+        log::Error() << "some problem with program index: " << codeError;
         return false;
     }
 
@@ -212,7 +217,7 @@ bool Render::CreateProgram(uint32 &_program)
 bool Render::CreateBO(uint32 _target, uint32 &_bo)
 {
     if (_bo != 0 && glIsBuffer(_bo) == GL_TRUE) {
-        log::Warning() << "already used buffer object index:" << _bo;
+        log::Warning() << "already used buffer object index: " << _bo;
         return false;
     }
 
@@ -231,7 +236,7 @@ bool Render::CreateBO(uint32 _target, uint32 &_bo)
 bool Render::CreateVAO(uint32 &_vao)
 {
     if (glIsVertexArray(_vao) == GL_TRUE) {
-        log::Warning() << "already used VAO index:" << _vao;
+        log::Warning() << "already used VAO index: " << _vao;
         return false;
     }
 
@@ -250,7 +255,7 @@ bool Render::CreateVAO(uint32 &_vao)
 bool Render::CreateTBO(uint32 _target, uint32 &_tbo)
 {
     if (glIsTexture(_tbo) == GL_TRUE) {
-        log::Warning() << "already used texture buffer object index:" << _tbo;
+        log::Warning() << "already used texture buffer object index: " << _tbo;
         return false;
     }
 
@@ -272,7 +277,7 @@ void Render::SetViewport(int16 _x, int16 _y, int16 _w, int16 _h)
 }
 
 void Render::Update()
-{}
+{ }
 
 math::Matrix identity = math::Matrix::GetIdentity().Translate(0, 1, 0);
 
@@ -340,7 +345,7 @@ void Render::InitBufferObjects()
         glGetActiveUniformBlockiv(ubo.program(), Program::nVIEWPORT, GL_UNIFORM_BLOCK_DATA_SIZE, &size);
 
         if (index == GL_INVALID_INDEX || size < 1)
-            log::Fatal() << "can't init the UBO: invalid index param:" << "VIEWPORT";
+            log::Fatal() << "can't init the UBO: invalid index param: " << "VIEWPORT";
 
         CreateBO(GL_UNIFORM_BUFFER, VIEWPORT_);
         glBufferData(GL_UNIFORM_BUFFER, size, nullptr, GL_DYNAMIC_DRAW);
@@ -354,7 +359,7 @@ void Render::InitBufferObjects()
         uint32 index = glGetProgramResourceIndex(ubo.program(), GL_SHADER_STORAGE_BLOCK, "TRANSFORM");
 
         if (index == GL_INVALID_INDEX)
-            log::Fatal() << "can't init the UBO: invalid index param:" << "TRANSFORM";
+            log::Fatal() << "can't init the UBO: invalid index param: " << "TRANSFORM";
 
         CreateBO(GL_SHADER_STORAGE_BUFFER, TRANSFORM_);
         glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(math::Matrix) * 3, nullptr, GL_DYNAMIC_DRAW);
@@ -366,7 +371,7 @@ void Render::InitBufferObjects()
 }
 
 void CALLBACK Render::DebugCallback(GLenum _source, GLenum _type, GLuint _id, GLenum _severity,
-    GLsizei _length, char const *_message, void const *_userParam)
+                                    GLsizei _length, char const *_message, void const *_userParam)
 {
     UNREFERENCED_PARAMETER(_source);
     UNREFERENCED_PARAMETER(_id);
@@ -456,5 +461,73 @@ void Render::CleanUp()
     while (--BOs_)
         if (glIsBuffer(BOs_) == GL_TRUE)
             glDeleteBuffers(1, &BOs_);
+}
+
+void EnumScreenModes()
+{
+    DISPLAY_DEVICEA device = {
+        sizeof(DISPLAY_DEVICEA),
+        "", "", 0, "", ""
+    };
+
+    for (auto iDevNum = 0; EnumDisplayDevicesA(nullptr, iDevNum, &device, 0) != 0; ++iDevNum)
+        isle::log::Debug() << device.DeviceName << "|" << device.DeviceString;
+
+    DEVMODEW devmode = {
+        L"", 0, 0,
+        sizeof(DEVMODEW),
+        {0}
+    };
+
+    struct DisplaySettings {
+        uint32 width, height, frequency;
+
+        bool operator< (DisplaySettings const &b) const
+        {
+            if (b.width < width)
+                return true;
+
+            if (b.width == width && b.height < height)
+                return true;
+
+            if (b.width == width && b.height == height && b.frequency < frequency)
+                return true;
+
+            return false;
+        }
+    };
+
+    std::set<DisplaySettings> settings;
+    //std::vector<DisplaySettings> settings(0);
+
+    for (auto iModeNum = 0; EnumDisplaySettingsW(nullptr, iModeNum, &devmode) != 0; ++iModeNum) {
+        if (devmode.dmBitsPerPel != 32)
+            continue;
+
+        settings.insert({devmode.dmPelsWidth, devmode.dmPelsHeight, devmode.dmDisplayFrequency});
+        //settings.push_back({devmode.dmPelsWidth, devmode.dmPelsHeight, devmode.dmDisplayFrequency});
+    }
+
+    /*std::sort(settings.begin(), settings.end(), [] (DisplaySettings const &a, DisplaySettings const &b) -> bool {
+    if (b.width < a.width)
+    return true;
+
+    if (b.width == a.width && b.height < a.height)
+    return true;
+
+    if (b.width == a.width && b.height == a.height && b.frequency < a.frequency)
+    return true;
+
+    return false;
+    });
+
+    auto last = std::unique(settings.begin(), settings.end(), [] (DisplaySettings const &a, DisplaySettings const &b) {
+    return b.width == a.width && b.height == a.height && b.frequency == a.frequency;
+    });
+
+    settings.erase(last, settings.end());*/
+
+    for (auto const &setting : settings)
+        isle::log::Info() << setting.width << "x" << setting.height << "@" << setting.frequency;
 }
 };

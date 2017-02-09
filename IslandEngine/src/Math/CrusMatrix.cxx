@@ -13,9 +13,9 @@
 namespace isle {
 namespace math {
 Matrix::Matrix(float _m0, float _m1, float _m2, float _m3,
-    float _m4, float _m5, float _m6, float _m7,
-    float _m8, float _m9, float _m10, float _m11,
-    float _m12, float _m13, float _m14, float _m15)
+               float _m4, float _m5, float _m6, float _m7,
+               float _m8, float _m9, float _m10, float _m11,
+               float _m12, float _m13, float _m14, float _m15)
 {
     m0_ = _m0;   m1_ = _m1;   m2_ = _m2;  m3_ = _m3;
     m4_ = _m4;   m5_ = _m5;   m6_ = _m6;  m7_ = _m7;
@@ -34,30 +34,30 @@ Matrix::Matrix(float _m0, float _m1, float _m2, float _m3,
 Matrix Matrix::operator+ (Matrix const &_m) const
 {
     return Matrix
-        (
+    (
         m0_ + _m.m0_, m1_ + _m.m1_, m2_ + _m.m2_, m3_ + _m.m3_,
         m4_ + _m.m4_, m5_ + _m.m5_, m6_ + _m.m6_, m7_ + _m.m7_,
         m8_ + _m.m8_, m9_ + _m.m9_, m10_ + _m.m10_, m11_ + _m.m11_,
         m12_ + _m.m12_, m13_ + _m.m13_, m14_ + _m.m14_, m15_ + _m.m15_
-        );
+    );
 }
 
 Matrix Matrix::operator- (Matrix const &_m) const
 {
     return Matrix
-        (
+    (
         m0_ - _m.m0_, m1_ - _m.m1_, m2_ - _m.m2_, m3_ - _m.m3_,
         m4_ - _m.m4_, m5_ - _m.m5_, m6_ - _m.m6_, m7_ - _m.m7_,
         m8_ - _m.m8_, m9_ - _m.m9_, m10_ - _m.m10_, m11_ - _m.m11_,
         m12_ - _m.m12_, m13_ - _m.m13_, m14_ - _m.m14_, m15_ - _m.m15_
-        );
+    );
 }
 
 // 64 mul; 48 sum.
 Matrix Matrix::operator* (Matrix const &_m) const
 {
     return Matrix
-        (
+    (
         m0_  * _m.m0_ + m1_  * _m.m4_ + m2_  * _m.m8_ + m3_  * _m.m12_,
         m0_  * _m.m1_ + m1_  * _m.m5_ + m2_  * _m.m9_ + m3_  * _m.m13_,
         m0_  * _m.m2_ + m1_  * _m.m6_ + m2_  * _m.m10_ + m3_  * _m.m14_,
@@ -77,40 +77,40 @@ Matrix Matrix::operator* (Matrix const &_m) const
         m12_ * _m.m1_ + m13_ * _m.m5_ + m14_ * _m.m9_ + m15_ * _m.m13_,
         m12_ * _m.m2_ + m13_ * _m.m6_ + m14_ * _m.m10_ + m15_ * _m.m14_,
         m12_ * _m.m3_ + m13_ * _m.m7_ + m14_ * _m.m11_ + m15_ * _m.m15_
-        );
+    );
 }
 
 Matrix Matrix::operator+ (float _s) const
 {
     return Matrix
-        (
+    (
         m0_ + _s, m1_ + _s, m2_ + _s, m3_ + _s,
         m4_ + _s, m5_ + _s, m6_ + _s, m7_ + _s,
         m8_ + _s, m9_ + _s, m10_ + _s, m11_ + _s,
         m12_ + _s, m13_ + _s, m14_ + _s, m15_ + _s
-        );
+    );
 }
 
 Matrix Matrix::operator- (float _s) const
 {
     return Matrix
-        (
+    (
         m0_ - _s, m1_ - _s, m2_ - _s, m3_ - _s,
         m4_ - _s, m5_ - _s, m6_ - _s, m7_ - _s,
         m8_ - _s, m9_ - _s, m10_ - _s, m11_ - _s,
         m12_ - _s, m13_ - _s, m14_ - _s, m15_ - _s
-        );
+    );
 }
 
 Matrix Matrix::operator* (float _s) const
 {
     return Matrix
-        (
+    (
         m0_  * _s, m1_  * _s, m2_  * _s, m3_  * _s,
         m4_  * _s, m5_  * _s, m6_  * _s, m7_  * _s,
         m8_  * _s, m9_  * _s, m10_ * _s, m11_ * _s,
         m12_ * _s, m13_ * _s, m14_ * _s, m15_ * _s
-        );
+    );
 }
 
 bool Matrix::operator== (Matrix const &_m) const
@@ -346,7 +346,7 @@ Matrix Matrix::Inverse() const
     det = 1.0f / det;
 
     return Matrix
-        (
+    (
         Minor(1, 2, 3, 1, 2, 3) * det,
         -Minor(0, 2, 3, 1, 2, 3) * det,
         Minor(0, 1, 3, 1, 2, 3) * det,
@@ -366,29 +366,29 @@ Matrix Matrix::Inverse() const
         Minor(0, 2, 3, 0, 1, 2) * det,
         -Minor(0, 1, 3, 0, 1, 2) * det,
         Minor(0, 1, 2, 0, 1, 2) * det
-        );
+    );
 }
 
 Matrix Matrix::Transpose() const
 {
     return Matrix
-        (
+    (
         m0_, m4_, m8_, m12_,
         m1_, m5_, m9_, m13_,
         m2_, m6_, m10_, m14_,
         m3_, m7_, m11_, m15_
-        );
+    );
 }
 
 /*static*/ Matrix Matrix::GetIdentity()
 {
     return Matrix
-        (
+    (
         1.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 1.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 1.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 1.0f
-        );
+    );
 }
 
 Matrix const &Matrix::MakeIdentity()
@@ -424,9 +424,9 @@ Matrix const &Matrix::FromQuaternion(float const _q[])
     float const c[12] = {
         _q[1] + _q[1],  _q[2] + _q[2],  _q[3] + _q[3],
 
-        c[0] * _q[0],   c[1] * _q[0],   c[2] * _q[0],
-        c[0] * _q[1],   c[1] * _q[1],   c[2] * _q[1],
-        c[1] * _q[2],   c[2] * _q[2],   c[2] * _q[3]
+        (_q[1] + _q[1]) * _q[0],   (_q[2] + _q[2]) * _q[0],   (_q[3] + _q[3]) * _q[0],
+        (_q[1] + _q[1]) * _q[1],   (_q[2] + _q[2]) * _q[1],   (_q[3] + _q[3]) * _q[1],
+        (_q[2] + _q[2]) * _q[2],   (_q[3] + _q[3]) * _q[2],   (_q[3] + _q[3]) * _q[3]
     };
 
     //  1 - 2 * (yy + zz)                2 * (xy + zw)              2 * (xz - yw)
