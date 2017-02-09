@@ -1,3 +1,4 @@
+#include "System\CrusBook.h"
 #include "Game\CrusRect.h"
 
 namespace isle {
@@ -65,5 +66,10 @@ math::Point Rect::NormalizedToPoint(math::Point const &normalizedCoords) const
 math::Point Rect::PointToNormalized(math::Point const &point) const
 {
     return math::Point{math::clamp((point.x - xmin_) / width_, 0, 1), math::clamp((point.y - ymin_) / height_, 0, 1)};
+}
+
+void Rect::ToStream(std::ostream &_stream) const
+{
+    _stream << x_ << "; " << y_ << "; " << width_ << "; " << height_ << ".";
 }
 };

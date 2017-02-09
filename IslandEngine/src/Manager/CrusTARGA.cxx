@@ -65,23 +65,11 @@ bool LoadUncompressedTARGA(Image &_image, std::ifstream &_file)
 
         case 3:
             _image.bpp_ = GL_RGB;
+            _image.type_ = GL_BGR;
             break;
 
         case 4:
             _image.bpp_ = GL_RGBA;
-            break;
-
-        default:
-            _file.close();
-            return false;
-    }
-
-    switch (_image.bpp_) {
-        case GL_RGB:
-            _image.type_ = GL_BGR;
-            break;
-
-        case GL_RGBA:
             _image.type_ = GL_BGRA;
             break;
 
@@ -104,7 +92,7 @@ bool LoadTARGA(Image *const _image, std::string const &_name)
     std::ifstream file(path, std::ios::binary);
 
     if (!file.is_open()) {
-        log::Error() << "can't open texture file:" << _name.data();
+        log::Error() << "can't open texture file: " << _name.data();
         return false;
     }
 

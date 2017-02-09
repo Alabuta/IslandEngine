@@ -6,13 +6,9 @@
 ****    Description: main cpp file - the beginning and the application end.
 ****
 ********************************************************************************************************************************/
-#include <iostream>
-
 #include <map>
-#include <string>
 #include <random>
 #include <algorithm>
-#include <set>
 
 #include "engine.h"
 #include "Game\CrusBounds.h"
@@ -84,7 +80,7 @@ void InitBackground()
     auto imageWidth = flipbookTexture.w(), imageHeight = flipbookTexture.h();
     auto spritesNumberHorizontally = 2, spritesNumberVertically = 4;
     //auto spritesNumberHorizontally = 7, spritesNumberVertically = 3;
-    auto spriteWidth = 512.0f, spriteHeight = 256.0f;
+    auto spriteWidth = 512, spriteHeight = 256;
     //auto const spriteWidth = 275.0f, spriteHeight = 275.0f;
     auto const pixelsPerUnit = 200.0f;
     samples = 12;
@@ -150,10 +146,10 @@ void InitBackground()
         glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * vertex_buffer.size(), vertex_buffer.data(), GL_STATIC_DRAW);
     }
 
-    glVertexAttribPointer(Program::eIN_OUT_ID::nVERTEX, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 5, nullptr);
+    glVertexAttribPointer(Program::eIN_OUT_ID::nVERTEX, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), nullptr);
     glEnableVertexAttribArray(Program::eIN_OUT_ID::nVERTEX);
 
-    glVertexAttribPointer(isle::Program::eIN_OUT_ID::nTEXCRD, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 5, reinterpret_cast<void const *>(sizeof(float) * 3));
+    glVertexAttribPointer(isle::Program::eIN_OUT_ID::nTEXCRD, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void const *>(sizeof(Position)));
     glEnableVertexAttribArray(isle::Program::eIN_OUT_ID::nTEXCRD);
 
     glBindVertexArray(0);
@@ -196,7 +192,7 @@ void Init()
 }
 
 void Update()
-{}
+{ }
 
 void DrawFrame()
 {
@@ -206,83 +202,13 @@ void DrawFrame()
 }
 };
 
-void EnumScreenModes()
-{
-    DISPLAY_DEVICEA device = {
-        sizeof(DISPLAY_DEVICEA),
-        "", "", 0, "", ""
-    };
-
-    for (auto iDevNum = 0; EnumDisplayDevicesA(nullptr, iDevNum, &device, 0) != 0; ++iDevNum)
-        isle::log::Debug() << device.DeviceName << "|" << device.DeviceString;
-
-    DEVMODEW devmode = {
-        L"", 0, 0,
-        sizeof(DEVMODEW),
-        {0}
-    };
-
-    struct DisplaySettings {
-        uint32 width, height, frequency;
-
-        bool operator< (DisplaySettings const &b) const
-        {
-            if (b.width < width)
-                return true;
-
-            if (b.width == width && b.height < height)
-                return true;
-
-            if (b.width == width && b.height == height && b.frequency < frequency)
-                return true;
-
-            return false;
-        }
-    };
-
-    std::set<DisplaySettings> settings;
-    //std::vector<DisplaySettings> settings(0);
-
-    for (auto iModeNum = 0; EnumDisplaySettingsW(nullptr, iModeNum, &devmode) != 0; ++iModeNum) {
-        if (devmode.dmBitsPerPel != 32)
-            continue;
-
-        settings.insert({devmode.dmPelsWidth, devmode.dmPelsHeight, devmode.dmDisplayFrequency});
-        //settings.push_back({devmode.dmPelsWidth, devmode.dmPelsHeight, devmode.dmDisplayFrequency});
-    }
-
-    /*std::sort(settings.begin(), settings.end(), [] (DisplaySettings const &a, DisplaySettings const &b) -> bool {
-        if (b.width < a.width)
-            return true;
-
-        if (b.width == a.width && b.height < a.height)
-            return true;
-
-        if (b.width == a.width && b.height == a.height && b.frequency < a.frequency)
-            return true;
-
-        return false;
-    });
-
-    auto last = std::unique(settings.begin(), settings.end(), [] (DisplaySettings const &a, DisplaySettings const &b) {
-        return b.width == a.width && b.height == a.height && b.frequency == a.frequency;
-    });
-
-    settings.erase(last, settings.end());*/
-
-    for (auto const &setting : settings)
-        isle::log::Debug() << setting.width << "x" << setting.height << "@" << setting.frequency;
-}
-
-int32 WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int32 nShowCmd)
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
 {
     UNREFERENCED_PARAMETER(hPrevInstance);
     UNREFERENCED_PARAMETER(lpCmdLine);
     UNREFERENCED_PARAMETER(nShowCmd);
 
     isle::Window::inst().Create(hInstance, "w-", 600, 400);
-
-    //EnumScreenModes();
 
     return isle::System::Loop();
 }

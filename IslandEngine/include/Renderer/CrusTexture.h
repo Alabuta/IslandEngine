@@ -15,6 +15,14 @@
 #include "Game\CrusObject.h"
 
 namespace isle {
+struct alignas(sizeof(uint32)) RGBA
+{
+    union {
+        byte channels[4];
+        uint32 value;
+    };
+};
+
 struct Image {
     int32 bpp_{0};
     int32 width_{0}, height_{0};
@@ -60,7 +68,7 @@ public:
 
     std::string ToString() const override
     {
-        return{};
+        return{ };
     }
 
 private:

@@ -46,6 +46,8 @@ public:
 
     math::Point const &max() const;
 
+    void ToStream(std::ostream &stream) const;
+
 private:
 
     union {

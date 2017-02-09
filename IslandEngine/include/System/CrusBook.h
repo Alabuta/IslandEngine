@@ -17,6 +17,8 @@
 #include <fstream>
 #include <streambuf>
 
+#include "System\CrusTypes.h"
+
 namespace isle {
 namespace log {
 
@@ -36,7 +38,7 @@ enum class eSEVERITY : size_t {
 };
 
 class LogStream final {
-public:
+private:
     std::ostream stream_;
     std::ofstream file_;
     std::ofstream conout_;
@@ -52,11 +54,45 @@ public:
     explicit LogStream();
     ~LogStream();
 
+    void InitConsoleWindow();
+
     void WriteToConsole(eSEVERITY _note) const;
 
-private:
+    template<typename T>
+    void ToStream(T const &object)
+    {
+        ToStream(object, std::bool_constant<HasToStreamMethod<T>::value>());
+    }
 
-    void InitConsoleWindow();
+    template<class T>
+    void ToStream(T const &object, std::true_type)
+    {
+        object.ToStream(stream_);
+    }
+
+    template<typename T>
+    void ToStream(T const &object, std::false_type)
+    {
+        stream_ << object;
+    }
+
+    template<typename T>
+    class HasToStreamMethod {
+        template<typename U, void(U::*)(std::ostream &) const> struct SFINAE { };
+
+        template<typename U> static char func(SFINAE<U, &U::ToStream>*);
+        template<typename U> static int func(...);
+
+    public:
+        enum { value = sizeof(func<T>(0)) == sizeof(char) };
+    };
+
+    operator std::ostream &()
+    {
+        return stream_;
+    }
+
+    friend class Book;
 };
 
 class Book final {
@@ -68,35 +104,12 @@ public:
     template<typename T>
     Book &operator<< (T const &object)
     {
-        ToStream(object, std::bool_constant<HasToStreamMethod<T>::value>());
+        logStream.ToStream(object);
         return *this;
     }
 
 private:
-    static LogStream helper_;
-
-    template<class T>
-    void ToStream(T const &object, std::true_type)
-    {
-        object.ToStream(helper_.stream_ << " ");
-    }
-
-    template<typename T>
-    void ToStream(T const &object, std::false_type)
-    {
-        helper_.stream_ << " " << object;
-    }
-
-    template<typename T>
-    class HasToStreamMethod {
-        template<typename U, void(U::*)(std::ostream &) const> struct SFINAE {};
-
-        template<typename U> static char func(SFINAE<U, &U::ToStream>*);
-        template<typename U> static int func(...);
-
-    public:
-        enum { value = sizeof(func<T>(0)) == sizeof(char) };
-    };
+    static LogStream logStream;
 };
 };
 };
