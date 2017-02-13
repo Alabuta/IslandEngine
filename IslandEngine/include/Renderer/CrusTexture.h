@@ -28,12 +28,12 @@ struct Image {
     int32 width_{0}, height_{0};
     uint32 format_{0}, type_{0};
 
-    std::vector<byte> data_;
+    alignas(sizeof(__m128i)) std::vector<byte> data_;
 
     uint8 BytesPerPixel() const;
 };
 
-class Texture final : CrusObject {
+class Texture final : public CrusObject {
 public:
 #if _CRUS_NOT_YET_IMPLEMENTED
     enum class eTEXTURE_TYPE {
@@ -53,7 +53,7 @@ public:
 
     Image image;
 
-    Texture(std::string &&_name);
+    Texture(std::string &&path);
 
     bool Init();
 
@@ -64,18 +64,13 @@ public:
     auto w() const { return w_; }
     auto h() const { return h_; }
 
-    auto name() const { return name_; }
-
-    std::string ToString() const override
-    {
-        return{ };
-    }
+    void ToStream(std::ostream &stream) const;
 
 private:
     uint32 id_{0};
     uint16 w_{0}, h_{0};
 
-    std::string name_{""};
+    std::string path_{""};
 
     Texture() = default;
 };

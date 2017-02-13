@@ -16,12 +16,16 @@
 //#define GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT 0x84FF
 
 namespace isle {
-Texture::Texture(std::string &&_name) : name_(std::move(_name))
-{}
+Texture::Texture(std::string &&_path)
+{
+    path_ = _path;
+
+    name_ = _path.substr(0, _path.find_last_of('.'));
+}
 
 bool Texture::Init()
 {
-    if (!LoadTARGA(&image, name_))
+    if (!LoadTARGA(&image, path_))
         return false;
 
     isle::Render::inst().CreateTBO(GL_TEXTURE_2D, id_);
@@ -53,5 +57,10 @@ bool Texture::Init()
 void Texture::Bind() const
 {
     glBindTexture(GL_TEXTURE_2D, id_);
+}
+
+void Texture::ToStream(std::ostream &_stream) const
+{
+    _stream << name_;
 }
 };

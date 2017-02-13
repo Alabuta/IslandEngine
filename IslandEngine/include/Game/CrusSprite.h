@@ -19,13 +19,13 @@ namespace isle {
 class Sprite final : public CrusObject {
 public:
 
-    static Sprite Create(std::shared_ptr<Texture> const &texture, Rect const &rect, math::Point const &pivot, float pixelsPerUnit = 100);
+    static Sprite Create(std::shared_ptr<Texture> const &texture, uint16 number, Rect const &rect, Point const &pivot, float pixelsPerUnit = 100);
 
     Texture const &textureSheet() const;
 
     Bounds const &bounds() const;
     Rect const &rect() const;
-    math::Point const &pivot() const;
+    Point const &pivot() const;
 
     Rect const &textureRect() const;
     Rect const &textureRectOffset() const;
@@ -34,17 +34,14 @@ public:
     std::vector<Position> const &vertices() const;
     std::vector<UV> const &uvs() const;
 
-    std::string ToString() const override
-    {
-        return{};
-    }
+    void ToStream(std::ostream &stream) const;
 
 private:
-
+    std::string name_;
     float pixelsPerUnit_;
 
     Bounds bounds_;
-    math::Point pivot_;
+    Point pivot_;
     Rect rect_;
 
     Rect textureRect_, textureRectOffset_;
@@ -76,7 +73,7 @@ __forceinline Rect const &Sprite::rect() const
     return rect_;
 }
 
-__forceinline math::Point const &Sprite::pivot() const
+__forceinline Point const &Sprite::pivot() const
 {
     return pivot_;
 }

@@ -17,16 +17,23 @@
 namespace isle {
 class CrusObject {
 public:
-    uint32 instanceID{0};
-    std::string name{""};
 
     virtual ~CrusObject() = default;
 
+    // Object existing checking method.
     explicit operator bool() const;
 
-    virtual std::string ToString() const = 0;
+    /*bool operator== (CrusObject const &object) const;
+    bool operator!= (CrusObject const &object) const;*/
+
+    std::string name() const;
+
+    virtual void ToStream(std::ostream &stream) const = 0;
 
 protected:
+    uint32 instanceID{0};
+    std::string name_{""};
+
     explicit CrusObject() = default;
 
     void MakeValid();
@@ -35,6 +42,11 @@ protected:
 inline CrusObject::operator bool() const
 {
     return instanceID > 0 ? true : false;
+}
+
+inline std::string CrusObject::name() const
+{
+    return name_;
 }
 };
 

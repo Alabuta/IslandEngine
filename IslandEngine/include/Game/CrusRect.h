@@ -12,39 +12,39 @@ public:
 
     Rect() = default;
     Rect(float x, float y, float width, float height);
-    Rect(math::Point const &postion, math::Point const &size);
+    Rect(Point const &postion, Point const &size);
 
     static Rect CreateFromMinMax(float xmin, float ymin, float xmax, float ymax);
 
-    bool Contains(math::Point const &point) const;
+    bool Contains(Point const &point) const;
     bool Overlaps(Rect const &rect) const;
 
     float GetSquare() const;
 
-    math::Point NormalizedToPoint(math::Point const &normalizedCoords) const;
-    math::Point PointToNormalized(math::Point const &point) const;
+    Point NormalizedToPoint(Point const &normalizedCoords) const;
+    Point PointToNormalized(Point const &point) const;
 
     float x() const;
     float y() const;
 
-    math::Point const &position() const;
+    Point const &position() const;
 
     float width() const;
     float height() const;
 
-    math::Point const &size() const;
+    Point const &size() const;
 
-    math::Point const &center() const;
+    Point const &center() const;
 
     float xmin() const;
     float ymin() const;
 
-    math::Point const &min() const;
+    Point const &min() const;
 
     float xmax() const;
     float ymax() const;
 
-    math::Point const &max() const;
+    Point const &max() const;
 
     void ToStream(std::ostream &stream) const;
 
@@ -56,7 +56,7 @@ private:
         };
 
         struct {
-            math::Point position_;
+            Point position_;
         };
     };
 
@@ -66,11 +66,11 @@ private:
         };
 
         struct {
-            math::Point size_;
+            Point size_;
         };
     };
 
-    math::Point center_;
+    Point center_;
 
     union {
         struct {
@@ -78,7 +78,7 @@ private:
         };
 
         struct {
-            math::Point min_;
+            Point min_;
         };
     };
 
@@ -88,7 +88,7 @@ private:
         };
 
         struct {
-            math::Point max_;
+            Point max_;
         };
     };
 };
@@ -108,7 +108,7 @@ __forceinline float Rect::y() const
     return y_;
 }
 
-__forceinline math::Point const &Rect::position() const
+__forceinline Point const &Rect::position() const
 {
     return position_;
 }
@@ -123,12 +123,12 @@ __forceinline float Rect::height() const
     return height_;
 }
 
-__forceinline math::Point const &Rect::size() const
+__forceinline Point const &Rect::size() const
 {
     return size_;
 }
 
-__forceinline math::Point const &Rect::center() const
+__forceinline Point const &Rect::center() const
 {
     return center_;
 }
@@ -143,7 +143,7 @@ __forceinline float Rect::ymin() const
     return ymin_;
 }
 
-__forceinline math::Point const &Rect::min() const
+__forceinline Point const &Rect::min() const
 {
     return min_;
 }
@@ -158,7 +158,7 @@ __forceinline float Rect::ymax() const
     return ymax_;
 }
 
-__forceinline math::Point const &Rect::max() const
+__forceinline Point const &Rect::max() const
 {
     return max_;
 }

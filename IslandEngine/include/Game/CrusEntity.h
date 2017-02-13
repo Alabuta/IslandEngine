@@ -25,9 +25,9 @@ public:
 
     Transform const &transform() const;
 
-    std::string ToString() const override
+    void ToStream(std::ostream &stream) const
     {
-        return{};
+        return;
     }
 
 private:
@@ -48,7 +48,7 @@ struct Component {
 struct Entity1 {
     static EntitySystem *entitySystem;
 
-    Entity1() {};
+    Entity1() { };
 
     template<typename Type> Type *getAs();
 

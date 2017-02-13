@@ -16,7 +16,7 @@ Rect::Rect(float _x, float _y, float _width, float _height) :
     ymax_ = y_ + height_;
 }
 
-Rect::Rect(math::Point const &_postion, math::Point const &_size)
+Rect::Rect(Point const &_postion, Point const &_size)
 {
     position_.x = _postion.x;
     position_.y = _postion.y;
@@ -34,38 +34,38 @@ Rect::Rect(math::Point const &_postion, math::Point const &_size)
     ymax_ = y_ + height_;
 }
 
-/*static*/ Rect Rect::CreateFromMinMax(float xmin, float ymin, float xmax, float ymax)
+/*static*/ Rect Rect::CreateFromMinMax(float _xmin, float _ymin, float _xmax, float _ymax)
 {
-    return Rect(xmin, ymin, xmax - xmin, ymax - ymin);
+    return Rect(_xmin, _ymin, _xmax - _xmin, _ymax - _ymin);
 }
 
-bool Rect::Contains(math::Point const &point) const
+bool Rect::Contains(Point const &_point) const
 {
-    return (point.x >= min().x) && (point.x <= max().x)
-        && (point.y >= min().y) && (point.y <= max().y);
+    return (_point.x >= min().x) && (_point.x <= max().x)
+        && (_point.y >= min().y) && (_point.y <= max().y);
 }
 
-bool Rect::Overlaps(Rect const &rect) const
+bool Rect::Overlaps(Rect const &_rect) const
 {
-    if ((xmin_ > rect.xmax()) || (rect.xmin() > xmax_))
+    if ((xmin_ > _rect.xmax()) || (_rect.xmin() > xmax_))
         return false;
 
-    if ((ymin_ > rect.ymax()) || (rect.ymin() > ymax_))
+    if ((ymin_ > _rect.ymax()) || (_rect.ymin() > ymax_))
         return false;
 
     return true;
 }
 
-math::Point Rect::NormalizedToPoint(math::Point const &normalizedCoords) const
+Point Rect::NormalizedToPoint(Point const &_normalizedCoords) const
 {
-    math::Point normalized{math::clamp(normalizedCoords.x, 0, 1), math::clamp(normalizedCoords.y, 0, 1)};
+    Point normalized{math::clamp(_normalizedCoords.x, 0, 1), math::clamp(_normalizedCoords.y, 0, 1)};
 
-    return math::Point{xmin_ + width_ * normalized.x, ymin_ + height_ * normalized.y};
+    return Point{xmin_ + width_ * normalized.x, ymin_ + height_ * normalized.y};
 }
 
-math::Point Rect::PointToNormalized(math::Point const &point) const
+Point Rect::PointToNormalized(Point const &_point) const
 {
-    return math::Point{math::clamp((point.x - xmin_) / width_, 0, 1), math::clamp((point.y - ymin_) / height_, 0, 1)};
+    return Point{math::clamp((_point.x - xmin_) / width_, 0, 1), math::clamp((_point.y - ymin_) / height_, 0, 1)};
 }
 
 void Rect::ToStream(std::ostream &_stream) const

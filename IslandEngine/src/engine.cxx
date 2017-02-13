@@ -102,8 +102,9 @@ void InitBackground()
         for (auto i = 0; i < spritesNumberHorizontally; ++i) {
             auto sprite = Sprite::Create(
                 std::make_shared<Texture>(flipbookTexture),
+                i + j * spritesNumberHorizontally,
                 Rect(i * spriteWidth, j * spriteHeight, spriteWidth, spriteHeight),
-                math::Point{spriteWidth * 0.5f, spriteHeight * 0.5f},
+                Point{spriteWidth * 0.5f, spriteHeight * 0.5f},
                 pixelsPerUnit);
 
             if (sprite)
@@ -189,6 +190,8 @@ void Init()
     grid.Update();
 
     InitBackground();
+
+    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 }
 
 void Update()

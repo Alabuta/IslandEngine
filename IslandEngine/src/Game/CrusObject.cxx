@@ -10,9 +10,9 @@
 #include "Game\CrusObject.h"
 
 namespace isle {
-__declspec(noinline)void CrusObject::MakeValid()
+__declspec(noinline) void CrusObject::MakeValid()
 {
-    static uint32 totalNumberOfInstancedObjects = 0;
+    static auto totalNumberOfInstancedObjects = 0u;
 
     instanceID = ++totalNumberOfInstancedObjects;
 }

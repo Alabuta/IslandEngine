@@ -22,6 +22,19 @@
 #undef min
 
 namespace isle {
+
+struct Point {
+    union {
+        struct {
+            float x, y;
+        };
+
+        struct {
+            float pt[2];
+        };
+    };
+};
+
 namespace math {
 UNIT_TEST_HERITABLE_CLASS
 
@@ -35,18 +48,6 @@ float const kINF = FLT_MAX;
 class Matrix;
 class Quaternion;
 class Vector;
-
-struct Point {
-    union {
-        struct {
-            float x, y;
-        };
-
-        struct {
-            float pt[2];
-        };
-    };
-};
 
 inline float DegToRad(float degree)
 {
