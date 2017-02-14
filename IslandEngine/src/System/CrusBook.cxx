@@ -12,6 +12,8 @@
 #include <fstream>
 #include <streambuf>
 
+#include <mutex>
+
 #include <cstdio>
 #include <cstdlib>
 #include <cstdarg>
@@ -39,9 +41,6 @@
 #include <UxTheme.h>
 #endif
 
-
-isle::log::LogStream isle::log::Book::logStream;
-
 namespace {
 #if _CRUS_DEBUG_CONSOLE
 #define SET(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t)\
@@ -64,6 +63,8 @@ CHAR_INFO const kMARKERS[][kMARKERS_WIDTH] = {
 namespace isle {
 namespace log {
 
+LogStream Book::logStream;
+
 LogStream::LogStream() : stream_(std::cerr.rdbuf())
 {
     file_.open("..\\book.log", std::ios_base::out | std::ios_base::trunc);
@@ -72,6 +73,8 @@ LogStream::LogStream() : stream_(std::cerr.rdbuf())
         std::cerr << "Fatal    : can't create log file." << std::endl;
         ::_exit(EXIT_FAILURE);
     }
+
+    std::lock_guard<std::mutex> lock(mutex_);
 
 #if _CRUS_DEBUG_CONSOLE
     stream_.set_rdbuf(conout_.rdbuf());
@@ -104,7 +107,7 @@ LogStream::~LogStream()
 
         stream_.set_rdbuf(std::cerr.rdbuf());
     }
-}
+    }
 
 void LogStream::InitConsoleWindow()
 {
@@ -208,6 +211,8 @@ void LogStream::WriteToConsole(eSEVERITY _note) const
 
 Book::Book(eSEVERITY _severity)
 {
+    logStream.mutex_.lock();
+
 #if _CRUS_DEBUG_CONSOLE
     logStream.WriteToConsole(_severity);
 #else
@@ -222,6 +227,8 @@ Book::~Book()
 #else
     static_cast<std::ostream &>(logStream) << '\n';
 #endif
+
+    logStream.mutex_.unlock();
 }
 
 /*__declspec(noinline)*/ Book Info()

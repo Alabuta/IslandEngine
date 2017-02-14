@@ -16,6 +16,7 @@
 #include <sstream>
 #include <fstream>
 #include <streambuf>
+#include <mutex>
 
 #include "System\CrusTypes.h"
 
@@ -39,6 +40,8 @@ enum class eSEVERITY : size_t {
 
 class LogStream final {
 private:
+    std::mutex mutex_;
+
     std::ostream stream_;
     std::ofstream file_;
     std::ofstream conout_;
