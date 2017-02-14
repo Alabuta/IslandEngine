@@ -8,5 +8,7 @@ namespace isle {
 //}
 
 void Transform::ToStream(std::ostream &_stream) const
-{ }
+{
+    _stream;
+}
 };

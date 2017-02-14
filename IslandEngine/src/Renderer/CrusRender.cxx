@@ -374,9 +374,11 @@ void CALLBACK Render::DebugCallback(GLenum _source, GLenum _type, GLuint _id, GL
                                     GLsizei _length, char const *_message, void const *_userParam)
 {
     UNREFERENCED_PARAMETER(_source);
+    UNREFERENCED_PARAMETER(_type);
     UNREFERENCED_PARAMETER(_id);
     UNREFERENCED_PARAMETER(_severity);
     UNREFERENCED_PARAMETER(_length);
+    UNREFERENCED_PARAMETER(_message);
     UNREFERENCED_PARAMETER(_userParam);
 
     /*eNOTE note;

@@ -27,6 +27,7 @@ public:
 
     void ToStream(std::ostream &stream) const
     {
+        stream;
         return;
     }
 
