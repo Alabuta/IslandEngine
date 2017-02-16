@@ -41,8 +41,6 @@ public:
     bool operator== (UV const &v) const;
     bool operator!= (UV const &v) const;
 
-    acstr str();
-
 private:
     union {
         struct {

@@ -60,7 +60,7 @@ private:
 #pragma warning(pop)
 
     Window();
-    ~Window();
+    ~Window() = default;
 
     void ChooseMode(char mode);
 

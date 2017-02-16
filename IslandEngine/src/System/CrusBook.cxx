@@ -107,7 +107,7 @@ LogStream::~LogStream()
 
         stream_.set_rdbuf(std::cerr.rdbuf());
     }
-    }
+}
 
 void LogStream::InitConsoleWindow()
 {
