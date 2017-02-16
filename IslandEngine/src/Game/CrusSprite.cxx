@@ -170,10 +170,10 @@ isle::Rect GetCroppedSpriteRectSSE(isle::Image const &image, isle::Rect const &r
         }
     }
 
-    auto x = static_cast<float>(leftmost == image.width_ ? 0 : leftmost);
+    auto x = static_cast<float>(leftmost == static_cast<decltype(leftmost)>(image.width_) ? 0 : leftmost);
     auto w = static_cast<float>(rightmost == 0 ? 0 : rightmost - x + 1);
 
-    auto y = static_cast<float>(topmost == image.height_ ? 0 : topmost);
+    auto y = static_cast<float>(topmost == static_cast<decltype(topmost)>(image.height_) ? 0 : topmost);
     auto h = static_cast<float>(bottommost == -1 ? 0 : bottommost - y + 1);
 
     y = rect.height() - y - h + rect.y();
@@ -258,14 +258,8 @@ namespace isle {
     else return{ };
 
 #if _CRUS_TEMP_DISABLED
-    if (image.BytesPerPixel() == 4) {
-        auto elapsed = measure<std::chrono::microseconds>::execution([&sprite, &image] ()
-        {
-            sprite.textureRect_ = std::move(GetCroppedSpriteRect(image, sprite.rect_));
-        });
-
-        log::Debug() << sprite.textureRect_ << "; " << elapsed;
-    }
+    if (image.BytesPerPixel() == 4)
+        sprite.textureRect_ = std::move(GetCroppedSpriteRect(image, sprite.rect_));
 #endif
 
     if (image.BytesPerPixel() == 4)
@@ -296,10 +290,10 @@ bool Sprite::BuildGeometry()
 
     // :TODO: it's just a simple rectangle that bounds a cropped sprite texture rather than convex hull.
     // Lower left vertex -> top left vertex -> lower right vertex -> top right vertex (GL_TRIANGLE_STRIP).
-    vertices_.emplace_back(Position(left, bottom));
-    vertices_.emplace_back(Position(left, top));
-    vertices_.emplace_back(Position(right, bottom));
-    vertices_.emplace_back(Position(right, top));
+    vertices_.emplace_back(std::move(Position(left, bottom)));
+    vertices_.emplace_back(std::move(Position(left, top)));
+    vertices_.emplace_back(std::move(Position(right, bottom)));
+    vertices_.emplace_back(std::move(Position(right, top)));
     vertices_.shrink_to_fit();
 
     Rect textureSheetRect;
@@ -316,10 +310,10 @@ bool Sprite::BuildGeometry()
     auto normalizedSpriteMins = textureSheetRect.PointToNormalized(Point{textureRect_.x(), textureRect_.y()});
     auto normalizedSpriteMaxs = textureSheetRect.PointToNormalized(Point{textureRect_.xmax(), textureRect_.ymax()});
 
-    uvs_.emplace_back(UV(normalizedSpriteMins.x, 1 - normalizedSpriteMaxs.y));
-    uvs_.emplace_back(UV(normalizedSpriteMins.x, 1 - normalizedSpriteMins.y));
-    uvs_.emplace_back(UV(normalizedSpriteMaxs.x, 1 - normalizedSpriteMaxs.y));
-    uvs_.emplace_back(UV(normalizedSpriteMaxs.x, 1 - normalizedSpriteMins.y));
+    uvs_.emplace_back(std::move(UV(normalizedSpriteMins.x, 1 - normalizedSpriteMaxs.y)));
+    uvs_.emplace_back(std::move(UV(normalizedSpriteMins.x, 1 - normalizedSpriteMins.y)));
+    uvs_.emplace_back(std::move(UV(normalizedSpriteMaxs.x, 1 - normalizedSpriteMaxs.y)));
+    uvs_.emplace_back(std::move(UV(normalizedSpriteMaxs.x, 1 - normalizedSpriteMins.y)));
     uvs_.shrink_to_fit();
 
     // A simple index buffer for quad.
