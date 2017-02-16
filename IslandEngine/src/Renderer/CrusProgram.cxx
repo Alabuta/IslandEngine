@@ -12,71 +12,19 @@
 #include <fstream>
 #include <streambuf>
 #include <regex>
+#include <cctype>
 //#include <experimental/filesystem>
 
-
-#include "System\CrusWindow.h"
 
 #include "Renderer\CrusRender.h"
 #include "Renderer\CrusProgram.h"
 
 namespace {
-acstr kGLSL_VERSION = "#version 450 core";
-acstr kSHADERS_PATH = "../contents/shaders/";
+constexpr auto kGLSL_VERSION = "#version 450 core";
+constexpr auto kSHADERS_PATH = "../contents/shaders/";
 };
 
 namespace isle {
-int32 Program::lastAttribute_{-1};
-int32 Program::lastUniform_{-1};
-
-#if _CRUS_SHADER_DEBUG
-bool Program::checked_{false};
-#endif
-bool ReadShaderSource(std::string &_source, std::string const &_parentPath, std::string const &_name);
-
-std::string Program::PreprocessIncludes(std::string const &_source, std::string const &_name, int32 _includingLevel) const
-{
-    if (_includingLevel > Program::kINCLUDING_LEVEL) {
-        log::Error() << "maximum source file including level is" << Program::kINCLUDING_LEVEL;
-        return _source;
-    }
-
-    static std::regex const re("^[ ]*#[ ]*pragma[ ]+include[(][\"](.*)[\"][)].*");
-
-    std::stringstream input;
-    std::ostringstream output;
-
-    size_t line_number = 1;
-
-    input << "#line " << line_number << " \"" << _name << "\"" << std::endl;
-    input << _source;
-
-    std::smatch matches;
-    std::string line;
-
-    while (std::getline(input, line)) {
-        if (std::regex_search(line, matches, re)) {
-            std::string include_file = matches[1];
-            std::string include_string;
-
-            if (!ReadShaderSource(include_string, kSHADERS_PATH, include_file))
-                return _source;
-
-            output << PreprocessIncludes(include_string, include_file, _includingLevel + 1) << std::endl;
-            output << "#line " << line_number << " \"" << _name << "\"" << std::endl;
-        }
-
-        else {
-            //output << "#line " << line_number << " \"" << _name << "\"" << std::endl;
-            output << line << std::endl;
-        }
-
-        ++line_number;
-    }
-
-    return output.good() ? output.str() : _source;
-}
-
 bool ReadShaderSource(std::string &_source, std::string const &_parentPath, std::string const &_name)
 {
     if (_parentPath.empty() || _name.empty()) {
@@ -92,7 +40,8 @@ bool ReadShaderSource(std::string &_source, std::string const &_parentPath, std:
         return false;
     }
 
-    _source = [&file] {
+    _source = [&file]
+    {
         std::ostringstream stream;
         stream << file.rdbuf() << '\n';
 
@@ -109,21 +58,71 @@ bool ReadShaderSource(std::string &_source, std::string const &_parentPath, std:
     return true;
 }
 
-bool Program::AssignNew(std::initializer_list<std::string> _names)
+std::string Program::PreprocessIncludes(std::string const &_source, std::string const &_name, int32 _includingLevel) const
+{
+    if (_includingLevel > Program::kINCLUDING_LEVEL) {
+        log::Error() << "maximum source file including level is " << Program::kINCLUDING_LEVEL;
+        return _source;
+    }
+
+    static std::regex const re("^[ ]*#[ ]*pragma[ ]+include[(][\"](.*)[\"][)].*");
+
+    std::stringstream input;
+    std::ostringstream output;
+
+    auto fileName = std::regex_replace(_name, std::regex(R"(-|–|\.|/|\\)"), "_");
+    std::transform(fileName.begin(), fileName.end(), fileName.begin(), [] (auto c) { return std::toupper(c); });
+
+    input << "#ifndef " << fileName << std::endl;
+    input << "#define " << fileName << std::endl;
+
+    int64 line_number = -1;
+
+    input << "#line " << line_number << " \"" << _name << "\"" << std::endl;
+    input << _source;
+
+    std::smatch matches;
+    std::string line;
+
+    while (std::getline(input, line)) {
+        if (std::regex_search(line, matches, re)) {
+            std::string include_file_name(matches[1]);
+            std::string include_file_source;
+
+            if (!ReadShaderSource(include_file_source, kSHADERS_PATH, include_file_name))
+                return _source;
+
+            output << PreprocessIncludes(include_file_source, include_file_name, _includingLevel + 1) << std::endl;
+            output << "#line " << line_number << " \"" << _name << "\"" << std::endl;
+        }
+
+        else output << line << std::endl;
+
+        ++line_number;
+    }
+
+    output << "#endif // " << fileName << std::endl;
+
+    return output.good() ? output.str() : _source;
+}
+
+bool Program::AssignNew(std::initializer_list<std::string> &&_names)
 {
     // If current shader program exist, destroy it and create the new shader.
     if (glIsProgram(program_) == GL_TRUE) {
         Destroy();
 
-        return AssignNew(_names);
+        return AssignNew(std::move(_names));
     }
+
+    auto names = std::move(_names);
 
     if (!Render::inst().CreateProgram(program_))
         return false;
 
     std::string source;
 
-    for (auto const &name : _names) {
+    for (auto const &name : names) {
         if (!ReadShaderSource(source, kSHADERS_PATH, name))
             return false;
 
@@ -136,16 +135,14 @@ bool Program::AssignNew(std::initializer_list<std::string> _names)
             return false;
     }
 
-    glLinkProgram(program_);
-
     if (glGetError() != GL_NO_ERROR)
         log::Error() << "...";
 
-    if (CheckProgram(reinterpret_cast<astr>(_names.begin()->data()))) {
-        glUseProgram(program_);
+    if (CheckProgram(names.begin()[0])) {
+        glFinish();
 
         if (glIsProgram(program_) != GL_TRUE) {
-            log::Error() << "invalid program number: " << program_ << "from" << _names.begin();
+            log::Error() << "invalid program number: " << program_ << "from" << names.begin();
             return false;
         }
 
@@ -177,17 +174,7 @@ void Program::Destroy()
     glDeleteProgram(program_);
 }
 
-#if _CRUS_SHADER_DEBUG
-/*static*/ void Program::CheckError()
-{
-    if (lastAttribute_ < 0 || lastUniform_ < 0)
-        checked_ = true;
-
-    else checked_ = false;
-}
-#endif
-
-bool Program::CreateShader(std::string const &_name, std::string _source, uint32 _type)
+bool Program::CreateShader(std::string const &_name, std::string const &_source, uint32 _type)
 {
     ShaderInfo shaderInfo{"undefined shader", glCreateShader(_type)};
 
@@ -236,9 +223,19 @@ bool Program::CreateShader(std::string const &_name, std::string _source, uint32
 
             shaderInfo.type = "geometry shader";
             break;
+
+        case GL_COMPUTE_SHADER:
+            preprocessor_directives
+                << '\n'
+                << kGLSL_VERSION
+                << "\n#define CRUS_COMPUTE_SHADER 1\n"
+                << '\n';
+
+            shaderInfo.type = "compute shader";
+            break;
     }
 
-    std::string sources{preprocessor_directives.str() + _source};
+    std::string sources(preprocessor_directives.str() + _source);
 
     auto const t = sources.c_str();
 
@@ -252,40 +249,33 @@ bool Program::CreateShader(std::string const &_name, std::string _source, uint32
     return true;
 }
 
-bool Program::CheckShader(std::string _name, ShaderInfo const &_shaderInfo) const
+bool Program::CheckShader(std::string const &_name, ShaderInfo const &_shaderInfo) const
 {
-    int32 status, length;
-#if _CRUS_BUG_HUNTING
-    char log[1024];
-#else
-    char log[256];
-#endif
+    auto status = 0, length = -1;
 
     glGetShaderiv(_shaderInfo.shader, GL_COMPILE_STATUS, &status);
+
     if (status != 0)
         return true;
 
     glGetShaderiv(_shaderInfo.shader, GL_INFO_LOG_LENGTH, &length);
-    glGetShaderInfoLog(_shaderInfo.shader, sizeof(log), &length, log);
+
+    std::vector<char> log(length, '\0');
+    glGetShaderInfoLog(_shaderInfo.shader, static_cast<GLsizei>(log.size()), &length, log.data());
 
     if (length < 1)
         return false;
 
-    log::Error() << _name.data() << "{" << _shaderInfo.type << "}";
-    log::Error() << log;
+    log::Error() << "{" << _shaderInfo.type << "} " << log.data();
 
     return false;
 }
 
-bool Program::CheckProgram(std::string _name) const
+bool Program::CheckProgram(std::string const &_name) const
 {
-    int32 status[2], length;
-#if _CRUS_BUG_HUNTING
-    char log[1024];
-#else
-    char log[256];
-#endif
+    int32 status[2], length = -1;
 
+    glLinkProgram(program_);
     glGetProgramiv(program_, GL_LINK_STATUS, &status[0]);
 
     glValidateProgram(program_);
@@ -295,63 +285,44 @@ bool Program::CheckProgram(std::string _name) const
         return true;
 
     glGetProgramiv(program_, GL_INFO_LOG_LENGTH, &length);
-    glGetProgramInfoLog(program_, sizeof(log), &length, log);
+
+    std::vector<char> log(length, '\0');
+    glGetProgramInfoLog(program_, static_cast<GLsizei>(log.size()), &length, log.data());
 
     if (length < 1)
         return false;
 
-    log::Error() << _name;
-    log::Error() << log;
+    log::Error() << "{shader program} " << log.data();
 
     return false;
 }
 
-void Program::SwitchOn() const
+void Program::UseThis() const
 {
     glUseProgram(program_);
 }
 
-/*static*/ void Program::SwitchOff()
-{
-    glUseProgram(0);
-}
-
-uint32 Program::program() const
-{
-    return program_;
-}
-
 int32 Program::GetAttributeLoc(astr _name) const
 {
-    lastAttribute_ = glGetAttribLocation(program_, _name);
+    auto attributeLocation = glGetAttribLocation(program_, _name);
 
 #if _CRUS_SHADER_DEBUG
-    if (lastAttribute_ < 0 && !checked_)
-        log::Warning() << "attribute unexist or are not used: " << _name;
+    if (attributeLocation < 0)
+        log::Warning() << "attribute is not exist or isn't being used: " << _name;
 #endif
 
-    return lastAttribute_;
+    return attributeLocation;
 }
 
 int32 Program::GetUniformLoc(astr _name) const
 {
-    lastUniform_ = glGetUniformLocation(program_, _name);
+    auto uniformLocation = glGetUniformLocation(program_, _name);
 
 #if _CRUS_SHADER_DEBUG
-    if (lastUniform_ < 0 && !checked_)
-        log::Warning() << "uniform unexist or are not used: " << _name;
+    if (uniformLocation < 0)
+        log::Warning() << "uniform is not exist or isn't being used: " << _name;
 #endif
 
-    return lastUniform_;
-}
-
-/*static*/ int32 Program::GetLastAttributeLoc()
-{
-    return lastAttribute_;
-}
-
-/*static*/ int32 Program::GetLasUniformLoc()
-{
-    return lastUniform_;
+    return uniformLocation;
 }
 };

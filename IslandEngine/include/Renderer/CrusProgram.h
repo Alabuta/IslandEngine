@@ -36,30 +36,18 @@ public:
         nTRANSFORM = 0,
     };
 
-    Program() {};
-    ~Program() {};
-
-    bool AssignNew(std::initializer_list<std::string> names);
+    bool AssignNew(std::initializer_list<std::string> &&names);
     void Destroy();
 
-#if _CRUS_SHADER_DEBUG
-    static void CheckError();
-#endif
-
-    void SwitchOn() const;
-    static void SwitchOff();
+    void UseThis() const;
 
     uint32 program() const;
 
     int32 GetAttributeLoc(astr name) const;
     int32 GetUniformLoc(astr name) const;
 
-    static int32 GetLastAttributeLoc();
-    static int32 GetLasUniformLoc();
-
 private:
     static auto const kINCLUDING_LEVEL{16};
-    static int32 lastAttribute_, lastUniform_;      // Last attribute and uniform locations.
     uint32 program_{0};
 
     struct ShaderInfo {
@@ -67,18 +55,18 @@ private:
         uint32 shader;
     };
 
-#if _CRUS_SHADER_DEBUG
-    //std::string name_{"NOT_A_PROGRAM"};
-    static bool checked_;
-#endif
+    bool CreateShader(std::string const &name, std::string const &source, uint32 type);
+
+    bool CheckShader(std::string const &name, ShaderInfo const &shaderInfo) const;
+    bool CheckProgram(std::string const &name) const;
 
     std::string PreprocessIncludes(std::string const &source, std::string const &name, int32 includingLevel = 0) const;
-
-    bool CreateShader(std::string const &name, std::string source, uint32 type);
-
-    bool CheckShader(std::string name, ShaderInfo const &shaderInfo) const;
-    bool CheckProgram(std::string name) const;
 };
+
+__forceinline uint32 Program::program() const
+{
+    return program_;
+}
 };
 
 #endif // CRUS_PROGRAM_H

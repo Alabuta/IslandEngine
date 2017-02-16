@@ -118,7 +118,7 @@ void Grid::Draw()
 {
     using namespace colors;
 
-    shader_.SwitchOn();
+    shader_.UseThis();
 
     Render::inst().UpdateTransform(0, 1, &Render::inst().vp_.projView());
 

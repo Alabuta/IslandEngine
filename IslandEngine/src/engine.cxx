@@ -11,6 +11,7 @@
 #include <algorithm>
 #include <thread>
 #include <mutex>
+#include <future>
 
 #include "engine.h"
 #include "Game\CrusBounds.h"
@@ -62,22 +63,32 @@ math::Matrix matrices[] = {
     math::Matrix::GetIdentity()
 };
 
+std::future<bool> AssignNewProgram(Program &_program, std::initializer_list<std::string> &&_names)
+{
+    auto handle = [] (Program &program, std::initializer_list<std::string> &&names)
+    {
+        return program.AssignNew(std::move(names));
+    };
+
+    std::packaged_task<bool(Program &, std::initializer_list<std::string> &&)> task(handle);
+
+    auto future = task.get_future();
+
+    std::thread thread(std::move(task), _program, _names);
+    thread.detach();
+
+    return std::move(future);
+}
+
 void InitBackground()
 {
-    std::map<int, std::unique_ptr<ISystem>> systems;
-
-    systems.emplace(0, std::make_unique<RenderSystem>());
-    systems.emplace(1, std::make_unique<MoveSystem>());
-
-    for (auto const &system : systems)
-        system.second->Update();
-
     transform.MakeIdentity();
     matrices[1].Translate(0, 1, 0);
 
-    flipbookTexture.Init();
-
+    //auto assignNewProgram = AssignNewProgram(flipbookProgram, {"Defaults/Sprites-Default.glsl"});
     flipbookProgram.AssignNew({"Defaults/Sprites-Default.glsl"});
+
+    flipbookTexture.Init();
 
     auto imageWidth = flipbookTexture.w(), imageHeight = flipbookTexture.h();
     auto spritesNumberHorizontally = 4u, spritesNumberVertically = 2u;
@@ -89,97 +100,74 @@ void InitBackground()
     //samples = 24;
 
     if (spritesNumberHorizontally * spriteWidth > imageWidth) {
-        spritesNumberHorizontally = static_cast<int32>(imageWidth / spriteWidth);
+        spritesNumberHorizontally = static_cast<uint32>(imageWidth / spriteWidth);
         log::Warning() << "sprites' number was fitted horizontally.";
     }
 
     if (spritesNumberVertically * spriteHeight > imageHeight) {
-        spritesNumberVertically = static_cast<int32>(imageHeight / spriteHeight);
+        spritesNumberVertically = static_cast<uint32>(imageHeight / spriteHeight);
         log::Warning() << "sprites' number was fitted vertically.";
     }
 
     std::vector<Sprite> spriteSheet;
 
-    if (true) {
-        auto elapsed = measure<>::execution([&] ()
-        {
-            for (auto j = 0u; j < spritesNumberVertically; ++j) {
-                for (auto i = 0u; i < spritesNumberHorizontally; ++i) {
-                    auto sprite = Sprite::Create(
-                        std::make_shared<Texture>(flipbookTexture),
-                        i + j * spritesNumberHorizontally,
-                        Rect(i * static_cast<float>(spriteWidth), j * static_cast<float>(spriteHeight), static_cast<float>(spriteWidth), static_cast<float>(spriteHeight)),
-                        Point{spriteWidth * 0.5f, spriteHeight * 0.5f},
-                        pixelsPerUnit);
+    auto threadsNumber = std::max(std::thread::hardware_concurrency(), 1u);
+    log::Debug() << "hardware concurrency: " << threadsNumber;
 
-                    if (sprite)
-                        spriteSheet.emplace_back(sprite);
-                }
-            }
-        });
+    auto const totalSpritesNumber = spritesNumberVertically * spritesNumberHorizontally;
 
-        log::Debug() << elapsed;
-        spriteSheet.clear();
+    threadsNumber = std::min(threadsNumber, totalSpritesNumber);
+    log::Debug() << "threads number: " << threadsNumber;
+
+    auto CreateSpritesRoutine = [&] (std::vector<Sprite> &_spriteSheet, uint32 _start, uint32 _end)
+    {
+        auto x = 0u, y = 0u;
+
+        for (auto i = _start; i < _end; ++i) {
+            y = i / spritesNumberHorizontally;
+            x = i - y * spritesNumberHorizontally;
+
+            auto sprite = Sprite::Create(
+                std::make_shared<Texture>(flipbookTexture), i,
+                Rect(x * static_cast<float>(spriteWidth), y * static_cast<float>(spriteHeight), static_cast<float>(spriteWidth), static_cast<float>(spriteHeight)),
+                Point{spriteWidth * 0.5f, spriteHeight * 0.5f}, pixelsPerUnit);
+
+            if (sprite)
+                _spriteSheet.emplace_back(sprite);
+
+            std::this_thread::yield();
+        }
+    };
+
+    std::vector<std::vector<Sprite>> spriteSheets(threadsNumber);
+    std::vector<std::thread> threads;
+
+    std::vector<int32> counts(threadsNumber, totalSpritesNumber / threadsNumber);
+
+    for (auto i = 0u; i < totalSpritesNumber - (totalSpritesNumber / threadsNumber) * threadsNumber; ++i)
+        ++counts[i];
+
+    auto start = 0u, end = 0u;
+
+    for (auto i = 0u; i < threadsNumber; ++i) {
+        end = start + counts[i];
+        threads.emplace_back(CreateSpritesRoutine, std::ref(spriteSheets[i]), start, end);
+        start = end;
     }
 
-    if (true) {
-        auto threadsNumber = std::max(std::thread::hardware_concurrency(), 1u);
-        log::Debug() << "hardware concurrency: " << threadsNumber;
+    for (auto &thread : threads)
+        thread.join();
 
-        auto const totalSpritesNumber = spritesNumberVertically * spritesNumberHorizontally;
-
-        threadsNumber = std::min(std::thread::hardware_concurrency(), totalSpritesNumber);
-        log::Debug() << "threads number: " << threadsNumber;
-
-        auto CreateSpritesRoutine = [&] (std::vector<Sprite> &_spriteSheet, uint32 _start, uint32 _end)
-        {
-            auto x = 0u, y = 0u;
-
-            for (auto i = _start; i < _end; ++i) {
-                y = i / spritesNumberHorizontally;
-                x = i - y * spritesNumberHorizontally;
-
-                auto sprite = Sprite::Create(
-                    std::make_shared<Texture>(flipbookTexture), i,
-                    Rect(x * static_cast<float>(spriteWidth), y * static_cast<float>(spriteHeight), static_cast<float>(spriteWidth), static_cast<float>(spriteHeight)),
-                    Point{spriteWidth * 0.5f, spriteHeight * 0.5f}, pixelsPerUnit);
-
-                if (sprite)
-                    _spriteSheet.emplace_back(sprite);
-            }
-        };
-
-        auto elapsed = measure<>::execution([&]
-        {
-            std::vector<std::vector<Sprite>> spriteSheets(threadsNumber);
-            std::vector<std::thread> threads;
-
-            std::vector<int32> counts(threadsNumber, totalSpritesNumber / threadsNumber);
-
-            for (auto i = 0u; i < totalSpritesNumber - (totalSpritesNumber / threadsNumber) * threadsNumber; ++i)
-                ++counts[i];
-
-            auto start = 0u, end = 0u;
-
-            for (auto i = 0u; i < threadsNumber; ++i) {
-                end = start + counts[i];
-                threads.emplace_back(CreateSpritesRoutine, std::ref(spriteSheets[i]), start, end);
-                start = end;
-            }
-
-            for (auto &thread : threads)
-                thread.join();
-
-            for (auto &sheet : spriteSheets)
-                spriteSheet.insert(spriteSheet.end(), sheet.begin(), sheet.end());
-        });
-
-        log::Debug() << elapsed;
-    }
+    for (auto &sheet : spriteSheets)
+        spriteSheet.insert(spriteSheet.end(), sheet.begin(), sheet.end());
 
     spriteSheet.shrink_to_fit();
-
     spritesNumber = static_cast<decltype(spritesNumber)>(spriteSheet.size());
+
+    /*if (!assignNewProgram.get()) {
+        log::Debug() << "invalid shader.";
+        return;
+    }*/
 
     struct Vertex {
         Position pos;
@@ -190,7 +178,7 @@ void InitBackground()
 
     for (auto const &sprite : spriteSheet)
         for (auto i = 0; i < sprite.vertices().size(); ++i)
-            vertex_buffer.emplace_back(Vertex{sprite.vertices()[i], sprite.uvs()[i]});
+            vertex_buffer.emplace_back(std::move(Vertex{sprite.vertices()[i], sprite.uvs()[i]}));
 
     vertex_buffer.shrink_to_fit();
 
@@ -225,7 +213,7 @@ void InitBackground()
 void DrawBackgorund()
 {
     flipbookTexture.Bind();
-    flipbookProgram.SwitchOn();
+    flipbookProgram.UseThis();
 
     matrices[0] = Render::inst().vp_.projView() * matrices[1];
 
@@ -267,6 +255,14 @@ void Init()
 {
     //ThreadStuff();
 
+    /*std::map<int, std::unique_ptr<ISystem>> systems;
+
+    systems.emplace(0, std::make_unique<RenderSystem>());
+    systems.emplace(1, std::make_unique<MoveSystem>());
+
+    for (auto const &system : systems)
+        system.second->Update();*/
+
     Camera::inst().Create(Camera::eCAM_BEHAVIOR::nFREE);
     Camera::inst().SetPos(0.0f, 1.0f, 2.0f);
     Camera::inst().LookAt(0.0f, 0.0f, 0.0f);
@@ -274,14 +270,14 @@ void Init()
     // Application intialization function.
     glDisable(GL_CULL_FACE);
 
+    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     grid.Update();
 
-    InitBackground();
-
-    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    log::Debug() << measure<>::execution(InitBackground);
 }
 
 void Update()

@@ -29,7 +29,7 @@ Textout::Textout()
         a = 0;
 }
 
-Textout::~Textout() {};
+Textout::~Textout() { };
 
 bool Textout::Init(Texture const *const _texture, float _zoom, uint16 _x, uint16 _y, uint16 _w, uint16 _h)
 {
@@ -88,7 +88,7 @@ void Textout::SetTexture(Texture const *const _texture)
 
 void Textout::Render()
 {
-    program_.SwitchOn();
+    program_.UseThis();
     texture_->Bind();
 
     float const width = 0.64f * 0.002511f * Render::inst().vp_.w() * 28 / 288.0f;
@@ -101,7 +101,8 @@ void Textout::Render()
         texDispCoord_.w_ = ((symbol - 48) - floorf((symbol - 48) / 5.0f) * 5) * rectSymbol_.w_ / texture_->w();
         texDispCoord_.h_ = (1 - floorf((symbol - 48) / 5.0f)) * rectSymbol_.h_ / texture_->h();
 
-        glProgramUniform4fv(program_.program(), program_.GetUniformLoc("inDispCoord"), 1, texDispCoord_.rect_);
+        auto uniformLocation = glGetUniformLocation(program_.program(), "inDispCoord");
+        glProgramUniform4fv(program_.program(), uniformLocation, 1, texDispCoord_.rect_);
 
         Render::inst().UpdateViewport(0, 1, &mNumbers.Translate(x + Camera::inst().pos().x(), mNumbers.m()[7], 0));
 

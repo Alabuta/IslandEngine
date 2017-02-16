@@ -6,8 +6,6 @@
 ****    Description: built-in shader variables header file.
 ****
 ********************************************************************************************************************************/
-#ifndef CRUS_SHADER_VARIABLES
-#define CRUS_SHADER_VARIABLES
 
 #if CRUS_VERTEX_SHADER
 
@@ -30,5 +28,3 @@ layout(binding = nTRANSFORM, std430) buffer TRANSFORM
 #elif CRUS_FRAGMENT_SHADER
 
 #endif // CRUS_VERTEX_SHADER & CRUS_FRAGMENT_SHADER
-
-#endif // CRUS_SHADER_VARIABLES

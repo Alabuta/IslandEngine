@@ -8,9 +8,6 @@
 ********************************************************************************************************************************/
 #pragma include("Includes/ShaderVariables.glsl")
 
-#ifndef CRUS_SHADER_HELPERS
-#define CRUS_SHADER_HELPERS
-
 #if CRUS_VERTEX_SHADER
 
 vec4 TransformFromWorldToClip(in vec3 position)
@@ -21,5 +18,3 @@ vec4 TransformFromWorldToClip(in vec3 position)
 #elif CRUS_FRAGMENT_SHADER
 
 #endif // CRUS_VERTEX_SHADER & CRUS_FRAGMENT_SHADER
-
-#endif // CRUS_SHADER_HELPERS
