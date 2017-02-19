@@ -3,7 +3,6 @@
 ****    Source code of Island Engine.
 ****    Copyright (C) 2009 - 2017 Crusoe's Island LLC.
 ****
-****    Started at 12th March 2010.
 ****    Description: declaration of renderer system.
 ****
 ********************************************************************************************************************************/
@@ -13,6 +12,7 @@
 #define CRUS_RENDERER_H
 
 #include <vector>
+#include <mutex>
 
 #include "Math\CrusMatrix.h"
 
@@ -27,8 +27,8 @@ public:
 
     intf::Viewport vp_;
 
-    void SetupContext();
-    void DeleteRC();
+    void Init();
+    void DeleteContext();
 
     bool CreateProgram(uint32 &program);
 
@@ -48,7 +48,10 @@ public:
     static Render &inst();
 
 private:
-    HDC hDC_{nullptr};
+    //std::mutex mutex_;
+
+    //HDC hDC_{nullptr};
+    //HGLRC hRC_{nullptr};
 
     uint32 BOs_{0}, VAOs_{0}, TBOs_{0};
     uint32 POs_{0};                            // The POs is the program objects.
@@ -58,13 +61,13 @@ private:
 
     //intf::Viewport vp_;
 
-    Render();
+    Render() = default;
     ~Render();
 
     void InitBufferObjects();
 
     static void CALLBACK DebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity,
-        GLsizei length, char const *message, void const *userParam);
+                                       GLsizei length, char const *message, void const *userParam);
 
     void CleanUp();
 };
