@@ -1,9 +1,8 @@
 /********************************************************************************************************************************
 ****
-****    Source code of Crusoe's Island Engine.
-****    Copyright (C) 2009 - 2015 Crusoe's Island LLC.
+****    Source code of Island Engine.
+****    Copyright (C) 2009 - 2017 Crusoe's Island LLC.
 ****
-****    Started at 23th July 2009.
 ****    Description: splash screen are used for hidden application initialization.
 ****
 ********************************************************************************************************************************/
@@ -11,28 +10,21 @@
 #include "System\CrusWindow.h"
 #include "System\CrusSplash.h"
 
-
-namespace __hidden
+__hidden::Splash::Splash(HINSTANCE _hInstance, wcstr _imagePath) : hInstance_(_hInstance)
 {
-HINSTANCE hInstance;
-}
-
-__hidden::CSplash::CSplash(HINSTANCE _hInstance, wcstr _imagePath)
-{
-    HANDLE const hBitmap = LoadImageW(nullptr, _imagePath, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+    HANDLE const hBitmap = LoadImageW(_hInstance, _imagePath, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
 
     BITMAP bm;
     GetObjectW(hBitmap, sizeof(BITMAP), &bm);
-    int32 ws[4] = {0, 0, bm.bmWidth, bm.bmHeight};
 
-    hInstance = _hInstance;
+    int32 ws[4] = {0, 0, bm.bmWidth, bm.bmHeight};
 
     WNDCLASSW const wcs = {
         CS_NOCLOSE,
         (WNDPROC)DefWindowProcW,
         0, 0,
-        /*GetModuleHandleW(nullptr)*/hInstance,
-        LoadIconW(wcs.hInstance, MAKEINTRESOURCEW(0x4000)),
+        hInstance_,
+        LoadIconW(hInstance_, MAKEINTRESOURCEW(0x4000)),
         nullptr,
         nullptr, nullptr,
         L"CrusSplash"
@@ -44,16 +36,19 @@ __hidden::CSplash::CSplash(HINSTANCE _hInstance, wcstr _imagePath)
                           ws[0], ws[1], ws[2], ws[3],
                           nullptr, nullptr, wcs.hInstance, nullptr);
 
-    if(hWnd_ == nullptr) this->~CSplash();
-    if((hDC_ = GetDC(hWnd_)) == nullptr) this->~CSplash();
+    if (hWnd_ == nullptr)
+        this->~Splash();
+
+    if ((hDC_ = GetDC(hWnd_)) == nullptr)
+        this->~Splash();
 
     isle::Window::AdjustToWorkArea(*reinterpret_cast<RECT *const>(ws));
 
     SetWindowPos(hWnd_, nullptr, ws[0], ws[1], ws[2], ws[3], SWP_DRAWFRAME | SWP_NOZORDER);
     ShowWindow(hWnd_, SW_SHOWNORMAL);
 
-    HDC const hSComp = CreateCompatibleDC(hDC_);
-    HANDLE const hOldBitmap = SelectObject(hSComp, hBitmap);
+    auto const hSComp = CreateCompatibleDC(hDC_);
+    auto const hOldBitmap = SelectObject(hSComp, hBitmap);
 
     BitBlt(hDC_, 0, 0, ws[2], ws[3], hSComp, 0, 0, SRCCOPY);
 
@@ -63,17 +58,17 @@ __hidden::CSplash::CSplash(HINSTANCE _hInstance, wcstr _imagePath)
     DeleteDC(hSComp);
 }
 
-__hidden::CSplash::~CSplash()
+__hidden::Splash::~Splash()
 {
-    if(hDC_ != nullptr && hWnd_ != nullptr){
+    if (hDC_ != nullptr && hWnd_ != nullptr) {
         ReleaseDC(hWnd_, hDC_);
         hDC_ = nullptr;
     }
 
-    if(hWnd_ != nullptr){
+    if (hWnd_ != nullptr) {
         DestroyWindow(hWnd_);
         hWnd_ = nullptr;
     };
 
-    UnregisterClassW(L"CrusSplash", /*GetModuleHandle(nullptr)*/hInstance);
+    UnregisterClassW(L"CrusSplash", hInstance_);
 }

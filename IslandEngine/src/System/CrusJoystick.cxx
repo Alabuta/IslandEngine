@@ -1,7 +1,7 @@
 /********************************************************************************************************************************
 ****
-****    Source code of Crusoe's Island Engine.
-****    Copyright (C) 2009 - 2015 Crusoe's Island LLC.
+****    Source code of Island Engine.
+****    Copyright (C) 2009 - 2017 Crusoe's Island LLC.
 ****
 ****    Started at 26th July 2012.
 ****    Description: ...
@@ -160,6 +160,6 @@ long Hat;
     swprintf_s(title, 256, L"X|Y|Rz|Throttle|Hat: %4d|%4d|%4d|%3.4f|%d",
                AxisX, AxisY, AxisRz, Throttle, Hat);
 
-    SetWindowTextW(Window::inst().hWnd(), title);
+    SetWindowTextW(Window::main().hWnd(), title);
 }
 */

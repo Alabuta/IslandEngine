@@ -1,7 +1,7 @@
 /********************************************************************************************************************************
 ****
 ****    xUnitTest source code.
-****    Copyright (C) 2009 - 2015 Crusoe's Island LLC.
+****    Copyright (C) 2009 - 2017 Crusoe's Island LLC.
 ****
 ****    Started at 2nd April 2012.
 ****    Description: Quaternion class unit-testing.

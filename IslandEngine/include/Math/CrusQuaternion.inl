@@ -1,7 +1,7 @@
 /********************************************************************************************************************************
 ****
-****    Source code of Crusoe's Island Engine.
-****    Copyright (C) 2009 - 2015 Crusoe's Island LLC.
+****    Source code of Island Engine.
+****    Copyright (C) 2009 - 2017 Crusoe's Island LLC.
 ****
 ****    Started at 10th March 2010.
 ****    Description: quaternion.
@@ -9,21 +9,22 @@
 ********************************************************************************************************************************/
 #include <utility>
 
-namespace isle
-{
-namespace math
-{
-inline Quaternion::Quaternion() {}
-inline Quaternion::~Quaternion() {}
+namespace isle {
+namespace math {
+inline Quaternion::Quaternion() { }
+inline Quaternion::~Quaternion() { }
 
 inline Quaternion::Quaternion(Quaternion const &_q)
-    : w_(_q.w_), x_(_q.x_), y_(_q.y_), z_(_q.z_) {}
+    : w_(_q.w_), x_(_q.x_), y_(_q.y_), z_(_q.z_)
+{ }
 
 inline Quaternion::Quaternion(float const _q[])
-    : w_(_q[0]), x_(_q[1]), y_(_q[2]), z_(_q[3]) {}
+    : w_(_q[0]), x_(_q[1]), y_(_q[2]), z_(_q[3])
+{ }
 
 inline Quaternion::Quaternion(float _w, float _x, float _y, float _z)
-    : w_(_w), x_(_x), y_(_y), z_(_z) {}
+    : w_(_w), x_(_x), y_(_y), z_(_z)
+{ }
 
 inline Quaternion::Quaternion(Quaternion &&_q)
 {
@@ -121,10 +122,10 @@ inline Quaternion Quaternion::operator^ (Quaternion const &_q) const
 
     return Quaternion
     (
-         c[1] + (-c[4] - c[5] + c[6] + c[7]) * 0.5f,
-         c[0] - ( c[4] + c[5] + c[6] + c[7]) * 0.5f,
-        -c[2] + ( c[4] - c[5] + c[6] - c[7]) * 0.5f,
-        -c[3] + ( c[4] - c[5] - c[6] + c[7]) * 0.5f
+        c[1] + (-c[4] - c[5] + c[6] + c[7]) * 0.5f,
+        c[0] - (c[4] + c[5] + c[6] + c[7]) * 0.5f,
+        -c[2] + (c[4] - c[5] + c[6] - c[7]) * 0.5f,
+        -c[3] + (c[4] - c[5] - c[6] + c[7]) * 0.5f
     );
 }
 
@@ -156,8 +157,8 @@ inline Quaternion Quaternion::operator/ (float _s) const
 
 inline Quaternion const &Quaternion::operator= (Quaternion const &_q)
 {
-    if(this != &_q){
-        w_ =_q.w_;  x_ =_q.x_;  y_ =_q.y_;  z_ =_q.z_;
+    if (this != &_q) {
+        w_ = _q.w_;  x_ = _q.x_;  y_ = _q.y_;  z_ = _q.z_;
     }
 
     return *this;
@@ -165,7 +166,7 @@ inline Quaternion const &Quaternion::operator= (Quaternion const &_q)
 
 inline Quaternion const &Quaternion::operator= (float _s)
 {
-    w_ =_s;  x_ =_s;  y_ =_s;  z_ =_s;
+    w_ = _s;  x_ = _s;  y_ = _s;  z_ = _s;
     return *this;
 }
 inline Quaternion const &Quaternion::operator= (Quaternion &&_q)
@@ -214,7 +215,7 @@ inline Quaternion const &Quaternion::operator^= (Quaternion const &_q)
 
     /*float c[8];
 
-    
+
         _declspec(align(16)) float adds11_1[8] = {c[0], c[3], c[1], c[2]};
         _declspec(align(16)) float adds11_2[8] = {c[1], c[1], c[0], c[0]};
 {
@@ -241,7 +242,7 @@ inline Quaternion const &Quaternion::operator^= (Quaternion const &_q)
 
     float coeff2[8];
 
-    
+
         _declspec(align(16)) float adds21_1[8] = {_q.c[0], _q.c[2], _q.c[2], _q.c[1]};
         _declspec(align(16)) float adds21_2[8] = {_q.c[1], _q.c[1], _q.c[0], _q.c[0]};
 {
@@ -292,10 +293,10 @@ inline Quaternion const &Quaternion::operator^= (Quaternion const &_q)
     memcpy(coeff1 + 0, adds11_1, ES::f32::QUARTA);
     memcpy(coeff1 + 4, adds11_2, ES::f32::QUARTA);*/
 
-    w_ =  c[1] + (-c[4] - c[5] + c[6] + c[7]) * 0.5f;
-    x_ =  c[0] - ( c[4] + c[5] + c[6] + c[7]) * 0.5f;
-    y_ = -c[2] + ( c[4] - c[5] + c[6] - c[7]) * 0.5f;
-    z_ = -c[3] + ( c[4] - c[5] - c[6] + c[7]) * 0.5f;
+    w_ = c[1] + (-c[4] - c[5] + c[6] + c[7]) * 0.5f;
+    x_ = c[0] - (c[4] + c[5] + c[6] + c[7]) * 0.5f;
+    y_ = -c[2] + (c[4] - c[5] + c[6] - c[7]) * 0.5f;
+    z_ = -c[3] + (c[4] - c[5] - c[6] + c[7]) * 0.5f;
 
     return *this;
 }
@@ -393,7 +394,7 @@ Quaternion::FromMatrix4x4(float const *const _m)
 {
     float S = _m[0] + _m[5] + _m[10];
 
-    if(S > 0.0f){
+    if (S > 0.0f) {
         S = sqrtf(S + 1.0f);
 
         w_ = S * 0.5f;
@@ -405,12 +406,12 @@ Quaternion::FromMatrix4x4(float const *const _m)
     }
 
     else {
-        auto i = 0;
+        size_t i = 0;
 
-        if(_m[5] > _m[0])
+        if (_m[5] > _m[0])
             i = 1;
 
-        if(_m[10] > _m[(i << 2) + i])
+        if (_m[10] > _m[(i << 2) + i])
             i = 2;
 
         size_t const nxt[3] = {1, 2, 0}, j = nxt[i], k = nxt[j];
@@ -446,7 +447,7 @@ inline void Quaternion::ToAxisAngle(float *const _axis, float &_angle)
 
     float sinHalfAngle = 1.0f - w_ * w_;
 
-    if(sinHalfAngle <= 0.0f){
+    if (sinHalfAngle <= 0.0f) {
         _angle = 0.0f;
 
         _axis[0] = 1.0f;

@@ -1,7 +1,7 @@
 /********************************************************************************************************************************
 ****
-****    Source code of Crusoe's Island Engine.
-****    Copyright (C) 2009 - 2014 Crusoe's Island LLC.
+****    Source code of Island Engine.
+****    Copyright (C) 2009 - 2017 Crusoe's Island LLC.
 ****
 ****    Started at 14th March 2010.
 ****    Description: camera frame routines.
@@ -11,35 +11,35 @@
 #include "System\CrusInput.h"
 #include "System\CrusWindow.h"
 
-#include "Interface\CrusCamera.h"
+#include "Camera\CameraBehaviour.h"
+#include "Camera\CrusCamera.h"
 
 extern isle::Input::Controller controller;
 
-namespace isle
-{
+namespace isle {
 math::Vector const Camera::kWORLD_AXIS_X{1.0f, 0.0f, 0.0f};
 math::Vector const Camera::kWORLD_AXIS_Y{0.0f, 1.0f, 0.0f};
 math::Vector const Camera::kWORLD_AXIS_Z{0.0f, 0.0f, 1.0f};
 
-Camera::Camera() : pitch_{0.0f}, yaw_{0.0f}, view_{math::Matrix::GetIdentity()} {}
-Camera::~Camera() {};
+Camera::Camera() : behavior{std::make_shared<__hidden::ICameraEditorBehaviour>()}, pitch_{0.0f}, yaw_{0.0f}, view_{math::Matrix::GetIdentity()} { }
+Camera::~Camera() { };
 
 void Camera::Create(Camera::eCAM_BEHAVIOR _behavior)
 {
-    switch(_behavior){
+    switch (_behavior) {
         case eCAM_BEHAVIOR::nFIRST:
             break;
 
         case eCAM_BEHAVIOR::nFREE:
-            //Input::Mouse::inst().HideCursor();
+            //Input::Mouse::main().HideCursor();
             break;
 
         case eCAM_BEHAVIOR::nTHIRD:
-            //Input::Mouse::inst().HideCursor();
+            //Input::Mouse::main().HideCursor();
             break;
 
         case eCAM_BEHAVIOR::nSDK:
-            //Input::Mouse::inst().ShowCursor();
+            //Input::Mouse::main().ShowCursor();
             break;
     }
 
@@ -48,13 +48,13 @@ void Camera::Create(Camera::eCAM_BEHAVIOR _behavior)
 
 void Camera::SetBehavior(Camera::eCAM_BEHAVIOR _behavior)
 {
-    if(behavior_ == _behavior)
+    if (behavior_ == _behavior)
         return;
 
     math::Vector aim;
 
     if (behavior_ == eCAM_BEHAVIOR::nFREE) {
-        aim  = aim_;
+        aim = aim_;
         aim_ = pos_;
         pos_ = aim;
     }
@@ -75,7 +75,7 @@ void Camera::LookAt(math::Vector const &_aim)
     aim_ = _aim;
     zAxis_ = pos_ - aim_;
 
-    if(math::IsTooSmall(zAxis_.x()) && math::IsTooSmall(zAxis_.z()))
+    if (math::IsTooSmall(zAxis_.x()) && math::IsTooSmall(zAxis_.z()))
         zAxis_.z() += math::kEPSILON;
 
     zAxis_.Normalize();
@@ -105,10 +105,10 @@ float Camera::RestricPitch(float _pitch)
 {
     pitch_ += _pitch;
 
-    if(pitch_ > 90.0f)
+    if (pitch_ > 90.0f)
         pitch_ = 90.0f;
 
-    else if(pitch_ < -90.0f)
+    else if (pitch_ < -90.0f)
         pitch_ = -90.0f;
 
     return pitch_;
@@ -118,10 +118,10 @@ float Camera::RestricYaw(float _yaw)
 {
     yaw_ += _yaw;
 
-    if(yaw_ > 360.0f)
+    if (yaw_ > 360.0f)
         yaw_ -= 360.0f;
 
-    else if(yaw_ < -360.0f)
+    else if (yaw_ < -360.0f)
         yaw_ += 360.0f;
 
     return yaw_;
@@ -129,9 +129,8 @@ float Camera::RestricYaw(float _yaw)
 
 void Camera::UpdateView()
 {
-#if _CRUS_TEMP_DISABLED
     RECT ws;
-    GetWindowRect(Window::inst().hWnd(), &ws);
+    GetWindowRect(Window::main().hWnd(), &ws);
 
     POINT pt;
     GetCursorPos(&pt);
@@ -146,7 +145,6 @@ void Camera::UpdateView()
 
     //RestricYaw(controller.x() * 0.05f);
     //RestricPitch(controller.y() * 0.05f);
-#endif
 
     rot_.FromAxisAngle(kWORLD_AXIS_Y.v(), yaw_);
     rot_ ^= math::Quaternion::GetFromAxisAngle(kWORLD_AXIS_X.v(), pitch_);

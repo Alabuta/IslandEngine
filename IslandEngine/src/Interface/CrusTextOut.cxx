@@ -1,7 +1,7 @@
 /********************************************************************************************************************************
 ****
-****    Source code of Crusoe's Island Engine.
-****    Copyright (C) 2009 - 2015 Crusoe's Island LLC.
+****    Source code of Island Engine.
+****    Copyright (C) 2009 - 2017 Crusoe's Island LLC.
 ****
 ****    Started at 1th April 2010.
 ****	Description: font render routines implementation file.
@@ -10,13 +10,12 @@
 #include <string>
 
 #include "System\CrusSystem.h"
-#include "Renderer\CrusRenderer.h"
+#include "Renderer\CrusRender.h"
 
 #include "Renderer\CrusTexture.h"
 #include "Interface\CrusTextOut.h"
 
-namespace isle
-{
+namespace isle {
 math::Matrix mNumbers(
     1, 0, 0, 0,
     0, 1, 0, 0.72f,
@@ -26,11 +25,11 @@ math::Matrix mNumbers(
 
 Textout::Textout()
 {
-    for(auto &a : texDispCoord_.rect_)
+    for (auto &a : texDispCoord_.rect_)
         a = 0;
 }
 
-Textout::~Textout() {};
+Textout::~Textout() { };
 
 bool Textout::Init(Texture const *const _texture, float _zoom, uint16 _x, uint16 _y, uint16 _w, uint16 _h)
 {
@@ -45,26 +44,26 @@ bool Textout::Init(Texture const *const _texture, float _zoom, uint16 _x, uint16
     texDispCoord_.y_ = static_cast<float>(_y) / texture_->h();
 
     float const quad_plane[] = {
-		-_zoom,  _zoom * ratio, 0.0f, 0.0f,                             rectSymbol_.h_ / texture_->h(),
-		-_zoom, -_zoom * ratio, 0.0f, 0.0f,                             0.0f,
+        -_zoom,  _zoom * ratio, 0.0f, 0.0f,                             rectSymbol_.h_ / texture_->h(),
+        -_zoom, -_zoom * ratio, 0.0f, 0.0f,                             0.0f,
          _zoom,  _zoom * ratio, 0.0f, rectSymbol_.w_ / texture_->w(),   rectSymbol_.h_ / texture_->h(),
          _zoom, -_zoom * ratio, 0.0f, rectSymbol_.w_ / texture_->w(),   0.0f
-	};
+    };
 
     program_.AssignNew({"Interface/textout.glsl"});
 
-    isle::Renderer::inst().CreateVAO(vao_);
+    isle::Render::inst().CreateVAO(vao_);
 
     {
         uint32 vbo = 0;
-        isle::Renderer::inst().CreateVBO(GL_ARRAY_BUFFER, vbo);
+        isle::Render::inst().CreateBO(GL_ARRAY_BUFFER, vbo);
     }
 
     glBufferData(GL_ARRAY_BUFFER, sizeof(quad_plane), quad_plane, GL_STATIC_DRAW);
 
     glVertexAttribPointer(isle::Program::nVERTEX, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 5, nullptr);
     glEnableVertexAttribArray(isle::Program::nVERTEX);
-    
+
     glVertexAttribPointer(isle::Program::nTEXCRD, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 5, reinterpret_cast<void const *>(sizeof(float) * 3));
     glEnableVertexAttribArray(isle::Program::nTEXCRD);
 
@@ -82,17 +81,17 @@ void Textout::SetText(std::string const &_text)
 void Textout::SetTexture(Texture const *const _texture)
 {
     if (_texture == nullptr)
-        Book::AddEvent(eNOTE::nERROR, "texture pointer is invalid.");
+        log::Error() << "texture pointer is invalid.";
 
     else texture_ = _texture;
 }
 
 void Textout::Render()
 {
-    program_.SwitchOn();
+    program_.UseThis();
     texture_->Bind();
 
-    float const width = 0.64f * 0.002511f * Renderer::inst().vp_.w() * 28 / 288.0f;
+    float const width = 0.64f * 0.002511f * Render::inst().vp_.w() * 28 / 288.0f;
     float x = 0;
 
     if (text_.size() > 1)
@@ -102,9 +101,10 @@ void Textout::Render()
         texDispCoord_.w_ = ((symbol - 48) - floorf((symbol - 48) / 5.0f) * 5) * rectSymbol_.w_ / texture_->w();
         texDispCoord_.h_ = (1 - floorf((symbol - 48) / 5.0f)) * rectSymbol_.h_ / texture_->h();
 
-        glProgramUniform4fv(program_.GetName(), program_.GetUniformLoc("inDispCoord"), 1, texDispCoord_.rect_);
+        auto uniformLocation = glGetUniformLocation(program_.program(), "inDispCoord");
+        glProgramUniform4fv(program_.program(), uniformLocation, 1, texDispCoord_.rect_);
 
-        Renderer::inst().UpdateTRSM(0, 1, &mNumbers.Translate(x + Camera::inst().pos().x(), mNumbers.m()[7], 0));
+        Render::inst().UpdateViewport(0, 1, &mNumbers.Translate(x + Camera::inst().pos().x(), mNumbers.m()[7], 0));
 
         glBindVertexArray(vao_);
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);

@@ -1,7 +1,7 @@
 /********************************************************************************************************************************
 ****
-****    Source code of Crusoe's Island Engine.
-****    Copyright (C) 2009 - 2015 Crusoe's Island LLC.
+****    Source code of Island Engine.
+****    Copyright (C) 2009 - 2017 Crusoe's Island LLC.
 ****
 ****    Started at 23th July 2009.
 ****    Description: main header file - the beginning and the application end.
@@ -21,13 +21,15 @@
 
 #include "System\CrusMouse.h"
 
-#include "Renderer\CrusRenderer.h"
+#include "Renderer\CrusRender.h"
 #include "Renderer\CrusProgram.h"
 #include "Renderer\CrusTexture.h"
 
-#include "Interface\CrusCamera.h"
+#include "Camera\CrusCamera.h"
 #include "Interface\CrusTextOut.h"
 
 #include "Game\CrusObject.h"
+
+#include "Interface\CrusGrid.h"
 
 #endif // CRUS_ENGINE_H

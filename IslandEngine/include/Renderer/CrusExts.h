@@ -1,9 +1,8 @@
 /********************************************************************************************************************************
 ****
-****    Source code of Crusoe's Island Engine.
-****    Copyright (C) 2009 - 2015 Crusoe's Island LLC.
+****    Source code of Island Engine.
+****    Copyright (C) 2009 - 2017 Crusoe's Island LLC.
 ****
-****    Started at 27th November 2010.
 ****    Description: OpenGL extensions declarations.
 ****
 ********************************************************************************************************************************/
@@ -20,11 +19,66 @@
 
 #define GL_GLEXT_PROTOTYPES 1
 #define WGL_WGLEXT_PROTOTYPES 1
+#define CRUS_USE_GL_EXTENSIONS 0
 
 #include <GL\GLcoreARB.h>
-#include <GL\GLext.h>
+//#include <GL\GLext.h>
 #include <GL\wGLext.h>
 
-#define _CRUS_CHECK_GL_CALLS  1
+#include <stack>
+#include <mutex>
+
+#include "System\CrusBook.h"
+
+class OpenGLContext final {
+public:
+
+    template<typename T>
+    auto GetProcedureAddress(acstr _name)
+    {
+        auto proc = reinterpret_cast<T *const>(wglGetProcAddress(_name));
+
+        if (proc == nullptr
+            || proc == reinterpret_cast<void *>(-1) || proc == reinterpret_cast<void *>(+1)
+            || proc == reinterpret_cast<void *>(+2) || proc == reinterpret_cast<void *>(+3)) {
+
+            auto hModule = LoadLibraryW(L"OpenGL32.lib");
+
+            if (hModule == nullptr)
+                isle::log::Fatal() << "can't load OpenGL32 library.";
+
+            else
+                proc = reinterpret_cast<decltype(proc)>(GetProcAddress(hModule, _name));
+        }
+
+        if (proc == nullptr)
+            isle::log::Fatal() << "can't get procedure address: " << _name;
+
+        return proc;
+    }
+
+    static OpenGLContext &ThreadLocal();
+
+    static HDC hMainWndDC();
+
+private:
+    static std::mutex mutex_;
+
+    static HDC hMainWndDC_;
+    static HGLRC hMainRC_;
+
+    static std::stack<HGLRC> hSharedRCs_;
+
+    explicit OpenGLContext();
+    ~OpenGLContext();
+
+    void SetupContext();
+    void DeleteContext();
+};
+
+inline HDC OpenGLContext::hMainWndDC()
+{
+    return hMainWndDC_;
+}
 
 #endif // CRUS_EXTS_H

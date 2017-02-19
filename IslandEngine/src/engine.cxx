@@ -1,63 +1,226 @@
 /********************************************************************************************************************************
 ****
-****    Source code of Crusoe's Island Engine.
+****    Source code of Island Engine.
 ****    Copyright (C) 2009 - 2014 Crusoe's Island LLC.
 ****
-****    Started at 23th July 2009.
 ****    Description: main cpp file - the beginning and the application end.
 ****
 ********************************************************************************************************************************/
-#include "engine.h"
-
-#include <iostream>
-
-#include <string>
+#include <map>
 #include <random>
 #include <algorithm>
+#include <thread>
+#include <mutex>
+#include <future>
 
-namespace app
+#include "engine.h"
+#include "Game\CrusBounds.h"
+#include "Game\CrusRect.h"
+#include "Game\CrusSprite.h"
+#include "Renderer\CrusUV.h"
+
+auto index = 0u;
+auto spritesNumber = 0u;
+auto samples = 0u;
+
+class ISystem {
+public:
+
+    virtual ~ISystem() = default;
+
+    virtual void Update() = 0;
+};
+
+class RenderSystem final : public ISystem {
+public:
+
+    void Update() override
+    {
+        isle::log::Debug() << __FUNCTION__;
+    }
+};
+
+class MoveSystem final : public ISystem {
+public:
+
+    void Update() override
+    {
+        isle::log::Debug() << __FUNCTION__;
+    }
+};
+
+namespace app {
+void InitBuffers(std::vector<isle::Sprite> const &spriteSheet);
+intf::Grid grid;
+
+Program flipbookProgram;
+uint32 flipbook_vao;
+Texture flipbookTexture("sprites-cat-running.tga");//RobotBoyWalkSprite
+math::Matrix transform;
+
+math::Matrix matrices[] = {
+    math::Matrix::GetIdentity(),
+    math::Matrix::GetIdentity(),
+    math::Matrix::GetIdentity()
+};
+
+template <typename T>
+std::future<bool> AssignNewProgram(Program &_program, T &&_names)
 {
-size_t score = 0;
-float const kMetersInPxl = 0.002511f;
+    auto handle = [] (Program &program, T &&names)
+    {
+        return program.AssignNew(std::forward<T>(names));
+    };
 
-Texture atlas;
-Textout text;
+#if 0
+    std::packaged_task<bool()> task(handle, std::ref(_program), _names);
 
-Program background;
-uint32 background_vao;
+    auto future = task.get_future();
 
-Ground ground;
-Bird bird;
-std::vector<Pillar> pillars(99);
-Title title;
-Button button;
+    std::thread thread(std::move(task));
+    thread.detach();
+
+    return std::move(future);
+#else
+    return std::async(/*std::launch::deferred, */handle, std::ref(_program), _names);
+#endif
+}
 
 void InitBackground()
 {
-    //512x288
-    float const quad_plane[] = {
-        -1.0f,  1.0f, 0.0f, 0.0f, 1.0f,
-        -1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
-         1.0f,  1.0f, 0.0f, 288.0f / atlas.w(), 1.0f,
-         1.0f, -1.0f, 0.0f, 288.0f / atlas.w(), 0.0f
-    };
+    transform.MakeIdentity();
+    matrices[1].Translate(0, 1, 0);
 
-    background.AssignNew({"FlappyBird/background.glsl"});
+    auto assignedNewProgram = std::move(AssignNewProgram<std::initializer_list<char const *>>(flipbookProgram, {R"(Defaults/Sprites-Default.glsl)"}));
+    //flipbookProgram.AssignNew({"Defaults/Sprites-Default.glsl"});
 
-    isle::Renderer::inst().CreateVAO(background_vao);
+    flipbookTexture.Init();
 
-    {
-        uint32 vbo = 0;
-        isle::Renderer::inst().CreateVBO(GL_ARRAY_BUFFER, vbo);
+    auto imageWidth = flipbookTexture.w(), imageHeight = flipbookTexture.h();
+    auto spritesNumberHorizontally = 4u, spritesNumberVertically = 2u;
+    //auto spritesNumberHorizontally = 7u, spritesNumberVertically = 3u;
+    auto spriteWidth = 512u, spriteHeight = 256u;
+    //auto const spriteWidth = 275u, spriteHeight = 275u;
+    auto const pixelsPerUnit = 200.0f;
+    samples = 12;
+    //samples = 24;
+
+    if (spritesNumberHorizontally * spriteWidth > imageWidth) {
+        spritesNumberHorizontally = static_cast<uint32>(imageWidth / spriteWidth);
+        log::Warning() << "sprites' number was fitted horizontally.";
     }
 
-    glBufferData(GL_ARRAY_BUFFER, sizeof(quad_plane), quad_plane, GL_STATIC_DRAW);
+    if (spritesNumberVertically * spriteHeight > imageHeight) {
+        spritesNumberVertically = static_cast<uint32>(imageHeight / spriteHeight);
+        log::Warning() << "sprites' number was fitted vertically.";
+    }
 
-    glVertexAttribPointer(isle::Program::eLAYOUT_ID::nVERTEX, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 5, nullptr);
-    glEnableVertexAttribArray(isle::Program::nVERTEX);
+    std::vector<Sprite> spriteSheet;
 
-    glVertexAttribPointer(isle::Program::nTEXCRD, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 5, reinterpret_cast<void const *>(sizeof(float) * 3));
-    glEnableVertexAttribArray(isle::Program::nTEXCRD);
+    auto threadsNumber = std::max(std::thread::hardware_concurrency(), 1u);
+    log::Debug() << "hardware concurrency: " << threadsNumber;
+
+    auto const totalSpritesNumber = spritesNumberVertically * spritesNumberHorizontally;
+
+    threadsNumber = std::min(threadsNumber, totalSpritesNumber);
+    log::Debug() << "threads number: " << threadsNumber;
+
+    auto CreateSpritesRoutine = [&] (std::vector<Sprite> &_spriteSheet, uint32 _start, uint32 _end)
+    {
+        auto x = 0u, y = 0u;
+
+        for (auto i = _start; i < _end; ++i) {
+            y = i / spritesNumberHorizontally;
+            x = i - y * spritesNumberHorizontally;
+
+            auto sprite = Sprite::Create(
+                std::make_shared<Texture>(flipbookTexture), i,
+                Rect(x * static_cast<float>(spriteWidth), y * static_cast<float>(spriteHeight), static_cast<float>(spriteWidth), static_cast<float>(spriteHeight)),
+                Point{spriteWidth * 0.5f, spriteHeight * 0.5f}, pixelsPerUnit);
+
+            if (sprite)
+                _spriteSheet.emplace_back(sprite);
+
+            //std::this_thread::yield();
+        }
+    };
+
+    //std::vector<std::thread> threads;
+    std::vector<std::future<void>> futures;
+    std::vector<std::vector<Sprite>> spriteSheets(threadsNumber);
+
+    std::vector<int32> counts(threadsNumber, totalSpritesNumber / threadsNumber);
+
+    for (auto i = 0u; i < totalSpritesNumber - (totalSpritesNumber / threadsNumber) * threadsNumber; ++i)
+        ++counts[i];
+
+    auto start = 0u, end = 0u;
+
+    for (auto i = 0u; i < threadsNumber; ++i) {
+        end = start + counts[i];
+        //threads.emplace_back(CreateSpritesRoutine, std::ref(spriteSheets[i]), start, end);
+        futures.emplace_back(std::async(CreateSpritesRoutine, std::ref(spriteSheets[i]), start, end));
+        start = end;
+    }
+
+    /*for (auto &thread : threads)
+        thread.join();*/
+
+    for (auto &future : futures)
+        future.wait();
+
+    for (auto &sheet : spriteSheets)
+        spriteSheet.insert(spriteSheet.end(), sheet.begin(), sheet.end());
+
+    spriteSheet.shrink_to_fit();
+    spritesNumber = static_cast<decltype(spritesNumber)>(spriteSheet.size());
+
+    InitBuffers(spriteSheet);
+
+    if (!assignedNewProgram.get()) {
+        log::Debug() << "invalid shader.";
+        return;
+    }
+}
+
+void InitBuffers(std::vector<isle::Sprite> const &_spriteSheet)
+{
+    struct Vertex {
+        Position pos;
+        UV uv;
+    };
+
+    std::vector<Vertex> vertex_buffer;
+
+    for (auto const &sprite : _spriteSheet)
+        for (auto i = 0; i < sprite.vertices().size(); ++i)
+            vertex_buffer.emplace_back(std::move(Vertex{sprite.vertices()[i], sprite.uvs()[i]}));
+
+    vertex_buffer.shrink_to_fit();
+
+    Render::inst().CreateVAO(flipbook_vao);
+
+    {
+        uint16 const indices[] = {
+            0, 1, 2, 3
+        };
+
+        auto bo = 0u;
+        Render::inst().CreateBO(GL_ELEMENT_ARRAY_BUFFER, bo);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+    }
+
+    {
+        auto bo = 0u;
+        Render::inst().CreateBO(GL_ARRAY_BUFFER, bo);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * vertex_buffer.size(), vertex_buffer.data(), GL_STATIC_DRAW);
+    }
+
+    glVertexAttribPointer(Program::eIN_OUT_ID::nVERTEX, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), nullptr);
+    glEnableVertexAttribArray(Program::eIN_OUT_ID::nVERTEX);
+
+    glVertexAttribPointer(isle::Program::eIN_OUT_ID::nTEXCRD, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void const *>(sizeof(Position)));
+    glEnableVertexAttribArray(isle::Program::eIN_OUT_ID::nTEXCRD);
 
     glBindVertexArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -65,255 +228,67 @@ void InitBackground()
 
 void DrawBackgorund()
 {
-    background.SwitchOn();
+    flipbookTexture.Bind();
+    flipbookProgram.UseThis();
 
-    glBindVertexArray(background_vao);
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    matrices[0] = Render::inst().vp_.projView() * matrices[1];
+
+    Render::inst().UpdateTransform(0, 3, &matrices[0]);
+
+    //glUniformMatrix4fv(Program::eUNIFORM_ID::nTRANSFORM, 1, GL_FALSE, mkas.data());
+
+    index = static_cast<decltype(index)>(std::fmodf(System::time.elapsed() * samples, static_cast<float>(spritesNumber)) * 1);
+
+    glBindVertexArray(flipbook_vao);
+    //glDrawElements(GL_TRIANGLE_STRIP, 4, GL_UNSIGNED_SHORT, nullptr);
+    glDrawElementsBaseVertex(GL_TRIANGLE_STRIP, 4, GL_UNSIGNED_SHORT, nullptr, index * 4);
 }
 
 void Init()
 {
+    /*std::map<int, std::unique_ptr<ISystem>> systems;
+
+    systems.emplace(0, std::make_unique<RenderSystem>());
+    systems.emplace(1, std::make_unique<MoveSystem>());
+
+    for (auto const &system : systems)
+        system.second->Update();*/
+
     Camera::inst().Create(Camera::eCAM_BEHAVIOR::nFREE);
-    Camera::inst().SetPos(0.0f, 0.0f, 4.0f);
+    Camera::inst().SetPos(0.0f, 1.0f, 2.0f);
     Camera::inst().LookAt(0.0f, 0.0f, 0.0f);
 
     // Application intialization function.
     glDisable(GL_CULL_FACE);
 
+    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    // Just one atlas texture for hole objects.
-    atlas.Init("atlas.tga");
-    atlas.Bind();
+    grid.Update();
 
-    // Full screen quad based background.
-    InitBackground();
-
-    Object::program.AssignNew({"FlappyBird/animated.glsl"});
-
-    // Pillars initialization...
-    {
-        float const zoom = kMetersInPxl * Renderer::inst().vp_.w() * 52 * 0.5f / 288.0f;
-
-        // The seed.
-        std::random_device rd;
-        // Mersenne-Twister engine.
-        std::mt19937 mt(rd());
-        std::uniform_real_distribution<float> dist(1.0f, 1.2f), height(-0.24f, 0.64f);
-
-        float disp{0.2f}, y{0};
-
-        for (auto &pillar : pillars) {
-            disp += dist(mt);
-            y = height(mt);
-
-            pillar.Init(&atlas, zoom, 290, 190, 52, 320);
-            pillar.mModel().Translate(disp, y, 0);
-        }
-    }
-
-    // Animated ground initialization...
-    {
-        float const zoom = kMetersInPxl * Renderer::inst().vp_.w() * 336 * 0.5f / 288.0f;
-        ground.Init(&atlas, zoom, 584, 398, 336, 112);
-        ground.mModel().Translate(0, -0.64f, 0);
-    }
-
-    // Flappy bird initialization...
-    {
-        float const zoom = kMetersInPxl * Renderer::inst().vp_.w() * 38 * 0.5f / 288.0f;
-        bird.Init(&atlas, zoom, 290, 0, 38, 28);
-    }
-
-    // Textout initialization...
-    {
-        float const zoom = 0.64f * kMetersInPxl * Renderer::inst().vp_.w() * 28 / 288.0f;
-        text.Init(&atlas, zoom, 290, 30, 28, 40);
-    }
-
-    // Title initialization...
-    {
-        float const zoom = kMetersInPxl * Renderer::inst().vp_.w() * 196 * 0.64f / 288.0f;
-        title.Init(&atlas, zoom, 632, 342, 196, 54);
-        title.mModel().Translate(Camera::inst().pos().x(), 0.4f, 0.0f);
-    }
-
-    // Reset button initialization...
-    {
-        float const zoom = kMetersInPxl * Renderer::inst().vp_.w() * 118 * 0.5f / 288.0f;
-        button.Init(&atlas, zoom, 432, 0, 118, 102);
-        button.mModel().Translate(Camera::inst().pos().x(), -0.32f, 0.0f);
-    }
-
-    // Setting mouse cursor to screen center.
-    RECT ws;
-    GetWindowRect(Window::inst().hWnd(), &ws);
-
-    SetCursorPos(ws.left + (Renderer::inst().vp_.w() >> 1), ws.top + (Renderer::inst().vp_.h() >> 1));
-}
-
-void CheckCollisions()
-{
-    float const zoom = kMetersInPxl * Renderer::inst().vp_.w() * 52 * 0.5f / 288.0f;
-
-    if (bird.y() < ground.y() + bird.kRadius) {
-        Object::state = Object::eSTATE::nSTOPPED;
-
-        //bird.y() += bird.kRadius;
-        bird.Start();
-    }
-
-    else if (bird.x() + bird.kRadius > pillars[score].x() - zoom) {
-        if (bird.y() + bird.kRadius > pillars[score].y() + 0.16f || bird.y() - bird.kRadius < pillars[score].y() - 0.16f)
-            Object::state = Object::eSTATE::nSTOPPED;
-    }
+    log::Debug() << measure<>::execution(InitBackground);
 }
 
 void Update()
-{
-    switch (Object::state) {
-        case Object::eSTATE::nIDLE:
-            score = 0;
-
-            Input::Mouse::CheckKeySync(VK_LBUTTON,
-                [&] () {
-                Object::state = Object::eSTATE::nPLAYING;
-                bird.Start();
-            }, [] () {}, [] () {}, [] () {});
-
-            break;
-
-        case Object::eSTATE::nPLAYING:
-            if (score >= pillars.size())
-                break;
-
-            CheckCollisions();
-
-            // Incrementing score value then passing pillars one by one.
-            if (bird.x() - bird.kRadius > pillars[score].x() + bird.kRadius)
-                ++score;
-
-            break;
-
-        case Object::eSTATE::nSTOPPED:
-            break;
-    }
-
-    bird.Update();
-    ground.Update();
-    title.Update();
-    button.Update();
-}
+{ }
 
 void DrawFrame()
 {
+    grid.Draw();
+
     DrawBackgorund();
-
-    Object::program.SwitchOn();
-
-    for (auto &pillar : pillars)
-        pillar.Render();
-
-    ground.Render();
-
-    title.Render();
-    button.Render();
-
-    bird.Render();
-
-    text.SetText(std::to_string(score));
-    text.Render();
 }
 };
-//
-//int32 main()
-//{
-//    using namespace isle;
-//
-//    Window::inst().Create("w-", /*288, 512,*/450, 800);
-//     
-//    Book::AddEvent(isle::eNOTE::nSEPAR);
-//    Book::AddEvent(isle::eNOTE::nDEBUG, "...");
-//
-//    Camera::inst().Create(Camera::eCAM_BEHAVIOR::nFREE);
-//    Camera::inst().SetPos(0.0f, 0.0f, 4.0f);
-//    Camera::inst().LookAt(0.0f, 0.0f, 0.0f);
-//
-//    return isle::System::Loop();
-//}
 
-void EnumScreenModes()
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
 {
-    DISPLAY_DEVICEA device = {
-        sizeof(DISPLAY_DEVICEA),
-        "", "", 0, "", ""
-    };
+    UNREFERENCED_PARAMETER(hPrevInstance);
+    UNREFERENCED_PARAMETER(lpCmdLine);
+    UNREFERENCED_PARAMETER(nShowCmd);
 
-    for (auto iDevNum = 0; EnumDisplayDevicesA(nullptr, iDevNum, &device, 0) != 0; ++iDevNum) {
-        isle::Book::AddEvent(isle::eNOTE::nDEBUG, "%s|%s", device.DeviceName, device.DeviceString);
-    }
-
-    DEVMODEW devmode = {
-        L"", 0, 0,
-        sizeof(DEVMODEW),
-        {0}
-    };
-
-    struct DisplaySettings {
-        uint32 width, height, frequency;
-    };
-
-    std::vector<DisplaySettings> settings(0);
-
-    for (auto iModeNum = 0; EnumDisplaySettingsW(nullptr, iModeNum, &devmode) != 0; ++iModeNum) {
-        if (devmode.dmBitsPerPel != 32)
-            continue;
-
-        settings.push_back({devmode.dmPelsWidth, devmode.dmPelsHeight, devmode.dmDisplayFrequency});
-    }
-
-    std::sort(settings.begin(), settings.end(), [] (DisplaySettings const &a, DisplaySettings const &b) -> bool {
-        if (b.width < a.width)
-            return true;
-
-        if (b.width == a.width && b.height < a.height)
-            return true;
-
-        if (b.width == a.width && b.height == a.height && b.frequency < a.frequency)
-            return true;
-
-        return false;
-    });
-
-    auto last = std::unique(settings.begin(), settings.end(), [] (DisplaySettings const &a, DisplaySettings const &b) {
-        return b.width == a.width && b.height == a.height && b.frequency == a.frequency;
-    });
-
-    settings.erase(last, settings.end());
-
-    for (auto const &setting : settings)
-        isle::Book::AddEvent(isle::eNOTE::nDEBUG, "%dx%d @%d", setting.width, setting.height, setting.frequency);
-}
-
-int32 WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int32 nShowCmd)
-{
-    using namespace isle;
-
-    Window::inst().Create(hInstance, "w-", 450, 800);
-
-    Book::AddEvent(isle::eNOTE::nSEPAR);
-    Book::AddEvent(isle::eNOTE::nDEBUG, "...");
-
-    EnumScreenModes();
-
-    int a[] = {25, 36, 49, 64, 81, 100};
-    for (int i = 0; i < 5; ++i) {
-        a[i] = (a[i + 1] - a[i]) / 2;
-    }
-
-    for (auto const &x : a)
-        std::cout << x << '\0';
+    isle::Window window(crus::names::kMAIN_WINDOW_NAME, hInstance, 600, 400);
 
     return isle::System::Loop();
 }

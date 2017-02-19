@@ -1,7 +1,7 @@
 /********************************************************************************************************************************
 ****
-****    Source code of Crusoe's Island Engine.
-****    Copyright (C) 2009 - 2015 Crusoe's Island LLC.
+****    Source code of Island Engine.
+****    Copyright (C) 2009 - 2017 Crusoe's Island LLC.
 ****
 ****    Started at 26th June 2013.
 ****    Description: supporting a gamepad xbox 360 controller.
@@ -35,7 +35,7 @@ void FindVendorDeviceID(USBIDs &_vendor, USBIDs &_device)
 
     fopen_s(&list, "..\\data\\usb.ids", "r");
     if(list == nullptr || ferror(list) != 0){
-        Book::AddEvent(eNOTE::nERROR, "can't open USBIDs list file.");
+        log::Error() << "can't open USBIDs list file.");
         return;
     }
 

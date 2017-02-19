@@ -1,13 +1,13 @@
-/********************************************************************************************************************************
+/****************************************************************************************
 ****
 ****    Source code of Crusoe's Island Engine.
 ****    Copyright (C) 2009 - 2015 Crusoe's Island LLC.
 ****
-****    Started at 17h December 2015 .
+****    17h December 2015 / 17h December 2015 .
 ****    Description: text out render shader file.
 ****
-********************************************************************************************************************************/
-
+****************************************************************************************/
+#extension GL_ARB_shading_language_420pack : enable
 #if CRUS_VERTEX_SHADER
 
 layout(location = nVERTEX) in vec3 inVertex;
@@ -44,7 +44,7 @@ in vec2 texCoord;
 void main()
 {
     //FragColor = texture2D(albedoTexture, texCoord - floor(inTexCoord));
-    FragColor = texture(albedoTexture, texCoord);
+    FragColor = texture2D(albedoTexture, texCoord);
 }
 
 #endif

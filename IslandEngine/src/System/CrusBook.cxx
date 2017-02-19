@@ -1,12 +1,19 @@
 /********************************************************************************************************************************
 ****
-****    Source code of Crusoe's Island Engine.
-****    Copyright (C) 2009 - 2015 Crusoe's Island LLC.
+****    Source code of Island Engine.
+****    Copyright (C) 2009 - 2017 Crusoe's Island LLC.
 ****
-****    Started at 4th June 2010.
-****    Description: book log.
+****    Description: logging routines.
 ****
 ********************************************************************************************************************************/
+#include <iostream>
+#include <iomanip>
+#include <sstream>
+#include <fstream>
+#include <streambuf>
+
+#include <mutex>
+
 #include <cstdio>
 #include <cstdlib>
 #include <cstdarg>
@@ -28,118 +35,89 @@
 
 #include "System\CrusIsland.h"
 #include "System\CrusTypes.h"
+#include "System\CrusSystem.h"
 #include "System\CrusBook.h"
+#include "System\CrusWindow.h"
 
 #if _CRUS_DEBUG_CONSOLE
-    #include <UxTheme.h>
+#include <UxTheme.h>
 #endif
 
-namespace
-{
-acstr kNOTES[11] = {
-    "            --------------------------------------------------\n",
-    "            %s\n",
-    "          + %s\n",        // - These notes will be displayed after
-    " Info     : %s\n",        //   the log buffer overflows,
-    " Notice   : %s\n",        //   or after a call to "CBook::Flush()".
-    " Debug    : %s\n",        // - Debug event are always displayed.
-    " Warning  : %s\n",        // - These kNOTES are used to notification
-    " Error    : %s\n",        //   about an error without application break.
-    " Alert    : %s\n",        // - After these kNOTES further
-    " Critical : %s\n",        //   work of application
-    " Emerg    : %s\n"         //   is impossible.
-};
-
+namespace {
 #if _CRUS_DEBUG_CONSOLE
 #define SET(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t)\
             {{a, b}, {c, d}, {e, f}, {g, h}, {i, j}, {k, l}, {m, n}, {o, p}, {q, r}, {s, t}}
 
-CHAR_INFO const kMARKERS[11][10] = {
-    SET(' ', 0, ' ', 0, ' ', 0, ' ', 0, ' ', 0, ' ', 0, ' ', 0, ' ', 0, ' ', 0, '+', 2),
-    SET('I', 4, 'n', 4, 'f', 4, 'o', 4, ' ', 0, ' ', 0, ' ', 0, ' ', 0, ' ', 0, ':', 2),
-    SET('N', 5, 'o', 5, 't', 5, 'i', 5, 'c', 5, 'e', 5, ' ', 0, ' ', 0, ' ', 0, ':', 2),
-    SET('D', 6, 'e', 6, 'b', 6, 'u', 6, 'g', 6, ' ', 0, ' ', 0, ' ', 0, ' ', 0, ':', 2),
-    SET('W', 8, 'a', 8, 'r', 8, 'n', 8, 'i', 8, 'n', 8, 'g', 8, ' ', 0, ' ', 0, ':', 2),
-    SET('E', 9, 'r', 9, 'r', 9, 'o', 9, 'r', 9, ' ', 0, ' ', 0, ' ', 0, ' ', 0, ':', 2),
-    SET('A', 13, 'l', 13, 'e', 13, 'r', 13, 't', 13, ' ', 0, ' ', 0, ' ', 0, ' ', 0, ':', 2),
-    SET('C', 12, 'r', 12, 'i', 12, 't', 12, 'i', 12, 'c', 12, 'a', 12, 'l', 12, ' ', 0, ':', 2),
-    SET('E', 14, 'm', 14, 'e', 14, 'r', 14, 'g', 14, ' ', 0, ' ', 0, ' ', 0, ' ', 0, ':', 2)
+size_t const kMARKERS_WIDTH = 10;
+
+CHAR_INFO const kMARKERS[][kMARKERS_WIDTH] = {
+    SET('I', 2, 'n', 2, 'f', 2, 'o', 2, ' ', 0, ' ', 0, ' ', 0, ' ', 0, ' ', 0, ':', 1),
+    SET('D', 3, 'e', 3, 'b', 3, 'u', 3, 'g', 3, ' ', 0, ' ', 0, ' ', 0, ' ', 0, ':', 1),
+    SET('W', 4, 'a', 4, 'r', 4, 'n', 4, 'i', 4, 'n', 4, 'g', 4, ' ', 0, ' ', 0, ':', 1),
+    SET('E', 5, 'r', 5, 'r', 5, 'o', 5, 'r', 5, ' ', 0, ' ', 0, ' ', 0, ' ', 0, ':', 1),
+    SET('F', 6, 'a', 6, 't', 6, 'a', 6, 'l', 6, ' ', 0, ' ', 0, ' ', 0, ' ', 0, ':', 1)
 };
 
 #undef SET
-#endif
-
-class CBook {
-private:
-    FILE *sheets_;
-    char  line_[1024];
-
-    _locale_t locale_;
-
-    CBook(){};
-    ~CBook(){};
-
-    static void DoAdjustConsole();
-
-public:
-
-    void Open();
-    void Close();
-
-    void AddEvent(isle::eNOTE note, acstr str, va_list ap);
-    void NoteTime(isle::eNOTE note, acstr str);
-
-    static CBook &book();
+#endif // _CRUS_DEBUG_CONSOLE
 };
 
-/*static*/ __forceinline CBook &CBook::book()
+namespace isle {
+namespace log {
+
+LogStream::LogStream() : stream_(std::cerr.rdbuf())
 {
-    static CBook book;
-    return book;
-}
+    std::lock_guard<std::mutex> lock(mutex_);
 
-__forceinline void CBook::AddEvent(isle::eNOTE _note, acstr _str, va_list _ap)
-{
-    if(_str == nullptr || sheets_ == nullptr) return;
+    file_.open(R"(..\book.log)", std::ios_base::out | std::ios_base::trunc);
 
-    using utype = std::underlying_type<isle::eNOTE>::type;
-    auto const note = static_cast<utype>(_note);
+    if (!file_.is_open()) {
+        std::cerr << "Fatal    : can't create log file." << std::endl;
+        ::_exit(EXIT_FAILURE);
+    }
 
-    _vsprintf_s_l(line_, sizeof(line_), _str, locale_, _ap);
-    _fprintf_s_l(sheets_, kNOTES[note], locale_, line_);
+    stream_.set_rdbuf(file_.rdbuf());
 
 #if _CRUS_DEBUG_CONSOLE
-    HANDLE const hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-
-    CONSOLE_SCREEN_BUFFER_INFO info;
-    GetConsoleScreenBufferInfo(hConsole, &info);
-
-    _printf_s_l(kNOTES[note], locale_, line_);
-
-    if(_note > isle::eNOTE::nEMPTY){
-        COORD const pos = {0, 0};
-        COORD const rect = {10, 1};
-
-        SMALL_RECT rcDraw = {
-            1,  info.dwCursorPosition.Y,
-            10, info.dwCursorPosition.Y
-        };
-
-        WriteConsoleOutputW(hConsole, kMARKERS[note - 2], rect, pos, &rcDraw);
-    }
+    InitConsoleWindow();
 #endif
 
-    if(_note > isle::eNOTE::nERROR){
-#if _CRUS_DEBUG_CONSOLE
-        FlushConsoleInputBuffer(hConsole);
-#endif
-        ::exit(EXIT_FAILURE);
-    }
+    stream_ << std::noshowpoint;
+    stream_ << crus::names_a::kPROJECT << " at " << crus::names_a::kBUILD_DATE << " (" << crus::names_a::kBUILD_VERSION << ")\n";
+    stream_ << "           --------------------------------------------------" << std::endl;
 }
 
-/*static*/ void CBook::DoAdjustConsole()
+LogStream::~LogStream()
+{
+    if (file_.is_open()) {
+        file_.flush();
+        file_.close();
+
+        stream_.set_rdbuf(std::cerr.rdbuf());
+    }
+
+#if _CRUS_DEBUG_CONSOLE
+    if (conout_.is_open()) {
+        conout_.flush();
+        conout_.close();
+    }
+#else
+    ;// ShowWindow(GetConsoleWindow(), SW_HIDE);
+#endif
+}
+
+void LogStream::InitConsoleWindow()
 {
 #if _CRUS_DEBUG_CONSOLE
+    auto result = AllocConsole();
+
+    conout_.open("conout$", std::ios_base::out | std::ios_base::trunc);
+
+    if (result == 0 || !conout_.is_open()) {
+        std::cerr << "Fatal    : can't create console window." << std::endl;
+        ::_exit(EXIT_FAILURE);
+    }
+
     CONSOLE_FONT_INFOEX fontInfo = {
         sizeof(CONSOLE_FONT_INFOEX),
         9,
@@ -159,15 +137,19 @@ __forceinline void CBook::AddEvent(isle::eNOTE _note, acstr _str, va_list _ap)
         7,
         FALSE,
         {
-            0x004000, 0xFFFFFF, 0xABABAB, 0x000000,    // Background, font, eHYPHEN,
-            0x368618, 0x368618, 0x88CF8A, 0x000000,    // eINFO, eNOTICE, eDEBUG,
-            0x1C1CAC, 0x1C1CAC, 0x000000, 0x000000,    // eWARN, eERROR,
-            0x0000FF, 0x0000FF, 0x0000FF, 0xFFFFFF     // eCRITIC, eALERT, eEMERG, font
+            0x004000, 0xFFFFFF,    // Background, font,
+            0x368618,              // nINFO, 
+            0x88CF8A,              // nDEBUG,
+            0x1C1CAC, 0x1C1CAC,    // nWARN, nERROR,
+            0x0000FF,              // nFATAL,
+            0xFFFFFF,
+            0xFFFFFF, 0xFFFFFF, 0xFFFFFF, 0xFFFFFF,
+            0xFFFFFF, 0xFFFFFF, 0xFFFFFF, 0xFFFFFF
         }
     };
 
-    HWND const hConsoleWnd = GetConsoleWindow();
-    HANDLE const hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+    auto const hConsoleWnd = GetConsoleWindow();
+    auto const hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 
     {
         WTA_OPTIONS wta = {
@@ -182,112 +164,93 @@ __forceinline void CBook::AddEvent(isle::eNOTE _note, acstr _str, va_list _ap)
     SetConsoleScreenBufferInfoEx(hConsole, &consoleInfo);
     SetCurrentConsoleFontEx(hConsole, FALSE, &fontInfo);
 
-#if _CRUS_OBSOLETE
-    // Shell tray rectangle.
-    RECT rcTray;
-    GetWindowRect(FindWindowW(L"Shell_TrayWnd", nullptr), &rcTray);
-
-    // Desktop window rectangle.
-    RECT rcDesk;
-    GetWindowRect(GetDesktopWindow(), &rcDesk);
-
-    // Get a rectangle of the desktop of free from the shell tray.
-    rcDesk.right  -= (rcTray.right -= rcTray.left) < rcDesk.right  ? rcTray.right  : 0;
-    rcDesk.bottom -= (rcTray.bottom -= rcTray.top) < rcDesk.bottom ? rcTray.bottom : 0;
-
-    // Cause shell tray may be in top, bottom, right or left side,
-    // application will adjust window rect.
-    if(rcTray.bottom > rcTray.right)
-        rcDesk.left = rcTray.left == 0 ? rcTray.right : 0;      // Right or left.
-    else rcDesk.top = rcTray.top == 0 ? rcTray.bottom : 0;      // Top or bottom.
-#endif
-
     // Primary desktop work area rectangle.
-    RECT rcArea;
-    SystemParametersInfo(SPI_GETWORKAREA, 0, &rcArea, 0);
+    RECT rcWorkArea;
+    SystemParametersInfo(SPI_GETWORKAREA, 0, &rcWorkArea, 0);
 
-    MoveWindow(hConsoleWnd, rcArea.left, rcArea.top, 736, rcArea.bottom - rcArea.top, TRUE);
+    MoveWindow(hConsoleWnd, rcWorkArea.left, rcWorkArea.top, 736, rcWorkArea.bottom - rcWorkArea.top, TRUE);
+
+    std::wostringstream consoleWindowTitle;
+    consoleWindowTitle << crus::names::kPROJECT << L" at " << crus::names::kBUILD_DATE << L" (" << crus::names::kBUILD_VERSION << L")\n";
+
+    SetWindowTextW(hConsoleWnd, consoleWindowTitle.str().c_str());
 #endif // _CRUS_DEBUG_CONSOLE
 }
 
-void CBook::Open()
+void LogStream::WriteToConsole(eSEVERITY _severity)
 {
-#if _CRUS_DEBUG_CONSOLE
-    CBook::DoAdjustConsole();
-#endif
-
-    locale_ = ::_create_locale(LC_ALL, "English");
-    fopen_s(&sheets_, "..\\book.log", "wt");
-
-    if(sheets_ == nullptr || ::ferror(sheets_)){
-        perror("Emerg    : can't create log file.\n");
-        ::_exit(EXIT_FAILURE);
-    }
+    auto const note = static_cast<std::underlying_type<eSEVERITY>::type>(_severity);
 
 #if _CRUS_DEBUG_CONSOLE
-    {
-        wchar_t title[256];
-        _swprintf_s_l(title, 256, L"%s at %s (%s)", locale_, 
-                      crus::names::kPROJECT, crus::names::kBUILD_DATE,
-                      crus::names::kBUILD_VERSION);
+    HANDLE const hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 
-        SetConsoleTitleW(title);
-    }
+    CONSOLE_SCREEN_BUFFER_INFO info;
+    GetConsoleScreenBufferInfo(hConsole, &info);
+
+    SMALL_RECT rcDraw = {
+        1,  info.dwCursorPosition.Y,
+        kMARKERS_WIDTH, info.dwCursorPosition.Y
+    };
+
+    WriteConsoleOutputW(hConsole, kMARKERS[note], {kMARKERS_WIDTH, 1}, {0, 0}, &rcDraw);
+    SetConsoleCursorPosition(hConsole, {kMARKERS_WIDTH + 2, info.dwCursorPosition.Y});
 #endif
-
-    using utype = std::underlying_type<isle::eNOTE>::type;
-    auto const note = static_cast<utype>(isle::eNOTE::nSEPAR);
-
-    _fprintf_s_l(sheets_, "%s at %s (%s).\n%s", locale_,
-                 crus::names_a::kPROJECT, crus::names_a::kBUILD_DATE,
-                 crus::names_a::kBUILD_VERSION, kNOTES[note]);
-
-    isle::Book::NoteTime(isle::eNOTE::nNOTICE, "started");
+    stream_ << kSEVERITIES[static_cast<std::underlying_type<eSEVERITY>::type>(_severity)] << ' ';
 }
 
-void CBook::Close()
+Book::Book(eSEVERITY _severity) : severity_(_severity)
 {
-    if(sheets_ == nullptr || ::ferror(sheets_)) return;
+    LogStream::inst().mutex_.lock();
 
-    isle::Book::AddEvent(isle::eNOTE::nSEPAR);
-    isle::Book::NoteTime(isle::eNOTE::nNOTICE, "shutdown");
+    LogStream::inst().WriteToConsole(severity_);
+}
 
-    ::fclose(sheets_);
-    sheets_ = nullptr;
+Book::~Book()
+{
+    LogStream::inst().stream_ << '\n';
 
-    if(locale_ ==  nullptr) return;
+#if _CRUS_DEBUG_CONSOLE
+    LogStream::inst().conout_ << std::endl;
+#endif
 
-    ::_free_locale(locale_);
-    locale_ =  nullptr;
+    LogStream::inst().mutex_.unlock();
+
+    if (severity_ == eSEVERITY::nFATAL) {
+#if _CRUS_DEBUG_CONSOLE
+        FlushConsoleInputBuffer(GetStdHandle(STD_OUTPUT_HANDLE));
+#endif
+        auto hMainWnd = FindWindowW(crus::names::kMAIN_WINDOW_CLASS, crus::names::kMAIN_WINDOW_NAME);
+
+        if (hMainWnd != nullptr)
+            SendMessage(hMainWnd, WM_CLOSE, 0, 0);
+
+        ::exit(EXIT_FAILURE);
+    }
+}
+
+/*__declspec(noinline)*/ Book Info()
+{
+    return Book(eSEVERITY::nINFO);
+}
+
+/*__declspec(noinline)*/ Book Debug()
+{
+    return Book(eSEVERITY::nDEBUG);
+}
+
+/*__declspec(noinline)*/ Book Warning()
+{
+    return Book(eSEVERITY::nWARNING);
+}
+
+/*__declspec(noinline)*/ Book Error()
+{
+    return Book(eSEVERITY::nERROR);
+}
+
+/*__declspec(noinline)*/ Book Fatal()
+{
+    return Book(eSEVERITY::nFATAL);
 }
 };
-
-namespace isle
-{
-void Book::Open()
-{
-    CBook::book().Open();
-}
-
-void Book::Close()
-{
-    CBook::book().Close();
-}
-
-void Book::AddEvent(isle::eNOTE _note, acstr _str, ...)
-{
-    va_list ap;
-    va_start(ap, _str);
-
-    CBook::book().AddEvent(_note, _str, ap);
-}
-
-void Book::NoteTime(isle::eNOTE _note, acstr _str)
-{
-    SYSTEMTIME time;
-    GetLocalTime(&time);
-
-    Book::AddEvent(_note, "%s at %02d:%02d:%02d.", _str,
-                   time.wHour, time.wMinute, time.wSecond);
-}
 };

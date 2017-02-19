@@ -1,7 +1,7 @@
 /********************************************************************************************************************************
 ****
-****    Source code of Crusoe's Island Engine.
-****    Copyright (C) 2009 - 2015 Crusoe's Island LLC.
+****    Source code of Island Engine.
+****    Copyright (C) 2009 - 2017 Crusoe's Island LLC.
 ****
 ****    Started at 10th March 2010.
 ****    Description: the math library and anything else.
@@ -13,7 +13,7 @@
 #define CRUS_MATH_H
 
 #include <cmath>
-#include <memory.h>
+#include <memory>
 
 #include "System\CrusIsland.h"
 
@@ -21,18 +21,29 @@
 #undef max
 #undef min
 
-namespace isle
-{
-namespace math
-{
+namespace isle {
+
+struct Point {
+    union {
+        struct {
+            float x, y;
+        };
+
+        struct {
+            float pt[2];
+        };
+    };
+};
+
+namespace math {
 UNIT_TEST_HERITABLE_CLASS
 
-float const kPI              = 3.14159265358979323846f;
-float const kPI_DIV_180      = 0.01745329251994329576f;
-float const kPI_DIV_180_IN   = 57.2957795130823208767f;
+float const kPI = 3.14159265358979323846f;
+float const kPI_DIV_180 = 0.01745329251994329576f;
+float const kPI_DIV_180_IN = 57.2957795130823208767f;
 
-float const kEPSILON         = FLT_EPSILON;
-float const kINF             = FLT_MAX;
+float const kEPSILON = FLT_EPSILON;
+float const kINF = FLT_MAX;
 
 class Matrix;
 class Quaternion;

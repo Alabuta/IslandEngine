@@ -1,7 +1,7 @@
 /********************************************************************************************************************************
 ****
-****    Source code of Crusoe's Island Engine.
-****    Copyright (C) 2009 - 2015 Crusoe's Island LLC.
+****    Source code of Island Engine.
+****    Copyright (C) 2009 - 2017 Crusoe's Island LLC.
 ****
 ****    Started at 12th March 2010.
 ****    Description: ...
@@ -11,17 +11,16 @@
 #include "System\CrusWindow.h"
 #include "System\CrusMouse.h"
 
-namespace isle
-{
-namespace Input
-{
+namespace isle {
+namespace Input {
 std::map<uint32, bool> Mouse::mouseKeys_ = {{VK_LBUTTON, false}, {VK_RBUTTON, false}};
 
 Mouse::Mouse()
     : relat_x_(0), relat_y_(0), sense_x_(1.0f), sense_y_(1.0f),
-      /*wheel_(0), sense_wheel_(1.0f),*/ state_(nVISIBLE) {}
+    /*wheel_(0), sense_wheel_(1.0f),*/ state_(nVISIBLE)
+{ }
 
-Mouse::~Mouse() {};
+Mouse::~Mouse() { };
 
 void Mouse::Setup()
 {
@@ -38,21 +37,21 @@ void Mouse::Setup()
 
     hCursor = CreateCursor(GetModuleHandle(nullptr), 0, 0, w, h, &mask[0][0], &mask[1][0]);
 
-    if(hCursor == nullptr)
-        Book::AddEvent(eNOTE::nERROR, "transparent cursor is null.");
+    if (hCursor == nullptr)
+        log::Error() << "transparent cursor is null.";
 #endif
 }
 
 void Mouse::Destroy()
 {
 #if _CRUS_OBSOLETE
-    if(hCursor != nullptr)
+    if (hCursor != nullptr)
         DestroyCursor(hCursor);
 #endif
 }
 
 /*static*/ void Mouse::CheckKeySync(uint32 _key, std::function<void()> _fnJustPressed, std::function<void()> _fnWhilePressed,
-                                     std::function<void()> _fnJustUnpressed, std::function<void()> _fnUnpressed)
+                                    std::function<void()> _fnJustUnpressed, std::function<void()> _fnUnpressed)
 {
     SHORT const keyState = GetKeyState(_key);
 
@@ -77,7 +76,7 @@ void Mouse::Destroy()
     }
 
     catch (std::out_of_range const &oor) {
-        Book::AddEvent(isle::eNOTE::nERROR, "Out of Range error: %s", oor.what());
+        log::Error() << "Out of Range error: %s", oor.what();
     }
 }
 
@@ -85,26 +84,26 @@ void Mouse::Process(RAWMOUSE const *const _data)
 {
     state_ |= nACTIVE;
 
-    switch(_data->usFlags){
+    switch (_data->usFlags) {
         case MOUSE_MOVE_RELATIVE:
             relat_x_ = -static_cast<int16>(_data->lLastX) * sense_x_;
             relat_y_ = -static_cast<int16>(_data->lLastY) * sense_y_;
             break;
 
         case MOUSE_MOVE_ABSOLUTE:
-            Book::AddEvent(eNOTE::nDEBUG, "MOUSE_MOVE_ABSOLUTE");
+            log::Debug() << "MOUSE_MOVE_ABSOLUTE";
             break;
 
         case MOUSE_VIRTUAL_DESKTOP:             // For a multiple monitor system.
-            Book::AddEvent(eNOTE::nDEBUG, "MOUSE_VIRTUAL_DESKTOP");
+            log::Debug() << "MOUSE_VIRTUAL_DESKTOP";
             break;
 
         case MOUSE_ATTRIBUTES_CHANGED:          // Needs to query the attributes.
-            Book::AddEvent(eNOTE::nWARN, "MOUSE_ATTRIBUTES_CHANGED");
+            log::Warning() << "MOUSE_ATTRIBUTES_CHANGED";
             break;
     }
 
-    switch(_data->usButtonFlags){
+    switch (_data->usButtonFlags) {
         case RI_MOUSE_LEFT_BUTTON_DOWN:
             state_ |= nLEFT;
             break;
@@ -135,18 +134,18 @@ void Mouse::Process(RAWMOUSE const *const _data)
             break;
     }
 
-    if((state_ & nVISIBLE) != 0)
+    if ((state_ & nVISIBLE) != 0)
         return;
 
-    WINDOWINFO info;
-    GetWindowInfo(Window::inst().hWnd(), &info);
+    WINDOWINFO info = {0};
+    GetWindowInfo(Window::main().hWnd(), &info);
 
     ClipCursor(&info.rcClient);
 }
 
 void Mouse::ShowCursor()
 {
-    if((state_ & nVISIBLE) != 0)
+    if ((state_ & nVISIBLE) != 0)
         return;
 
     ::ShowCursor((state_ ^= nVISIBLE) & nVISIBLE);
@@ -155,7 +154,7 @@ void Mouse::ShowCursor()
 
 void Mouse::HideCursor()
 {
-    if((state_ & nVISIBLE) != 0)
+    if ((state_ & nVISIBLE) != 0)
         ::ShowCursor((state_ ^= nVISIBLE) & nVISIBLE);
 }
 

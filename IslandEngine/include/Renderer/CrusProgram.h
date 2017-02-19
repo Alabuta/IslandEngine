@@ -1,9 +1,8 @@
 /********************************************************************************************************************************
 ****
-****    Source code of Crusoe's Island Engine.
-****    Copyright (C) 2009 - 2015 Crusoe's Island LLC.
+****    Source code of Island Engine.
+****    Copyright (C) 2009 - 2017 Crusoe's Island LLC.
 ****
-****    Started at 27th June 2010.
 ****    Description: shader programs loading routines.
 ****
 ********************************************************************************************************************************/
@@ -15,109 +14,51 @@
 #include <vector>
 #include <initializer_list>
 
-#define _CRUS_SHADER_DEBUG 1
+#include "System\CrusSystem.h"
 
-namespace isle
-{
+namespace isle {
 class Program {
 public:
-    enum eLAYOUT_ID {
-        nVERTEX = 0, nFRAG_COLOR = 0, nNORMAL, nTEXCRD
+
+    enum eIN_OUT_ID {
+        nVERTEX = 0, nNORMAL, nTEXCRD,
+        nFRAG_COLOR = 0
     };
 
     enum eUNIFORM_ID {
-        nMATERIAL = 0, nTRANSFORM, nATLAS
+        nVIEWPORT = 0,
+        nMAIN_COLOR = 0
     };
 
-    Program() {};
-    ~Program() {};
+    enum eBUFFER_ID {
+        nTRANSFORM = 0,
+    };
 
-    bool AssignNew(std::initializer_list<std::string> names, astr options = "", ...);
-    void Delete();
+    bool AssignNew(std::initializer_list<char const *> &&names);
+    void Destroy();
 
-#if _CRUS_SHADER_DEBUG
-    static void CheckError();
-#endif
+    void UseThis() const;
 
-    void SwitchOn() const;
-    static void SwitchOff();
-
-    uint32 GetName() const;
+    uint32 program() const;
 
     int32 GetAttributeLoc(astr name) const;
     int32 GetUniformLoc(astr name) const;
 
-    static int32 GetLastAttributeLoc();
-    static int32 GetLasUniformLoc();
-
 private:
-    static int32 lastAttribute_, lastUniform_;      // Last attribute and uniform locations.
+    static auto constexpr kINCLUDING_LEVEL{16};
     uint32 program_{0};
 
-#if _CRUS_SHADER_DEBUG
-    //std::string name_{"NOT_A_PROGRAM"};
-    static bool checked_;
-#endif
+    bool CreateShader(std::string const &source, uint32 type);
+    bool CompileShader(std::pair<uint32, astr> const &shaderInfo) const;
 
-    bool CreateShader(std::string name, std::vector<std::string> sources, uint32 type);
+    bool LinkAndValidateProgram() const;
 
-    bool CheckShader(std::string name, astr type, uint32 shader) const;
-    bool CheckProgram(std::string name) const;
+    std::string PreprocessIncludes(std::string const &source, std::string const &name, int32 includingLevel = 0) const;
 };
 
-__forceinline void Program::SwitchOn() const
-{
-    glUseProgram(program_);
-
-#if _CRUS_OBSOLETE
-    if (glGetError() != GL_NO_ERROR) {
-        Book::AddEvent(eNOTE::nERROR, "invalid program number: %d (%s)", program_, name_.c_str());
-    }
-#endif
-}
-
-__forceinline /*static*/ void Program::SwitchOff()
-{
-    glUseProgram(0);
-}
-
-__forceinline uint32 Program::GetName() const
+__forceinline uint32 Program::program() const
 {
     return program_;
-}
-
-__forceinline int32 Program::GetAttributeLoc(astr _name) const
-{
-    lastAttribute_ = glGetAttribLocation(program_, _name);
-
-#if _CRUS_SHADER_DEBUG
-    if (lastAttribute_ < 0 && !checked_)
-        Book::AddEvent(eNOTE::nWARN, "attribute \"%s\" unexist or are not used.", _name);
-#endif
-
-    return lastAttribute_;
-}
-
-__forceinline int32 Program::GetUniformLoc(astr _name) const
-{
-    lastUniform_ = glGetUniformLocation(program_, _name);
-
-#if _CRUS_SHADER_DEBUG
-    if (lastUniform_ < 0 && !checked_)
-        Book::AddEvent(eNOTE::nWARN, "uniform \"%s\" unexist or are not used.", _name);
-#endif
-
-    return lastUniform_;
-}
-
-__forceinline /*static*/ int32 Program::GetLastAttributeLoc()
-{
-    return lastAttribute_;
-}
-
-__forceinline /*static*/ int32 Program::GetLasUniformLoc()
-{
-    return lastUniform_;
 }
 };
 

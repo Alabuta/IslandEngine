@@ -1,7 +1,7 @@
 /********************************************************************************************************************************
 ****
-****    Source code of Crusoe's Island Engine.
-****    Copyright (C) 2009 - 2015 Crusoe's Island LLC.
+****    Source code of Island Engine.
+****    Copyright (C) 2009 - 2017 Crusoe's Island LLC.
 ****
 ****    Started at 14th August 2009.
 ****    Description: three-component vector implementation.
@@ -9,17 +9,15 @@
 ********************************************************************************************************************************/
 #include <utility>
 
-namespace isle
-{
-namespace math
-{
-inline Vector::Vector() {}
-inline Vector::~Vector() {}
+namespace isle {
+namespace math {
+inline Vector::Vector() { }
+inline Vector::~Vector() { }
 
-inline Vector::Vector(Vector const &_v) : Vector::Vector(_v.x_, _v.y_, _v.z_) {}
+inline Vector::Vector(Vector const &_v) : Vector::Vector(_v.x_, _v.y_, _v.z_) { }
 
-inline Vector::Vector(float const _v[]) : Vector::Vector(_v[0],_v[1], _v[2]) {}
-inline Vector::Vector(float _x, float _y, float _z) : x_(_x), y_(_y), z_(_z) {}
+inline Vector::Vector(float const _v[]) : Vector::Vector(_v[0], _v[1], _v[2]) { }
+inline Vector::Vector(float _x, float _y, float _z) : x_(_x), y_(_y), z_(_z) { }
 
 inline Vector::Vector(Vector &&_v)
 {
@@ -131,7 +129,7 @@ inline Vector Vector::operator/ (float _s) const
 
 inline Vector const &Vector::operator= (Vector const &_v)
 {
-    if(this != &_v){
+    if (this != &_v) {
         x_ = _v.x_;  y_ = _v.y_;  z_ = _v.z_;
     }
 
@@ -268,6 +266,11 @@ inline Vector const &Vector::Normalize()
 /*static*/ inline Vector Vector::GetNormalized(float _x, float _y, float _z)
 {
     return Vector(_x, _y, _z).Normalize();
+}
+
+/*static*/ inline Vector Vector::One()
+{
+    return Vector(1, 1, 1);
 }
 };
 };

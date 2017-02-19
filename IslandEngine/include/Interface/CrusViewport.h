@@ -1,7 +1,7 @@
 /********************************************************************************************************************************
 ****
-****    Source code of Crusoe's Island Engine.
-****    Copyright (C) 2009 - 2015 Crusoe's Island LLC.
+****    Source code of Island Engine.
+****    Copyright (C) 2009 - 2017 Crusoe's Island LLC.
 ****
 ****    Started at 1st May 2012.
 ****    Description: viewport routines.
@@ -12,12 +12,10 @@
 #ifndef CRUS_VIEWPORT_H             // Include guard "CrusViewport.h"
 #define CRUS_VIEWPORT_H
 
-#include "Interface\CrusCamera.h"
+#include "Camera\CrusCamera.h"
 
-namespace isle
-{
-namespace intf
-{
+namespace isle {
+namespace intf {
 class Viewport {
 public:
     enum class eVIEWPORT_TYPE {
@@ -51,15 +49,15 @@ private:
     Camera *cam_;
 
     struct {
-        bool IsActive_:1;
-        bool IsMain_:1;         // The viewport occupies the entire space.
-        bool _reserved_:6;
+        bool IsActive_ : 1;
+        bool IsMain_ : 1;         // The viewport occupies the entire space.
+        bool _reserved_ : 6;
     };
 
     struct {
-        uint8 fill_mode_:2;     // Point, wireframe or solid.
-        uint8 cull_mode_:2;     // Off, back, front and both faces.
-        bool _reserved_:4;
+        uint8 fill_mode_ : 2;     // Point, wireframe or solid.
+        uint8 cull_mode_ : 2;     // Off, back, front and both faces.
+        bool _reserved_ : 4;
     };
 };
 
