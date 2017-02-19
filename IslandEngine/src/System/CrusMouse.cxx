@@ -138,7 +138,7 @@ void Mouse::Process(RAWMOUSE const *const _data)
         return;
 
     WINDOWINFO info = {0};
-    GetWindowInfo(Window::inst().hWnd(), &info);
+    GetWindowInfo(Window::main().hWnd(), &info);
 
     ClipCursor(&info.rcClient);
 }

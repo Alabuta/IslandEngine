@@ -3,11 +3,12 @@
 ****    Source code of Island Engine.
 ****    Copyright (C) 2009 - 2017 Crusoe's Island LLC.
 ****
-****    Started at 10th March 2010.
 ****    Description: main application window header file.
 ****
 ********************************************************************************************************************************/
 #pragma once
+
+#include <unordered_map>
 
 #ifndef CRUS_WINDOW_H               // Include guard "CrusWindow.h"
 #define CRUS_WINDOW_H
@@ -31,8 +32,7 @@ namespace isle {
 class Window {
 public:
 
-    // Args: mode, width and height in pixels.
-    void Create(HINSTANCE hInstance, char const mode[], int16 w, int16 h);
+    explicit Window(std::wstring const &name, HINSTANCE hInstance, int w, int h);
     void Destroy();
 
     // Adjust to the sizes of the desktop rectangle.
@@ -44,9 +44,14 @@ public:
     bool IsZoomed() const;
     bool IsWindowed() const;
 
-    static Window &inst();
+    static Window &main();
+
+    static Window &GetWindowFromHandle(HWND const &hWnd);
 
 private:
+    static HWND hMainWnd;
+    static std::unordered_map<HWND, Window *> windowsTable;
+
     HWND hWnd_{nullptr};
 
     // :COMPILER: nameless struct/union warning.
@@ -59,15 +64,18 @@ private:
     };
 #pragma warning(pop)
 
-    Window();
-    ~Window() = default;
+    Window() = delete;
+    Window(Window const &) = delete;
+    Window(Window &&) = delete;
 
     void ChooseMode(char mode);
 
     void ToggleFullScreen();
     static void ChangeDisplayMode();
 
-    static LRESULT CALLBACK Proc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+    LRESULT Process(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+
+    static LRESULT CALLBACK ProcessAllWindows(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 };
 
 inline HWND Window::hWnd() const
@@ -88,6 +96,11 @@ inline bool Window::IsZoomed() const
 inline bool Window::IsWindowed() const
 {
     return bWindowed_;
+}
+
+inline Window &Window::GetWindowFromHandle(HWND const &_hWnd)
+{
+    return *windowsTable[_hWnd];
 }
 };
 

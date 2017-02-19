@@ -3,7 +3,6 @@
 ****    Source code of Island Engine.
 ****    Copyright (C) 2009 - 2017 Crusoe's Island LLC.
 ****
-****    Started at 23th July 2009.
 ****    Description: splash screen are used for hidden application initialization.
 ****
 ********************************************************************************************************************************/
@@ -12,13 +11,12 @@
 #ifndef CRUS_SPLASH_H               // Include guard "CrusSplash.h"
 #define CRUS_SPLASH_H
 
-namespace __hidden
-{
-class CSplash {
+namespace __hidden {
+class Splash {
 public:
 
-    CSplash(HINSTANCE hInstance, wcstr);
-    ~CSplash();
+    Splash(HINSTANCE hInstance, wcstr);
+    ~Splash();
 
     HWND hWnd() const;
     HDC hDC() const;
@@ -26,14 +24,15 @@ public:
 private:
     HWND hWnd_;
     HDC  hDC_;
+    HINSTANCE hInstance_;
 };
 
-inline HWND CSplash::hWnd() const
+inline HWND Splash::hWnd() const
 {
     return hWnd_;
 }
 
-inline HDC CSplash::hDC() const
+inline HDC Splash::hDC() const
 {
     return hDC_;
 }

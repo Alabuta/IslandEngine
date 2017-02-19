@@ -88,7 +88,7 @@ void CInput::Setup()
         log::Fatal() << "can't to get list of attached HID devices.";
 
     // Shorter name, that's reason.
-    HWND const hTargetWnd = Window::inst().hWnd();
+    HWND const hTargetWnd = Window::main().hWnd();
 
     // Ready templated array of generic desktop controls.
     RAWINPUTDEVICE const kHID_GENERIC[4] = {

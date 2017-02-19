@@ -21,8 +21,8 @@ math::Vector const Camera::kWORLD_AXIS_X{1.0f, 0.0f, 0.0f};
 math::Vector const Camera::kWORLD_AXIS_Y{0.0f, 1.0f, 0.0f};
 math::Vector const Camera::kWORLD_AXIS_Z{0.0f, 0.0f, 1.0f};
 
-Camera::Camera() : behavior{std::make_shared<__hidden::ICameraEditorBehaviour>()}, pitch_{0.0f}, yaw_{0.0f}, view_{math::Matrix::GetIdentity()} {}
-Camera::~Camera() {};
+Camera::Camera() : behavior{std::make_shared<__hidden::ICameraEditorBehaviour>()}, pitch_{0.0f}, yaw_{0.0f}, view_{math::Matrix::GetIdentity()} { }
+Camera::~Camera() { };
 
 void Camera::Create(Camera::eCAM_BEHAVIOR _behavior)
 {
@@ -31,15 +31,15 @@ void Camera::Create(Camera::eCAM_BEHAVIOR _behavior)
             break;
 
         case eCAM_BEHAVIOR::nFREE:
-            //Input::Mouse::inst().HideCursor();
+            //Input::Mouse::main().HideCursor();
             break;
 
         case eCAM_BEHAVIOR::nTHIRD:
-            //Input::Mouse::inst().HideCursor();
+            //Input::Mouse::main().HideCursor();
             break;
 
         case eCAM_BEHAVIOR::nSDK:
-            //Input::Mouse::inst().ShowCursor();
+            //Input::Mouse::main().ShowCursor();
             break;
     }
 
@@ -130,7 +130,7 @@ float Camera::RestricYaw(float _yaw)
 void Camera::UpdateView()
 {
     RECT ws;
-    GetWindowRect(Window::inst().hWnd(), &ws);
+    GetWindowRect(Window::main().hWnd(), &ws);
 
     POINT pt;
     GetCursorPos(&pt);

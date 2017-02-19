@@ -297,7 +297,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     UNREFERENCED_PARAMETER(lpCmdLine);
     UNREFERENCED_PARAMETER(nShowCmd);
 
-    isle::Window::inst().Create(hInstance, "w-", 600, 400);
+    isle::Window window(crus::names::kMAIN_WINDOW_NAME, hInstance, 600, 400);
 
     return isle::System::Loop();
 }
