@@ -35,7 +35,9 @@
 
 #include "System\CrusIsland.h"
 #include "System\CrusTypes.h"
+#include "System\CrusSystem.h"
 #include "System\CrusBook.h"
+#include "System\CrusWindow.h"
 
 #if _CRUS_DEBUG_CONSOLE
 #include <UxTheme.h>
@@ -63,24 +65,21 @@ CHAR_INFO const kMARKERS[][kMARKERS_WIDTH] = {
 namespace isle {
 namespace log {
 
-LogStream Book::logStream;
-
 LogStream::LogStream() : stream_(std::cerr.rdbuf())
 {
-    file_.open("..\\book.log", std::ios_base::out | std::ios_base::trunc);
+    std::lock_guard<std::mutex> lock(mutex_);
+
+    file_.open(R"(..\book.log)", std::ios_base::out | std::ios_base::trunc);
 
     if (!file_.is_open()) {
         std::cerr << "Fatal    : can't create log file." << std::endl;
         ::_exit(EXIT_FAILURE);
     }
 
-    std::lock_guard<std::mutex> lock(mutex_);
+    stream_.set_rdbuf(file_.rdbuf());
 
 #if _CRUS_DEBUG_CONSOLE
-    stream_.set_rdbuf(conout_.rdbuf());
     InitConsoleWindow();
-#else
-    stream_.set_rdbuf(file_.rdbuf());
 #endif
 
     stream_ << std::noshowpoint;
@@ -90,23 +89,21 @@ LogStream::LogStream() : stream_(std::cerr.rdbuf())
 
 LogStream::~LogStream()
 {
-#if _CRUS_DEBUG_CONSOLE
-    if (conout_.is_open()) {
-        conout_.flush();
-        conout_.close();
-
-        stream_.set_rdbuf(std::cerr.rdbuf());
-    }
-#else
-    ShowWindow(GetConsoleWindow(), SW_HIDE);
-#endif
-
     if (file_.is_open()) {
         file_.flush();
         file_.close();
 
         stream_.set_rdbuf(std::cerr.rdbuf());
     }
+
+#if _CRUS_DEBUG_CONSOLE
+    if (conout_.is_open()) {
+        conout_.flush();
+        conout_.close();
+    }
+#else
+    ;// ShowWindow(GetConsoleWindow(), SW_HIDE);
+#endif
 }
 
 void LogStream::InitConsoleWindow()
@@ -180,9 +177,9 @@ void LogStream::InitConsoleWindow()
 #endif // _CRUS_DEBUG_CONSOLE
 }
 
-void LogStream::WriteToConsole(eSEVERITY _note) const
+void LogStream::WriteToConsole(eSEVERITY _severity)
 {
-    auto const note = static_cast<std::underlying_type<eSEVERITY>::type>(_note);
+    auto const note = static_cast<std::underlying_type<eSEVERITY>::type>(_severity);
 
 #if _CRUS_DEBUG_CONSOLE
     HANDLE const hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -190,45 +187,45 @@ void LogStream::WriteToConsole(eSEVERITY _note) const
     CONSOLE_SCREEN_BUFFER_INFO info;
     GetConsoleScreenBufferInfo(hConsole, &info);
 
-
     SMALL_RECT rcDraw = {
         1,  info.dwCursorPosition.Y,
         kMARKERS_WIDTH, info.dwCursorPosition.Y
     };
 
     WriteConsoleOutputW(hConsole, kMARKERS[note], {kMARKERS_WIDTH, 1}, {0, 0}, &rcDraw);
-
     SetConsoleCursorPosition(hConsole, {kMARKERS_WIDTH + 2, info.dwCursorPosition.Y});
 #endif
-
-    if (_note == eSEVERITY::nFATAL) {
-#if _CRUS_DEBUG_CONSOLE
-        FlushConsoleInputBuffer(hConsole);
-#endif
-        ::exit(EXIT_FAILURE);
-    }
+    stream_ << kSEVERITIES[static_cast<std::underlying_type<eSEVERITY>::type>(_severity)] << ' ';
 }
 
-Book::Book(eSEVERITY _severity)
+Book::Book(eSEVERITY _severity) : severity_(_severity)
 {
-    logStream.mutex_.lock();
+    LogStream::inst().mutex_.lock();
 
-#if _CRUS_DEBUG_CONSOLE
-    logStream.WriteToConsole(_severity);
-#else
-    static_cast<std::ostream &>(logStream) << logStream.kSEVERITIES[static_cast<std::underlying_type<eSEVERITY>::type>(_severity)] << ' ';
-#endif
+    LogStream::inst().WriteToConsole(severity_);
 }
 
 Book::~Book()
 {
+    LogStream::inst().stream_ << '\n';
+
 #if _CRUS_DEBUG_CONSOLE
-    static_cast<std::ostream &>(logStream) << std::endl;
-#else
-    static_cast<std::ostream &>(logStream) << '\n';
+    LogStream::inst().conout_ << std::endl;
 #endif
 
-    logStream.mutex_.unlock();
+    LogStream::inst().mutex_.unlock();
+
+    if (severity_ == eSEVERITY::nFATAL) {
+#if _CRUS_DEBUG_CONSOLE
+        FlushConsoleInputBuffer(GetStdHandle(STD_OUTPUT_HANDLE));
+#endif
+        auto hMainWnd = FindWindowW(crus::names::kMAIN_WINDOW_CLASS, crus::names::kMAIN_WINDOW_NAME);
+
+        if (hMainWnd != nullptr)
+            SendMessage(hMainWnd, WM_CLOSE, 0, 0);
+
+        ::exit(EXIT_FAILURE);
+    }
 }
 
 /*__declspec(noinline)*/ Book Info()

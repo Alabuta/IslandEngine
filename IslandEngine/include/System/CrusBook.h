@@ -59,7 +59,7 @@ private:
 
     void InitConsoleWindow();
 
-    void WriteToConsole(eSEVERITY _note) const;
+    void WriteToConsole(eSEVERITY _note);
 
     template<typename T>
     void ToStream(T const &object)
@@ -71,12 +71,18 @@ private:
     void ToStream(T const &object, std::true_type)
     {
         object.ToStream(stream_);
+#if _CRUS_DEBUG_CONSOLE
+        object.ToStream(conout_);
+#endif
     }
 
     template<typename T>
     void ToStream(T const &object, std::false_type)
     {
         stream_ << object;
+#if _CRUS_DEBUG_CONSOLE
+        conout_ << object;
+#endif
     }
 
     template<typename T>
@@ -90,9 +96,10 @@ private:
         enum { value = sizeof(func<T>(0)) == sizeof(char) };
     };
 
-    operator std::ostream &()
+    static LogStream &inst()
     {
-        return stream_;
+        static LogStream stream;
+        return stream;
     }
 
     friend class Book;
@@ -107,12 +114,13 @@ public:
     template<typename T>
     Book &operator<< (T const &object)
     {
-        logStream.ToStream(object);
+        LogStream::inst().ToStream(object);
         return *this;
     }
 
 private:
-    static LogStream logStream;
+
+    eSEVERITY severity_;
 };
 };
 };
