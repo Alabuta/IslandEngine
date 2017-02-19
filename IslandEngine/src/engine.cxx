@@ -50,6 +50,7 @@ public:
 };
 
 namespace app {
+void InitBuffers(std::vector<isle::Sprite> const &spriteSheet);
 intf::Grid grid;
 
 Program flipbookProgram;
@@ -63,21 +64,26 @@ math::Matrix matrices[] = {
     math::Matrix::GetIdentity()
 };
 
-std::future<bool> AssignNewProgram(Program &_program, std::initializer_list<std::string> &&_names)
+template <typename T>
+std::future<bool> AssignNewProgram(Program &_program, T &&_names)
 {
-    auto handle = [] (Program &program, std::initializer_list<std::string> &&names)
+    auto handle = [] (Program &program, T &&names)
     {
-        return program.AssignNew(std::move(names));
+        return program.AssignNew(std::forward<T>(names));
     };
 
-    std::packaged_task<bool(Program &, std::initializer_list<std::string> &&)> task(handle);
+#if 0
+    std::packaged_task<bool()> task(handle, std::ref(_program), _names);
 
     auto future = task.get_future();
 
-    std::thread thread(std::move(task), _program, _names);
+    std::thread thread(std::move(task));
     thread.detach();
 
     return std::move(future);
+#else
+    return std::async(/*std::launch::deferred, */handle, std::ref(_program), _names);
+#endif
 }
 
 void InitBackground()
@@ -85,8 +91,8 @@ void InitBackground()
     transform.MakeIdentity();
     matrices[1].Translate(0, 1, 0);
 
-    //auto assignNewProgram = AssignNewProgram(flipbookProgram, {"Defaults/Sprites-Default.glsl"});
-    flipbookProgram.AssignNew({"Defaults/Sprites-Default.glsl"});
+    auto assignedNewProgram = std::move(AssignNewProgram<std::initializer_list<char const *>>(flipbookProgram, {R"(Defaults/Sprites-Default.glsl)"}));
+    //flipbookProgram.AssignNew({"Defaults/Sprites-Default.glsl"});
 
     flipbookTexture.Init();
 
@@ -135,12 +141,13 @@ void InitBackground()
             if (sprite)
                 _spriteSheet.emplace_back(sprite);
 
-            std::this_thread::yield();
+            //std::this_thread::yield();
         }
     };
 
+    //std::vector<std::thread> threads;
+    std::vector<std::future<void>> futures;
     std::vector<std::vector<Sprite>> spriteSheets(threadsNumber);
-    std::vector<std::thread> threads;
 
     std::vector<int32> counts(threadsNumber, totalSpritesNumber / threadsNumber);
 
@@ -151,12 +158,16 @@ void InitBackground()
 
     for (auto i = 0u; i < threadsNumber; ++i) {
         end = start + counts[i];
-        threads.emplace_back(CreateSpritesRoutine, std::ref(spriteSheets[i]), start, end);
+        //threads.emplace_back(CreateSpritesRoutine, std::ref(spriteSheets[i]), start, end);
+        futures.emplace_back(std::async(CreateSpritesRoutine, std::ref(spriteSheets[i]), start, end));
         start = end;
     }
 
-    for (auto &thread : threads)
-        thread.join();
+    /*for (auto &thread : threads)
+        thread.join();*/
+
+    for (auto &future : futures)
+        future.wait();
 
     for (auto &sheet : spriteSheets)
         spriteSheet.insert(spriteSheet.end(), sheet.begin(), sheet.end());
@@ -164,11 +175,16 @@ void InitBackground()
     spriteSheet.shrink_to_fit();
     spritesNumber = static_cast<decltype(spritesNumber)>(spriteSheet.size());
 
-    /*if (!assignNewProgram.get()) {
+    InitBuffers(spriteSheet);
+
+    if (!assignedNewProgram.get()) {
         log::Debug() << "invalid shader.";
         return;
-    }*/
+    }
+}
 
+void InitBuffers(std::vector<isle::Sprite> const &_spriteSheet)
+{
     struct Vertex {
         Position pos;
         UV uv;
@@ -176,7 +192,7 @@ void InitBackground()
 
     std::vector<Vertex> vertex_buffer;
 
-    for (auto const &sprite : spriteSheet)
+    for (auto const &sprite : _spriteSheet)
         for (auto i = 0; i < sprite.vertices().size(); ++i)
             vertex_buffer.emplace_back(std::move(Vertex{sprite.vertices()[i], sprite.uvs()[i]}));
 
@@ -189,13 +205,13 @@ void InitBackground()
             0, 1, 2, 3
         };
 
-        uint32 bo = 0;
+        auto bo = 0u;
         Render::inst().CreateBO(GL_ELEMENT_ARRAY_BUFFER, bo);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
     }
 
     {
-        uint32 bo = 0;
+        auto bo = 0u;
         Render::inst().CreateBO(GL_ARRAY_BUFFER, bo);
         glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * vertex_buffer.size(), vertex_buffer.data(), GL_STATIC_DRAW);
     }
@@ -228,33 +244,8 @@ void DrawBackgorund()
     glDrawElementsBaseVertex(GL_TRIANGLE_STRIP, 4, GL_UNSIGNED_SHORT, nullptr, index * 4);
 }
 
-void PrintStuff(int32 start, int32 end)
-{
-    log::Debug() << std::this_thread::get_id();
-    //return;
-
-    for (auto i = start; i < end; ++i) {
-        log::Debug() << i;
-        std::this_thread::yield();
-    }
-}
-
-void ThreadStuff()
-{
-    log::Debug() << std::thread::hardware_concurrency();
-    log::Debug() << std::this_thread::get_id();
-
-    std::thread thread1(PrintStuff, 0, 500);
-    std::thread thread2(PrintStuff, 500, 1000);
-
-    thread1.detach();
-    thread2.detach();
-}
-
 void Init()
 {
-    //ThreadStuff();
-
     /*std::map<int, std::unique_ptr<ISystem>> systems;
 
     systems.emplace(0, std::make_unique<RenderSystem>());
