@@ -16,8 +16,6 @@
 
 #include "System\CrusSystem.h"
 
-#define _CRUS_SHADER_DEBUG 1
-
 namespace isle {
 class Program {
 public:
@@ -36,7 +34,7 @@ public:
         nTRANSFORM = 0,
     };
 
-    bool AssignNew(std::initializer_list<std::string> &&names);
+    bool AssignNew(std::initializer_list<char const *> &&names);
     void Destroy();
 
     void UseThis() const;
@@ -47,18 +45,13 @@ public:
     int32 GetUniformLoc(astr name) const;
 
 private:
-    static auto const kINCLUDING_LEVEL{16};
+    static auto constexpr kINCLUDING_LEVEL{16};
     uint32 program_{0};
 
-    struct ShaderInfo {
-        std::string type;
-        uint32 shader;
-    };
+    bool CreateShader(std::string const &source, uint32 type);
+    bool CompileShader(std::pair<uint32, astr> const &shaderInfo) const;
 
-    bool CreateShader(std::string const &name, std::string const &source, uint32 type);
-
-    bool CheckShader(std::string const &name, ShaderInfo const &shaderInfo) const;
-    bool CheckProgram(std::string const &name) const;
+    bool LinkAndValidateProgram() const;
 
     std::string PreprocessIncludes(std::string const &source, std::string const &name, int32 includingLevel = 0) const;
 };

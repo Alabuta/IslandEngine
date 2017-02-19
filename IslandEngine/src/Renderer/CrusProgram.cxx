@@ -6,8 +6,6 @@
 ****    Description: shader programs loading routines.
 ****
 ********************************************************************************************************************************/
-#include <cstdio>
-#include <stdarg.h>
 #include <sstream>
 #include <fstream>
 #include <streambuf>
@@ -20,8 +18,8 @@
 #include "Renderer\CrusProgram.h"
 
 namespace {
-constexpr auto kGLSL_VERSION = "#version 450 core";
-constexpr auto kSHADERS_PATH = "../contents/shaders/";
+auto constexpr kGLSL_VERSION = R"(#version 450 core)";
+auto constexpr kSHADERS_PATH = R"(../contents/shaders/)";
 };
 
 namespace isle {
@@ -65,7 +63,7 @@ std::string Program::PreprocessIncludes(std::string const &_source, std::string 
         return _source;
     }
 
-    static std::regex const re("^[ ]*#[ ]*pragma[ ]+include[(][\"](.*)[\"][)].*");
+    static std::regex const re(R"(^[ ]*#[ ]*pragma[ ]+include[(]["](.*)["][)].*)");
 
     std::stringstream input;
     std::ostringstream output;
@@ -78,7 +76,7 @@ std::string Program::PreprocessIncludes(std::string const &_source, std::string 
 
     int64 line_number = -1;
 
-    input << "#line " << line_number << " \"" << _name << "\"" << std::endl;
+    input << "#line " << line_number << R"( ")" << _name << R"(")" << std::endl;
     input << _source;
 
     std::smatch matches;
@@ -93,7 +91,7 @@ std::string Program::PreprocessIncludes(std::string const &_source, std::string 
                 return _source;
 
             output << PreprocessIncludes(include_file_source, include_file_name, _includingLevel + 1) << std::endl;
-            output << "#line " << line_number << " \"" << _name << "\"" << std::endl;
+            output << "#line " << line_number << R"( ")" << _name << R"(")" << std::endl;
         }
 
         else output << line << std::endl;
@@ -106,7 +104,7 @@ std::string Program::PreprocessIncludes(std::string const &_source, std::string 
     return output.good() ? output.str() : _source;
 }
 
-bool Program::AssignNew(std::initializer_list<std::string> &&_names)
+bool Program::AssignNew(std::initializer_list<char const *> &&_names)
 {
     // If current shader program exist, destroy it and create the new shader.
     if (glIsProgram(program_) == GL_TRUE) {
@@ -128,21 +126,19 @@ bool Program::AssignNew(std::initializer_list<std::string> &&_names)
 
         source = PreprocessIncludes(source, name);
 
-        if (!CreateShader(name, source, GL_VERTEX_SHADER))
+        if (!CreateShader(source, GL_VERTEX_SHADER))
             return false;
 
-        if (!CreateShader(name, source, GL_FRAGMENT_SHADER))
+        if (!CreateShader(source, GL_FRAGMENT_SHADER))
             return false;
     }
 
     if (glGetError() != GL_NO_ERROR)
         log::Error() << "...";
 
-    if (CheckProgram(names.begin()[0])) {
-        glFinish();
-
+    if (LinkAndValidateProgram()) {
         if (glIsProgram(program_) != GL_TRUE) {
-            log::Error() << "invalid program number: " << program_ << "from" << names.begin();
+            log::Error() << "invalid program number: " << program_ << " from " << names.begin();
             return false;
         }
 
@@ -174,12 +170,12 @@ void Program::Destroy()
     glDeleteProgram(program_);
 }
 
-bool Program::CreateShader(std::string const &_name, std::string const &_source, uint32 _type)
+bool Program::CreateShader(std::string const &_source, uint32 _type)
 {
-    ShaderInfo shaderInfo{"undefined shader", glCreateShader(_type)};
+    std::pair<uint32, astr> shaderInfo(glCreateShader(_type), "undefined shader");
 
-    if (glGetError() != GL_NO_ERROR) {
-        log::Error() << "can't create shader.";
+    if (glGetError() == GL_INVALID_ENUM) {
+        log::Error() << "shader type is not an accepted value.";
         return false;
     }
 
@@ -199,7 +195,7 @@ bool Program::CreateShader(std::string const &_name, std::string const &_source,
                 << "\n#define nTRANSFORM    " << nTRANSFORM
                 << '\n';
 
-            shaderInfo.type = "vertex shader";
+            shaderInfo.second = "vertex shader";
             break;
 
         case GL_FRAGMENT_SHADER:
@@ -211,7 +207,7 @@ bool Program::CreateShader(std::string const &_name, std::string const &_source,
                 << "\n#define nMAIN_COLOR   " << nMAIN_COLOR
                 << '\n';
 
-            shaderInfo.type = "fragment shader";
+            shaderInfo.second = "fragment shader";
             break;
 
         case GL_GEOMETRY_SHADER:
@@ -221,7 +217,7 @@ bool Program::CreateShader(std::string const &_name, std::string const &_source,
                 << "\n#define CRUS_GEOMETRY_SHADER 1\n"
                 << '\n';
 
-            shaderInfo.type = "geometry shader";
+            shaderInfo.second = "geometry shader";
             break;
 
         case GL_COMPUTE_SHADER:
@@ -231,47 +227,46 @@ bool Program::CreateShader(std::string const &_name, std::string const &_source,
                 << "\n#define CRUS_COMPUTE_SHADER 1\n"
                 << '\n';
 
-            shaderInfo.type = "compute shader";
+            shaderInfo.second = "compute shader";
             break;
     }
 
     std::string sources(preprocessor_directives.str() + _source);
+    auto const str = sources.c_str();
 
-    auto const t = sources.c_str();
+    glShaderSource(shaderInfo.first, 1, &str, nullptr);
 
-    glShaderSource(shaderInfo.shader, 1, &t, nullptr);
-    glCompileShader(shaderInfo.shader);
-
-    if (!CheckShader(_name, shaderInfo))
+    if (!CompileShader(shaderInfo))
         return false;
 
-    glAttachShader(program_, shaderInfo.shader);
+    glAttachShader(program_, shaderInfo.first);
     return true;
 }
 
-bool Program::CheckShader(std::string const &_name, ShaderInfo const &_shaderInfo) const
+bool Program::CompileShader(std::pair<uint32, astr> const &_shaderInfo) const
 {
     auto status = 0, length = -1;
 
-    glGetShaderiv(_shaderInfo.shader, GL_COMPILE_STATUS, &status);
+    glCompileShader(_shaderInfo.first);
+    glGetShaderiv(_shaderInfo.first, GL_COMPILE_STATUS, &status);
 
     if (status != 0)
         return true;
 
-    glGetShaderiv(_shaderInfo.shader, GL_INFO_LOG_LENGTH, &length);
+    glGetShaderiv(_shaderInfo.first, GL_INFO_LOG_LENGTH, &length);
 
     std::vector<char> log(length, '\0');
-    glGetShaderInfoLog(_shaderInfo.shader, static_cast<GLsizei>(log.size()), &length, log.data());
+    glGetShaderInfoLog(_shaderInfo.first, static_cast<GLsizei>(log.size()), &length, log.data());
 
     if (length < 1)
         return false;
 
-    log::Error() << "{" << _shaderInfo.type << "} " << log.data();
+    log::Error() << "{" << _shaderInfo.second << "} " << log.data();
 
     return false;
 }
 
-bool Program::CheckProgram(std::string const &_name) const
+bool Program::LinkAndValidateProgram() const
 {
     int32 status[2], length = -1;
 
@@ -306,10 +301,8 @@ int32 Program::GetAttributeLoc(astr _name) const
 {
     auto attributeLocation = glGetAttribLocation(program_, _name);
 
-#if _CRUS_SHADER_DEBUG
     if (attributeLocation < 0)
         log::Warning() << "attribute is not exist or isn't being used: " << _name;
-#endif
 
     return attributeLocation;
 }
@@ -318,10 +311,8 @@ int32 Program::GetUniformLoc(astr _name) const
 {
     auto uniformLocation = glGetUniformLocation(program_, _name);
 
-#if _CRUS_SHADER_DEBUG
     if (uniformLocation < 0)
         log::Warning() << "uniform is not exist or isn't being used: " << _name;
-#endif
 
     return uniformLocation;
 }
