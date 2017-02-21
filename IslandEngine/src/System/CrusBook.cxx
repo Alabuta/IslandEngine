@@ -177,12 +177,12 @@ void LogStream::InitConsoleWindow()
 #endif // _CRUS_DEBUG_CONSOLE
 }
 
-void LogStream::WriteToConsole(eSEVERITY _severity)
+void LogStream::BeginLine(eSEVERITY _severity)
 {
-    auto const note = static_cast<std::underlying_type<eSEVERITY>::type>(_severity);
+    auto const index = static_cast<std::underlying_type<eSEVERITY>::type>(_severity);
 
 #if _CRUS_DEBUG_CONSOLE
-    HANDLE const hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+    auto const hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 
     CONSOLE_SCREEN_BUFFER_INFO info;
     GetConsoleScreenBufferInfo(hConsole, &info);
@@ -192,26 +192,32 @@ void LogStream::WriteToConsole(eSEVERITY _severity)
         kMARKERS_WIDTH, info.dwCursorPosition.Y
     };
 
-    WriteConsoleOutputW(hConsole, kMARKERS[note], {kMARKERS_WIDTH, 1}, {0, 0}, &rcDraw);
+    WriteConsoleOutputW(hConsole, kMARKERS[index], {kMARKERS_WIDTH, 1}, {0, 0}, &rcDraw);
     SetConsoleCursorPosition(hConsole, {kMARKERS_WIDTH + 2, info.dwCursorPosition.Y});
 #endif
-    stream_ << kSEVERITIES[static_cast<std::underlying_type<eSEVERITY>::type>(_severity)] << ' ';
+
+    stream_ << kSEVERITIES[index] << ' ';
 }
 
-Book::Book(eSEVERITY _severity) : severity_(_severity)
-{
-    LogStream::inst().mutex_.lock();
-
-    LogStream::inst().WriteToConsole(severity_);
-}
-
-Book::~Book()
+void LogStream::EndLine()
 {
     LogStream::inst().stream_ << '\n';
 
 #if _CRUS_DEBUG_CONSOLE
     LogStream::inst().conout_ << std::endl;
 #endif
+}
+
+Book::Book(eSEVERITY _severity) : severity_(_severity)
+{
+    LogStream::inst().mutex_.lock();
+
+    LogStream::inst().BeginLine(severity_);
+}
+
+Book::~Book()
+{
+    LogStream::inst().EndLine();
 
     LogStream::inst().mutex_.unlock();
 

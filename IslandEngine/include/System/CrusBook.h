@@ -39,8 +39,25 @@ enum class eSEVERITY : size_t {
 };
 
 class LogStream final {
-private:
+public:
     std::mutex mutex_;
+
+    template<typename T>
+    void ToStream(T const &object)
+    {
+        ToStream(object, std::bool_constant<HasToStreamMethod<T>::value>());
+    }
+
+    void BeginLine(eSEVERITY _note);
+    void EndLine();
+
+    static LogStream &inst()
+    {
+        static LogStream stream;
+        return stream;
+    }
+
+private:
 
     std::ostream stream_;
     std::ofstream file_;
@@ -58,14 +75,6 @@ private:
     ~LogStream();
 
     void InitConsoleWindow();
-
-    void WriteToConsole(eSEVERITY _note);
-
-    template<typename T>
-    void ToStream(T const &object)
-    {
-        ToStream(object, std::bool_constant<HasToStreamMethod<T>::value>());
-    }
 
     template<class T>
     void ToStream(T const &object, std::true_type)
@@ -95,14 +104,6 @@ private:
     public:
         enum { value = sizeof(func<T>(0)) == sizeof(char) };
     };
-
-    static LogStream &inst()
-    {
-        static LogStream stream;
-        return stream;
-    }
-
-    friend class Book;
 };
 
 class Book final {
