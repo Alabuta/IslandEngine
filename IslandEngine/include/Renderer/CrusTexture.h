@@ -23,8 +23,14 @@ struct alignas(sizeof(uint32)) RGBA
     };
 };
 
+//std::istream &operator >> (std::istream &in, RGBA &per)
+//{
+//    in >> per.value;
+//    return in;
+//}
+
 struct Image {
-    alignas(sizeof(__m128i)) std::vector<byte> data_;
+    alignas(sizeof(__m128i)) std::vector<RGBA> data_;
 
     int32 bpp_{0};
     int32 width_{0}, height_{0};

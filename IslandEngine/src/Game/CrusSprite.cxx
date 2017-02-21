@@ -206,7 +206,7 @@ isle::Rect GetCroppedSpriteRect(isle::Image const &image, isle::Rect const &rect
 
     for (auto i = top; i < bottom; ++i) {
         for (auto j = left; j < right; ++j) {
-            data = image.data_[i * width * bpp + j * bpp + (bpp - 1)];
+            data = image.data_[i * width + j].channels[3];
 
             if (data > 0) {
                 if (j < leftmost)
@@ -259,7 +259,7 @@ namespace isle {
 
 #if _CRUS_TEMP_DISABLED
     if (image.BytesPerPixel() == 4)
-        sprite.textureRect_ = std::move(GetCroppedSpriteRect(image, sprite.rect_));
+        sprite.textureRect_ = GetCroppedSpriteRect(image, sprite.rect_);
 #endif
 
     if (image.BytesPerPixel() == 4)
