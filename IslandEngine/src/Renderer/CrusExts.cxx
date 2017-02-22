@@ -98,7 +98,7 @@ HGLRC OpenGLContext::hMainRC_{nullptr};
 
 std::stack<HGLRC> OpenGLContext::hSharedRCs_;
 
-OpenGLContext::OpenGLContext()
+OpenGLContext::OpenGLContext() : hRC_(nullptr)
 {
     isle::log::Debug() << "OpenGLContext(): " << std::this_thread::get_id();
 
@@ -108,7 +108,11 @@ OpenGLContext::OpenGLContext()
         SetupContext();
 
     else if (hSharedRCs_.size() != 0) {
-        wglMakeCurrent(hMainWndDC_, hSharedRCs_.top());
+        hRC_ = hSharedRCs_.top();
+
+        if (wglMakeCurrent(hMainWndDC_, hRC_) == FALSE)
+            isle::log::Fatal() << "can't make share context current, thread id: " << std::this_thread::get_id();
+
         hSharedRCs_.pop();
     }
 }
@@ -191,6 +195,8 @@ void OpenGLContext::SetupContext()
 
     if (hMainRC_ == nullptr)
         isle::log::Fatal() << "can't create required render context.";
+
+    hRC_ = hMainRC_;
 
     auto shareContextsNumber = std::max(std::thread::hardware_concurrency(), 1u) * 2;
 

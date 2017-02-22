@@ -15,7 +15,6 @@
 #include "Renderer\CrusRender.h"
 
 #include <WindowsX.h>
-#include <CommCtrl.h>
 
 #include <VSsym32.h>
 #include <DwmAPI.h>
@@ -31,14 +30,12 @@ Window::Window(std::wstring const &_name, HINSTANCE _hInstance, int _w, int _h) 
     // All of aplication parts and sets.
     System::Setup();
 
-    log::Info() << "...";
-
     // Create the splash screen and display it.
     __hidden::Splash splash(_hInstance, LR"(..\..\Crusoe's Splash.bmp)");
 
     WNDCLASSEXW const wcx = {
         sizeof(WNDCLASSEXW),
-        0,
+        CS_OWNDC,
         (WNDPROC)Window::ProcessAllWindows,
         0, 0,
         _hInstance,
@@ -92,6 +89,9 @@ Window::Window(std::wstring const &_name, HINSTANCE _hInstance, int _w, int _h) 
 void Window::Destroy()
 {
     if (hWnd_ != nullptr) {
+        /*if (hWnd_ != nullptr)
+            ReleaseDC(hWnd_, hDC_);*/
+
         DestroyWindow(hWnd_);
 
         EnumChildWindows(hWnd_, [] (HWND hWnd, LPARAM lParam) mutable
