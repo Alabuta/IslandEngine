@@ -19,7 +19,14 @@
 
 #define GL_GLEXT_PROTOTYPES 1
 #define WGL_WGLEXT_PROTOTYPES 1
+
 #define CRUS_USE_GL_EXTENSIONS 0
+
+#define CRUS_OPENGL_DEBUG_OUTPUT 1
+#define CRUS_OPENGL_DEBUG_SEVERITY_HIGH            GL_TRUE
+#define CRUS_OPENGL_DEBUG_SEVERITY_MEDIUM          GL_TRUE
+#define CRUS_OPENGL_DEBUG_SEVERITY_LOW             GL_TRUE
+#define CRUS_OPENGL_DEBUG_SEVERITY_NOTIFICATION    GL_FALSE
 
 #include <GL\GLcoreARB.h>
 //#include <GL\GLext.h>
@@ -68,6 +75,8 @@ private:
     static HGLRC hMainRC_;
 
     static std::stack<HGLRC> hSharedRCs_;
+
+    HGLRC hRC_;
 
     explicit OpenGLContext();
     ~OpenGLContext();

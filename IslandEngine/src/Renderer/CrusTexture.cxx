@@ -43,11 +43,6 @@ bool Texture::Init()
     glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &maxAnisotrophy);
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, maxAnisotrophy);*/
 
-    if (glGetError() != GL_NO_ERROR) {
-        log::Error() << "an error is returned: " << __FILE__ << "at line" << __LINE__;
-        return false;
-    }
-
     w_ = static_cast<uint16>(image.width_);
     h_ = static_cast<uint16>(image.height_);
 

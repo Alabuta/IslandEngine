@@ -41,9 +41,6 @@ void Render::Init()
     if (maxAttribs < 16)
         log::Fatal() << "maximum supported number of vertex attributes is less than required.";
 
-    if (glGetError() != GL_NO_ERROR)
-        log::Error() << __LINE__;
-
     using namespace colors;
     glClearColor(kCLEARGRAY.r(), kCLEARGRAY.g(), kCLEARGRAY.b(), 1.0f);
     //glClearColor(41 / 256.0f, 34 / 256.0f, 37 / 256.0f, 1.0f);
@@ -66,17 +63,12 @@ bool Render::CreateProgram(uint32 &_program)
 
     _program = glCreateProgram();
 
-    auto codeError = glGetError();
+    glObjectLabel(GL_PROGRAM, _program, -1, "[Program]");
 
-    if (codeError != GL_NO_ERROR) {
-        log::Error() << "some problem with program index: " << codeError;
+    if (glGetError() != GL_NO_ERROR)
         return false;
-    }
 
     POs_ = _program;
-
-    log::Debug() << "program: " << _program;
-
     return true;
 }
 
@@ -90,10 +82,10 @@ bool Render::CreateBO(uint32 _target, uint32 &_bo)
     glGenBuffers(1, &_bo);
     glBindBuffer(_target, _bo);
 
-    if (glGetError() != GL_NO_ERROR) {
-        log::Error() << "some problem with buffer index.";
+    glObjectLabel(GL_BUFFER, _bo, -1, "[BO]");
+
+    if (glGetError() != GL_NO_ERROR)
         return false;
-    }
 
     BOs_ = _bo;
     return true;
@@ -109,10 +101,10 @@ bool Render::CreateVAO(uint32 &_vao)
     glGenVertexArrays(1, &_vao);
     glBindVertexArray(_vao);
 
-    if (glGetError() != GL_NO_ERROR) {
-        log::Error() << "some problem with vertex array index.";
+    glObjectLabel(GL_VERTEX_ARRAY, _vao, -1, "[VAO]");
+
+    if (glGetError() != GL_NO_ERROR)
         return false;
-    }
 
     VAOs_ = _vao;
     return true;
@@ -128,10 +120,10 @@ bool Render::CreateTBO(uint32 _target, uint32 &_tbo)
     glGenTextures(1, &_tbo);
     glBindTexture(_target, _tbo);
 
-    if (glGetError() != GL_NO_ERROR) {
-        log::Error() << "some problem with texture buffer index.";
+    glObjectLabel(GL_TEXTURE, _tbo, -1, "[TO]");
+
+    if (glGetError() != GL_NO_ERROR)
         return false;
-    }
 
     TBOs_ = _tbo;
     return true;
@@ -149,21 +141,22 @@ math::Matrix identity = math::Matrix::GetIdentity().Translate(0, 1, 0);
 
 void Render::DrawFrame()
 {
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    vp_.MakeCurrent();
+    //vp_.MakeCurrent();
     vp_.cam().Update();
 
     math::Matrix const matrices[] = {vp_.projView(), vp_.proj(), vp_.cam().view()};
 
     UpdateViewport(0, 3, matrices);
 
+    //glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 1, -1, "[Frame]");
+
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
     app::DrawFrame();
 
     SwapBuffers(OpenGLContext::hMainWndDC());
 
-    if (glGetError() != GL_NO_ERROR)
-        log::Error() << "some problem with OpenGL.";
+    //glPopDebugGroup();
 }
 
 /*static*/ __declspec(noinline) Render &Render::inst()
@@ -231,53 +224,6 @@ void Render::InitBufferObjects()
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, Program::nTRANSFORM, TRANSFORM_);
         glShaderStorageBlockBinding(ubo.program(), index, Program::nTRANSFORM);
     }
-}
-
-void CALLBACK Render::DebugCallback(GLenum _source, GLenum _type, GLuint _id, GLenum _severity,
-                                    GLsizei _length, char const *_message, void const *_userParam)
-{
-    UNREFERENCED_PARAMETER(_source);
-    UNREFERENCED_PARAMETER(_type);
-    UNREFERENCED_PARAMETER(_id);
-    UNREFERENCED_PARAMETER(_severity);
-    UNREFERENCED_PARAMETER(_length);
-    UNREFERENCED_PARAMETER(_message);
-    UNREFERENCED_PARAMETER(_userParam);
-
-    /*eNOTE note;
-
-    switch (_type) {
-        case GL_DEBUG_TYPE_ERROR_ARB:
-            note = eNOTE::nERROR;
-            break;
-
-        case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR_ARB:
-            note = eNOTE::nWARN;
-            break;
-
-        case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR_ARB:
-            note = eNOTE::nWARN;
-            break;
-            break;
-
-        case GL_DEBUG_TYPE_PORTABILITY_ARB:
-            note = eNOTE::nINFO;
-            break;
-
-        case GL_DEBUG_TYPE_PERFORMANCE_ARB:
-            note = eNOTE::nWARN;
-            break;
-            break;
-
-        case GL_DEBUG_TYPE_OTHER_ARB:
-            note = eNOTE::nNOTICE;
-            break;
-
-        default:
-            note = eNOTE::nDEBUG;
-    }
-
-    Book::AddEvent(note, _message);*/
 }
 
 void Render::CleanUp()

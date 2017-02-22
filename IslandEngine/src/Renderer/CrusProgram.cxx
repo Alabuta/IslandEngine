@@ -133,9 +133,6 @@ bool Program::AssignNew(std::initializer_list<char const *> &&_names)
             return false;
     }
 
-    if (glGetError() != GL_NO_ERROR)
-        log::Error() << "...";
-
     if (LinkAndValidateProgram()) {
         if (glIsProgram(program_) != GL_TRUE) {
             log::Error() << "invalid program number: " << program_ << " from " << names.begin();
@@ -173,11 +170,6 @@ void Program::Destroy()
 bool Program::CreateShader(std::string const &_source, uint32 _type)
 {
     std::pair<uint32, astr> shaderInfo(glCreateShader(_type), "undefined shader");
-
-    if (glGetError() == GL_INVALID_ENUM) {
-        log::Error() << "shader type is not an accepted value.";
-        return false;
-    }
 
     // Are used for shader source file preprocessing.
     std::ostringstream preprocessor_directives;
@@ -238,6 +230,8 @@ bool Program::CreateShader(std::string const &_source, uint32 _type)
 
     if (!CompileShader(shaderInfo))
         return false;
+
+    glObjectLabel(GL_SHADER, shaderInfo.first, -1, shaderInfo.second);
 
     glAttachShader(program_, shaderInfo.first);
     return true;

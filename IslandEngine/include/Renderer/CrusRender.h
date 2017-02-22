@@ -66,9 +66,6 @@ private:
 
     void InitBufferObjects();
 
-    static void CALLBACK DebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity,
-                                       GLsizei length, char const *message, void const *userParam);
-
     void CleanUp();
 };
 
