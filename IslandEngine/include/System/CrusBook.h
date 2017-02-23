@@ -11,11 +11,12 @@
 #ifndef CRUS_BOOK_H                 // Include guard "CrusBook.h"
 #define CRUS_BOOK_H
 
-#include <iostream>
-#include <iomanip>
+#if _DEBUG
+#define _CRUS_DEBUG_CONSOLE         1   // Macros for displaing debug events console.
+#endif
+
 #include <sstream>
 #include <fstream>
-#include <streambuf>
 #include <mutex>
 
 #include "System\CrusTypes.h"

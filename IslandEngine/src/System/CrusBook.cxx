@@ -7,18 +7,6 @@
 ****
 ********************************************************************************************************************************/
 #include <iostream>
-#include <iomanip>
-#include <sstream>
-#include <fstream>
-#include <streambuf>
-
-#include <mutex>
-
-#include <cstdio>
-#include <cstdlib>
-#include <cstdarg>
-#include <clocale>
-#include <type_traits>
 
 #ifndef _UNICODE
 #define _UNICODE
@@ -35,9 +23,7 @@
 
 #include "System\CrusIsland.h"
 #include "System\CrusTypes.h"
-#include "System\CrusSystem.h"
 #include "System\CrusBook.h"
-#include "System\CrusWindow.h"
 
 #if _CRUS_DEBUG_CONSOLE
 #include <UxTheme.h>
@@ -102,13 +88,13 @@ LogStream::~LogStream()
         conout_.close();
     }
 #else
-    ;// ShowWindow(GetConsoleWindow(), SW_HIDE);
+    // ShowWindow(GetConsoleWindow(), SW_HIDE);
 #endif
 }
 
+#if _CRUS_DEBUG_CONSOLE
 void LogStream::InitConsoleWindow()
 {
-#if _CRUS_DEBUG_CONSOLE
     auto result = AllocConsole();
 
     conout_.open("conout$", std::ios_base::out | std::ios_base::trunc);
@@ -174,8 +160,8 @@ void LogStream::InitConsoleWindow()
     consoleWindowTitle << crus::names::kPROJECT << L" at " << crus::names::kBUILD_DATE << L" (" << crus::names::kBUILD_VERSION << L")\n";
 
     SetWindowTextW(hConsoleWnd, consoleWindowTitle.str().c_str());
-#endif // _CRUS_DEBUG_CONSOLE
 }
+#endif // _CRUS_DEBUG_CONSOLE
 
 void LogStream::BeginLine(eSEVERITY _severity)
 {
