@@ -14,6 +14,7 @@
 
 #include <cmath>
 #include <memory>
+#include <algorithm>
 
 #include "System\CrusIsland.h"
 
@@ -76,19 +77,9 @@ inline bool IsTooSmall(float x)
     //return CloseEnough(0.0f, x);
 }
 
-inline float min(float a, float b)
-{
-    return a < b ? a : b;
-}
-
-inline float max(float a, float b)
-{
-    return a > b ? a : b;
-}
-
 inline float clamp(float x, float min, float max)
 {
-    return math::max(math::min(x, max), min);
+    return std::max(std::min(x, max), min);
 }
 };
 };
