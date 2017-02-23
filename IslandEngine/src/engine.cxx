@@ -72,17 +72,17 @@ std::future<bool> AssignNewProgram(Program &_program, T &&_names)
         return program.AssignNew(std::forward<T>(names));
     };
 
-#if 0
-    std::packaged_task<bool()> task(handle, std::ref(_program), _names);
+#if 1
+    std::packaged_task<bool(Program &, T &&)> task(handle);
 
     auto future = task.get_future();
 
-    std::thread thread(std::move(task));
+    std::thread thread(std::move(task), std::ref(_program), _names);
     thread.detach();
 
     return std::move(future);
 #else
-    return std::async(/*std::launch::deferred, */handle, std::ref(_program), _names);
+    return std::move(std::async(/*std::launch::deferred, */handle, std::ref(_program), _names));
 #endif
 }
 
@@ -94,7 +94,8 @@ void InitBackground()
     auto assignedNewProgram = std::move(AssignNewProgram<std::initializer_list<char const *>>(flipbookProgram, {R"(Defaults/Sprites-Default.glsl)"}));
     //flipbookProgram.AssignNew({"Defaults/Sprites-Default.glsl"});
 
-    flipbookTexture.Init();
+    if (!flipbookTexture.Init())
+        return;
 
     auto imageWidth = flipbookTexture.w(), imageHeight = flipbookTexture.h();
     auto spritesNumberHorizontally = 4u, spritesNumberVertically = 2u;
