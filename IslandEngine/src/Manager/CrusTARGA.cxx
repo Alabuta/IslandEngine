@@ -122,7 +122,7 @@ bool LoadCompressedTARGA(Image &_image, std::ifstream &_file)
 
             for (auto i = 0; i < chunkheader; ++i) {
                 _file.read(reinterpret_cast<char *>(texel.channels), sizeof(texel));
-                _image.data_.push_back(texel);
+                _image.data_.push_back(std::move(texel));
             }
         }
 

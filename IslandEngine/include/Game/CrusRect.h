@@ -22,7 +22,10 @@ public:
     float GetSquare() const;
 
     Point NormalizedToPoint(Point const &normalizedCoords) const;
+    Point NormalizedToPoint(Point &&normalizedCoords) const;
+
     Point PointToNormalized(Point const &point) const;
+    Point PointToNormalized(Point &&point) const;
 
     float x() const;
     float y() const;

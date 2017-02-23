@@ -1,3 +1,5 @@
+#include <algorithm>
+
 #include "System\CrusBook.h"
 #include "Game\CrusRect.h"
 
@@ -58,14 +60,30 @@ bool Rect::Overlaps(Rect const &_rect) const
 
 Point Rect::NormalizedToPoint(Point const &_normalizedCoords) const
 {
-    Point normalized{math::clamp(_normalizedCoords.x, 0, 1), math::clamp(_normalizedCoords.y, 0, 1)};
+    Point normalized{math::clamp(_normalizedCoords.x, 0.f, 1.f), math::clamp(_normalizedCoords.y, 0.f, 1.f)};
 
     return Point{xmin_ + width_ * normalized.x, ymin_ + height_ * normalized.y};
 }
 
+Point Rect::NormalizedToPoint(Point &&_normalizedCoords) const
+{
+    _normalizedCoords.x = xmin_ + width_ * math::clamp(_normalizedCoords.x, 0.f, 1.f);
+    _normalizedCoords.y = ymin_ + height_ * math::clamp(_normalizedCoords.y, 0.f, 1.f);
+
+    return std::move(_normalizedCoords);
+}
+
 Point Rect::PointToNormalized(Point const &_point) const
 {
-    return Point{math::clamp((_point.x - xmin_) / width_, 0, 1), math::clamp((_point.y - ymin_) / height_, 0, 1)};
+    return Point{math::clamp((_point.x - xmin_) / width_, 0, 1), math::clamp((_point.y - ymin_) / height_, 0.f, 1.f)};
+}
+
+Point Rect::PointToNormalized(Point &&_point) const
+{
+    _point.x = math::clamp((_point.x - xmin_) / width_, 0.f, 1.f);
+    _point.y = math::clamp((_point.y - ymin_) / height_, 0.f, 1.f);
+
+    return std::move(_point);
 }
 
 void Rect::ToStream(std::ostream &_stream) const

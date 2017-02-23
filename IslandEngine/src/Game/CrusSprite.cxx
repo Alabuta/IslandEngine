@@ -290,10 +290,11 @@ bool Sprite::BuildGeometry()
 
     // :TODO: it's just a simple rectangle that bounds a cropped sprite texture rather than convex hull.
     // Lower left vertex -> top left vertex -> lower right vertex -> top right vertex (GL_TRIANGLE_STRIP).
-    vertices_.emplace_back(std::move(Position(left, bottom)));
-    vertices_.emplace_back(std::move(Position(left, top)));
-    vertices_.emplace_back(std::move(Position(right, bottom)));
-    vertices_.emplace_back(std::move(Position(right, top)));
+    vertices_.emplace_back(left, bottom);
+    vertices_.emplace_back(left, top);
+    vertices_.emplace_back(right, bottom);
+    vertices_.emplace_back(right, top);
+
     vertices_.shrink_to_fit();
 
     Rect textureSheetRect;
@@ -310,10 +311,11 @@ bool Sprite::BuildGeometry()
     auto normalizedSpriteMins = textureSheetRect.PointToNormalized(Point{textureRect_.x(), textureRect_.y()});
     auto normalizedSpriteMaxs = textureSheetRect.PointToNormalized(Point{textureRect_.xmax(), textureRect_.ymax()});
 
-    uvs_.emplace_back(std::move(UV(normalizedSpriteMins.x, 1 - normalizedSpriteMaxs.y)));
-    uvs_.emplace_back(std::move(UV(normalizedSpriteMins.x, 1 - normalizedSpriteMins.y)));
-    uvs_.emplace_back(std::move(UV(normalizedSpriteMaxs.x, 1 - normalizedSpriteMaxs.y)));
-    uvs_.emplace_back(std::move(UV(normalizedSpriteMaxs.x, 1 - normalizedSpriteMins.y)));
+    uvs_.emplace_back(normalizedSpriteMins.x, 1 - normalizedSpriteMaxs.y);
+    uvs_.emplace_back(normalizedSpriteMins.x, 1 - normalizedSpriteMins.y);
+    uvs_.emplace_back(normalizedSpriteMaxs.x, 1 - normalizedSpriteMaxs.y);
+    uvs_.emplace_back(normalizedSpriteMaxs.x, 1 - normalizedSpriteMins.y);
+
     uvs_.shrink_to_fit();
 
     // A simple index buffer for quad.

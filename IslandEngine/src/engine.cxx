@@ -140,7 +140,7 @@ void InitBackground()
                 Point{spriteWidth * 0.5f, spriteHeight * 0.5f}, pixelsPerUnit);
 
             if (sprite)
-                _spriteSheet.emplace_back(sprite);
+                _spriteSheet.push_back(std::move(sprite));
 
             //std::this_thread::yield();
         }
@@ -195,7 +195,7 @@ void InitBuffers(std::vector<isle::Sprite> const &_spriteSheet)
 
     for (auto const &sprite : _spriteSheet)
         for (auto i = 0; i < sprite.vertices().size(); ++i)
-            vertex_buffer.emplace_back(std::move(Vertex{sprite.vertices()[i], sprite.uvs()[i]}));
+            vertex_buffer.emplace_back(Vertex{sprite.vertices()[i], sprite.uvs()[i]});
 
     vertex_buffer.shrink_to_fit();
 
