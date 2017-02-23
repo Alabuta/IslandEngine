@@ -11,18 +11,6 @@
 #ifndef CRUS_ISLAND_H               // Include guard "CrusIsland.h"
 #define CRUS_ISLAND_H
 
-#ifndef _UNICODE
-#define _UNICODE
-#endif
-
-#ifndef  UNICODE
-#define  UNICODE
-#endif
-
-#if _DEBUG
-#define _CRUS_MEMORY_CONTROL        1   // Use this to check for memory leaks!
-#endif
-
 // The macro names for commenting out large code blocks.
 #define _CRUS_OBSOLETE              0
 #define _CRUS_TEMP_DISABLED         0
@@ -78,13 +66,6 @@ void Init();
 void Update();
 void DrawFrame();
 }
-
-#include <cstdlib>
-
-#if _CRUS_MEMORY_CONTROL
-#   define _CRTDBG_MAP_ALLOC
-#   include <crtdbg.h>
-#endif // _CRUS_MEMORY_CONTROL
 
 // Are used for unit-tests.
 #include "xUnitTest\xUnitTest.h"

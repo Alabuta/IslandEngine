@@ -6,19 +6,13 @@
 ****    Description: main application window implementation file.
 ****
 ********************************************************************************************************************************/
-#include <cstdio>
-
 #include "System\CrusSystem.h"
 #include "System\CrusWindow.h"
 #include "System\CrusSplash.h"
 
 #include "Renderer\CrusRender.h"
 
-#include <WindowsX.h>
-
-#include <VSsym32.h>
 #include <DwmAPI.h>
-
 #pragma comment(lib, "DwmAPI.lib")
 
 namespace isle {

@@ -3,7 +3,6 @@
 ****    Source code of Island Engine.
 ****    Copyright (C) 2009 - 2017 Crusoe's Island LLC.
 ****
-****    Started at 30th November 2009.
 ****    Description: settings, such as application system, I/O system and etc.
 ****
 ********************************************************************************************************************************/
@@ -17,8 +16,7 @@
 #include "System\CrusBook.h"
 #include "System\CrusTime.h"
 
-namespace isle
-{
+namespace isle {
 class System {
 public:
     static Time time;
@@ -30,8 +28,8 @@ public:
 
 protected:
 
-    System();
-    ~System();
+    System() = default;
+    ~System() = default;
 
     static void Update();
 };

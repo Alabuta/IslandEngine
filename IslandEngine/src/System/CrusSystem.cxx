@@ -9,6 +9,15 @@
 #include <cstdio>
 #include <cstdlib>
 
+#if _DEBUG
+#define _CRUS_MEMORY_CONTROL        1   // Use this to check for memory leaks!
+#endif
+
+#if _CRUS_MEMORY_CONTROL
+#   define _CRTDBG_MAP_ALLOC
+#   include <crtdbg.h>
+#endif // _CRUS_MEMORY_CONTROL
+
 #include "System\CrusSystem.h"
 #include "System\CrusWindow.h"
 
@@ -18,9 +27,6 @@
 #include "Camera\CrusCamera.h"
 
 namespace isle {
-System::System() { };
-System::~System() { };
-
 Time System::time;
 
 /*static*/ void System::Setup()
@@ -46,10 +52,6 @@ Time System::time;
 
 /*static*/ void System::Destroy()
 {
-    /*Render::main().DeleteContext();
-
-    Window::main().Destroy();*/
-
     log::Info() << "application destroyed.";
 }
 
@@ -85,8 +87,6 @@ Time System::time;
 /*static*/ void System::Update()
 {
     time.Update();
-
-    //Camera::main().Update();
 
     app::Update();
 }
