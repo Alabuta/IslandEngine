@@ -82,9 +82,6 @@
     <ClCompile Include="src\Renderer\CrusTexture.cxx">
       <Filter>Core\Renderer</Filter>
     </ClCompile>
-    <ClCompile Include="src\Renderer\CrusExts.cxx">
-      <Filter>Core\Renderer</Filter>
-    </ClCompile>
     <ClCompile Include="src\Manager\CrusTARGA.cxx">
       <Filter>Core\Manager</Filter>
     </ClCompile>
@@ -151,6 +148,12 @@
     <ClCompile Include="src\Camera\CrusCamera.cxx">
       <Filter>Core\Camera</Filter>
     </ClCompile>
+    <ClCompile Include="src\Renderer\CrusOpenGLExts.cxx">
+      <Filter>Core\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Renderer\CrusOpenGLContext.cxx">
+      <Filter>Core\Renderer</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\engine.h">
@@ -181,9 +184,6 @@
       <Filter>Core\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="include\Renderer\CrusTexture.h">
-      <Filter>Core\Renderer</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Renderer\CrusExts.h">
       <Filter>Core\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="include\Renderer\CrusColors.h">
@@ -275,6 +275,12 @@
     </ClInclude>
     <ClInclude Include="include\Camera\CrusCamera.h">
       <Filter>Core\Camera</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Renderer\CrusOpenGLExts.h">
+      <Filter>Core\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Renderer\CrusOpenGLContext.h">
+      <Filter>Core\Renderer</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

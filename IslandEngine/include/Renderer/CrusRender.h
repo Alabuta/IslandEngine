@@ -16,7 +16,9 @@
 
 #include "Math\CrusMatrix.h"
 
-#include "Renderer\CrusExts.h"
+#include "Renderer\CrusOpenGLExts.h"
+#include "Renderer\CrusOpenGLContext.h"
+
 #include "Renderer\CrusColors.h"
 
 #include "Interface\CrusViewport.h"

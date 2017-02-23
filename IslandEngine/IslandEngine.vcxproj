@@ -185,6 +185,7 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\Renderer\CrusOpenGLContext.cxx" />
     <ClCompile Include="src\Camera\CrusCamera.cxx" />
     <ClCompile Include="src\Game\CrusBounds.cxx" />
     <ClCompile Include="src\Game\CrusComponent.cxx" />
@@ -201,7 +202,7 @@
     <ClCompile Include="src\Interface\CrusViewport.cxx" />
     <ClCompile Include="src\Manager\CrusTARGA.cxx" />
     <ClCompile Include="src\Math\CrusMatrix.cxx" />
-    <ClCompile Include="src\Renderer\CrusExts.cxx" />
+    <ClCompile Include="src\Renderer\CrusOpenGLExts.cxx" />
     <ClCompile Include="src\Renderer\CrusProgram.cxx" />
     <ClCompile Include="src\Renderer\CrusRender.cxx" />
     <ClCompile Include="src\Renderer\CrusTexture.cxx" />
@@ -236,6 +237,7 @@
     <None Include="resources\resource.aps" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="include\Renderer\CrusOpenGLContext.h" />
     <ClInclude Include="include\Camera\CameraBehaviour.h" />
     <ClInclude Include="include\Camera\CrusCamera.h" />
     <ClInclude Include="include\Game\CrusBounds.h" />
@@ -256,7 +258,7 @@
     <ClInclude Include="include\Math\CrusQuaternion.h" />
     <ClInclude Include="include\Math\CrusVector.h" />
     <ClInclude Include="include\Renderer\CrusColors.h" />
-    <ClInclude Include="include\Renderer\CrusExts.h" />
+    <ClInclude Include="include\Renderer\CrusOpenGLExts.h" />
     <ClInclude Include="include\Renderer\CrusProgram.h" />
     <ClInclude Include="include\Renderer\CrusRender.h" />
     <ClInclude Include="include\Renderer\CrusTexture.h" />

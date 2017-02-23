@@ -3,40 +3,33 @@
 ****    Source code of Island Engine.
 ****    Copyright (C) 2009 - 2017 Crusoe's Island LLC.
 ****
-****    Description: OpenGL extensions declarations.
+****    Description: OpenGL context routine.
 ****
 ********************************************************************************************************************************/
 #pragma once
 
-#ifndef CRUS_EXTS_H                 // Include guard "CrusExts.h"
-#define CRUS_EXTS_H
-
-/*#define GPU_MEMORY_INFO_DEDICATED_VIDMEM_NVX          0x9047
-#define GPU_MEMORY_INFO_TOTAL_AVAILABLE_MEMORY_NVX    0x9048
-#define GPU_MEMORY_INFO_CURRENT_AVAILABLE_VIDMEM_NVX  0x9049
-#define GPU_MEMORY_INFO_EVICTION_COUNT_NVX            0x904A
-#define GPU_MEMORY_INFO_EVICTED_MEMORY_NVX            0x904B*/
-
-#define GL_GLEXT_PROTOTYPES 1
-#define WGL_WGLEXT_PROTOTYPES 1
-
-#define CRUS_USE_GL_EXTENSIONS 0
-
-#define CRUS_OPENGL_DEBUG_OUTPUT 1
-#define CRUS_OPENGL_DEBUG_SEVERITY_HIGH            GL_TRUE
-#define CRUS_OPENGL_DEBUG_SEVERITY_MEDIUM          GL_TRUE
-#define CRUS_OPENGL_DEBUG_SEVERITY_LOW             GL_TRUE
-#define CRUS_OPENGL_DEBUG_SEVERITY_NOTIFICATION    GL_FALSE
-
-#include <GL\GLcoreARB.h>
-//#include <GL\GLext.h>
-#include <GL\wGLext.h>
+#ifndef CRUS_OPENGLCONTEXT_H        // Include guard "CrusOpenGLContext.h"
+#define CRUS_OPENGLCONTEXT_H
 
 #include <stack>
 #include <mutex>
 
+#ifndef _UNICODE
+#define _UNICODE
+#endif
+
+#ifndef  UNICODE
+#define  UNICODE
+#endif
+
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#endif
+
 #include "System\CrusBook.h"
 
+namespace isle {
 class OpenGLContext final {
 public:
 
@@ -89,5 +82,6 @@ inline HDC OpenGLContext::hMainWndDC()
 {
     return hMainWndDC_;
 }
+}
 
-#endif // CRUS_EXTS_H
+#endif // CRUS_OPENGLCONTEXT_H
