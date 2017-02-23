@@ -42,12 +42,14 @@ void Viewport::SetViewport(int16 _x, int16 _y, int16 _w, int16 _h)
     float const kB = zNear * zFar / (zNear - zFar);
 
     proj_ = math::Matrix
-        (
+    (
         cotang / aspect, 0.0f, 0.0f, 0.0f,
         0.0f, cotang, 0.0f, 0.0f,
         0.0f, 0.0f, kA, kB,
         0.0f, 0.0f, -1.0f, 0.0f
-        );
+    );
+
+    glViewport(x_, y_, w_, h_);
 }
 
 void Viewport::SetCamera(Camera *const _cam)

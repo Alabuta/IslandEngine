@@ -8,10 +8,10 @@
 ********************************************************************************************************************************/
 #pragma once
 
-#include <unordered_map>
-
 #ifndef CRUS_WINDOW_H               // Include guard "CrusWindow.h"
 #define CRUS_WINDOW_H
+
+#include <unordered_map>
 
 #ifndef _UNICODE
 #define _UNICODE
