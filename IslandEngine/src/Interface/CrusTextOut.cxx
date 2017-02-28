@@ -15,6 +15,7 @@
 #include "Renderer\CrusTexture.h"
 #include "Interface\CrusTextOut.h"
 
+#if _CRUS_OBSOLETE
 namespace isle {
 math::Matrix mNumbers(
     1, 0, 0, 0,
@@ -113,3 +114,4 @@ void Textout::Render()
     }
 }
 }
+#endif

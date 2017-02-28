@@ -12,13 +12,14 @@
 #ifndef CRUS_TEXT_OUT_H             // Include guard "CrusTextOut.h"
 #define CRUS_TEXT_OUT_H
 
+#if _CRUS_OBSOLETE
+
 #include <memory>
 #include <vector>
 
 #include "Renderer\CrusProgram.h"
 
-namespace isle
-{
+namespace isle {
 class Textout {
 public:
     Textout();
@@ -53,5 +54,7 @@ private:
     Texture const *texture_{nullptr};
 };
 };
+
+#endif
 
 #endif // CRUS_TEXT_OUT_H
