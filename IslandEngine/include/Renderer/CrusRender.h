@@ -34,7 +34,7 @@ public:
 
     bool CreateProgram(uint32 &program);
 
-    bool CreateBO(uint32 target, uint32 &vbo);
+    bool CreateBO(uint32 &vbo);
     bool CreateVAO(uint32 &vao);
     bool CreateTBO(uint32 target, uint32 &tbo);
 

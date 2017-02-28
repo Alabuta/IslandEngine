@@ -72,15 +72,14 @@ bool Render::CreateProgram(uint32 &_program)
     return true;
 }
 
-bool Render::CreateBO(uint32 _target, uint32 &_bo)
+bool Render::CreateBO(uint32 &_bo)
 {
     if (_bo != 0 && glIsBuffer(_bo) == GL_TRUE) {
         log::Warning() << "already used buffer object index: " << _bo;
         return false;
     }
 
-    glGenBuffers(1, &_bo);
-    glBindBuffer(_target, _bo);
+    glCreateBuffers(1, &_bo);
 
     glObjectLabel(GL_BUFFER, _bo, -1, "[BO]");
 
@@ -98,8 +97,7 @@ bool Render::CreateVAO(uint32 &_vao)
         return false;
     }
 
-    glGenVertexArrays(1, &_vao);
-    glBindVertexArray(_vao);
+    glCreateVertexArrays(1, &_vao);
 
     glObjectLabel(GL_VERTEX_ARRAY, _vao, -1, "[VAO]");
 
@@ -173,53 +171,43 @@ void Render::InitBufferObjects()
     if (!ubo.AssignNew({R"(Defaults/Buffer-Objects-Initialization.glsl)"}))
         log::Fatal() << "can't init the buffer objects.";
 
-    /*{
-
-        auto index = glGetUniformBlockIndex(ubo.GetName(), "CMTS");
-        glGetActiveUniformBlockiv(ubo.GetName(), Program::nMATERIAL, GL_UNIFORM_BLOCK_DATA_SIZE, &size);
-
-        if (index == GL_INVALID_INDEX || size < 1)
-            log::Fatal() << "can't init the UBO: invalid index param (%s).", "CMTS");
-
-        using namespace colors;
-        Color const colors[4] = {
-            kDARKGREEN, kSPRINGGREEN, kRED, kNAVYBLUE
-        };
-
-        CreateBO(GL_UNIFORM_BUFFER, CMTS_);
-        glBufferData(GL_UNIFORM_BUFFER, size, colors, GL_DYNAMIC_DRAW);
-        glBindBuffer(GL_UNIFORM_BUFFER, 0);
-
-        glBindBufferBase(GL_UNIFORM_BUFFER, index, CMTS_);
-        glUniformBlockBinding(ubo.GetName(), Program::nMATERIAL, index);
-    }*/
-
-    {
-        auto size = -1;
+    if (true) {
         auto index = glGetUniformBlockIndex(ubo.program(), "VIEWPORT");
 
+        auto size = -1;
         glGetActiveUniformBlockiv(ubo.program(), Program::nVIEWPORT, GL_UNIFORM_BLOCK_DATA_SIZE, &size);
 
         if (index == GL_INVALID_INDEX || size < 1)
             log::Fatal() << "can't init the UBO: invalid index param: " << "VIEWPORT";
 
-        CreateBO(GL_UNIFORM_BUFFER, VIEWPORT_);
-        glBufferData(GL_UNIFORM_BUFFER, size, nullptr, GL_DYNAMIC_DRAW);
-        glBindBuffer(GL_UNIFORM_BUFFER, 0);
+        CreateBO(VIEWPORT_);
+        glNamedBufferStorage(VIEWPORT_, size, nullptr, GL_DYNAMIC_STORAGE_BIT);
 
         glBindBufferBase(GL_UNIFORM_BUFFER, Program::nVIEWPORT, VIEWPORT_);
         glUniformBlockBinding(ubo.program(), index, Program::nVIEWPORT);
+    }
+
+    if (false) {
+        auto index = glGetProgramResourceIndex(ubo.program(), GL_SHADER_STORAGE_BLOCK, "VIEWPORT");
+
+        if (index == GL_INVALID_INDEX)
+            log::Fatal() << "can't init the SSBO: invalid index param: " << "VIEWPORT";
+
+        CreateBO(VIEWPORT_);
+        glNamedBufferStorage(VIEWPORT_, sizeof(math::Matrix) * 3, nullptr, GL_DYNAMIC_STORAGE_BIT);
+
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, Program::nVIEWPORT, VIEWPORT_);
+        glShaderStorageBlockBinding(ubo.program(), index, Program::nVIEWPORT);
     }
 
     {
         auto index = glGetProgramResourceIndex(ubo.program(), GL_SHADER_STORAGE_BLOCK, "TRANSFORM");
 
         if (index == GL_INVALID_INDEX)
-            log::Fatal() << "can't init the UBO: invalid index param: " << "TRANSFORM";
+            log::Fatal() << "can't init the SSBO: invalid index param: " << "TRANSFORM";
 
-        CreateBO(GL_SHADER_STORAGE_BUFFER, TRANSFORM_);
-        glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(math::Matrix) * 3, nullptr, GL_DYNAMIC_DRAW);
-        glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+        CreateBO(TRANSFORM_);
+        glNamedBufferStorage(TRANSFORM_, sizeof(math::Matrix) * 3, nullptr, GL_DYNAMIC_STORAGE_BIT);
 
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, Program::nTRANSFORM, TRANSFORM_);
         glShaderStorageBlockBinding(ubo.program(), index, Program::nTRANSFORM);
@@ -309,14 +297,12 @@ void EnumScreenModes()
     };
 
     std::set<DisplaySettings> settings;
-    //std::vector<DisplaySettings> settings(0);
 
     for (auto iModeNum = 0; EnumDisplaySettingsW(nullptr, iModeNum, &devmode) != 0; ++iModeNum) {
         if (devmode.dmBitsPerPel != 32)
             continue;
 
         settings.insert({devmode.dmPelsWidth, devmode.dmPelsHeight, devmode.dmDisplayFrequency});
-        //settings.push_back({devmode.dmPelsWidth, devmode.dmPelsHeight, devmode.dmDisplayFrequency});
     }
 
     /*std::sort(settings.begin(), settings.end(), [] (DisplaySettings const &a, DisplaySettings const &b) -> bool {

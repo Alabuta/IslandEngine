@@ -207,24 +207,28 @@ void InitBuffers(std::vector<isle::Sprite> const &_spriteSheet)
         };
 
         auto bo = 0u;
-        Render::inst().CreateBO(GL_ELEMENT_ARRAY_BUFFER, bo);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+        Render::inst().CreateBO(bo);
+
+        glNamedBufferStorage(bo, sizeof(indices), indices, 0);
+        glVertexArrayElementBuffer(flipbook_vao, bo);
     }
 
     {
         auto bo = 0u;
-        Render::inst().CreateBO(GL_ARRAY_BUFFER, bo);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * vertex_buffer.size(), vertex_buffer.data(), GL_STATIC_DRAW);
+        Render::inst().CreateBO(bo);
+
+        glNamedBufferStorage(bo, sizeof(Vertex) * vertex_buffer.size(), vertex_buffer.data(), 0);
+
+        glVertexArrayAttribBinding(flipbook_vao, Program::eIN_OUT_ID::nVERTEX, 0);
+        glVertexArrayAttribFormat(flipbook_vao, Program::eIN_OUT_ID::nVERTEX, 3, GL_FLOAT, GL_FALSE, 0);
+        glEnableVertexArrayAttrib(flipbook_vao, Program::eIN_OUT_ID::nVERTEX);
+
+        glVertexArrayAttribBinding(flipbook_vao, Program::eIN_OUT_ID::nTEXCRD, 0);
+        glVertexArrayAttribFormat(flipbook_vao, Program::eIN_OUT_ID::nTEXCRD, 2, GL_FLOAT, GL_FALSE, sizeof(Position));
+        glEnableVertexArrayAttrib(flipbook_vao, Program::eIN_OUT_ID::nTEXCRD);
+
+        glVertexArrayVertexBuffer(flipbook_vao, 0, bo, 0, sizeof(Vertex));
     }
-
-    glVertexAttribPointer(Program::eIN_OUT_ID::nVERTEX, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), nullptr);
-    glEnableVertexAttribArray(Program::eIN_OUT_ID::nVERTEX);
-
-    glVertexAttribPointer(isle::Program::eIN_OUT_ID::nTEXCRD, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void const *>(sizeof(Position)));
-    glEnableVertexAttribArray(isle::Program::eIN_OUT_ID::nTEXCRD);
-
-    glBindVertexArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
 void DrawBackgorund()

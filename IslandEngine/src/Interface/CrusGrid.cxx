@@ -99,17 +99,16 @@ void Grid::Update(float _law, float _grle, uint16 _subdivs)
     Render::inst().CreateVAO(vao_);
 
     {
-        uint32 vbo = 0;
-        Render::inst().CreateBO(GL_ARRAY_BUFFER, vbo);
+        auto bo = 0u;
+        Render::inst().CreateBO(bo);
+        glNamedBufferStorage(bo, length, data, GL_DYNAMIC_STORAGE_BIT);
+
+        glVertexArrayAttribBinding(vao_, Program::eIN_OUT_ID::nVERTEX, 0);
+        glVertexArrayAttribFormat(vao_, Program::eIN_OUT_ID::nVERTEX, 3, GL_FLOAT, GL_FALSE, 0);
+        glEnableVertexArrayAttrib(vao_, Program::eIN_OUT_ID::nVERTEX);
+
+        glVertexArrayVertexBuffer(vao_, 0, bo, 0, sizeof(Position));
     }
-
-    glBufferData(GL_ARRAY_BUFFER, length, data, GL_STATIC_DRAW);
-
-    glVertexAttribPointer(Program::nVERTEX, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
-    glEnableVertexAttribArray(Program::nVERTEX);
-
-    glBindVertexArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     free(data);
 }

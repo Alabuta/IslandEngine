@@ -219,6 +219,12 @@ __forceinline void APIENTRY glCopyBufferSubData(GLenum readTarget, GLenum writeT
     return glCopyBufferSubData(readTarget, writeTarget, readOffset, writeOffset, size);
 }
 
+__forceinline void APIENTRY glCreateBuffers(GLsizei n, GLuint *buffers)
+{
+    GL_PROC_INIT(glCreateBuffers);
+    return glCreateBuffers(n, buffers);
+}
+
 __forceinline GLuint APIENTRY glCreateProgram(void)
 {
     GL_PROC_INIT(glCreateProgram);
@@ -229,6 +235,12 @@ __forceinline GLuint APIENTRY glCreateShader(GLenum type)
 {
     GL_PROC_INIT(glCreateShader);
     return glCreateShader(type);
+}
+
+__forceinline void APIENTRY glCreateVertexArrays(GLsizei n, GLuint *arrays)
+{
+    GL_PROC_INIT(glCreateVertexArrays);
+    return glCreateVertexArrays(n, arrays);
 }
 
 // glD ---------------------------------------------------------------------------------
@@ -365,10 +377,40 @@ __forceinline void APIENTRY glDrawRangeElementsBaseVertex(GLenum mode, GLuint st
 }
 
 // glE ---------------------------------------------------------------------------------
+__forceinline void APIENTRY glEnableVertexArrayAttrib(GLuint vaobj, GLuint index)
+{
+    GL_PROC_INIT(glEnableVertexArrayAttrib);
+    return glEnableVertexArrayAttrib(vaobj, index);
+}
+
 __forceinline void APIENTRY glEnableVertexAttribArray(GLuint index)
 {
     GL_PROC_INIT(glEnableVertexAttribArray);
     return glEnableVertexAttribArray(index);
+}
+
+__forceinline void APIENTRY glVertexArrayAttribBinding(GLuint vaobj, GLuint attribindex, GLuint bindingindex)
+{
+    GL_PROC_INIT(glVertexArrayAttribBinding);
+    return glVertexArrayAttribBinding(vaobj, attribindex, bindingindex);
+}
+
+__forceinline void APIENTRY glVertexArrayAttribFormat(GLuint vaobj, GLuint attribindex, GLint size, GLenum type, GLboolean normalized, GLuint relativeoffset)
+{
+    GL_PROC_INIT(glVertexArrayAttribFormat);
+    return glVertexArrayAttribFormat(vaobj, attribindex, size, type, normalized, relativeoffset);
+}
+
+__forceinline void APIENTRY glVertexArrayElementBuffer(GLuint vaobj, GLuint buffer)
+{
+    GL_PROC_INIT(glVertexArrayElementBuffer);
+    return glVertexArrayElementBuffer(vaobj, buffer);
+}
+
+__forceinline void APIENTRY glVertexArrayVertexBuffer(GLuint vaobj, GLuint bindingindex, GLuint buffer, GLintptr offset, GLsizei stride)
+{
+    GL_PROC_INIT(glVertexArrayVertexBuffer);
+    return glVertexArrayVertexBuffer(vaobj, bindingindex, buffer, offset, stride);
 }
 
 __forceinline void APIENTRY glEndConditionalRender(void)
@@ -881,6 +923,12 @@ __forceinline void APIENTRY glNamedBufferData(GLuint buffer, GLsizeiptr size, co
 {
     GL_PROC_INIT(glNamedBufferData);
     return glNamedBufferData(buffer, size, data, usage);
+}
+
+__forceinline void APIENTRY glNamedBufferStorage(GLuint buffer, GLsizeiptr size, const void *data, GLbitfield flags)
+{
+    GL_PROC_INIT(glNamedBufferStorage);
+    return glNamedBufferStorage(buffer, size, data, flags);
 }
 
 __forceinline void APIENTRY glNamedBufferSubData(GLuint buffer, GLintptr offset, GLsizeiptr size, const GLvoid *data)
