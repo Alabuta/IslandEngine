@@ -9,8 +9,7 @@
 ********************************************************************************************************************************/
 #include <utility>
 
-namespace isle {
-namespace math {
+namespace isle::math {
 inline Quaternion::Quaternion() { }
 inline Quaternion::~Quaternion() { }
 
@@ -464,5 +463,4 @@ inline void Quaternion::ToAxisAngle(float *const _axis, float &_angle)
         _axis[2] = z_ * sinHalfAngle;
     }
 }
-};
 };

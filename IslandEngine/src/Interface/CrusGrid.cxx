@@ -16,8 +16,7 @@
 #include "Renderer\CrusPosition.h"
 #include "Interface\CrusGrid.h"
 
-namespace isle {
-namespace intf {
+namespace isle::intf {
 Position *Grid::Build(float _law, float _grle, uint16 _subdivs)
 {
     float const div = _law / _grle;
@@ -141,5 +140,4 @@ void Grid::Draw()
     glUniform4fv(Program::eUNIFORM_ID::nMAIN_COLOR, 1, kBLUE.c());
     glDrawArrays(GL_LINES, count_[0] + count_[1] + 4 + 2 + 2, 2);
 }
-};
 };

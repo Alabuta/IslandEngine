@@ -17,6 +17,7 @@
 #include <algorithm>
 
 #include "System\CrusIsland.h"
+#include "System\CrusTypes.h"
 
 // Disable any definitions min() and max() macroses.
 #undef max

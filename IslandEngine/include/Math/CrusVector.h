@@ -14,8 +14,7 @@
 
 #include "Math\CrusMath.h"
 
-namespace isle {
-namespace math {
+namespace isle::math {
 class Vector {
 public:
     UNIT_TEST_HERITABLE_CLASS;
@@ -99,7 +98,6 @@ private:
             float v_[3];
         };
     };
-};
 };
 };
 

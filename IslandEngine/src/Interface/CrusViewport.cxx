@@ -15,8 +15,7 @@
 
 isle::intf::Viewport viewport;
 
-namespace isle {
-namespace intf {
+namespace isle::intf {
 void Viewport::Create(Viewport::eVIEWPORT_TYPE _type)
 {
     _type;
@@ -63,5 +62,4 @@ void Viewport::MakeCurrent() const
 {
     glViewport(x_, y_, w_, h_);
 }
-};
 };

@@ -14,8 +14,7 @@
 
 #include "Camera\CrusCamera.h"
 
-namespace isle {
-namespace intf {
+namespace isle::intf {
 class Viewport {
 public:
     enum class eVIEWPORT_TYPE {
@@ -95,7 +94,6 @@ inline int16 Viewport::h() const
 {
     return h_;
 }
-};
 };
 
 #endif // CRUS_VIEWPORT_H

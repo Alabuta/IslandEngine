@@ -9,8 +9,7 @@
 ********************************************************************************************************************************/
 #include <utility>
 
-namespace isle {
-namespace math {
+namespace isle::math {
 inline Vector::Vector() { }
 inline Vector::~Vector() { }
 
@@ -272,5 +271,4 @@ inline Vector const &Vector::Normalize()
 {
     return Vector(1, 1, 1);
 }
-};
 };

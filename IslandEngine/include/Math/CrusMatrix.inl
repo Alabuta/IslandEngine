@@ -8,19 +8,16 @@
 ****
 ********************************************************************************************************************************/
 
-namespace isle
-{
-namespace math
-{
-inline Matrix::Matrix() {}
-inline Matrix::~Matrix() {}
+namespace isle::math {
+inline Matrix::Matrix() { }
+inline Matrix::~Matrix() { }
 
-inline Matrix::Matrix(Matrix const &_m) 
+inline Matrix::Matrix(Matrix const &_m)
 {
     memcpy(m_, _m.m_, sizeof(m_));
 }
 
-inline Matrix::Matrix(float const _m[]) 
+inline Matrix::Matrix(float const _m[])
 {
     memcpy(m_, _m, sizeof(m_));
 }
@@ -46,9 +43,9 @@ inline Matrix Matrix::operator/ (float _s) const
     return *this * s;
 }
 
-inline Matrix const &Matrix::operator= (Matrix const &_m) 
+inline Matrix const &Matrix::operator= (Matrix const &_m)
 {
-    if(this != &_m)
+    if (this != &_m)
         memcpy(m_, _m.m_, sizeof(m_));
 
     return *this;
@@ -76,5 +73,4 @@ inline Matrix const &Matrix::operator/= (float _s)
     Matrix m;
     return m.FromQuaternion(_q);
 }*/
-};
 };

@@ -14,13 +14,10 @@
 
 #include "Math\CrusMath.h"
 
-namespace isle
-{
-namespace math
-{
+namespace isle::math {
 class Matrix {
 public:
-    UNIT_TEST_HERITABLE_CLASS
+    UNIT_TEST_HERITABLE_CLASS;
 
     Matrix();
     ~Matrix();
@@ -101,7 +98,6 @@ private:
             float m_[16];
         };
     };
-};
 };
 };
 

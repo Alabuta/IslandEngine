@@ -10,8 +10,7 @@
 #include "System\CrusTypes.h"
 #include "Math\CrusMatrix.h"
 
-namespace isle {
-namespace math {
+namespace isle::math {
 Matrix::Matrix(float _m0, float _m1, float _m2, float _m3,
                float _m4, float _m5, float _m6, float _m7,
                float _m8, float _m9, float _m10, float _m11,
@@ -442,5 +441,4 @@ Matrix const &Matrix::FromQuaternion(float const _q[])
 
     return *this;
 }
-};
 };

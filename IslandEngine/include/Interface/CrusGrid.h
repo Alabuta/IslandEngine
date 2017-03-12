@@ -13,8 +13,7 @@
 
 #include "Renderer\CrusPosition.h"
 
-namespace isle {
-namespace intf {
+namespace isle::intf {
 class Grid {
 public:
 
@@ -27,7 +26,6 @@ private:
     uint16 count_[2];
 
     Position *Build(float law, float grle, uint16 subdivs);
-};
 };
 };
 
