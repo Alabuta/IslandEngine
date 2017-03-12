@@ -1,14 +1,15 @@
 /********************************************************************************************************************************
 ****
-****    ...
+****    xUnitTest source code.
 ****    Copyright (C) 2009 - 2017 Crusoe's Island LLC.
 ****
-****    Started at 14th March 2012.
 ****    Description: unit test declaration.
 ****
 ********************************************************************************************************************************/
 #include <iostream>
+#include <limits>
 #include <random>
+#include <sstream>
 
 #include "xUnitTest\xUnitTest.h"
 #include "xUnitTest\xUnitTestList.h"
@@ -16,12 +17,10 @@
 
 namespace xUnit
 {
-Test::Test(acstr _name, acstr _file) : next_(nullptr), name_(_name), file_(_file)
+Test::Test(std::string &&_class_name, std::string &&_file_name) : next_(nullptr), class_name_(_class_name), file_name_(_file_name)
 {
     List::list().Add(this);
 }
-
-Test::~Test() {}
 
 /*static*/ __declspec(noinline) Test::Result &Test::results()
 {
@@ -29,9 +28,9 @@ Test::~Test() {}
     return result;
 }
 
-/*static*/ int32 Test::RunAll()
+/*static*/ int32_t Test::RunAll()
 {
-    printf("Performing xUnitTest...\n");
+    std::cout << "Performing xUnitTest...\n";
 
     List::list().RunAll();
 
@@ -39,66 +38,66 @@ Test::~Test() {}
 }
 
 template<>
-__declspec(noinline) int32 rand<int32>()
+__declspec(noinline) int32_t rand<int32_t>()
 {
-    static std::tr1::mt19937 engine;
+    // The seed.
+    std::random_device rd;
+    // Mersenne-Twister engine.
+    std::mt19937 mt(rd());
+    std::uniform_int_distribution<> value(std::numeric_limits<int32_t>::min(), std::numeric_limits<int32_t>::max());
 
-    std::tr1::uniform_int<int32> shift(0, static_cast<int32>(sizeof(int32) * 8));
-    std::tr1::uniform_int<int32> value(INT_MIN, INT_MAX);
-
-    return value(engine) >> shift(engine);
+    return value(rd);
 }
 
 template<>
 __declspec(noinline) float rand<float>()
 {
-    static std::tr1::mt19937 engine;
+    // The seed.
+    std::random_device rd;
+    // Mersenne-Twister engine.
+    std::mt19937 mt(rd());
+    std::uniform_real_distribution<float> value(-1000000.f, 1000000.f);
 
-    //std::tr1::uniform_int<int32> exp(FLT_MIN_EXP, FLT_MAX_EXP);
-    //std::tr1::normal_distribution<float> value;
-
-    //return value(engine) * powf(2.0f, static_cast<float>(exp(engine)));
-
-    //std::tr1::uniform_int<int32> sign(0, 1);
-    //std::tr1::uniform_real<float> value(0.0f, FLT_MAX);
-
-    //return sign(engine) == 0 ? value(engine) : -value(engine);
-
-    std::tr1::uniform_real<float> value(-1037.8029f, 1401.055061f);
-    return value(engine);
+    return value(rd);
 }
 
-void Check(bool _expression, Test const &_test, int32 _line, acstr _msg)
+void Check(bool _expression, Test const &_test, int32_t _line, std::string &&_msg)
 {
     Test::results().Add();
 
     if(_expression) return;
 
-    acstr format = "%s\": the expression is false";
-    Test::results().Failed(_test, _line, format, _msg, _expression);
+    std::ostringstream msg(_msg);
+    msg << ": false expression";
+
+    Test::results().Failed(_test, _line, msg.str());
 }
 
 template<>
-void CheckEqual<int32>(int32 _expected, int32 _actual, Test const &_test, int32 _line, acstr _msg)
+void CheckEqual<int32_t>(int32_t _expected, int32_t _actual, Test const &_test, int32_t _line, std::string &&_msg)
 {
     Test::results().Add();
 
     if(_expected == _actual) return;
 
-    acstr format = "%s\": expected %d but was %d";
-    Test::results().Failed(_test, _line, format, _msg, _expected, _actual);
+    std::ostringstream msg(_msg);
+    msg << ": expected " << _expected << " instead " << _actual;
+
+    Test::results().Failed(_test, _line, msg.str());
 }
 
 template<>
-void CheckEqual<float>(float _expected, float _actual, Test const &_test, int32 _line, acstr _msg)
+void CheckEqual<float>(float _expected, float _actual, Test const &_test, int32_t _line, std::string &&_msg)
 {
     Test::results().Add();
 
     // :TODO: floats compare...
-    if(fabsf((_expected - _actual) / (_actual != 0.0f ? _actual : 1.0f)) < FLT_EPSILON)
+    if(fabsf((_expected - _actual) / (_actual != 0.0f ? _actual : 1.0f)) < std::numeric_limits<float>::epsilon())
         return;
 
-    acstr format = "%s\": expected %gf but was %gf";
-    Test::results().Failed(_test, _line, format, _msg, _expected, _actual);
+    std::ostringstream msg(_msg);
+    msg << ": expected " << _expected << " instead " << _actual;
+
+    Test::results().Failed(_test, _line, msg.str());
 }
 }

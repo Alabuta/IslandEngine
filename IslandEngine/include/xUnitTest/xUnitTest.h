@@ -1,9 +1,8 @@
 /********************************************************************************************************************************
 ****
-****    ...
+****    xUnitTest source code.
 ****    Copyright (C) 2009 - 2017 Crusoe's Island LLC.
 ****
-****    Started at 14th March 2012.
 ****    Description: unit test declaration.
 ****
 ********************************************************************************************************************************/
@@ -12,10 +11,7 @@
 #ifndef CRUS_XUNIT_TEST_H           // Include guard "xUnitTest.h
 #define CRUS_XUNIT_TEST_H
 
-#include <cstddef>
-
-#include "System\CrusIsland.h"
-#include "System\CrusTypes.h"
+#include <string>
 
 #define UNIT_TEST_HERITABLE_CLASS       class Test;
 
@@ -25,32 +21,38 @@
 namespace xUnit
 {
 class Test {
+public:
+    explicit Test(std::string &&class_name, std::string &&file_name);
+    virtual ~Test() = default;
+
+    static int32_t RunAll();
+
+    class Result;
+    static Result &results();
+
 private:
+    std::string class_name_, file_name_;
     Test const *next_;
-    acstr name_, file_;
 
     virtual void RunTest() const = 0;
-    Test const &operator= (Test const &test) const;
+
+    Test() = delete;
+    Test(Test &&) = delete;
+    Test(Test const &) = delete;
+
+    Test const &operator= (Test &&) = delete;
+    Test const &operator= (Test const &) = delete;
 
     class List;
-    class Result;
-
-public:
-    explicit Test(acstr name, acstr file);
-    virtual ~Test();
-
-    static int32 RunAll();
-
-    static Result &results();
 };
 
 template<typename T>
 T rand();
 
-void Check(bool expression, Test const &test, int32 line, acstr msg = "..");
+void Check(bool expression, Test const &test, int32_t line, std::string &&_msg);
 
 template<typename T>
-void CheckEqual(T expected, T actual, Test const &test, int32 line, acstr msg = "..");
+void CheckEqual(T expected, T actual, Test const &test, int32_t line, std::string &&msg);
 };
 
 #define UNIT_SUITE_CLASS(name)          UNIT_SOME_TEST(name)
@@ -58,15 +60,14 @@ void CheckEqual(T expected, T actual, Test const &test, int32 line, acstr msg = 
                                         UNIT_SOME_TEST(name)
 
 #define UNIT_SOME_TEST(name)\
-class name::Test : protected xUnit::Test {\
-private:\
-    void RunTest() const;\
-\
+class name::Test final : protected xUnit::Test {\
 public:\
     Test() : xUnit::Test(#name, __FILE__) {};\
-    ~Test(){};\
 \
-} CRUS_MERGE(Test, __COUNTER__);\
+private:\
+    void RunTest() const override;\
+\
+} test##__COUNTER__;\
 \
 void name::Test::RunTest() const\
 

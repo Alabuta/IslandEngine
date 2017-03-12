@@ -1,9 +1,8 @@
 /********************************************************************************************************************************
 ****
-****    ...
+****    xUnitTest source code.
 ****    Copyright (C) 2009 - 2017 Crusoe's Island LLC.
 ****
-****    Started at 23th March 2012.
 ****    Description: unit test list.
 ****
 ********************************************************************************************************************************/
@@ -15,18 +14,17 @@
 namespace xUnit
 {
 class Test::List {
-private:
-    Test *head_, *tail_;
-
-    List();
-    ~List();
-
 public:
 
     void Add(Test *const test);
     void RunAll() const;
 
     static List &list();
+
+private:
+    Test *head_, *tail_;
+
+    explicit List();
 };
 };
 
