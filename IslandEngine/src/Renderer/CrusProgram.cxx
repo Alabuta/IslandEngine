@@ -11,7 +11,7 @@
 #include <streambuf>
 #include <regex>
 #include <cctype>
-//#include <experimental/filesystem>
+//#include <filesystem>
 
 
 #include "Renderer\CrusRender.h"
@@ -38,7 +38,7 @@ bool ReadShaderSource(std::string &_source, std::string const &_parentPath, std:
         return false;
     }
 
-    _source = [&file]
+    _source = [&file = file]
     {
         std::ostringstream stream;
         stream << file.rdbuf() << '\n';
@@ -63,7 +63,7 @@ std::string Program::PreprocessIncludes(std::string const &_source, std::string 
         return _source;
     }
 
-    static std::regex const re(R"(^[ ]*#[ ]*pragma[ ]+include[(]["](.*)["][)].*)");
+    static std::regex const re(R"(^\s*#\s*pragma\s+include[(]["](.*)["][)].*)");
 
     std::stringstream input;
     std::ostringstream output;

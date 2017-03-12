@@ -11,6 +11,19 @@
 #ifndef CRUS_TEXTURE_H              // Include guard "CrusTexture.h"
 #define CRUS_TEXTURE_H
 
+extern "C"
+{
+#include <mmintrin.h>
+#include <xmmintrin.h>
+#include <emmintrin.h>
+#include <pmmintrin.h>
+#include <smmintrin.h>
+#include <nmmintrin.h>
+#include <wmmintrin.h>
+#include <tmmintrin.h>
+#include <immintrin.h>   // (Meta-header)
+}
+
 #include <vector>
 #include "Game\CrusObject.h"
 

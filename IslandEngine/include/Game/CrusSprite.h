@@ -34,7 +34,7 @@ public:
     std::vector<Position> const &vertices() const;
     std::vector<UV> const &uvs() const;
 
-    void ToStream(std::ostream &stream) const;
+    void ToStream(std::ostream &stream) const override;
 
 private:
     std::string name_;

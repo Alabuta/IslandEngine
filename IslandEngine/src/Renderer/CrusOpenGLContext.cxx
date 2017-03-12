@@ -285,7 +285,7 @@ void CALLBACK DebugCallback(GLenum _source, GLenum _type, GLuint _id, GLenum _se
             break;
     }
 
-    debug_message << _message;
+    debug_message << " " << _message;
 
     switch (_severity) {
         case GL_DEBUG_SEVERITY_HIGH:
