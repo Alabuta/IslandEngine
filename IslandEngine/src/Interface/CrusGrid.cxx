@@ -122,22 +122,22 @@ void Grid::Draw()
 
     glBindVertexArray(vao_);
 
-    glUniform4fv(Program::eUNIFORM_ID::nMAIN_COLOR, 1, kGRAY.c());
+    glUniform4fv(Program::eUNIFORM_ID::nMAIN_COLOR, 1, kGRAY.c().data());
     glDrawArrays(GL_LINES, 0, count_[0]);
 
-    glUniform4fv(Program::eUNIFORM_ID::nMAIN_COLOR, 1, kDARKGRAY.c());
+    glUniform4fv(Program::eUNIFORM_ID::nMAIN_COLOR, 1, kDARKGRAY.c().data());
     glDrawArrays(GL_LINES, count_[0], count_[1]);
 
-    glUniform4fv(Program::eUNIFORM_ID::nMAIN_COLOR, 1, kBLACK.c());
+    glUniform4fv(Program::eUNIFORM_ID::nMAIN_COLOR, 1, kBLACK.c().data());
     glDrawArrays(GL_LINES, count_[0] + count_[1], 4);
 
-    glUniform4fv(Program::eUNIFORM_ID::nMAIN_COLOR, 1, kRED.c());
+    glUniform4fv(Program::eUNIFORM_ID::nMAIN_COLOR, 1, kRED.c().data());
     glDrawArrays(GL_LINES, count_[0] + count_[1] + 4, 2);
 
-    glUniform4fv(Program::eUNIFORM_ID::nMAIN_COLOR, 1, kGREEN.c());
+    glUniform4fv(Program::eUNIFORM_ID::nMAIN_COLOR, 1, kGREEN.c().data());
     glDrawArrays(GL_LINES, count_[0] + count_[1] + 4 + 2, 2);
 
-    glUniform4fv(Program::eUNIFORM_ID::nMAIN_COLOR, 1, kBLUE.c());
+    glUniform4fv(Program::eUNIFORM_ID::nMAIN_COLOR, 1, kBLUE.c().data());
     glDrawArrays(GL_LINES, count_[0] + count_[1] + 4 + 2 + 2, 2);
 }
 };

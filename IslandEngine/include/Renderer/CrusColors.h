@@ -3,7 +3,6 @@
 ****    Source code of Island Engine.
 ****    Copyright (C) 2009 - 2017 Crusoe's Island LLC.
 ****
-****    Started at 11th July 2009.
 ****    Description: indices of color - all of used colors must be here.
 ****
 ********************************************************************************************************************************/
@@ -12,27 +11,40 @@
 #ifndef CRUS_COLORS_H               // Include guard "CrusColors.h"
 #define CRUS_COLORS_H
 
+#include <array>
+
 namespace isle {
 class Color {
 public:
-    Color() {};
-    ~Color() {};
+    explicit Color() =default;
 
-    explicit Color(float r, float g, float b, float a = 1.0f)
-        : r_(r), g_(g), b_(b), a_(a) {};
+    explicit Color(float r, float g, float b, float a = 1.f)
+        : r_(r), g_(g), b_(b), a_(a)
+    { };
 
-    explicit Color(float const c[])
-        : r_(c[0]), g_(c[1]), b_(c[2]), a_(c[3]) {};
+    explicit Color(std::array<float, 4> const &vec)
+        : vec_(vec)
+    { };
+
+    explicit Color(std::array<float, 4> &&vec)
+        : vec_(std::move(vec))
+    { };
 
     float r() const { return r_; };
     float g() const { return g_; };
     float b() const { return b_; };
     float a() const { return a_; };
 
-    float const *const c() const { return (&r_); };
+    std::array<float, 4> const &c() const { return vec_; };
 
 private:
-    float r_, g_, b_, a_;
+    union {
+        struct {
+            float r_, g_, b_, a_;
+        };
+
+        std::array<float, 4> vec_;
+    };
 };
 
 namespace colors {
