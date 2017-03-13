@@ -3,7 +3,6 @@
 ****    Source code of Island Engine.
 ****    Copyright (C) 2009 - 2017 Crusoe's Island LLC.
 ****
-****    Started at 10th March 2010.
 ****    Description: the math library and anything else.
 ****
 ********************************************************************************************************************************/
@@ -15,9 +14,28 @@
 #include <cmath>
 #include <memory>
 #include <algorithm>
+#include <array>
+#include <limits>
 
 #include "System\CrusIsland.h"
 #include "System\CrusTypes.h"
+
+#ifdef CRUS_USE_SSE_MATH
+extern "C"
+{
+#include <mmintrin.h>
+#include <xmmintrin.h>
+#include <emmintrin.h>
+#include <pmmintrin.h>
+#include <smmintrin.h>
+#include <nmmintrin.h>
+#include <wmmintrin.h>
+#include <tmmintrin.h>
+#include <immintrin.h>   // (Meta-header)
+}
+
+#include <intrin.h>
+#endif
 
 // Disable any definitions min() and max() macroses.
 #undef max
@@ -40,12 +58,12 @@ struct Point {
 namespace math {
 UNIT_TEST_HERITABLE_CLASS
 
-float const kPI = 3.14159265358979323846f;
-float const kPI_DIV_180 = 0.01745329251994329576f;
-float const kPI_DIV_180_IN = 57.2957795130823208767f;
+auto constexpr kPI = 3.14159265358979323846f;
+auto constexpr kPI_DIV_180 = 0.01745329251994329576f;
+auto constexpr kPI_DIV_180_INV = 57.2957795130823208767f;
 
-float const kEPSILON = FLT_EPSILON;
-float const kINF = FLT_MAX;
+auto constexpr kEPSILON = std::numeric_limits<float>::epsilon();
+auto constexpr kINF = std::numeric_limits<float>::infinity();
 
 class Matrix;
 class Quaternion;
@@ -58,7 +76,7 @@ inline float DegToRad(float degree)
 
 inline float RadToDeg(float radian)
 {
-    return radian * kPI_DIV_180_IN;
+    return radian * kPI_DIV_180_INV;
 }
 
 /*long double operator"" _deg(long double deg)

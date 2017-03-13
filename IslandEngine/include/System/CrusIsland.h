@@ -11,6 +11,8 @@
 #ifndef CRUS_ISLAND_H               // Include guard "CrusIsland.h"
 #define CRUS_ISLAND_H
 
+#define CRUS_USE_SSE_MATH 1
+
 // The macro names for commenting out large code blocks.
 #define _CRUS_OBSOLETE              0
 #define _CRUS_TEMP_DISABLED         0

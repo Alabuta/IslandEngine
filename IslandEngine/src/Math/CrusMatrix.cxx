@@ -31,6 +31,16 @@ Matrix::Matrix(float _m00, float _m01, float _m02, float _m03,
 
 Matrix Matrix::operator+ (Matrix const &_m) const
 {
+#ifdef CRUS_USE_SSE_MATH
+    Matrix temp;
+
+    temp.row_[0] = _mm_add_ps(row_[0], _m.row_[0]);
+    temp.row_[1] = _mm_add_ps(row_[1], _m.row_[1]);
+    temp.row_[2] = _mm_add_ps(row_[2], _m.row_[2]);
+    temp.row_[3] = _mm_add_ps(row_[3], _m.row_[3]);
+
+    return temp;
+#else
     return Matrix
     (
         m_._00_ + _m.m_._00_, m_._01_ + _m.m_._01_, m_._02_ + _m.m_._02_, m_._03_ + _m.m_._03_,
@@ -38,10 +48,21 @@ Matrix Matrix::operator+ (Matrix const &_m) const
         m_._08_ + _m.m_._08_, m_._09_ + _m.m_._09_, m_._10_ + _m.m_._10_, m_._11_ + _m.m_._11_,
         m_._12_ + _m.m_._12_, m_._13_ + _m.m_._13_, m_._14_ + _m.m_._14_, m_._15_ + _m.m_._15_
     );
+#endif
 }
 
 Matrix Matrix::operator- (Matrix const &_m) const
 {
+#ifdef CRUS_USE_SSE_MATH
+    Matrix temp;
+
+    temp.row_[0] = _mm_sub_ps(row_[0], _m.row_[0]);
+    temp.row_[1] = _mm_sub_ps(row_[1], _m.row_[1]);
+    temp.row_[2] = _mm_sub_ps(row_[2], _m.row_[2]);
+    temp.row_[3] = _mm_sub_ps(row_[3], _m.row_[3]);
+
+    return temp;
+#else
     return Matrix
     (
         m_._00_ - _m.m_._00_, m_._01_ - _m.m_._01_, m_._02_ - _m.m_._02_, m_._03_ - _m.m_._03_,
@@ -49,10 +70,47 @@ Matrix Matrix::operator- (Matrix const &_m) const
         m_._08_ - _m.m_._08_, m_._09_ - _m.m_._09_, m_._10_ - _m.m_._10_, m_._11_ - _m.m_._11_,
         m_._12_ - _m.m_._12_, m_._13_ - _m.m_._13_, m_._14_ - _m.m_._14_, m_._15_ - _m.m_._15_
     );
+#endif
 }
 
 Matrix Matrix::operator* (Matrix const &_m) const
 {
+#ifdef CRUS_USE_SSE_MATH
+    Matrix temp;
+
+    __m128 row[4] = {_m.row_[0], _m.row_[1], _m.row_[2], _m.row_[3]};
+    _MM_TRANSPOSE4_PS(row[0], row[1], row[2], row[3]);
+
+    {
+        auto const sum1 = _mm_hadd_ps(_mm_mul_ps(row_[0], row[0]), _mm_mul_ps(row_[0], row[1]));
+        auto const sum2 = _mm_hadd_ps(_mm_mul_ps(row_[0], row[2]), _mm_mul_ps(row_[0], row[3]));
+
+        temp.row_[0] = _mm_hadd_ps(sum1, sum2);
+    }
+
+    {
+        auto const sum1 = _mm_hadd_ps(_mm_mul_ps(row_[1], row[0]), _mm_mul_ps(row_[1], row[1]));
+        auto const sum2 = _mm_hadd_ps(_mm_mul_ps(row_[1], row[2]), _mm_mul_ps(row_[1], row[3]));
+
+        temp.row_[1] = _mm_hadd_ps(sum1, sum2);
+    }
+
+    {
+        auto const sum1 = _mm_hadd_ps(_mm_mul_ps(row_[2], row[0]), _mm_mul_ps(row_[2], row[1]));
+        auto const sum2 = _mm_hadd_ps(_mm_mul_ps(row_[2], row[2]), _mm_mul_ps(row_[2], row[3]));
+
+        temp.row_[2] = _mm_hadd_ps(sum1, sum2);
+    }
+
+    {
+        auto const sum1 = _mm_hadd_ps(_mm_mul_ps(row_[3], row[0]), _mm_mul_ps(row_[3], row[1]));
+        auto const sum2 = _mm_hadd_ps(_mm_mul_ps(row_[3], row[2]), _mm_mul_ps(row_[3], row[3]));
+
+        temp.row_[3] = _mm_hadd_ps(sum1, sum2);
+    }
+
+    return temp;
+#else
     return Matrix
     (
         m_._00_ * _m.m_._00_ + m_._01_ * _m.m_._04_ + m_._02_ * _m.m_._08_ + m_._03_ * _m.m_._12_,
@@ -75,10 +133,23 @@ Matrix Matrix::operator* (Matrix const &_m) const
         m_._12_ * _m.m_._02_ + m_._13_ * _m.m_._06_ + m_._14_ * _m.m_._10_ + m_._15_ * _m.m_._14_,
         m_._12_ * _m.m_._03_ + m_._13_ * _m.m_._07_ + m_._14_ * _m.m_._11_ + m_._15_ * _m.m_._15_
     );
+#endif
 }
 
 Matrix Matrix::operator+ (float _s) const
 {
+#ifdef CRUS_USE_SSE_MATH
+    Matrix temp;
+
+    auto const s = _mm_set_ps1(_s);
+
+    temp.row_[0] = _mm_add_ps(row_[0], s);
+    temp.row_[1] = _mm_add_ps(row_[1], s);
+    temp.row_[2] = _mm_add_ps(row_[2], s);
+    temp.row_[3] = _mm_add_ps(row_[3], s);
+
+    return temp;
+#else
     return Matrix
     (
         m_._00_ + _s, m_._01_ + _s, m_._02_ + _s, m_._03_ + _s,
@@ -86,10 +157,23 @@ Matrix Matrix::operator+ (float _s) const
         m_._08_ + _s, m_._09_ + _s, m_._10_ + _s, m_._11_ + _s,
         m_._12_ + _s, m_._13_ + _s, m_._14_ + _s, m_._15_ + _s
     );
+#endif
 }
 
 Matrix Matrix::operator- (float _s) const
 {
+#ifdef CRUS_USE_SSE_MATH
+    Matrix temp;
+
+    auto const s = _mm_set_ps1(_s);
+
+    temp.row_[0] = _mm_sub_ps(row_[0], s);
+    temp.row_[1] = _mm_sub_ps(row_[1], s);
+    temp.row_[2] = _mm_sub_ps(row_[2], s);
+    temp.row_[3] = _mm_sub_ps(row_[3], s);
+
+    return temp;
+#else
     return Matrix
     (
         m_._00_ - _s, m_._01_ - _s, m_._02_ - _s, m_._03_ - _s,
@@ -97,10 +181,23 @@ Matrix Matrix::operator- (float _s) const
         m_._08_ - _s, m_._09_ - _s, m_._10_ - _s, m_._11_ - _s,
         m_._12_ - _s, m_._13_ - _s, m_._14_ - _s, m_._15_ - _s
     );
+#endif
 }
 
 Matrix Matrix::operator* (float _s) const
 {
+#ifdef CRUS_USE_SSE_MATH
+    Matrix temp;
+
+    auto const s = _mm_set_ps1(_s);
+
+    temp.row_[0] = _mm_mul_ps(row_[0], s);
+    temp.row_[1] = _mm_mul_ps(row_[1], s);
+    temp.row_[2] = _mm_mul_ps(row_[2], s);
+    temp.row_[3] = _mm_mul_ps(row_[3], s);
+
+    return temp;
+#else
     return Matrix
     (
         m_._00_ * _s, m_._01_ * _s, m_._02_ * _s, m_._03_ * _s,
@@ -108,6 +205,7 @@ Matrix Matrix::operator* (float _s) const
         m_._08_ * _s, m_._09_ * _s, m_._10_ * _s, m_._11_ * _s,
         m_._12_ * _s, m_._13_ * _s, m_._14_ * _s, m_._15_ * _s
     );
+#endif
 }
 
 bool Matrix::operator== (Matrix const &_m) const
@@ -124,26 +222,73 @@ bool Matrix::operator== (Matrix const &_m) const
 
 Matrix const &Matrix::operator+= (Matrix const &_m)
 {
+#ifdef CRUS_USE_SSE_MATH
+    row_[0] = _mm_add_ps(row_[0], _m.row_[0]);
+    row_[1] = _mm_add_ps(row_[1], _m.row_[1]);
+    row_[2] = _mm_add_ps(row_[2], _m.row_[2]);
+    row_[3] = _mm_add_ps(row_[3], _m.row_[3]);
+#else
     m_._00_ += _m.m_._00_;  m_._01_ += _m.m_._01_;  m_._02_ += _m.m_._02_; m_._03_ += _m.m_._03_;
     m_._04_ += _m.m_._04_;  m_._05_ += _m.m_._05_;  m_._06_ += _m.m_._06_; m_._07_ += _m.m_._07_;
     m_._08_ += _m.m_._08_;  m_._09_ += _m.m_._09_;  m_._10_ += _m.m_._10_; m_._11_ += _m.m_._11_;
     m_._12_ += _m.m_._12_;  m_._13_ += _m.m_._13_;  m_._14_ += _m.m_._14_; m_._15_ += _m.m_._15_;
+#endif
 
     return *this;
 }
 
 Matrix const &Matrix::operator-= (Matrix const &_m)
 {
+#ifdef CRUS_USE_SSE_MATH
+    row_[0] = _mm_sub_ps(row_[0], _m.row_[0]);
+    row_[1] = _mm_sub_ps(row_[1], _m.row_[1]);
+    row_[2] = _mm_sub_ps(row_[2], _m.row_[2]);
+    row_[3] = _mm_sub_ps(row_[3], _m.row_[3]);
+#else
     m_._00_ -= _m.m_._00_;  m_._01_ -= _m.m_._01_;  m_._02_ -= _m.m_._02_; m_._03_ -= _m.m_._03_;
     m_._04_ -= _m.m_._04_;  m_._05_ -= _m.m_._05_;  m_._06_ -= _m.m_._06_; m_._07_ -= _m.m_._07_;
     m_._08_ -= _m.m_._08_;  m_._09_ -= _m.m_._09_;  m_._10_ -= _m.m_._10_; m_._11_ -= _m.m_._11_;
     m_._12_ -= _m.m_._12_;  m_._13_ -= _m.m_._13_;  m_._14_ -= _m.m_._14_; m_._15_ -= _m.m_._15_;
+#endif
 
     return *this;
 }
 
 Matrix const &Matrix::operator*= (Matrix const &_m)
 {
+#ifdef CRUS_USE_SSE_MATH
+    // 16 mul; 12 sum
+    __m128 row[4] = {_m.row_[0], _m.row_[1], _m.row_[2], _m.row_[3]};
+    _MM_TRANSPOSE4_PS(row[0], row[1], row[2], row[3]);
+
+    {
+        auto const sum1 = _mm_hadd_ps(_mm_mul_ps(row_[0], row[0]), _mm_mul_ps(row_[0], row[1]));
+        auto const sum2 = _mm_hadd_ps(_mm_mul_ps(row_[0], row[2]), _mm_mul_ps(row_[0], row[3]));
+
+        row_[0] = _mm_hadd_ps(sum1, sum2);
+    }
+
+    {
+        auto const sum1 = _mm_hadd_ps(_mm_mul_ps(row_[1], row[0]), _mm_mul_ps(row_[1], row[1]));
+        auto const sum2 = _mm_hadd_ps(_mm_mul_ps(row_[1], row[2]), _mm_mul_ps(row_[1], row[3]));
+
+        row_[1] = _mm_hadd_ps(sum1, sum2);
+    }
+
+    {
+        auto const sum1 = _mm_hadd_ps(_mm_mul_ps(row_[2], row[0]), _mm_mul_ps(row_[2], row[1]));
+        auto const sum2 = _mm_hadd_ps(_mm_mul_ps(row_[2], row[2]), _mm_mul_ps(row_[2], row[3]));
+
+        row_[2] = _mm_hadd_ps(sum1, sum2);
+    }
+
+    {
+        auto const sum1 = _mm_hadd_ps(_mm_mul_ps(row_[3], row[0]), _mm_mul_ps(row_[3], row[1]));
+        auto const sum2 = _mm_hadd_ps(_mm_mul_ps(row_[3], row[2]), _mm_mul_ps(row_[3], row[3]));
+
+        row_[3] = _mm_hadd_ps(sum1, sum2);
+    }
+#else
     // 64 mul; 48 sum.
     Matrix temp(std::move(*this));
 
@@ -151,51 +296,79 @@ Matrix const &Matrix::operator*= (Matrix const &_m)
     m_._01_ = temp.m_._00_ * _m.m_._01_ + temp.m_._01_ * _m.m_._05_ + temp.m_._02_ * _m.m_._09_ + temp.m_._03_ * _m.m_._13_;
     m_._02_ = temp.m_._00_ * _m.m_._02_ + temp.m_._01_ * _m.m_._06_ + temp.m_._02_ * _m.m_._10_ + temp.m_._03_ * _m.m_._14_;
     m_._03_ = temp.m_._00_ * _m.m_._03_ + temp.m_._01_ * _m.m_._07_ + temp.m_._02_ * _m.m_._11_ + temp.m_._03_ * _m.m_._15_;
-                                                                                                                 
+
     m_._04_ = temp.m_._04_ * _m.m_._00_ + temp.m_._05_ * _m.m_._04_ + temp.m_._06_ * _m.m_._08_ + temp.m_._07_ * _m.m_._12_;
     m_._05_ = temp.m_._04_ * _m.m_._01_ + temp.m_._05_ * _m.m_._05_ + temp.m_._06_ * _m.m_._09_ + temp.m_._07_ * _m.m_._13_;
     m_._06_ = temp.m_._04_ * _m.m_._02_ + temp.m_._05_ * _m.m_._06_ + temp.m_._06_ * _m.m_._10_ + temp.m_._07_ * _m.m_._14_;
     m_._07_ = temp.m_._04_ * _m.m_._03_ + temp.m_._05_ * _m.m_._07_ + temp.m_._06_ * _m.m_._11_ + temp.m_._07_ * _m.m_._15_;
-                                                                                                                 
+
     m_._08_ = temp.m_._08_ * _m.m_._00_ + temp.m_._09_ * _m.m_._04_ + temp.m_._10_ * _m.m_._08_ + temp.m_._11_ * _m.m_._12_;
     m_._09_ = temp.m_._08_ * _m.m_._01_ + temp.m_._09_ * _m.m_._05_ + temp.m_._10_ * _m.m_._09_ + temp.m_._11_ * _m.m_._13_;
     m_._10_ = temp.m_._08_ * _m.m_._02_ + temp.m_._09_ * _m.m_._06_ + temp.m_._10_ * _m.m_._10_ + temp.m_._11_ * _m.m_._14_;
     m_._11_ = temp.m_._08_ * _m.m_._03_ + temp.m_._09_ * _m.m_._07_ + temp.m_._10_ * _m.m_._11_ + temp.m_._11_ * _m.m_._15_;
-                                                                                                                 
+
     m_._12_ = temp.m_._12_ * _m.m_._00_ + temp.m_._13_ * _m.m_._04_ + temp.m_._14_ * _m.m_._08_ + temp.m_._15_ * _m.m_._12_;
     m_._13_ = temp.m_._12_ * _m.m_._01_ + temp.m_._13_ * _m.m_._05_ + temp.m_._14_ * _m.m_._09_ + temp.m_._15_ * _m.m_._13_;
     m_._14_ = temp.m_._12_ * _m.m_._02_ + temp.m_._13_ * _m.m_._06_ + temp.m_._14_ * _m.m_._10_ + temp.m_._15_ * _m.m_._14_;
     m_._15_ = temp.m_._12_ * _m.m_._03_ + temp.m_._13_ * _m.m_._07_ + temp.m_._14_ * _m.m_._11_ + temp.m_._15_ * _m.m_._15_;
+#endif
 
     return *this;
 }
 
 Matrix const &Matrix::operator+= (float _s)
 {
+#ifdef CRUS_USE_SSE_MATH
+    auto const s = _mm_set_ps1(_s);
+
+    row_[0] = _mm_add_ps(row_[0], s);
+    row_[1] = _mm_add_ps(row_[1], s);
+    row_[2] = _mm_add_ps(row_[2], s);
+    row_[3] = _mm_add_ps(row_[3], s);
+#else
     m_._00_ += _s; m_._01_ += _s; m_._02_ += _s; m_._03_ += _s;
     m_._04_ += _s; m_._05_ += _s; m_._06_ += _s; m_._07_ += _s;
     m_._08_ += _s; m_._09_ += _s; m_._10_ += _s; m_._11_ += _s;
     m_._12_ += _s; m_._13_ += _s; m_._14_ += _s; m_._15_ += _s;
+#endif
 
     return *this;
 }
 
 Matrix const &Matrix::operator-= (float _s)
 {
+#ifdef CRUS_USE_SSE_MATH
+    auto const s = _mm_set_ps1(_s);
+
+    row_[0] = _mm_sub_ps(row_[0], s);
+    row_[1] = _mm_sub_ps(row_[1], s);
+    row_[2] = _mm_sub_ps(row_[2], s);
+    row_[3] = _mm_sub_ps(row_[3], s);
+#else
     m_._00_ -= _s; m_._01_ -= _s; m_._02_ -= _s; m_._03_ -= _s;
     m_._04_ -= _s; m_._05_ -= _s; m_._06_ -= _s; m_._07_ -= _s;
     m_._08_ -= _s; m_._09_ -= _s; m_._10_ -= _s; m_._11_ -= _s;
     m_._12_ -= _s; m_._13_ -= _s; m_._14_ -= _s; m_._15_ -= _s;
+#endif
 
     return *this;
 }
 
 Matrix const &Matrix::operator*= (float _s)
 {
+#ifdef CRUS_USE_SSE_MATH
+    auto const s = _mm_set_ps1(_s);
+
+    row_[0] = _mm_mul_ps(row_[0], s);
+    row_[1] = _mm_mul_ps(row_[1], s);
+    row_[2] = _mm_mul_ps(row_[2], s);
+    row_[3] = _mm_mul_ps(row_[3], s);
+#else
     m_._00_ *= _s; m_._01_ *= _s; m_._02_ *= _s; m_._03_ *= _s;
     m_._04_ *= _s; m_._05_ *= _s; m_._06_ *= _s; m_._07_ *= _s;
     m_._08_ *= _s; m_._09_ *= _s; m_._10_ *= _s; m_._11_ *= _s;
     m_._12_ *= _s; m_._13_ *= _s; m_._14_ *= _s; m_._15_ *= _s;
+#endif
 
     return *this;
 }
@@ -371,6 +544,13 @@ Matrix Matrix::Inverse() const
 
 Matrix Matrix::Transpose(Matrix const &_m)
 {
+#ifdef CRUS_USE_SSE_MATH
+    auto temp(_m);
+
+    _MM_TRANSPOSE4_PS(temp.row_[0], temp.row_[1], temp.row_[2], temp.row_[3]);
+
+    return temp;
+#else
     return Matrix
     (
         _m.m_._00_, _m.m_._04_, _m.m_._08_, _m.m_._12_,
@@ -378,16 +558,21 @@ Matrix Matrix::Transpose(Matrix const &_m)
         _m.m_._02_, _m.m_._06_, _m.m_._10_, _m.m_._14_,
         _m.m_._03_, _m.m_._07_, _m.m_._11_, _m.m_._15_
     );
+#endif
 }
 
 Matrix const &Matrix::Transpose()
 {
+#ifdef CRUS_USE_SSE_MATH
+    _MM_TRANSPOSE4_PS(row_[0], row_[1], row_[2], row_[3]);
+#else
     vec_ = {
         m_._00_, m_._04_, m_._08_, m_._12_,
         m_._01_, m_._05_, m_._09_, m_._13_,
         m_._02_, m_._06_, m_._10_, m_._14_,
         m_._03_, m_._07_, m_._11_, m_._15_
     };
+#endif
 
     return *this;
 }
