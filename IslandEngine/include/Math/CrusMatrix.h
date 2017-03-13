@@ -3,7 +3,6 @@
 ****    Source code of Island Engine.
 ****    Copyright (C) 2009 - 2017 Crusoe's Island LLC.
 ****
-****    Started at 14th August 2009.
 ****    Description: Matrix4x4 definition.
 ****
 ********************************************************************************************************************************/
@@ -19,20 +18,24 @@ class Matrix {
 public:
     UNIT_TEST_HERITABLE_CLASS;
 
-    Matrix();
-    ~Matrix();
+    explicit Matrix() = default;
 
+    Matrix(Matrix &&m);
     Matrix(Matrix const &m);
 
-    explicit Matrix(Vector const &position, Vector const &rotation, Vector const &sizing);
-    explicit Matrix(float const m[]);
-    explicit Matrix(float m0,   float m1,   float m2,   float m3,
-                    float m4,   float m5,   float m6,   float m7,
-                    float m8,   float m9,   float m10,  float m11,
-                    float m12,  float m13,  float m14,  float m15);
+    explicit Matrix(std::array<float, 16> const &vec);
 
-    float const *const m() const;
-    float *m();
+    //explicit Matrix(Vector const &position, Vector const &rotation, Vector const &sizing);
+
+    explicit Matrix(float m00, float m01, float m02, float m03,
+                    float m04, float m05, float m06, float m07,
+                    float m08, float m09, float m10, float m11,
+                    float m12, float m13, float m14, float m15);
+
+    std::array<float, 16> const &m() const;
+    std::array<float, 16> &m();
+
+    Matrix const &Mult(Matrix const &m);
 
     Matrix operator+ (Matrix const &m) const;
     Matrix operator- (Matrix const &m) const;
@@ -44,6 +47,7 @@ public:
     Matrix operator* (float s) const;
     Matrix operator/ (float s) const;
 
+    Matrix const &operator= (Matrix &&m);
     Matrix const &operator= (Matrix const &m);
 
     bool operator== (Matrix const &m) const;
@@ -73,7 +77,9 @@ public:
     float Det() const;
 
     Matrix Inverse() const;
-    Matrix Transpose() const;
+
+    static Matrix Transpose(Matrix const &m);
+    Matrix const &Transpose();
 
     static Matrix GetIdentity();
     Matrix const &MakeIdentity();
@@ -86,17 +92,19 @@ public:
     //static Matrix GetFromQuaternion(float const *const q);
 
 private:
-    union {
+    union alignas(sizeof(__m128))
+    {
         struct {
-            float m0_,   m1_,   m2_,   m3_;
-            float m4_,   m5_,   m6_,   m7_;
-            float m8_,   m9_,   m10_,  m11_;
-            float m12_,  m13_,  m14_,  m15_;
-        };
+            float _00_, _01_, _02_, _03_;
+            float _04_, _05_, _06_, _07_;
+            float _08_, _09_, _10_, _11_;
+            float _12_, _13_, _14_, _15_;
+        } m_;
 
-        struct {
-            float m_[16];
-        };
+        std::array<float, 16> vec_;
+#ifdef CRUS_USE_SSE_MATH
+        __m128 row_[4];
+#endif
     };
 };
 };

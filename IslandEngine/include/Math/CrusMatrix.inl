@@ -3,33 +3,34 @@
 ****    Source code of Island Engine.
 ****    Copyright (C) 2009 - 2017 Crusoe's Island LLC.
 ****
-****    Started at 10th March 2010.
 ****    Description: Matrix4x4 inlined functions implementation.
 ****
 ********************************************************************************************************************************/
 
 namespace isle::math {
-inline Matrix::Matrix() { }
-inline Matrix::~Matrix() { }
+inline Matrix::Matrix(Matrix &&_m)
+{
+    *this = std::move(_m);
+}
 
 inline Matrix::Matrix(Matrix const &_m)
 {
-    memcpy(m_, _m.m_, sizeof(m_));
+    *this = _m;
 }
 
-inline Matrix::Matrix(float const _m[])
+inline Matrix::Matrix(std::array<float, 16> const &_vec)
 {
-    memcpy(m_, _m, sizeof(m_));
+    vec_ = _vec;
 }
 
-inline float const *const Matrix::m() const
+inline std::array<float, 16> const &Matrix::m() const
 {
-    return m_;
+    return vec_;
 };
 
-inline float *Matrix::m()
+inline std::array<float, 16> &Matrix::m()
 {
-    return m_;
+    return vec_;
 };
 
 inline Matrix Matrix::operator/ (Matrix const &_m) const
@@ -43,10 +44,17 @@ inline Matrix Matrix::operator/ (float _s) const
     return *this * s;
 }
 
+inline Matrix const &Matrix::operator= (Matrix &&_m)
+{
+    vec_ = std::move(_m.vec_);
+
+    return *this;
+}
+
 inline Matrix const &Matrix::operator= (Matrix const &_m)
 {
     if (this != &_m)
-        memcpy(m_, _m.m_, sizeof(m_));
+        vec_ = _m.vec_;
 
     return *this;
 }
