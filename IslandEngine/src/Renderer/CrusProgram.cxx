@@ -69,14 +69,14 @@ std::string Program::PreprocessIncludes(std::string const &_source, std::string 
     std::ostringstream output;
 
     auto fileName = std::regex_replace(_name, std::regex(R"(-|–|\.|/|\\)"), "_");
-    std::transform(fileName.begin(), fileName.end(), fileName.begin(), [] (auto c) { return std::toupper(c); });
+    std::transform(fileName.begin(), fileName.end(), fileName.begin(), [] (auto c) { return std::toupper<char>(c, std::locale()); });
 
-    input << "#ifndef " << fileName << std::endl;
-    input << "#define " << fileName << std::endl;
+    input << "#ifndef " << fileName << '\n';
+    input << "#define " << fileName << '\n';
 
     int64 line_number = -1;
 
-    input << "#line " << line_number << R"( ")" << _name << R"(")" << std::endl;
+    input << "#line " << line_number << " \"" << _name << "\"\n";
     input << _source;
 
     std::smatch matches;
@@ -90,11 +90,11 @@ std::string Program::PreprocessIncludes(std::string const &_source, std::string 
             if (!ReadShaderSource(include_file_source, kSHADERS_PATH, include_file_name))
                 return _source;
 
-            output << PreprocessIncludes(include_file_source, include_file_name, _includingLevel + 1) << std::endl;
-            output << "#line " << line_number << R"( ")" << _name << R"(")" << std::endl;
+            output << PreprocessIncludes(include_file_source, include_file_name, _includingLevel + 1) << '\n';
+            output << "#line " << line_number << " \"" << _name << "\"\n";
         }
 
-        else output << line << std::endl;
+        else output << line << '\n';
 
         ++line_number;
     }
