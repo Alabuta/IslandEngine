@@ -70,7 +70,7 @@ LogStream::LogStream() : stream_(std::cerr.rdbuf())
 
     stream_ << std::noshowpoint;
     stream_ << crus::names_a::kPROJECT << " at " << crus::names_a::kBUILD_DATE << " (" << crus::names_a::kBUILD_VERSION << ")\n";
-    stream_ << "           --------------------------------------------------" << std::endl;
+    stream_ << "           --------------------------------------------------\n";
 }
 
 LogStream::~LogStream()

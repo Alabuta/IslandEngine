@@ -41,7 +41,7 @@ template<>
 __declspec(noinline) int32_t rand<int32_t>()
 {
     // The seed.
-    std::random_device rd;
+    static std::random_device rd;
     // Mersenne-Twister engine.
     std::mt19937 mt(rd());
     std::uniform_int_distribution<> value(std::numeric_limits<int32_t>::min(), std::numeric_limits<int32_t>::max());
@@ -53,7 +53,7 @@ template<>
 __declspec(noinline) float rand<float>()
 {
     // The seed.
-    std::random_device rd;
+    static std::random_device rd;
     // Mersenne-Twister engine.
     std::mt19937 mt(rd());
     std::uniform_real_distribution<float> value(-1000000.f, 1000000.f);

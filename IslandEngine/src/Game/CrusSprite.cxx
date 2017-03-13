@@ -320,7 +320,7 @@ bool Sprite::BuildGeometry()
 
     // A simple index buffer for quad.
     indices_.resize(4);
-    std::iota(indices_.begin(), indices_.end(), 0);
+    std::iota(indices_.begin(), indices_.end(), 0ui16);
     indices_.shrink_to_fit();
 
     return true;

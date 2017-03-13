@@ -29,10 +29,7 @@
 #define __WTIME__                   CRUS_WIDEN(__TIME__)
 
 // :COMPILER: nameless struct/union warning.
-//#pragma warning(disable: 4201)
-
-// :COMPILER: specify a structure without a declarator as members.
-//#pragma warning(disable: 4201)
+#pragma warning(disable: 4201)
 
 namespace crus {
 // Unicode names.
