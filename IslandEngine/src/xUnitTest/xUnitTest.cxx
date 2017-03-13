@@ -15,6 +15,10 @@
 #include "xUnitTest\xUnitTestList.h"
 #include "xUnitTest\xUnitTestResult.h"
 
+namespace {
+auto constexpr kBAD_STRING = "<bad string expression>";
+}
+
 namespace xUnit
 {
 Test::Test(std::string &&_class_name, std::string &&_file_name) : next_(nullptr), class_name_(_class_name), file_name_(_file_name)
@@ -70,7 +74,7 @@ void Check(bool _expression, Test const &_test, int32_t _line, std::string &&_ms
     std::ostringstream msg(_msg);
     msg << ": false expression";
 
-    Test::results().Failed(_test, _line, msg.str());
+    Test::results().Failed(_test, _line, msg.good() ? msg.str() : kBAD_STRING);
 }
 
 template<>
@@ -83,7 +87,7 @@ void CheckEqual<int32_t>(int32_t _expected, int32_t _actual, Test const &_test, 
     std::ostringstream msg(_msg);
     msg << ": expected " << _expected << " instead " << _actual;
 
-    Test::results().Failed(_test, _line, msg.str());
+    Test::results().Failed(_test, _line, msg.good() ? msg.str() : kBAD_STRING);
 }
 
 template<>
@@ -92,12 +96,12 @@ void CheckEqual<float>(float _expected, float _actual, Test const &_test, int32_
     Test::results().Add();
 
     // :TODO: floats compare...
-    if(fabsf((_expected - _actual) / (_actual != 0.0f ? _actual : 1.0f)) < std::numeric_limits<float>::epsilon())
+    if (std::abs((_expected - _actual) / (_actual != 0.0f ? _actual : 1.0f)) < std::numeric_limits<float>::epsilon())
         return;
 
     std::ostringstream msg(_msg);
     msg << ": expected " << _expected << " instead " << _actual;
 
-    Test::results().Failed(_test, _line, msg.str());
+    Test::results().Failed(_test, _line, msg.good() ? msg.str() : kBAD_STRING);
 }
 }
