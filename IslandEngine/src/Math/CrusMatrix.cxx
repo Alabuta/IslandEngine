@@ -8,6 +8,7 @@
 ********************************************************************************************************************************/
 #include "System\CrusTypes.h"
 #include "Math\CrusMatrix.h"
+#include "Math\CrusVector.h"
 
 namespace isle::math {
 Matrix::Matrix(float _m00, float _m01, float _m02, float _m03,
@@ -220,7 +221,7 @@ bool Matrix::operator== (Matrix const &_m) const
         && CloseEnough(m_._14_, _m.m_._14_) && CloseEnough(m_._15_, _m.m_._15_);
 }
 
-Matrix const &Matrix::operator+= (Matrix const &_m)
+Matrix &Matrix::operator+= (Matrix const &_m)
 {
 #ifdef CRUS_USE_SSE_MATH
     row_[0] = _mm_add_ps(row_[0], _m.row_[0]);
@@ -237,7 +238,7 @@ Matrix const &Matrix::operator+= (Matrix const &_m)
     return *this;
 }
 
-Matrix const &Matrix::operator-= (Matrix const &_m)
+Matrix &Matrix::operator-= (Matrix const &_m)
 {
 #ifdef CRUS_USE_SSE_MATH
     row_[0] = _mm_sub_ps(row_[0], _m.row_[0]);
@@ -254,7 +255,7 @@ Matrix const &Matrix::operator-= (Matrix const &_m)
     return *this;
 }
 
-Matrix const &Matrix::operator*= (Matrix const &_m)
+Matrix &Matrix::operator*= (Matrix const &_m)
 {
 #ifdef CRUS_USE_SSE_MATH
     // 16 mul; 12 sum
@@ -316,7 +317,7 @@ Matrix const &Matrix::operator*= (Matrix const &_m)
     return *this;
 }
 
-Matrix const &Matrix::operator+= (float _s)
+Matrix &Matrix::operator+= (float _s)
 {
 #ifdef CRUS_USE_SSE_MATH
     auto const s = _mm_set_ps1(_s);
@@ -335,7 +336,7 @@ Matrix const &Matrix::operator+= (float _s)
     return *this;
 }
 
-Matrix const &Matrix::operator-= (float _s)
+Matrix &Matrix::operator-= (float _s)
 {
 #ifdef CRUS_USE_SSE_MATH
     auto const s = _mm_set_ps1(_s);
@@ -354,7 +355,7 @@ Matrix const &Matrix::operator-= (float _s)
     return *this;
 }
 
-Matrix const &Matrix::operator*= (float _s)
+Matrix &Matrix::operator*= (float _s)
 {
 #ifdef CRUS_USE_SSE_MATH
     auto const s = _mm_set_ps1(_s);
@@ -383,9 +384,9 @@ Matrix const &Matrix::RotateOnOX(float _angle)
     float const s = sinf(DegToRad(_angle));
     float const c = cosf(DegToRad(_angle));
 
-    m_._00_ = 1.0f; m_._01_ = 0.0f; m_._02_ = 0.0f;
-    m_._04_ = 0.0f; m_._05_ = c;    m_._06_ = -s;
-    m_._08_ = 0.0f; m_._09_ = s;    m_._10_ = c;
+    m_._00_ = 1.f; m_._01_ = 0.f;  m_._02_ = 0.f;
+    m_._04_ = 0.f; m_._05_ = c;    m_._06_ = -s;
+    m_._08_ = 0.f; m_._09_ = s;    m_._10_ = c;
 
     return *this;
 }
@@ -400,9 +401,9 @@ Matrix const &Matrix::RotateOnOY(float _angle)
     float const s = sinf(DegToRad(_angle));
     float const c = cosf(DegToRad(_angle));
 
-    m_._00_ = c;   m_._01_ = 0.0f; m_._02_ = s;
-    m_._04_ = 0.0f; m_._05_ = 1.0f; m_._06_ = 0.0f;
-    m_._08_ = -s;   m_._09_ = 0.0f; m_._10_ = c;
+    m_._00_ = +c;   m_._01_ = 0.f; m_._02_ = s;
+    m_._04_ = 0.f;  m_._05_ = 1.f; m_._06_ = 0.f;
+    m_._08_ = -s;   m_._09_ = 0.f; m_._10_ = c;
 
     return *this;
 }
@@ -417,45 +418,44 @@ Matrix const &Matrix::RotateOnOZ(float _angle)
     float const s = sinf(DegToRad(_angle));
     float const c = cosf(DegToRad(_angle));
 
-    m_._00_ = c;    m_._01_ = -s;   m_._02_ = 0.0f; //m_._03_  = 0.0f;
-    m_._04_ = s;    m_._05_ = c;    m_._06_ = 0.0f; //m_._07_  = 0.0f;
-    m_._08_ = 0.0f; m_._09_ = 0.0f; m_._10_ = 1.0f; //m_._11_ = 0.0f;
-    //m_._12_ = 0.0f; m_._13_ = 0.0f; m_._14_ = 0.0f; m_._15_ = 1.0f;
+    m_._00_ = c;    m_._01_ = -s;   m_._02_ = 0.f;
+    m_._04_ = s;    m_._05_ = c;    m_._06_ = 0.f;
+    m_._08_ = 0.f;  m_._09_ = 0.f;  m_._10_ = 1.f;
 
     return *this;
 }
 
-Matrix const &Matrix::Rotate(float const *const _axis, float _angle)
+Matrix const &Matrix::Rotate(Vector const &_axis, float _angle)
 {
-    float const s = sinf(DegToRad(_angle));
-    float const c = cosf(DegToRad(_angle));
+    auto const s = std::sin(DegToRad(_angle));
+    auto const c = std::cos(DegToRad(_angle));
 
-    m_._00_ = (_axis[0] * _axis[0]) * (1.0f - c) + c;
-    m_._01_ = (_axis[0] * _axis[1]) * (1.0f - c) + _axis[2] * s;
-    m_._02_ = (_axis[0] * _axis[2]) * (1.0f - c) - _axis[1] * s;
-    m_._03_ = 0.0f;
+    m_._00_ = _axis.x() * _axis.x() * (1.f - c) + c;
+    m_._01_ = _axis.x() * _axis.y() * (1.f - c) + _axis.z() * s;
+    m_._02_ = _axis.x() * _axis.z() * (1.f - c) - _axis.y() * s;
+    m_._03_ = 0.f;
 
-    m_._04_ = (_axis[1] * _axis[0]) * (1.0f - c) - _axis[2] * s;
-    m_._05_ = (_axis[1] * _axis[1]) * (1.0f - c) + c;
-    m_._06_ = (_axis[1] * _axis[2]) * (1.0f - c) + _axis[0] * s;
-    m_._07_ = 0.0f;
+    m_._04_ = _axis.y() * _axis.x() * (1.f - c) - _axis.z() * s;
+    m_._05_ = _axis.y() * _axis.y() * (1.f - c) + c;
+    m_._06_ = _axis.y() * _axis.z() * (1.f - c) + _axis.x() * s;
+    m_._07_ = 0.f;
 
-    m_._08_ = (_axis[2] * _axis[0]) * (1.0f - c) + _axis[1] * s;
-    m_._09_ = (_axis[2] * _axis[1]) * (1.0f - c) - _axis[0] * s;
-    m_._10_ = (_axis[2] * _axis[2]) * (1.0f - c) + c;
-    m_._11_ = 0.0f;
+    m_._08_ = _axis.z() * _axis.x() * (1.f - c) + _axis.y() * s;
+    m_._09_ = _axis.z() * _axis.y() * (1.f - c) - _axis.x() * s;
+    m_._10_ = _axis.z() * _axis.z() * (1.f - c) + c;
+    m_._11_ = 0.f;
 
-    m_._12_ = 0.0f;
-    m_._13_ = 0.0f;
-    m_._14_ = 0.0f;
-    m_._15_ = 1.0f;
+    m_._12_ = 0.f;
+    m_._13_ = 0.f;
+    m_._14_ = 0.f;
+    m_._15_ = 1.f;
 
     return *this;
 }
 
 Matrix const &Matrix::Rotate(float _x, float _y, float _z, float _angle)
 {
-    float const axis[3] = {_x, _y, _z};
+    Vector const axis(_x, _y, _z);
     Rotate(axis, _angle);
 
     return *this;
@@ -577,17 +577,6 @@ Matrix const &Matrix::Transpose()
     return *this;
 }
 
-/*static*/ Matrix Matrix::GetIdentity()
-{
-    return Matrix
-    (
-        1.0f, 0.0f, 0.0f, 0.0f,
-        0.0f, 1.0f, 0.0f, 0.0f,
-        0.0f, 0.0f, 1.0f, 0.0f,
-        0.0f, 0.0f, 0.0f, 1.0f
-    );
-}
-
 Matrix const &Matrix::MakeIdentity()
 {
     vec_.fill(0.f);
@@ -600,22 +589,58 @@ Matrix const &Matrix::MakeIdentity()
     return *this;
 }
 
-void Matrix::TransformPoint(float *const _p) const
+Vector Matrix::TransformPosition(Vector const &_p) const
 {
-    float const np[3] = {_p[0], _p[1], _p[2]};
+    auto np = _p;
 
-    _p[0] = np[0] * m_._00_ + np[1] * m_._04_ + np[2] * m_._08_ + m_._12_;
-    _p[1] = np[0] * m_._01_ + np[1] * m_._05_ + np[2] * m_._09_ + m_._13_;
-    _p[2] = np[0] * m_._02_ + np[1] * m_._06_ + np[2] * m_._10_ + m_._14_;
+    TransformPosition(np);
+
+    return np;
 }
 
-void Matrix::TransformVector(float *const _v) const
+Vector Matrix::TransformPosition(Vector &&_p) const
 {
-    float const nv[3] = {_v[0], _v[1], _v[2]};
+    auto np = std::move(_p);
 
-    _v[0] = nv[0] * m_._00_ + nv[1] * m_._04_ + nv[2] * m_._08_;
-    _v[1] = nv[0] * m_._01_ + nv[1] * m_._05_ + nv[2] * m_._09_;
-    _v[2] = nv[0] * m_._02_ + nv[1] * m_._06_ + nv[2] * m_._10_;
+    TransformPosition(np);
+
+    return np;
+}
+
+void Matrix::TransformPosition(Vector &_p) const
+{
+    auto const np = _p.v();
+
+    _p.v()[0] = np[0] * m_._00_ + np[1] * m_._01_ + np[2] * m_._02_ + 1.f * m_._03_;
+    _p.v()[1] = np[0] * m_._04_ + np[1] * m_._05_ + np[2] * m_._06_ + 1.f * m_._07_;
+    _p.v()[2] = np[0] * m_._08_ + np[1] * m_._09_ + np[2] * m_._10_ + 1.f * m_._11_;
+}
+
+Vector Matrix::TransformVector(Vector const &_v) const
+{
+    auto nv = _v;
+
+    TransformVector(nv);
+
+    return nv;
+}
+
+Vector Matrix::TransformVector(Vector &&_v) const
+{
+    auto nv = std::move(_v);
+
+    TransformVector(nv);
+
+    return nv;
+}
+
+void Matrix::TransformVector(Vector &_v) const
+{
+    auto const nv = _v.v();
+
+    _v.v()[0] = nv[0] * m_._00_ + nv[1] * m_._01_ + nv[2] * m_._02_;
+    _v.v()[1] = nv[0] * m_._04_ + nv[1] * m_._05_ + nv[2] * m_._06_;
+    _v.v()[2] = nv[0] * m_._08_ + nv[1] * m_._09_ + nv[2] * m_._10_;
 }
 
 Matrix const &Matrix::FromQuaternion(float const _q[])

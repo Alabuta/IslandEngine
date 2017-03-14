@@ -59,9 +59,9 @@ Texture flipbookTexture("sprites-cat-running.tga");//RobotBoyWalkSprite
 math::Matrix transform;
 
 math::Matrix matrices[] = {
-    math::Matrix::GetIdentity(),
-    math::Matrix::GetIdentity(),
-    math::Matrix::GetIdentity()
+    math::Matrix::Identity(),
+    math::Matrix::Identity(),
+    math::Matrix::Identity()
 };
 
 template <typename T>

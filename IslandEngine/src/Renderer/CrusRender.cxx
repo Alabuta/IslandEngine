@@ -135,7 +135,7 @@ void Render::SetViewport(int16 _x, int16 _y, int16 _w, int16 _h)
 void Render::Update()
 { }
 
-math::Matrix identity = math::Matrix::GetIdentity().Translate(0, 1, 0);
+math::Matrix identity = math::Matrix::Identity().Translate(0, 1, 0);
 
 void Render::DrawFrame()
 {

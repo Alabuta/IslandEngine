@@ -23,7 +23,8 @@ public:
     Matrix(Matrix &&m);
     Matrix(Matrix const &m);
 
-    explicit Matrix(std::array<float, 16> const &vec);
+    Matrix(std::array<float, 16> &&vec);
+    Matrix(std::array<float, 16> const &vec);
 
     //explicit Matrix(Vector const &position, Vector const &rotation, Vector const &sizing);
 
@@ -35,8 +36,6 @@ public:
     std::array<float, 16> const &m() const;
     std::array<float, 16> &m();
 
-    Matrix const &Mult(Matrix const &m);
-
     Matrix operator+ (Matrix const &m) const;
     Matrix operator- (Matrix const &m) const;
     Matrix operator* (Matrix const &m) const;
@@ -47,27 +46,27 @@ public:
     Matrix operator* (float s) const;
     Matrix operator/ (float s) const;
 
-    Matrix const &operator= (Matrix &&m);
-    Matrix const &operator= (Matrix const &m);
+    Matrix &operator= (Matrix &&m);
+    Matrix &operator= (Matrix const &m);
 
     bool operator== (Matrix const &m) const;
     bool operator!= (Matrix const &m) const;
 
-    Matrix const &operator+= (Matrix const &m);
-    Matrix const &operator-= (Matrix const &m);
-    Matrix const &operator*= (Matrix const &m);
-    Matrix const &operator/= (Matrix const &m);
+    Matrix &operator+= (Matrix const &m);
+    Matrix &operator-= (Matrix const &m);
+    Matrix &operator*= (Matrix const &m);
+    Matrix &operator/= (Matrix const &m);
 
-    Matrix const &operator+= (float s);
-    Matrix const &operator-= (float s);
-    Matrix const &operator*= (float s);
-    Matrix const &operator/= (float s);
+    Matrix &operator+= (float s);
+    Matrix &operator-= (float s);
+    Matrix &operator*= (float s);
+    Matrix &operator/= (float s);
 
     Matrix const &RotateOnOX(float angle);
     Matrix const &RotateOnOY(float angle);
     Matrix const &RotateOnOZ(float angle);
 
-    Matrix const &Rotate(float const *const axis, float angle);
+    Matrix const &Rotate(Vector const &axis, float angle);
     Matrix const &Rotate(float x, float y, float z, float angle);
 
     Matrix const &Scale(float x, float y, float z);
@@ -81,11 +80,16 @@ public:
     static Matrix Transpose(Matrix const &m);
     Matrix const &Transpose();
 
-    static Matrix GetIdentity();
+    static Matrix Identity();
     Matrix const &MakeIdentity();
 
-    void TransformPoint(float *const p) const;
-    void TransformVector(float *const v) const;
+    Vector TransformPosition(Vector const &p) const;
+    Vector TransformPosition(Vector &&p) const;
+    void TransformPosition(Vector &p) const;
+
+    Vector TransformVector(Vector const &v) const;
+    Vector TransformVector(Vector &&v) const;
+    void TransformVector(Vector &v) const;
 
     Matrix const &FromQuaternion(float const q[]);
     // :TODO: maybe it was better if deleted.
