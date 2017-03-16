@@ -3,7 +3,6 @@
 ****    Source code of Island Engine.
 ****    Copyright (C) 2009 - 2017 Crusoe's Island LLC.
 ****
-****    Started at 14th August 2009.
 ****    Description: three-component vector definition.
 ****
 ********************************************************************************************************************************/
@@ -19,12 +18,13 @@ class Vector {
 public:
     UNIT_TEST_HERITABLE_CLASS;
 
-    Vector();
-    ~Vector();
+    explicit Vector() = default;
 
     Vector(Vector const &v);
 
-    explicit Vector(float const v[]);
+    Vector(std::array<float, 3> &&vec);
+    Vector(std::array<float, 3> const &vec);
+
     explicit Vector(float x, float y, float z);
 
     Vector(Vector &&v);
@@ -33,8 +33,8 @@ public:
     float y() const;
     float z() const;
 
-    float const *const v() const;
-    float *v();
+    std::array<float, 3> const &v() const;
+    std::array<float, 3> &v();
 
     float x(float x);
     float y(float y);
@@ -83,10 +83,12 @@ public:
 
     Vector const &Normalize();
 
-    static Vector GetNormalized(float const *const v);
+    static Vector GetNormalized(Vector const &v);
     static Vector GetNormalized(float x, float y, float z);
 
     static Vector One();
+
+    void ToStream(std::ostream &stream) const;
 
 private:
     union {
@@ -94,9 +96,7 @@ private:
             float x_, y_, z_;
         };
 
-        struct {
-            float v_[3];
-        };
+        std::array<float, 3> vec_;
     };
 };
 };

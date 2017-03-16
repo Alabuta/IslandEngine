@@ -10,12 +10,20 @@
 #include <utility>
 
 namespace isle::math {
-inline Vector::Vector() { }
-inline Vector::~Vector() { }
 
 inline Vector::Vector(Vector const &_v) : Vector::Vector(_v.x_, _v.y_, _v.z_) { }
 
-inline Vector::Vector(float const _v[]) : Vector::Vector(_v[0], _v[1], _v[2]) { }
+
+inline Vector::Vector(std::array<float, 3> &&_vec)
+{
+    vec_ = std::move(_vec);
+}
+
+inline Vector::Vector(std::array<float, 3> const &_vec)
+{
+    vec_ = _vec;
+}
+
 inline Vector::Vector(float _x, float _y, float _z) : x_(_x), y_(_y), z_(_z) { }
 
 inline Vector::Vector(Vector &&_v)
@@ -40,14 +48,14 @@ inline float Vector::z() const
     return z_;
 }
 
-inline float const *const Vector::v() const
+inline std::array<float, 3> const &Vector::v() const
 {
-    return (&x_);
+    return vec_;
 }
 
-inline float *Vector::v()
+inline std::array<float, 3> &Vector::v()
 {
-    return (&x_);
+    return vec_;
 }
 
 inline float Vector::x(float _x)
@@ -257,7 +265,7 @@ inline Vector const &Vector::Normalize()
     return *this /= GetLenght();
 }
 
-/*static*/ inline Vector Vector::GetNormalized(float const *const _v)
+/*static*/ inline Vector Vector::GetNormalized(Vector const &_v)
 {
     return Vector(_v).Normalize();
 }
@@ -270,5 +278,10 @@ inline Vector const &Vector::Normalize()
 /*static*/ inline Vector Vector::One()
 {
     return Vector(1, 1, 1);
+}
+
+inline void Vector::ToStream(std::ostream &_stream) const
+{
+    _stream << x_ << "; " << y_ << "; " << z_;
 }
 };

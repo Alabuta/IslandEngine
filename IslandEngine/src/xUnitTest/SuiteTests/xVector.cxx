@@ -15,20 +15,33 @@ UNIT_SUITE_CLASS(isle::math::Vector)
 
     // The class constructor testing...
     {
-        float const v[3] = {rand<float>(), rand<float>(), rand<float>()};
-        Vector const v1(v[0], v[1], v[2]), v2(v), v3(v2);
+        std::array<float, 3> const vec{rand<float>(), rand<float>(), rand<float>()};
 
-        CHECK_EQUAL(v[0], v1.x_, "class member 'x'")
-        CHECK_EQUAL(v[1], v1.y_, "class member 'y'")
-        CHECK_EQUAL(v[2], v1.z_, "class member 'z'")
+        Vector const v1(vec[0], vec[1], vec[2]), v2(vec), v3(v2);
 
-        CHECK_EQUAL(v[0], v2.x_, "class member 'x'")
-        CHECK_EQUAL(v[1], v2.y_, "class member 'y'")
-        CHECK_EQUAL(v[2], v2.z_, "class member 'z'")
+        CHECK_EQUAL(vec[0], v1.x_, "class member 'x'");
+        CHECK_EQUAL(vec[1], v1.y_, "class member 'y'");
+        CHECK_EQUAL(vec[2], v1.z_, "class member 'z'");
 
-        CHECK_EQUAL(v2.x_, v3.x_, "class member 'x'")
-        CHECK_EQUAL(v2.y_, v3.y_, "class member 'y'")
-        CHECK_EQUAL(v2.z_, v3.z_, "class member 'z'")
+        CHECK_EQUAL(vec[0], v2.x_, "class member 'x'");
+        CHECK_EQUAL(vec[1], v2.y_, "class member 'y'");
+        CHECK_EQUAL(vec[2], v2.z_, "class member 'z'");
+
+        CHECK_EQUAL(v2.x_, v3.x_, "class member 'x'");
+        CHECK_EQUAL(v2.y_, v3.y_, "class member 'y'");
+        CHECK_EQUAL(v2.z_, v3.z_, "class member 'z'");
+
+        Vector v4(std::move(vec));
+
+        CHECK_EQUAL(v2.x_, v4.x_, "class member 'x'");
+        CHECK_EQUAL(v2.y_, v4.y_, "class member 'y'");
+        CHECK_EQUAL(v2.z_, v4.z_, "class member 'z'");
+
+        Vector const v5(std::move(v4));
+
+        CHECK_EQUAL(v2.x_, v5.x_, "class member 'x'");
+        CHECK_EQUAL(v2.y_, v5.y_, "class member 'y'");
+        CHECK_EQUAL(v2.z_, v5.z_, "class member 'z'");
     }
 
     // Getters...
@@ -244,13 +257,11 @@ UNIT_SUITE_CLASS(isle::math::Vector)
     {
         Vector v(1.0f, -1.0f, 1.0f);
 
-        CHECK_EQUAL(1.0f + 1.0f + 1.0f, v.GetNorm(), "GetNorm() const")
-        CHECK_EQUAL(sqrtf(v.GetNorm()), v.GetLenght(), "GetLenght() const")
+        CHECK_EQUAL(1.0f + 1.0f + 1.0f, v.GetNorm(), "GetNorm() const");
+        CHECK_EQUAL(sqrtf(v.GetNorm()), v.GetLenght(), "GetLenght() const");
 
-        CHECK_EQUAL(1.0f, v.Normalize().GetLenght(), "Normalize()")
-        CHECK_EQUAL(1.0f, Vector::GetNormalized(v.v()).GetLenght(),
-                    "Normalize(Vector const &)")
-        CHECK_EQUAL(1.0f, Vector::GetNormalized(1.0f, -1.0f, 1.0f).GetLenght(),
-                    "Normalize(float, float, float)")
+        CHECK_EQUAL(1.0f, v.Normalize().GetLenght(), "Normalize()");
+        CHECK_EQUAL(1.0f, Vector::GetNormalized(v.v()).GetLenght(), "Normalize(Vector const &)");
+        CHECK_EQUAL(1.0f, Vector::GetNormalized(1.0f, -1.0f, 1.0f).GetLenght(), "Normalize(float, float, float)");
     }
 }

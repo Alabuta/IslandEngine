@@ -21,7 +21,7 @@ math::Vector const Camera::kWORLD_AXIS_X{1.0f, 0.0f, 0.0f};
 math::Vector const Camera::kWORLD_AXIS_Y{0.0f, 1.0f, 0.0f};
 math::Vector const Camera::kWORLD_AXIS_Z{0.0f, 0.0f, 1.0f};
 
-Camera::Camera() : behavior{std::make_shared<__hidden::ICameraEditorBehaviour>()}, pitch_{0.0f}, yaw_{0.0f}, view_{math::Matrix::GetIdentity()} { }
+Camera::Camera() : behavior{std::make_shared<__hidden::ICameraEditorBehaviour>()}, pitch_{0.0f}, yaw_{0.0f}, view_{math::Matrix::Identity()} { }
 Camera::~Camera() { };
 
 void Camera::Create(Camera::eCAM_BEHAVIOR _behavior)
@@ -146,8 +146,8 @@ void Camera::UpdateView()
     //RestricYaw(controller.x() * 0.05f);
     //RestricPitch(controller.y() * 0.05f);
 
-    rot_.FromAxisAngle(kWORLD_AXIS_Y.v(), yaw_);
-    rot_ ^= math::Quaternion::GetFromAxisAngle(kWORLD_AXIS_X.v(), pitch_);
+    rot_.FromAxisAngle(kWORLD_AXIS_Y.v().data(), yaw_);
+    rot_ ^= math::Quaternion::GetFromAxisAngle(kWORLD_AXIS_X.v().data(), pitch_);
 
     view_.FromQuaternion(rot_.q());
 
