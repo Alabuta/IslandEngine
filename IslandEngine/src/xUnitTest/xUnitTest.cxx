@@ -11,6 +11,8 @@
 #include <random>
 #include <sstream>
 
+#include "Math\CrusMath.h"
+
 #include "xUnitTest\xUnitTest.h"
 #include "xUnitTest\xUnitTestList.h"
 #include "xUnitTest\xUnitTestResult.h"
@@ -96,7 +98,7 @@ void CheckEqual<float>(float _expected, float _actual, Test const &_test, int32_
     Test::results().Add();
 
     // :TODO: floats compare...
-    if (std::abs((_expected - _actual) / (_actual != 0.0f ? _actual : 1.0f)) < std::numeric_limits<float>::epsilon())
+    if (isle::math::CloseEnough(_expected, _actual))
         return;
 
     std::ostringstream msg(_msg);

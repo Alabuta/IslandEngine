@@ -22,4 +22,10 @@ UNIT_SUITE_CLASS(isle::math)
     CHECK(!IsTooSmall(kEPSILON), "IsTooSmall(float)");
 
     CHECK_EQUAL(2.9999f, clamp(2.9999f, 1.999999f, 2.999999f), "clamp()");
+
+    {
+        auto x = rand<float>();
+        CHECK(float_next(x) > x, "float_next(float)");
+        CHECK(float_prior(x) < x, "float_prior(float)");
+    }
 }
