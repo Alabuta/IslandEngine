@@ -898,6 +898,12 @@ __forceinline void APIENTRY glMultiDrawArrays(GLenum mode, const GLint *first, c
     return glMultiDrawArrays(mode, first, count, primcount);
 }
 
+__forceinline void APIENTRY glMultiDrawArraysIndirect(GLenum mode, const void *indirect, GLsizei drawcount, GLsizei stride)
+{
+    GL_PROC_INIT(glMultiDrawArraysIndirect);
+    return glMultiDrawArraysIndirect(mode, indirect, drawcount, stride);
+}
+
 __forceinline void APIENTRY glMultiDrawElements(GLenum mode, const GLsizei *count, GLenum type, const GLvoid* const *indices, GLsizei primcount)
 {
     GL_PROC_INIT(glMultiDrawElements);
