@@ -8,6 +8,7 @@
 *.ipdb
 *.iobj
 *.tmp
+*.user
 
 .vs/
 [Bb]in/
