@@ -12,9 +12,11 @@
 
 .vs/
 [Bb]in/
-IslandEngine/x64/
-IslandEngine/x86/
-[Tt]extures/
+x64/
+x86/
+Debug/
+Release/
+Win32/
 [Tt]emp/
 .mayaSwatches/
 .vscode/
