@@ -1,0 +1,338 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include=".misc">
+      <UniqueIdentifier>{70d19567-7d97-472d-8366-4b87227242f8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include=".resources">
+      <UniqueIdentifier>{73104b32-c2e3-443b-901a-ad0e6a77ff24}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core">
+      <UniqueIdentifier>{b24b893c-2051-494c-86df-35b56034cab0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shader sources">
+      <UniqueIdentifier>{d1615eb8-77b7-4e18-949b-f19e029f04cf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Interface">
+      <UniqueIdentifier>{4d26a9c5-e127-4ef6-93fa-e8dfc513e4bc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Manager">
+      <UniqueIdentifier>{26830dd7-109f-4688-a570-74ac0960712b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Math">
+      <UniqueIdentifier>{7a484ee0-4eda-450c-8981-c43225ce3eca}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Renderer">
+      <UniqueIdentifier>{116b1834-60ac-4800-9165-fe87e25a40f6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\System">
+      <UniqueIdentifier>{0efe883a-f560-4e12-ba56-4ee39ea4859c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Game">
+      <UniqueIdentifier>{09d285fc-068f-4c1f-94c5-4da7bdcadd88}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\System\Platform">
+      <UniqueIdentifier>{83233ade-4bf8-4a05-9dce-1a9c919e59cf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\System\Reef">
+      <UniqueIdentifier>{7733fef2-45b7-4776-a36f-6ecc492844f1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\System\Input">
+      <UniqueIdentifier>{10ded100-90c4-4749-aa65-4920d3e9dae2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Math\Matrix">
+      <UniqueIdentifier>{2093d72a-6e84-429c-8dc5-86b6958d9a3d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Math\Quaternion">
+      <UniqueIdentifier>{538eddae-e4bc-43ce-b425-21389cc6a50e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Math\Vector">
+      <UniqueIdentifier>{9dd04859-baff-401e-b8e3-dcaca644b3c5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Camera">
+      <UniqueIdentifier>{ce4a1daa-e565-4163-ac5c-1e36422b7717}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shader sources\Defaults">
+      <UniqueIdentifier>{f98a28b1-3d62-4dcb-9845-16f0093d815f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shader sources\Includes">
+      <UniqueIdentifier>{f0134e28-f090-4643-ad12-da1a5fbeb8e5}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\engine.cxx" />
+    <ClCompile Include="src\System\CrusBook.cxx">
+      <Filter>Core\System</Filter>
+    </ClCompile>
+    <ClCompile Include="src\System\CrusSystem.cxx">
+      <Filter>Core\System</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Interface\CrusViewport.cxx">
+      <Filter>Core\Interface</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Interface\CrusPlayer.cxx">
+      <Filter>Core\Interface</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Renderer\CrusProgram.cxx">
+      <Filter>Core\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Interface\CrusTextOut.cxx">
+      <Filter>Core\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Renderer\CrusTexture.cxx">
+      <Filter>Core\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Manager\CrusTARGA.cxx">
+      <Filter>Core\Manager</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Interface\CrusGrid.cxx">
+      <Filter>Core\Interface</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Game\CrusObject.cxx">
+      <Filter>Game</Filter>
+    </ClCompile>
+    <ClCompile Include="src\System\CrusWindow.cxx">
+      <Filter>Core\System\Platform</Filter>
+    </ClCompile>
+    <ClCompile Include="src\System\CrusSplash.cxx">
+      <Filter>Core\System\Platform</Filter>
+    </ClCompile>
+    <ClCompile Include="src\System\CrusGamepad.cxx">
+      <Filter>Core\System\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="src\System\CrusInput.cxx">
+      <Filter>Core\System\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="src\System\CrusJoystick.cxx">
+      <Filter>Core\System\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="src\System\CrusMouse.cxx">
+      <Filter>Core\System\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Math\CrusMatrix.cxx">
+      <Filter>Core\Math\Matrix</Filter>
+    </ClCompile>
+    <ClCompile Include="src\System\CrusUSBIDs.cxx">
+      <Filter>Core\System\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="src\System\CrusTime.cxx">
+      <Filter>Core\System</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Game\CrusEntity.cxx">
+      <Filter>Game</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Renderer\CrusRender.cxx">
+      <Filter>Core\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Game\CrusBounds.cxx">
+      <Filter>Game</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Game\CrusComponent.cxx">
+      <Filter>Game</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Game\CrusRay.cxx">
+      <Filter>Game</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Game\CrusRect.cxx">
+      <Filter>Game</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Game\CrusRenderer.cxx">
+      <Filter>Game</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Game\CrusSprite.cxx">
+      <Filter>Game</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Game\CrusTransform.cxx">
+      <Filter>Game</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Camera\CrusCamera.cxx">
+      <Filter>Core\Camera</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Renderer\CrusOpenGLExts.cxx">
+      <Filter>Core\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Renderer\CrusOpenGLContext.cxx">
+      <Filter>Core\Renderer</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="include\engine.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="resources\resource.h">
+      <Filter>.resources</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Interface\CrusGrid.h">
+      <Filter>Core\Interface</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Interface\CrusPlayer.h">
+      <Filter>Core\Interface</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Interface\CrusViewport.h">
+      <Filter>Core\Interface</Filter>
+    </ClInclude>
+    <ClInclude Include="include\System\CrusBook.h">
+      <Filter>Core\System</Filter>
+    </ClInclude>
+    <ClInclude Include="include\System\CrusSystem.h">
+      <Filter>Core\System</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Math\CrusMath.h">
+      <Filter>Core\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Renderer\CrusProgram.h">
+      <Filter>Core\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Renderer\CrusTexture.h">
+      <Filter>Core\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Renderer\CrusColors.h">
+      <Filter>Core\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Manager\CrusTARGA.h">
+      <Filter>Core\Manager</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Game\CrusObject.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="include\System\CrusWindow.h">
+      <Filter>Core\System\Platform</Filter>
+    </ClInclude>
+    <ClInclude Include="include\System\CrusSplash.h">
+      <Filter>Core\System\Platform</Filter>
+    </ClInclude>
+    <ClInclude Include="include\System\CrusTypes.h">
+      <Filter>Core\System\Reef</Filter>
+    </ClInclude>
+    <ClInclude Include="include\System\CrusIsland.h">
+      <Filter>Core\System\Reef</Filter>
+    </ClInclude>
+    <ClInclude Include="include\System\CrusGamepad.h">
+      <Filter>Core\System\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="include\System\CrusInput.h">
+      <Filter>Core\System\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="include\System\CrusJoystick.h">
+      <Filter>Core\System\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="include\System\CrusMouse.h">
+      <Filter>Core\System\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Math\CrusQuaternion.h">
+      <Filter>Core\Math\Quaternion</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Math\CrusVector.h">
+      <Filter>Core\Math\Vector</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Math\CrusMatrix.h">
+      <Filter>Core\Math\Matrix</Filter>
+    </ClInclude>
+    <ClInclude Include="include\System\CrusTime.h">
+      <Filter>Core\System</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Game\CrusEntity.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Game\CrusRenderer.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Renderer\CrusRender.h">
+      <Filter>Core\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Game\CrusRay.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Game\CrusRect.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Game\CrusSprite.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Game\CrusSpriteRenderer.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Renderer\CrusUV.h">
+      <Filter>Core\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Renderer\CrusPosition.h">
+      <Filter>Core\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Game\CrusBounds.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Game\CrusComponent.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Renderer\CrusMaterial.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Game\CrusTransform.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Camera\CameraBehaviour.h">
+      <Filter>Core\Camera</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Camera\CrusCamera.h">
+      <Filter>Core\Camera</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Renderer\CrusOpenGLExts.h">
+      <Filter>Core\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Renderer\CrusOpenGLContext.h">
+      <Filter>Core\Renderer</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="resources\resource.aps">
+      <Filter>.resources</Filter>
+    </None>
+    <None Include="include\Math\CrusQuaternion.inl">
+      <Filter>Core\Math\Quaternion</Filter>
+    </None>
+    <None Include="include\Math\CrusVector.inl">
+      <Filter>Core\Math\Vector</Filter>
+    </None>
+    <None Include="include\Math\CrusMatrix.inl">
+      <Filter>Core\Math\Matrix</Filter>
+    </None>
+    <None Include="include\Renderer\CrusUV.inl">
+      <Filter>Core\Renderer</Filter>
+    </None>
+    <None Include="include\Renderer\CrusPosition.inl">
+      <Filter>Core\Renderer</Filter>
+    </None>
+    <None Include="..\contents\shaders\test.glsl">
+      <Filter>Shader sources</Filter>
+    </None>
+    <None Include="..\contents\shaders\Defaults\Sprites-Default.glsl">
+      <Filter>Shader sources\Defaults</Filter>
+    </None>
+    <None Include="..\contents\shaders\Interface\grid.glsl">
+      <Filter>Shader sources</Filter>
+    </None>
+    <None Include="..\contents\shaders\Includes\ShaderVariables.glsl">
+      <Filter>Shader sources\Includes</Filter>
+    </None>
+    <None Include="..\contents\shaders\Includes\ShaderHelpers.glsl">
+      <Filter>Shader sources\Includes</Filter>
+    </None>
+    <None Include="..\contents\shaders\Defaults\Dummy-Shader.glsl">
+      <Filter>Shader sources\Defaults</Filter>
+    </None>
+    <None Include="..\contents\shaders\Defaults\Buffer-Objects-Initialization.glsl">
+      <Filter>Shader sources\Defaults</Filter>
+    </None>
+    <None Include="..\contents\shaders\Defaults\Skybox.glsl">
+      <Filter>Shader sources\Defaults</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="resources\resource.rc">
+      <Filter>.resources</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="..\book.log" />
+  </ItemGroup>
+</Project>
