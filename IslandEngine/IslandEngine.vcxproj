@@ -226,6 +226,7 @@
     <ResourceCompile Include="resources\resource.rc" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\contents\shaders\Defaults\Skybox-Cubed.glsl" />
     <None Include="..\contents\shaders\Defaults\Dummy-Shader.glsl" />
     <None Include="..\contents\shaders\Defaults\Sprites-Default.glsl" />
     <None Include="..\contents\shaders\Defaults\Buffer-Objects-Initialization.glsl" />
