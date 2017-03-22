@@ -3,7 +3,6 @@
 ****    Source code of Island Engine.
 ****    Copyright (C) 2009 - 2017 Crusoe's Island LLC.
 ****
-****    Started at 11th April 2010.
 ****	Description: TARGA loader implementation file.
 ****
 ********************************************************************************************************************************/
@@ -163,9 +162,9 @@ bool LoadTARGA(Image *const _image, std::string const &_name)
 
     file.read(header, sizeof(header));
 
-    _image->width_ = header[1] * 256 + header[0];
+    _image->width_  = header[1] * 256 + header[0];
     _image->height_ = header[3] * 256 + header[2];
-    _image->bpp_ = header[4] / 8;
+    _image->bpp_    = header[4] / 8;
 
     if (_image->width_ * _image->height_ * _image->bpp_ < 0) {
         file.close();
@@ -174,14 +173,14 @@ bool LoadTARGA(Image *const _image, std::string const &_name)
 
     switch (headerTARGA) {
         case 2:
-            log::Debug() << "Uncompressed: " << measure<>::execution([&]
+            log::Debug() << "Uncompressed: " << measure<>::execution([&_image, &file]
             {
                 LoadUncompressedTARGA(*_image, file);
             });
             break;
 
         case 10:
-            log::Debug() << "Compressed: " << measure<>::execution([&]
+            log::Debug() << "Compressed: " << measure<>::execution([&_image, &file]
             {
                 LoadCompressedTARGA(*_image, file);
             });
