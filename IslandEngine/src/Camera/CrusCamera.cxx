@@ -32,6 +32,7 @@ void Camera::Create(Camera::eCAM_BEHAVIOR _behavior)
 
         case eCAM_BEHAVIOR::nFREE:
             //Input::Mouse::main().HideCursor();
+            ::ShowCursor(FALSE);
             break;
 
         case eCAM_BEHAVIOR::nTHIRD:
@@ -61,34 +62,34 @@ void Camera::SetBehavior(Camera::eCAM_BEHAVIOR _behavior)
 
     else if (_behavior == eCAM_BEHAVIOR::nFREE && (behavior_ == eCAM_BEHAVIOR::nTHIRD || behavior_ == eCAM_BEHAVIOR::nSDK)) {
         pos_ = aim_;
-        aim = -zAxis_;
+        aim = -view_.zAxis();
     }
 
     Create(_behavior);
 
-    pitch_ = -math::RadToDeg(acosf(yAxis_.y()));     // Extract the pitch angle.
-    yaw_ = -math::RadToDeg(acosf(xAxis_.x()));       // Extract the yaw angle.
+    pitch_ = -math::RadToDeg(std::acos(view_.yAxis().y()));     // Extract the pitch angle.
+    yaw_ = -math::RadToDeg(std::acos(view_.xAxis().x()));       // Extract the yaw angle.
 }
 
 void Camera::LookAt(math::Vector const &_aim)
 {
     aim_ = _aim;
-    zAxis_ = pos_ - aim_;
+    view_.zAxis() = pos_ - aim_;
 
-    if (math::IsTooSmall(zAxis_.x()) && math::IsTooSmall(zAxis_.z()))
-        zAxis_.z() += math::kEPSILON;
+    if (math::IsTooSmall(view_.zAxis().x()) && math::IsTooSmall(view_.zAxis().z()))
+        view_.zAxis().z() += math::kEPSILON;
 
-    zAxis_.Normalize();
+    view_.zAxis().Normalize();
 
-    xAxis_ = (kWORLD_AXIS_Y ^ zAxis_).Normalize();
-    yAxis_ = (zAxis_   ^ xAxis_).Normalize();
+    view_.xAxis() = (kWORLD_AXIS_Y ^ view_.zAxis()).Normalize();
+    view_.yAxis() = (view_.zAxis() ^ view_.xAxis()).Normalize();
 
-    x_ = -xAxis_ * pos_;
-    y_ = -yAxis_ * pos_;
-    z_ = -zAxis_ * pos_;
+    view_.xOrigin() = -view_.xAxis() * pos_;
+    view_.yOrigin() = -view_.yAxis() * pos_;
+    view_.zOrigin() = -view_.zAxis() * pos_;
 
-    pitch_ = -math::RadToDeg(acosf(yAxis_.y()));     // Extract the pitch angle.
-    yaw_ = -math::RadToDeg(acosf(xAxis_.x()));       // Extract the yaw angle.
+    pitch_ = -math::RadToDeg(std::acos(view_.yAxis().y()));     // Extract the pitch angle.
+    yaw_ = -math::RadToDeg(std::acos(view_.xAxis().x()));       // Extract the yaw angle.
 
     // :TODO: remove.
     //rot_.FromMatrix4x4(view_.m());
@@ -151,9 +152,13 @@ void Camera::UpdateView()
 
     view_.FromQuaternion(rot_.q());
 
-    x_ = -xAxis_.Normalize() * pos_;
-    y_ = -yAxis_.Normalize() * pos_;
-    z_ = -zAxis_.Normalize() * pos_;
+    /*auto m = view_.Rotate(kWORLD_AXIS_Y, yaw_);
+    view_ = view_.Rotate(kWORLD_AXIS_X, pitch_) * m;*/
+
+
+    view_.xOrigin() = -view_.xAxis().Normalize() * pos_;
+    view_.yOrigin() = -view_.yAxis().Normalize() * pos_;
+    view_.zOrigin() = -view_.zAxis().Normalize() * pos_;
 }
 
 void Camera::Update()

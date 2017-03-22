@@ -64,19 +64,17 @@ public:
 
 private:
     std::shared_ptr<__hidden::ICameraBehaviour> behavior;
+    math::Matrix view_;
 
-    // A little tricky, but it necessary. ;)
-    union {
-        struct {
-            math::Matrix view_;
-        };
+    /*union {
+        math::Matrix view_;
 
         struct {
             math::Vector xAxis_; float x_;
             math::Vector yAxis_; float y_;
             math::Vector zAxis_; float z_;
         };
-    };
+    };*/
 
     math::Quaternion rot_;
 

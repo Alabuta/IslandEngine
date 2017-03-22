@@ -12,6 +12,7 @@
 #define CRUS_MATRIX_H
 
 #include "Math\CrusMath.h"
+#include "Math\CrusVector.h"
 
 namespace isle::math {
 class Matrix {
@@ -95,20 +96,39 @@ public:
     // :TODO: maybe it was better if deleted.
     //static Matrix GetFromQuaternion(float const *const q);
 
+    Vector &xAxis();
+    Vector &yAxis();
+    Vector &zAxis();
+
+    float &xOrigin();
+    float &yOrigin();
+    float &zOrigin();
+
+    Vector origin() const;
+
 private:
     union alignas(sizeof(__m128))
     {
+        // A little tricky, but it necessary. ;)
+        struct {
+            Vector xAxis_; float x_;
+            Vector yAxis_; float y_;
+            Vector zAxis_; float z_;
+            float div_[4];
+        };
+
+        std::array<float, 16> vec_;
+
+#ifdef CRUS_USE_SSE_MATH
+        __m128 row_[4];
+#endif
+
         struct {
             float _00_, _01_, _02_, _03_;
             float _04_, _05_, _06_, _07_;
             float _08_, _09_, _10_, _11_;
             float _12_, _13_, _14_, _15_;
-        } m_;
-
-        std::array<float, 16> vec_;
-#ifdef CRUS_USE_SSE_MATH
-        __m128 row_[4];
-#endif
+        };
     };
 };
 };

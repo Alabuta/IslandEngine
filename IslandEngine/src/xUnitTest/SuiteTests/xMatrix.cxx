@@ -11,6 +11,8 @@
 
 UNIT_SUITE_CLASS(isle::math::Matrix)
 {
+    static_assert(sizeof(Matrix) == sizeof(float) * 16);
+
     using xUnit::rand;
 
     // The class constructor testing...
