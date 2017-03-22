@@ -10,9 +10,14 @@
 
 #if CRUS_VERTEX_SHADER
 
-vec4 TransformFromWorldToClip(in vec3 position)
+vec4 TransformFromModelToClip(vec3 position)
 {
     return mProjViewModel * vec4(position, 1.0);
+}
+
+vec4 TransformFromWorldToClip(vec3 position)
+{
+    return mProjView * vec4(position, 1.0);
 }
 
 #elif CRUS_FRAGMENT_SHADER

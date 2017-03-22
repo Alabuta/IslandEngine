@@ -18,7 +18,7 @@ out vec2 texCoord;
 
 void main()
 {
-    gl_Position = TransformFromWorldToClip(inVertex);
+    gl_Position = TransformFromModelToClip(inVertex);
 
     texCoord = inTexCoord;
 }
@@ -35,6 +35,9 @@ in vec2 texCoord;
 void main()
 {
     FragColor = texture2D(mainTexture, texCoord) * mainColor;
+
+    /*if (FragColor.a == 0.0)
+        discard;*/
 }
 
 #endif
