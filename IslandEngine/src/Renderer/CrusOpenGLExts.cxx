@@ -904,10 +904,10 @@ __forceinline void APIENTRY glMultiDrawArraysIndirect(GLenum mode, const void *i
     return glMultiDrawArraysIndirect(mode, indirect, drawcount, stride);
 }
 
-__forceinline void APIENTRY glMultiDrawElements(GLenum mode, const GLsizei *count, GLenum type, const GLvoid* const *indices, GLsizei primcount)
+__forceinline void APIENTRY glMultiDrawElements(GLenum mode, const GLsizei *count, GLenum type, void const *const *indices, GLsizei drawcount)
 {
     GL_PROC_INIT(glMultiDrawElements);
-    return glMultiDrawElements(mode, count, type, indices, primcount);
+    return glMultiDrawElements(mode, count, type, indices, drawcount);
 }
 
 __forceinline void APIENTRY glMultiDrawElementsBaseVertex(GLenum mode, const GLsizei *count, GLenum type, const GLvoid* const *indices, GLsizei primcount, const GLint *basevertex)
