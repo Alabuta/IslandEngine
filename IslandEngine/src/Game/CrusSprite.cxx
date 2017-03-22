@@ -282,18 +282,18 @@ namespace isle {
 bool Sprite::BuildGeometry()
 {
     // Convert from pixels to world units.
-    auto left = (textureRect_.x() - rect_.x() - pivot_.x) / pixelsPerUnit_;
-    auto top = -(textureRect_.y() - rect_.y() - pivot_.y) / pixelsPerUnit_;
+    auto left =  (textureRect_.x() - rect_.x() - pivot_.x) / pixelsPerUnit_;
+    auto top  = -(textureRect_.y() - rect_.y() - pivot_.y) / pixelsPerUnit_;
 
-    auto right = (textureRect_.xmax() - rect_.x() - pivot_.x) / pixelsPerUnit_;
+    auto right  =  (textureRect_.xmax() - rect_.x() - pivot_.x) / pixelsPerUnit_;
     auto bottom = -(textureRect_.ymax() - rect_.y() - pivot_.y) / pixelsPerUnit_;
 
     // :TODO: it's just a simple rectangle that bounds a cropped sprite texture rather than convex hull.
     // Lower left vertex -> top left vertex -> lower right vertex -> top right vertex (GL_TRIANGLE_STRIP).
-    vertices_.emplace_back(left, bottom);
     vertices_.emplace_back(left, top);
-    vertices_.emplace_back(right, bottom);
+    vertices_.emplace_back(left, bottom);
     vertices_.emplace_back(right, top);
+    vertices_.emplace_back(right, bottom);
 
     vertices_.shrink_to_fit();
 
@@ -311,10 +311,10 @@ bool Sprite::BuildGeometry()
     auto normalizedSpriteMins = textureSheetRect.PointToNormalized(Point{textureRect_.x(), textureRect_.y()});
     auto normalizedSpriteMaxs = textureSheetRect.PointToNormalized(Point{textureRect_.xmax(), textureRect_.ymax()});
 
-    uvs_.emplace_back(normalizedSpriteMins.x, 1 - normalizedSpriteMaxs.y);
     uvs_.emplace_back(normalizedSpriteMins.x, 1 - normalizedSpriteMins.y);
-    uvs_.emplace_back(normalizedSpriteMaxs.x, 1 - normalizedSpriteMaxs.y);
+    uvs_.emplace_back(normalizedSpriteMins.x, 1 - normalizedSpriteMaxs.y);
     uvs_.emplace_back(normalizedSpriteMaxs.x, 1 - normalizedSpriteMins.y);
+    uvs_.emplace_back(normalizedSpriteMaxs.x, 1 - normalizedSpriteMaxs.y);
 
     uvs_.shrink_to_fit();
 
