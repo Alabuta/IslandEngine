@@ -3,7 +3,6 @@
 ****    Source code of Island Engine.
 ****    Copyright (C) 2009 - 2017 Crusoe's Island LLC.
 ****
-****    Started at 1st May 2012.
 ****    Description: viewport windows routines.
 ****
 ********************************************************************************************************************************/
@@ -27,25 +26,25 @@ void Viewport::SetViewport(int16 _x, int16 _y, int16 _w, int16 _h)
     w_ = _w;    h_ = _h;
 
     // :TODO: find the correct near and far plane values.
-    float const kFOV = 72.0f, zNear = 0.01f, zFar = 1000.0f;//4194304.0f;//4194304.0f
-    float const cotang = 1.0f / tanf(kFOV * math::kPI_DIV_180 * 0.5f);
+    auto const kFOV = 72.0f, zNear = 0.01f, zFar = 1000.0f;//4194304.0f;//4194304.0f
+    auto const cotang = 1.0f / std::tan(kFOV * math::kPI_DIV_180 * 0.5f);
 
-    float const aspect = static_cast<float>(w_) / static_cast<float>(h_);
+    auto const aspect = static_cast<float>(w_) / static_cast<float>(h_);
 
 #if _CRUS_OBSOLETE
-    float const kA = (zNear + zFar) / (zNear - zFar);
-    float const kB = 2.0f * zNear * zFar / (zNear - zFar);
+    auto const kA = zNear / (zNear - zFar);
+    auto const kB = zNear * zFar / (zNear - zFar);
 #endif
 
-    float const kA = zNear / (zNear - zFar);
-    float const kB = zNear * zFar / (zNear - zFar);
+    auto const kA = (zNear + zFar) / (zNear - zFar);
+    auto const kB = 2.0f * zNear * zFar / (zNear - zFar);
 
     proj_ = math::Matrix
     (
-        cotang / aspect, 0.0f, 0.0f, 0.0f,
-        0.0f, cotang, 0.0f, 0.0f,
-        0.0f, 0.0f, kA, kB,
-        0.0f, 0.0f, -1.0f, 0.0f
+        cotang / aspect, 0.f, 0.f, 0.f,
+        0.f, cotang, 0.f, 0.f,
+        0.f, 0.f, kA, kB,
+        0.f, 0.f, -1.f, 0.f
     );
 
     glViewport(x_, y_, w_, h_);

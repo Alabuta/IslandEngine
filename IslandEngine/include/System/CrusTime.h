@@ -21,7 +21,7 @@ namespace isle {
 template<typename TimeT = std::chrono::milliseconds>
 struct measure {
     template<typename F, typename ...Args>
-    static typename TimeT::rep execution(F func, Args &&... args)
+    static auto execution(F func, Args &&... args)
     {
         auto start = std::chrono::system_clock::now();
 
