@@ -118,8 +118,6 @@ void Grid::Draw()
 
     shader_.UseThis();
 
-    Render::inst().UpdateTransform(0, 1, &Render::inst().vp_.projView());
-
     glBindVertexArray(vao_);
 
     glUniform4fv(Program::eUNIFORM_ID::nMAIN_COLOR, 1, kGRAY.c().data());
