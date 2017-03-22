@@ -31,7 +31,7 @@ void Render::Init()
     wglSwapIntervalEXT(1);
 
     glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_LEQUAL);
+    glDepthFunc(GL_LESS);
 
     //glDepthRangedNV(0, 1);
 
