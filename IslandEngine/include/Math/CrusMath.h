@@ -157,6 +157,7 @@ inline float float_prior(float val)
     return val - difference;
 }
 
+#if _CRUS_NOT_YET_IMPLEMENTED
 inline float float_distance(float a, float b)
 {
     if (!std::isfinite(a))
@@ -188,6 +189,7 @@ inline float float_distance(float a, float b)
 
     std::frexp(val, &exp);
 }
+#endif
 };
 };
 
