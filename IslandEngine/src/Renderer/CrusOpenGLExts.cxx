@@ -237,6 +237,12 @@ __forceinline GLuint APIENTRY glCreateShader(GLenum type)
     return glCreateShader(type);
 }
 
+__forceinline void APIENTRY glCreateTextures(GLenum target, GLsizei n, GLuint *textures)
+{
+    GL_PROC_INIT(glCreateTextures);
+    return glCreateTextures(target, n, textures);
+}
+
 __forceinline void APIENTRY glCreateVertexArrays(GLsizei n, GLuint *arrays)
 {
     GL_PROC_INIT(glCreateVertexArrays);
@@ -1292,10 +1298,58 @@ __forceinline void APIENTRY glTexImage3DMultisample(GLenum target, GLsizei sampl
     return glTexImage3DMultisample(target, samples, internalformat, width, height, depth, fixedsamplelocations);
 }
 
+__forceinline void APIENTRY glTexStorage1D(GLenum target, GLsizei levels, GLenum internalformat, GLsizei width)
+{
+    GL_PROC_INIT(glTexStorage1D);
+    return glTexStorage1D(target, levels, internalformat, width);
+}
+
+__forceinline void APIENTRY glTexStorage2D(GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height)
+{
+    GL_PROC_INIT(glTexStorage2D);
+    return glTexStorage2D(target, levels, internalformat, width, height);
+}
+
+__forceinline void APIENTRY glTexStorage3D(GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth)
+{
+    GL_PROC_INIT(glTexStorage3D);
+    return glTexStorage3D(target, levels, internalformat, width, height, depth);
+}
+
 __forceinline void APIENTRY glTexSubImage3D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const GLvoid *pixels)
 {
     GL_PROC_INIT(glTexSubImage3D);
     return glTexSubImage3D(target, level, xoffset, yoffset, zoffset, width, height, depth, format, type, pixels);
+}
+
+__forceinline void APIENTRY glTextureParameteri(GLuint texture, GLenum pname, GLint param)
+{
+    GL_PROC_INIT(glTextureParameteri);
+    return glTextureParameteri(texture, pname, param);
+}
+
+__forceinline void APIENTRY glTextureStorage2D(GLuint texture, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height)
+{
+    GL_PROC_INIT(glTextureStorage2D);
+    return glTextureStorage2D(texture, levels, internalformat, width, height);
+}
+
+__forceinline void APIENTRY glTextureStorage3D(GLuint texture, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth)
+{
+    GL_PROC_INIT(glTextureStorage3D);
+    return glTextureStorage3D(texture, levels, internalformat, width, height, depth);
+}
+
+__forceinline void APIENTRY glTextureSubImage2D(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const void *pixels)
+{
+    GL_PROC_INIT(glTextureSubImage2D);
+    return glTextureSubImage2D(texture, level, xoffset, yoffset, width, height, format, type, pixels);
+}
+
+__forceinline void APIENTRY glTextureSubImage3D(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void *pixels)
+{
+    GL_PROC_INIT(glTextureSubImage3D);
+    return glTextureSubImage3D(texture, level, xoffset, yoffset, zoffset, width, height, depth, format, type, pixels);
 }
 
 __forceinline void APIENTRY glTransformFeedbackVaryings(GLuint program, GLsizei count, const GLchar* const *varyings, GLenum bufferMode)
