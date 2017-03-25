@@ -60,7 +60,7 @@ __forceinline Texture const &Sprite::Sprite::textureSheet() const
     if (!textureSheet_.expired())
         return *textureSheet_.lock();
 
-    return Texture("");
+    return Texture(Texture::eTEXTURE_TYPE::nNONE, "");
 }
 
 __forceinline Bounds const &Sprite::bounds() const

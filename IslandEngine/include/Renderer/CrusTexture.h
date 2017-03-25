@@ -47,18 +47,18 @@ struct Image {
 
     int32 bpp_{0};
     int32 width_{0}, height_{0};
-    uint32 format_{0}, type_{0};
+    uint32 type_{0}, format_{0};
 
     uint8 BytesPerPixel() const;
 };
 
 class Texture final : public CrusObject {
 public:
-#if _CRUS_NOT_YET_IMPLEMENTED
     enum class eTEXTURE_TYPE {
         nUNKNOWN = 0, nNONE, n2D, n3D, nCUBE, n2D_ARRAY, nCUBE_ARRAY
-    } type{eTEXTURE_TYPE::nUNKNOWN};
+    };
 
+#if _CRUS_NOT_YET_IMPLEMENTED
     enum class eFILTERING_MODE {
         nPOINT = 0, nBILINEAR, nTRILINEAR
     } filteringMode{eFILTERING_MODE::nPOINT};
@@ -72,7 +72,7 @@ public:
 
     Image image;
 
-    Texture(std::string &&path);
+    Texture(eTEXTURE_TYPE type, std::string &&path);
 
     bool Init();
 
@@ -88,6 +88,8 @@ public:
 private:
     uint32 id_{0};
     uint16 w_{0}, h_{0};
+
+    eTEXTURE_TYPE type_{eTEXTURE_TYPE::nUNKNOWN};
 
     std::string path_{""};
 

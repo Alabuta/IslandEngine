@@ -55,12 +55,12 @@ bool LoadUncompressedTARGA(Image &_image, std::ifstream &_file)
 
         case 3:
             _image.bpp_ = GL_RGB;
-            _image.type_ = GL_BGR;
+            _image.format_ = GL_BGR;
             break;*/
 
         case 4:
-            _image.bpp_ = GL_RGBA;
-            _image.type_ = GL_BGRA;
+            _image.bpp_ = GL_RGBA8;
+            _image.format_ = GL_BGRA;
             break;
 
         default:
@@ -93,12 +93,12 @@ bool LoadCompressedTARGA(Image &_image, std::ifstream &_file)
 
         case 3:
             _image.bpp_ = GL_RGB;
-            _image.type_ = GL_BGR;
+            _image.format_ = GL_BGR;
             break;*/
 
         case 4:
-            _image.bpp_ = GL_RGBA;
-            _image.type_ = GL_BGRA;
+            _image.bpp_ = GL_RGBA8;
+            _image.format_ = GL_BGRA;
             break;
 
         default:
@@ -143,7 +143,7 @@ bool LoadCompressedTARGA(Image &_image, std::ifstream &_file)
 
 bool LoadTARGA(Image *const _image, std::string const &_name)
 {
-    std::string path(kTEXTURES_PATH + _name);
+    std::string path(kTEXTURES_PATH + _name + ".tga");
     std::ifstream file(path, std::ios::binary);
 
     if (!file.is_open()) {
@@ -190,7 +190,7 @@ bool LoadTARGA(Image *const _image, std::string const &_name)
             break;
     }
 
-    _image->format_ = GL_UNSIGNED_BYTE;
+    _image->type_ = GL_UNSIGNED_BYTE;
 
     file.close();
     return true;

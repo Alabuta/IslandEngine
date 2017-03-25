@@ -6,17 +6,27 @@
 ****	Description: texture routines implementation file.
 ****
 ********************************************************************************************************************************/
+#include <thread>
+#include <future>
+#include <mutex>
+#include <vector>
+#include <array>
+
 #include "System\CrusSystem.h"
 #include "Renderer\CrusRender.h"
 
 #include "Renderer\CrusTexture.h"
 #include "Manager\CrusTARGA.h"
 
+#include <type_traits>
+
+
+
 //#define GL_TEXTURE_MAX_ANISOTROPY_EXT 0x84FE
 //#define GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT 0x84FF
 
 namespace isle {
-Texture::Texture(std::string &&_path)
+Texture::Texture(eTEXTURE_TYPE _type, std::string &&_path) : type_(_type)
 {
     path_ = _path;
 
@@ -51,7 +61,23 @@ bool Texture::Init()
 
 void Texture::Bind() const
 {
-    glBindTexture(GL_TEXTURE_2D, id_);
+    GLenum target;
+
+    switch (type_) {
+        case eTEXTURE_TYPE::n2D:
+            target = GL_TEXTURE_2D;
+            break;
+
+        case eTEXTURE_TYPE::nCUBE:
+            target = GL_TEXTURE_CUBE_MAP;
+            break;
+
+        default:
+            isle::log::Warning() << "unsupported target enum, skipped.";
+            return;
+    }
+
+    glBindTexture(target, id_);
 }
 
 void Texture::ToStream(std::ostream &_stream) const
