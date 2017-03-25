@@ -115,8 +115,8 @@ bool Render::CreateTBO(uint32 _target, uint32 &_tbo)
         return false;
     }
 
-    glGenTextures(1, &_tbo);
-    glBindTexture(_target, _tbo);
+    glCreateTextures(_target, 1, &_tbo);
+    //glBindTexture(_target, _tbo);
 
     glObjectLabel(GL_TEXTURE, _tbo, -1, "[TO]");
 
