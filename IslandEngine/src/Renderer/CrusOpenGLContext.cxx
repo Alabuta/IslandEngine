@@ -26,7 +26,7 @@ auto constexpr kOpenGLDebugSeverityMedium{true};
 auto constexpr kOpenGLDebugSeverityLow{true};
 auto constexpr kOpenGLDebugSeverityNotification{false};
 
-void CALLBACK DebugCallback(GLenum _source, GLenum _type, GLuint _id, GLenum _severity, GLsizei _length, GLchar const *_message, void const *_userParam);
+void CALLBACK DebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, GLchar const *message, void const *userParam);
 #endif
 
 std::pair<HWND, HDC> CreateDummyWindow();
@@ -212,13 +212,8 @@ void OpenGLContext::DeleteContext()
 
 namespace {
 #if CRUS_OPENGL_DEBUG_OUTPUT
-void CALLBACK DebugCallback(GLenum _source, GLenum _type, GLuint _id, GLenum _severity,
-                            GLsizei _length, GLchar const *_message, void const *_userParam)
+void CALLBACK DebugCallback(GLenum _source, GLenum _type, GLuint, GLenum _severity, GLsizei, GLchar const *_message, void const *)
 {
-    UNREFERENCED_PARAMETER(_id);
-    UNREFERENCED_PARAMETER(_length);
-    UNREFERENCED_PARAMETER(_userParam);
-
     std::ostringstream debug_message;
 
     switch (_source) {
