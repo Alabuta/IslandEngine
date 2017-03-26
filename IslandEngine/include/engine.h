@@ -3,7 +3,6 @@
 ****    Source code of Island Engine.
 ****    Copyright (C) 2009 - 2017 Crusoe's Island LLC.
 ****
-****    Started at 23th July 2009.
 ****    Description: main header file - the beginning and the application end.
 ****
 ********************************************************************************************************************************/
@@ -15,6 +14,19 @@
 /**
 @mainpage Island Engine
 */
+#include <map>
+#include <random>
+#include <algorithm>
+#include <functional>
+#include <thread>
+#include <mutex>
+#include <future>
+#include <array>
+
+#include <vector>
+#include <numeric>
+
+#include <iostream>
 
 #include "System\CrusSystem.h"
 #include "System\CrusWindow.h"
@@ -31,5 +43,10 @@
 #include "Game\CrusObject.h"
 
 #include "Interface\CrusGrid.h"
+
+#include "Game\CrusBounds.h"
+#include "Game\CrusRect.h"
+#include "Game\CrusSprite.h"
+#include "Renderer\CrusUV.h"
 
 #endif // CRUS_ENGINE_H

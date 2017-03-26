@@ -3,21 +3,15 @@
 ****    Source code of Island Engine.
 ****    Copyright (C) 2009 - 2014 Crusoe's Island LLC.
 ****
-****    Description: main cpp file - the beginning and the application end.
+****    Description: main cxx file - the beginning and the application end.
 ****
 ********************************************************************************************************************************/
-#include <map>
-#include <random>
-#include <algorithm>
-#include <thread>
-#include <mutex>
-#include <future>
-
 #include "engine.h"
-#include "Game\CrusBounds.h"
-#include "Game\CrusRect.h"
-#include "Game\CrusSprite.h"
-#include "Renderer\CrusUV.h"
+
+namespace cubemap {
+bool InitCubemap();
+void DrawCubemap();
+}
 
 auto index = 0u;
 auto spritesNumber = 0u;
@@ -55,16 +49,14 @@ intf::Grid grid;
 
 Program flipbookProgram;
 uint32 flipbook_vao;
-Texture flipbookTexture("sprites-cat-running.tga");//RobotBoyWalkSprite
-math::Matrix transform;
+Texture flipbookTexture(Texture::eTEXTURE_TYPE::n2D, "sprites-cat-running");//RobotBoyWalkSprite
 
-math::Matrix matrices[] = {
-    math::Matrix::Identity(),
+std::array<math::Matrix, 2> matrices = {
     math::Matrix::Identity(),
     math::Matrix::Identity()
 };
 
-template <typename T>
+template<typename T>
 std::future<bool> AssignNewProgram(Program &_program, T &&_names)
 {
     auto handle = [] (Program &program, T &&names)
@@ -178,7 +170,7 @@ void InitBackground()
 
     InitBuffers(spriteSheet);
 
-    if (!assignedNewProgram.get()) {
+    if (!newProgram.get()) {
         log::Debug() << "invalid shader.";
         return;
     }
@@ -236,18 +228,35 @@ void DrawBackgorund()
     flipbookTexture.Bind();
     flipbookProgram.UseThis();
 
+    glBindVertexArray(flipbook_vao);
+
+    index = static_cast<decltype(index)>(std::fmod(System::time.elapsed() * samples, static_cast<float>(spritesNumber)) * 1);
+
+    /*std::sort(matrices.begin(), matrices.end(), [&] (auto const &a, auto const &b)
+    {
+        auto dir_a = a.origin() - Render::inst().vp_.cam().view().origin();
+        auto dir_b = b.origin() - Render::inst().vp_.cam().view().origin();
+
+        return dir_a.GetLenght() < dir_b.GetLenght();
+    });
+
+    std::array<math::Matrix, 2> ms = {
+        Render::inst().vp_.projView() * matrices[0],
+        Render::inst().vp_.projView() * matrices[1]
+    };*/
+
     matrices[0] = Render::inst().vp_.projView() * matrices[1];
 
-    Render::inst().UpdateTransform(0, 3, &matrices[0]);
+    Render::inst().UpdateTransform(0, 2, matrices.data());
 
-    //glUniformMatrix4fv(Program::eUNIFORM_ID::nTRANSFORM, 1, GL_FALSE, mkas.data());
-
-    index = static_cast<decltype(index)>(std::fmodf(System::time.elapsed() * samples, static_cast<float>(spritesNumber)) * 1);
-
-    glBindVertexArray(flipbook_vao);
     //glDrawElements(GL_TRIANGLE_STRIP, 4, GL_UNSIGNED_SHORT, nullptr);
     glDrawElementsBaseVertex(GL_TRIANGLE_STRIP, 4, GL_UNSIGNED_SHORT, nullptr, index * 4);
+
+    /*Render::inst().UpdateTransform(0, 1, &ms[1]);
+    glDrawElementsBaseVertex(GL_TRIANGLE_STRIP, 4, GL_UNSIGNED_SHORT, nullptr, index * 4);*/
 }
+
+
 
 void Init()
 {
@@ -257,23 +266,28 @@ void Init()
     systems.emplace(1, std::make_unique<MoveSystem>());
 
     for (auto const &system : systems)
+
         system.second->Update();*/
 
     Camera::inst().Create(Camera::eCAM_BEHAVIOR::nFREE);
-    Camera::inst().SetPos(0.0f, 1.0f, 2.0f);
-    Camera::inst().LookAt(0.0f, 0.0f, 0.0f);
+    Camera::inst().SetPos(0.f, 1.f, 2.f);
+    Camera::inst().LookAt(0.f, 0.f, 0.f);
 
     // Application intialization function.
-    glDisable(GL_CULL_FACE);
+    glEnable(GL_CULL_FACE);
 
-    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    //glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+    glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+
     grid.Update();
 
     log::Debug() << measure<>::execution(InitBackground);
+
+    cubemap::InitCubemap();
 }
 
 void Update()
@@ -283,16 +297,23 @@ void DrawFrame()
 {
     grid.Draw();
 
+    cubemap::DrawCubemap();
+
+    //glDrawArrays(GL_TRIANGLE_STRIP, 0, 4 * 6 + 4);
+    //glDrawArraysInstancedBaseInstance(GL_TRIANGLE_STRIP, command.first, command.count, command.instanceCount, command.baseInstance);
+    //glMultiDrawArrays(GL_TRIANGLE_FAN, first, count, 6);
+    //glMultiDrawElements(GL_TRIANGLE_FAN, count, GL_UNSIGNED_BYTE, reinterpret_cast<void const *const *>(indices), 6);
+    //glDrawElements(GL_TRIANGLE_FAN, count[5], GL_UNSIGNED_BYTE, reinterpret_cast<void const *>(sizeof(uint8) * 4));
+
+    glDepthMask(GL_FALSE);
     DrawBackgorund();
+    glDepthMask(GL_TRUE);
 }
+
 };
 
-int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int)
 {
-    UNREFERENCED_PARAMETER(hPrevInstance);
-    UNREFERENCED_PARAMETER(lpCmdLine);
-    UNREFERENCED_PARAMETER(nShowCmd);
-
     isle::Window window(crus::names::kMAIN_WINDOW_NAME, hInstance, 600, 400);
 
     return isle::System::Loop();

@@ -58,6 +58,9 @@
     <Filter Include="Shader sources\Includes">
       <UniqueIdentifier>{f0134e28-f090-4643-ad12-da1a5fbeb8e5}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Samples">
+      <UniqueIdentifier>{2ca0c804-22ae-4071-bc7c-b45777b2bac9}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\engine.cxx" />
@@ -153,6 +156,9 @@
     </ClCompile>
     <ClCompile Include="src\Renderer\CrusOpenGLContext.cxx">
       <Filter>Core\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Samples\Cubemap.cxx">
+      <Filter>Samples</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

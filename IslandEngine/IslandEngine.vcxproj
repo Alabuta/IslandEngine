@@ -189,6 +189,7 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\Samples\Cubemap.cxx" />
     <ClCompile Include="src\Renderer\CrusOpenGLContext.cxx" />
     <ClCompile Include="src\Camera\CrusCamera.cxx" />
     <ClCompile Include="src\Game\CrusBounds.cxx" />
