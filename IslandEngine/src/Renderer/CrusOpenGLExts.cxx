@@ -340,10 +340,22 @@ __forceinline void APIENTRY glDisableVertexAttribArray(GLuint index)
     return glDisableVertexAttribArray(index);
 }
 
+__forceinline void APIENTRY glDrawArraysIndirect(GLenum mode, const void *indirect)
+{
+    GL_PROC_INIT(glDrawArraysIndirect);
+    return glDrawArraysIndirect(mode, indirect);
+}
+
 __forceinline void APIENTRY glDrawArraysInstanced(GLenum mode, GLint first, GLsizei count, GLsizei primcount)
 {
     GL_PROC_INIT(glDrawArraysInstanced);
     return glDrawArraysInstanced(mode, first, count, primcount);
+}
+
+__forceinline void APIENTRY glDrawArraysInstancedBaseInstance(GLenum mode, GLint first, GLsizei count, GLsizei instancecount, GLuint baseinstance)
+{
+    GL_PROC_INIT(glDrawArraysInstancedBaseInstance);
+    return glDrawArraysInstancedBaseInstance(mode, first, count, instancecount, baseinstance);
 }
 
 __forceinline void APIENTRY glDrawBuffers(GLsizei n, const GLenum *bufs)
