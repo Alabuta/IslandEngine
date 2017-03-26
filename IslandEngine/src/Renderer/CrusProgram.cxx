@@ -244,7 +244,7 @@ bool Program::CompileShader(std::pair<uint32, astr> const &_shaderInfo) const
     glCompileShader(_shaderInfo.first);
     glGetShaderiv(_shaderInfo.first, GL_COMPILE_STATUS, &status);
 
-    if (status != 0)
+    if (status == GL_TRUE)
         return true;
 
     glGetShaderiv(_shaderInfo.first, GL_INFO_LOG_LENGTH, &length);
@@ -270,7 +270,7 @@ bool Program::LinkAndValidateProgram() const
     glValidateProgram(program_);
     glGetProgramiv(program_, GL_VALIDATE_STATUS, &status[1]);
 
-    if (status[0] != 0 && status[1] != 0)
+    if (status[0] == GL_TRUE && status[1] == GL_TRUE)
         return true;
 
     glGetProgramiv(program_, GL_INFO_LOG_LENGTH, &length);
