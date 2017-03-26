@@ -116,7 +116,6 @@ bool Render::CreateTBO(uint32 _target, uint32 &_tbo)
     }
 
     glCreateTextures(_target, 1, &_tbo);
-    //glBindTexture(_target, _tbo);
 
     glObjectLabel(GL_TEXTURE, _tbo, -1, "[TO]");
 
@@ -171,7 +170,7 @@ void Render::InitBufferObjects()
     if (!ubo.AssignNew({R"(Defaults/Buffer-Objects-Initialization.glsl)"}))
         log::Fatal() << "can't init the buffer objects.";
 
-    if (true) {
+    {
         auto index = glGetUniformBlockIndex(ubo.program(), "VIEWPORT");
 
         auto size = -1;
@@ -187,7 +186,8 @@ void Render::InitBufferObjects()
         glUniformBlockBinding(ubo.program(), index, Program::nVIEWPORT);
     }
 
-    if (false) {
+#if _CRUS_TEMP_DISABLED
+    {
         auto index = glGetProgramResourceIndex(ubo.program(), GL_SHADER_STORAGE_BLOCK, "VIEWPORT");
 
         if (index == GL_INVALID_INDEX)
@@ -199,6 +199,7 @@ void Render::InitBufferObjects()
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, Program::nVIEWPORT, VIEWPORT_);
         glShaderStorageBlockBinding(ubo.program(), index, Program::nVIEWPORT);
     }
+#endif
 
     {
         auto index = glGetProgramResourceIndex(ubo.program(), GL_SHADER_STORAGE_BLOCK, "TRANSFORM");
