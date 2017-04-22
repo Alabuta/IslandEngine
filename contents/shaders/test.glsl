@@ -45,7 +45,7 @@ layout(binding = nMATERIAL, shared) uniform CMTS
     vec4 Clr3;
 };
 
-layout(location = nFRAG_COLOR, index = 0) out vec4 FragColor;
+layout(location = nFRAG_COLOR/*, index = 0*/) out vec4 FragColor;
 //layout(depth_less) out float gl_FragDepth;
 
 //in float logz;
