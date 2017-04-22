@@ -22,3 +22,9 @@ Win32/
 [Tt]emp/
 .mayaSwatches/
 .vscode/
+contents/textures/FlappyBird.tga
+contents/textures/background.tga
+contents/textures/cat.tga
+contents/textures/test.tga
+contents/textures/test2.tga
+contents/textures/two_lines.tga
