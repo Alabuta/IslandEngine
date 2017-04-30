@@ -11,7 +11,7 @@
 
 UNIT_SUITE_CLASS(isle::math::Matrix)
 {
-    static_assert(sizeof(Matrix) == sizeof(float) * 16);
+    static_assert(sizeof(Matrix) == sizeof(float) * 16, "'Matrix' class has to contains 16 float elements!");
 
     using xUnit::rand;
 
@@ -29,7 +29,7 @@ UNIT_SUITE_CLASS(isle::math::Matrix)
 
         Matrix const m2(vec);
         Matrix const m3(std::array<float, 16>{vec[0], vec[1], vec[02], vec[03], vec[04], vec[05], vec[06], vec[07],
-                         vec[8], vec[9], vec[10], vec[11], vec[12], vec[13], vec[14], vec[15]});
+                        vec[8], vec[9], vec[10], vec[11], vec[12], vec[13], vec[14], vec[15]});
 
         for (auto i = 0; i < 16; ++i)
             CHECK_EQUAL(vec[i], m2.vec_[i], "Matrix(std::array<float, 16> const &)");
@@ -55,7 +55,7 @@ UNIT_SUITE_CLASS(isle::math::Matrix)
 
         Matrix const m(vec);
 
-        for(auto i = 0; i < 16; ++i)
+        for (auto i = 0; i < 16; ++i)
             CHECK_EQUAL(m.vec_[i], m.m()[i], "m() const")
     }
 
@@ -98,17 +98,17 @@ UNIT_SUITE_CLASS(isle::math::Matrix)
 
         float const s = rand<float>();
 
-        for(auto i = 0; i < 16; ++i)
-            CHECK_EQUAL(m.m()[i] + s, (m + s).m()[i], "operator+ (float) const")
+        for (auto i = 0; i < 16; ++i)
+            CHECK_EQUAL(m.m()[i] + s, (m + s).m()[i], "operator+ (float) const");
 
-        for(auto i = 0; i < 16; ++i)
-            CHECK_EQUAL(m.m()[i] - s, (m - s).m()[i], "operator- (float) const")
+        for (auto i = 0; i < 16; ++i)
+            CHECK_EQUAL(m.m()[i] - s, (m - s).m()[i], "operator- (float) const");
 
-        for(auto i = 0; i < 16; ++i)
-            CHECK_EQUAL(m.m()[i] * s, (m * s).m()[i], "operator* (float) const")
+        for (auto i = 0; i < 16; ++i)
+            CHECK_EQUAL(m.m()[i] * s, (m * s).m()[i], "operator* (float) const");
 
-        for(auto i = 0; i < 16; ++i)
-            CHECK_EQUAL(m.m()[i] / s, (m / s).m()[i], "operator/ (float) const")
+        for (auto i = 0; i < 16; ++i)
+            CHECK_EQUAL(m.m()[i] / s, (m / s).m()[i], "operator/ (float) const");
     }
 
     // The assignment operators...
@@ -138,8 +138,8 @@ UNIT_SUITE_CLASS(isle::math::Matrix)
 
         Matrix const m1(vec), m2(vec);
 
-        CHECK(m1 == m2, "operator== (Matrix const &) const")
-        CHECK(!(m1 != m2), "operator!= (Matrix const &) const")
+        CHECK(m1 == m2, "operator== (Matrix const &) const");
+        CHECK(!(m1 != m2), "operator!= (Matrix const &) const");
     }
 
     // The sum and sub operators...
@@ -156,14 +156,14 @@ UNIT_SUITE_CLASS(isle::math::Matrix)
         m3 = m1;
         m3 += m2;
 
-        for(auto i = 0; i < 16; ++i)
-            CHECK_EQUAL(vecs[0][i] + vecs[1][i], m3.m()[i], "operator+= (Matrix const &)")
+        for (auto i = 0; i < 16; ++i)
+            CHECK_EQUAL(vecs[0][i] + vecs[1][i], m3.m()[i], "operator+= (Matrix const &)");
 
-        m3 = m1;
+            m3 = m1;
         m3 -= m2;
 
-        for(auto i = 0; i < 16; ++i)
-            CHECK_EQUAL(vecs[0][i] - vecs[1][i], m3.m()[i], "operator-= (Matrix const &)")
+        for (auto i = 0; i < 16; ++i)
+            CHECK_EQUAL(vecs[0][i] - vecs[1][i], m3.m()[i], "operator-= (Matrix const &)");
     }
 
     // The sum, sub, mult and div with scalar operators...
@@ -181,26 +181,26 @@ UNIT_SUITE_CLASS(isle::math::Matrix)
         m2 = m1;
         m2 += s;
 
-        for(auto i = 0; i < 16; ++i)
-            CHECK_EQUAL(m1.m()[i] + s, m2.m()[i], "operator/= (float)")
+        for (auto i = 0; i < 16; ++i)
+            CHECK_EQUAL(m1.m()[i] + s, m2.m()[i], "operator/= (float)");
 
-        m2 = m1;
+            m2 = m1;
         m2 -= s;
 
-        for(auto i = 0; i < 16; ++i)
-            CHECK_EQUAL(m1.m()[i] - s, m2.m()[i], "operator/= (float)")
+        for (auto i = 0; i < 16; ++i)
+            CHECK_EQUAL(m1.m()[i] - s, m2.m()[i], "operator/= (float)");
 
-        m2 = m1;
+            m2 = m1;
         m2 *= s;
 
-        for(auto i = 0; i < 16; ++i)
-            CHECK_EQUAL(m1.m()[i] * s, m2.m()[i], "operator/= (float)")
+        for (auto i = 0; i < 16; ++i)
+            CHECK_EQUAL(m1.m()[i] * s, m2.m()[i], "operator/= (float)");
 
-        m2 = m1;
+            m2 = m1;
         m2 /= s;
 
-        for(auto i = 0; i < 16; ++i)
-            CHECK_EQUAL(m1.m()[i] / s, m2.m()[i], "operator/= (float)")
+        for (auto i = 0; i < 16; ++i)
+            CHECK_EQUAL(m1.m()[i] / s, m2.m()[i], "operator/= (float)");
     }
 
     // The matrix determinant routines...
@@ -212,7 +212,7 @@ UNIT_SUITE_CLASS(isle::math::Matrix)
             +4.0f, -8.1f, +2.0f, +6.0f
         );
 
-        CHECK_EQUAL(-5322.2631f, m.Det(), "Det() const")
+        CHECK_EQUAL(-5322.2631f, m.Det(), "Det() const");
     }
 
     // Identity matrix creation routines...
@@ -257,7 +257,7 @@ UNIT_SUITE_CLASS(isle::math::Matrix)
     // The matrix multiplication operators...
     {
         std::array<float, 16> vec;
-        for(auto &a : vec)
+        for (auto &a : vec)
             a = rand<float>();
 
         Matrix const m(vec);
@@ -269,7 +269,7 @@ UNIT_SUITE_CLASS(isle::math::Matrix)
 
         Matrix const m0(
             +10.f, 20.f, 30.f, 40.f,
-            -6.f,  20.f, 46.f, 72.f,
+            -6.f, 20.f, 46.f, 72.f,
             -22.f, 20.f, 62.f, 104.f,
             -38.f, 20.f, 78.f, 136.f
         );
