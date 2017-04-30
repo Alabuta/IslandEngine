@@ -332,6 +332,9 @@
     <None Include="..\contents\shaders\Defaults\Skybox-Cubed.glsl">
       <Filter>Shader sources\Defaults</Filter>
     </None>
+    <None Include="..\contents\shaders\Defaults\Unlit-Instanced.glsl">
+      <Filter>Shader sources\Defaults</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resources\resource.rc">
