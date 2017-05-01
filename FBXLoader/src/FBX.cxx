@@ -35,11 +35,11 @@ bool FBX::ImportScene(std::string_view _path, std::string_view _sceneName)
     {
         std::unique_ptr<FbxImporter, FBXObjectDeleter<FbxImporter>> importer(FbxImporter::Create(manager_.get(), ""));
 
-        importer->Initialize(_path.data(), -1, manager_->GetIOSettings());
+        importer->Initialize(_path.data(), -1, ios_.get());
 
         if (!importer) {
             std::cout << "Call to FbxImporter::Initialize() failed.\n";
-            std::cout << "Error returned: " << importer->GetStatus().GetErrorString() << '.\n\n';
+            std::cout << "Error returned: " << importer->GetStatus().GetErrorString() << ".\n";
             return false;
         }
 
