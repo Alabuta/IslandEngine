@@ -10,7 +10,22 @@ FBX::FBX() :
     manager_(FbxManager::Create()),
     ios_(FbxIOSettings::Create(manager_.get(), IOSROOT))
 {
+    int major, minor, revision;
+    manager_->GetFileFormatVersion(major, minor, revision);
+
+    std::cout << "FBX SDK version: " << major << '.' << minor << '.' << revision << ".\n";
+
     manager_->SetIOSettings(ios_.get());
+
+    ios_->SetBoolProp(IMP_CAMERA, false);
+    ios_->SetBoolProp(IMP_FBX_MATERIAL, true);
+    ios_->SetBoolProp(IMP_FBX_TEXTURE, true);
+    ios_->SetBoolProp(IMP_FBX_LINK, false);
+    ios_->SetBoolProp(IMP_FBX_SHAPE, false);
+    ios_->SetBoolProp(IMP_FBX_GOBO, false);
+    ios_->SetBoolProp(IMP_FBX_ANIMATION, true);
+    ios_->SetBoolProp(IMP_FBX_GLOBAL_SETTINGS, true);
+
 }
 
 bool FBX::ImportScene(std::string_view _path, std::string_view _sceneName)
@@ -27,6 +42,11 @@ bool FBX::ImportScene(std::string_view _path, std::string_view _sceneName)
             std::cout << "Error returned: " << importer->GetStatus().GetErrorString() << '.\n\n';
             return false;
         }
+
+        int major, minor, revision;
+        importer->GetFileVersion(major, minor, revision);
+
+        std::cout << "FBX file version: " << major << '.' << minor << '.' << revision << ".\n\n";
 
         importer->Import(scene_.get());
     }
