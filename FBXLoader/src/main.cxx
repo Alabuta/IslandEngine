@@ -19,7 +19,7 @@ int main()
     _CrtSetDbgFlag(_CrtSetDbgFlag(_CRTDBG_REPORT_FLAG) | _CRTDBG_ALLOC_MEM_DF | _CRTDBG_DELAY_FREE_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
     //_CrtSetBreakAlloc(84);
 
-    std::string const file_name = R"(..\contents\meshes\humanoid.fbx)";
+    std::string const file_name = R"(..\contents\meshes\cube.fbx)";
 
     FBX fbx;
     fbx.ImportScene(file_name);
