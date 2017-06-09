@@ -32,6 +32,23 @@ bool FBX::ImportScene(std::string_view _path, std::string_view _sceneName)
 {
     scene_.reset(FbxScene::Create(manager_.get(), _sceneName.data()));
 
+    auto const &globalSettings = scene_->GetGlobalSettings();
+
+    if (globalSettings.GetSystemUnit() != FbxSystemUnit::m) {
+        FbxSystemUnit::ConversionOptions constexpr conversionOptions = {
+            false, // mConvertRrsNodes
+            true, // mConvertAllLimits
+            true, // mConvertClusters
+            true, // mConvertLightIntensity
+            true, // mConvertPhotometricLProperties
+            true  // mConvertCameraClipPlanes
+        };
+
+        FbxSystemUnit::km.ConvertScene(scene_.get(), conversionOptions);
+    }
+
+    FbxAxisSystem::MayaYUp.ConvertScene(scene_.get());
+
     {
         std::unique_ptr<FbxImporter, FBXObjectDeleter<FbxImporter>> importer(FbxImporter::Create(manager_.get(), ""));
 
@@ -161,6 +178,16 @@ std::ostream &operator<< (std::ostream &stream, FbxDouble3 const &vector)
     return stream << "\t" << vector[0] << ";\t" << vector[1] << ";\t" << vector[2];
 }
 
+std::ostream &operator<< (std::ostream &stream, FbxAMatrix const &matrix)
+{
+    stream << matrix.GetRow(0) << '\n';
+    stream << matrix.GetRow(1) << '\n';
+    stream << matrix.GetRow(2) << '\n';
+    stream << matrix.GetRow(3);
+
+    return stream;
+}
+
 std::ostream &operator<< (std::ostream &stream, FbxNode const &node)
 {
     auto const nodeName = node.GetName();
@@ -169,10 +196,13 @@ std::ostream &operator<< (std::ostream &stream, FbxNode const &node)
     auto const rotation = node.LclRotation.Get();
     auto const scaling = node.LclScaling.Get();
 
+    auto const &matrix = const_cast<FbxNode &>(node).EvaluateGlobalTransform();
+
     stream << "<node name: " << nodeName
         << "\n\ttranslation: " << translation
         << "\n\trotation: " << rotation
         << "\n\tscaling: " << scaling
+        << "\n\tmatrix: " << matrix
         << ">\n";
 
     for (auto i = 0; i < node.GetNodeAttributeCount(); ++i)

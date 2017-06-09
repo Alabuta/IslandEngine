@@ -33,4 +33,5 @@ private:
 std::ostream &operator<< (std::ostream &stream, FbxNodeAttribute::EType attributeType);
 std::ostream &operator<< (std::ostream &stream, FbxNodeAttribute const &attribute);
 std::ostream &operator<< (std::ostream &stream, FbxDouble3 const &vector);
+std::ostream &operator<< (std::ostream &stream, FbxAMatrix const &matrix);
 std::ostream &operator<< (std::ostream &stream, FbxNode const &node);
