@@ -4,6 +4,8 @@
 #include <memory>
 #include <string_view>
 
+#include <gsl/gsl>
+
 #include <fbxsdk.h>
 #include <fbxsdk\scene\geometry\fbxnode.h>
 
@@ -14,11 +16,18 @@ public:
 
     bool ImportScene(std::string_view path, std::string_view sceneName = "Scene");
 
+    std::string GetMetaData() const;
+
+    void DisplayHeirarchy(gsl::not_null<FbxNode const*> node) const;
+    void DisplayContent(gsl::not_null<FbxNode const*> node) const;
+
+    //void GetMetaDataConnections
+
 private:
 
     template<class T>
     struct FBXObjectDeleter {
-        void operator()(T *object)
+        void operator() (gsl::not_null<T *> object)
         {
             object->Destroy();
         }
@@ -28,6 +37,8 @@ private:
     std::unique_ptr<FbxIOSettings, FBXObjectDeleter<FbxIOSettings>> ios_;
 
     std::unique_ptr<FbxScene, FBXObjectDeleter<FbxScene>> scene_;
+
+    void DisplayAttribute(gsl::not_null<FbxMesh const*> mesh) const;
 };
 
 std::ostream &operator<< (std::ostream &stream, FbxNodeAttribute::EType attributeType);

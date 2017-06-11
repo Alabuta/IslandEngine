@@ -1,3 +1,5 @@
+#include <sstream>
+
 #include "FBX.h"
 
 #if _DEBUG
@@ -20,8 +22,8 @@ FBX::FBX() :
     ios_->SetBoolProp(IMP_CAMERA, false);
     ios_->SetBoolProp(IMP_FBX_MATERIAL, true);
     ios_->SetBoolProp(IMP_FBX_TEXTURE, true);
-    ios_->SetBoolProp(IMP_FBX_LINK, false);
-    ios_->SetBoolProp(IMP_FBX_SHAPE, false);
+    ios_->SetBoolProp(IMP_FBX_LINK, true);
+    ios_->SetBoolProp(IMP_FBX_SHAPE, true);
     ios_->SetBoolProp(IMP_FBX_GOBO, false);
     ios_->SetBoolProp(IMP_FBX_ANIMATION, true);
     ios_->SetBoolProp(IMP_FBX_GLOBAL_SETTINGS, true);
@@ -31,23 +33,6 @@ FBX::FBX() :
 bool FBX::ImportScene(std::string_view _path, std::string_view _sceneName)
 {
     scene_.reset(FbxScene::Create(manager_.get(), _sceneName.data()));
-
-    auto const &globalSettings = scene_->GetGlobalSettings();
-
-    if (globalSettings.GetSystemUnit() != FbxSystemUnit::m) {
-        FbxSystemUnit::ConversionOptions constexpr conversionOptions = {
-            false, // mConvertRrsNodes
-            true, // mConvertAllLimits
-            true, // mConvertClusters
-            true, // mConvertLightIntensity
-            true, // mConvertPhotometricLProperties
-            true  // mConvertCameraClipPlanes
-        };
-
-        FbxSystemUnit::km.ConvertScene(scene_.get(), conversionOptions);
-    }
-
-    FbxAxisSystem::MayaYUp.ConvertScene(scene_.get());
 
     {
         std::unique_ptr<FbxImporter, FBXObjectDeleter<FbxImporter>> importer(FbxImporter::Create(manager_.get(), ""));
@@ -66,16 +51,98 @@ bool FBX::ImportScene(std::string_view _path, std::string_view _sceneName)
         std::cout << "FBX file version: " << major << '.' << minor << '.' << revision << ".\n\n";
 
         importer->Import(scene_.get());
+
+        std::cout << GetMetaData() << "\n\n";
     }
 
-    std::unique_ptr<FbxNode, FBXObjectDeleter<FbxNode>> rootNode(scene_->GetRootNode());
+    auto const &globalSettings = scene_->GetGlobalSettings();
 
-    if (rootNode) {
+    if (globalSettings.GetSystemUnit() != FbxSystemUnit::m) {
+        FbxSystemUnit::ConversionOptions constexpr conversionOptions = {
+            false, // mConvertRrsNodes
+            true, // mConvertAllLimits
+            true, // mConvertClusters
+            true, // mConvertLightIntensity
+            true, // mConvertPhotometricLProperties
+            true  // mConvertCameraClipPlanes
+        };
+
+        FbxSystemUnit::m.ConvertScene(scene_.get(), conversionOptions);
+    }
+
+    FbxAxisSystem::MayaYUp.ConvertScene(scene_.get());
+
+    gsl::not_null<FbxNode *> rootNode = scene_->GetRootNode();
+
+   /* if (rootNode) {
         for (auto i = 0; i < rootNode->GetChildCount(); ++i)
             std::cout << *rootNode->GetChild(i);
-    }
+    }*/
+
+    DisplayHeirarchy(rootNode.get());
+    DisplayContent(rootNode.get());
 
     return true;
+}
+
+std::string FBX::GetMetaData() const
+{
+    if (!scene_)
+        return { };
+
+    auto const info = scene_->GetSceneInfo();
+
+    if (!info)
+        return { };
+
+    std::ostringstream ss;
+
+    ss  << "Title: " << info->mTitle
+        << "\nSubject: " << info->mSubject
+        << "\nAuthor: " << info->mAuthor
+        << "\nKeywords: " << info->mKeywords
+        << "\nRevision: " << info->mRevision
+        << "\nComment: " << info->mComment;
+
+    return ss.good() ? ss.str() : "";
+}
+
+void FBX::DisplayHeirarchy(gsl::not_null<FbxNode const*> node) const
+{
+    static size_t depth = 0;
+
+    std::cout << std::string(depth, ' ') << node->GetName() << '\n';
+
+    depth += 4;
+
+    for (auto i = 0; i < node->GetChildCount(); ++i)
+        DisplayHeirarchy(node->GetChild(i));
+
+    depth -= 4;
+}
+
+void FBX::DisplayContent(gsl::not_null<FbxNode const*> node) const
+{
+    auto attribute = node->GetNodeAttribute();
+
+    if (!attribute)
+        return;
+
+    switch (attribute->GetAttributeType()) {
+        case FbxNodeAttribute::eMesh:
+            DisplayAttribute(dynamic_cast<FbxMesh const*>(attribute));
+            break;
+
+        default:
+            break;
+    }
+}
+
+void FBX::DisplayAttribute(gsl::not_null<FbxMesh const*> mesh) const
+{
+    std::cout << mesh->GetName();
+
+    ;
 }
 
 std::ostream &operator<< (std::ostream &stream, FbxNodeAttribute::EType attributeType)
@@ -167,10 +234,8 @@ std::ostream &operator<< (std::ostream &stream, FbxNodeAttribute::EType attribut
 
 std::ostream &operator<< (std::ostream &stream, FbxNodeAttribute const &attribute)
 {
-    auto attribName = attribute.GetName();
-
     return stream << "\t<attribute type: " << attribute.GetAttributeType()
-        << "; name: " << attribName << ">\n";
+        << "; name: " << attribute.GetName() << ">\n";
 }
 
 std::ostream &operator<< (std::ostream &stream, FbxDouble3 const &vector)
