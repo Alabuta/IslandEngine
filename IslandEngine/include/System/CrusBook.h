@@ -15,6 +15,12 @@
 #define _CRUS_DEBUG_CONSOLE         1   // Macros for displaing debug events console.
 #endif
 
+#if _CRUS_DEBUG_CONSOLE
+constexpr auto kCRUS_DEBUG_CONSOLE = true;
+#else
+constexpr auto kCRUS_DEBUG_CONSOLE = false;
+#endif
+
 #include <sstream>
 #include <fstream>
 #include <mutex>
@@ -64,14 +70,6 @@ private:
     std::ofstream file_;
     std::ofstream conout_;
 
-    acstr kSEVERITIES[5]{
-        " Info    :",
-        " Debug   :",
-        " Warning :",
-        " Error   :",
-        " Fatal   :"
-    };
-
     explicit LogStream();
     ~LogStream();
 
@@ -81,18 +79,18 @@ private:
     void ToStream(T const &object, std::true_type)
     {
         object.ToStream(stream_);
-#if _CRUS_DEBUG_CONSOLE
-        object.ToStream(conout_);
-#endif
+
+        if constexpr (kCRUS_DEBUG_CONSOLE)
+            object.ToStream(conout_);
     }
 
     template<typename T>
     void ToStream(T const &object, std::false_type)
     {
         stream_ << object;
-#if _CRUS_DEBUG_CONSOLE
-        conout_ << object;
-#endif
+
+        if constexpr (kCRUS_DEBUG_CONSOLE)
+            conout_ << object;
     }
 
     template<typename T>

@@ -46,6 +46,14 @@ CHAR_INFO const kMARKERS[][kMARKERS_WIDTH] = {
 
 #undef SET
 #endif // _CRUS_DEBUG_CONSOLE
+
+constexpr acstr kSEVERITIES[] = {
+    " Info    :",
+    " Debug   :",
+    " Warning :",
+    " Error   :",
+    " Fatal   :"
+};
 };
 
 namespace isle {
@@ -64,9 +72,8 @@ LogStream::LogStream() : stream_(std::cerr.rdbuf())
 
     stream_.set_rdbuf(file_.rdbuf());
 
-#if _CRUS_DEBUG_CONSOLE
-    InitConsoleWindow();
-#endif
+    if constexpr (kCRUS_DEBUG_CONSOLE)
+        InitConsoleWindow();
 
     stream_ << std::noshowpoint;
     stream_ << crus::names_a::kPROJECT << " at " << crus::names_a::kBUILD_DATE << " (" << crus::names_a::kBUILD_VERSION << ")\n";
@@ -82,14 +89,14 @@ LogStream::~LogStream()
         stream_.set_rdbuf(std::cerr.rdbuf());
     }
 
-#if _CRUS_DEBUG_CONSOLE
-    if (conout_.is_open()) {
+    if constexpr (kCRUS_DEBUG_CONSOLE) {
         conout_.flush();
         conout_.close();
     }
-#else
-    // ShowWindow(GetConsoleWindow(), SW_HIDE);
-#endif
+
+    else {
+        // ShowWindow(GetConsoleWindow(), SW_HIDE);
+    }
 }
 
 #if _CRUS_DEBUG_CONSOLE
@@ -167,20 +174,21 @@ void LogStream::BeginLine(eSEVERITY _severity)
 {
     auto const index = static_cast<std::underlying_type<eSEVERITY>::type>(_severity);
 
-#if _CRUS_DEBUG_CONSOLE
-    auto const hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+    if constexpr (kCRUS_DEBUG_CONSOLE)
+    {
+        auto const hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 
-    CONSOLE_SCREEN_BUFFER_INFO info;
-    GetConsoleScreenBufferInfo(hConsole, &info);
+        CONSOLE_SCREEN_BUFFER_INFO info;
+        GetConsoleScreenBufferInfo(hConsole, &info);
 
-    SMALL_RECT rcDraw = {
-        1,  info.dwCursorPosition.Y,
-        kMARKERS_WIDTH, info.dwCursorPosition.Y
-    };
+        SMALL_RECT rcDraw = {
+            1,  info.dwCursorPosition.Y,
+            kMARKERS_WIDTH, info.dwCursorPosition.Y
+        };
 
-    WriteConsoleOutputW(hConsole, kMARKERS[index], {kMARKERS_WIDTH, 1}, {0, 0}, &rcDraw);
-    SetConsoleCursorPosition(hConsole, {kMARKERS_WIDTH + 2, info.dwCursorPosition.Y});
-#endif
+        WriteConsoleOutputW(hConsole, kMARKERS[index], {kMARKERS_WIDTH, 1}, {0, 0}, &rcDraw);
+        SetConsoleCursorPosition(hConsole, {kMARKERS_WIDTH + 2, info.dwCursorPosition.Y});
+    }
 
     stream_ << kSEVERITIES[index] << ' ';
 }
@@ -189,9 +197,8 @@ void LogStream::EndLine()
 {
     LogStream::inst().stream_ << '\n';
 
-#if _CRUS_DEBUG_CONSOLE
-    LogStream::inst().conout_ << std::endl;
-#endif
+    if constexpr (kCRUS_DEBUG_CONSOLE)
+        LogStream::inst().conout_ << std::endl;
 }
 
 Book::Book(eSEVERITY _severity) : severity_(_severity)
@@ -208,9 +215,9 @@ Book::~Book()
     LogStream::inst().mutex_.unlock();
 
     if (severity_ == eSEVERITY::nFATAL) {
-#if _CRUS_DEBUG_CONSOLE
-        FlushConsoleInputBuffer(GetStdHandle(STD_OUTPUT_HANDLE));
-#endif
+        if constexpr (kCRUS_DEBUG_CONSOLE)
+            FlushConsoleInputBuffer(GetStdHandle(STD_OUTPUT_HANDLE));
+
         auto hMainWnd = FindWindowW(crus::names::kMAIN_WINDOW_CLASS, crus::names::kMAIN_WINDOW_NAME);
 
         if (hMainWnd != nullptr)
