@@ -15,16 +15,17 @@
 #pragma comment(lib, "OpenGL32.lib")
 
 #define CRUS_OPENGL_DEBUG_OUTPUT 1
+auto constexpr kCRUS_OPENGL_DEBUG_OUTPUT = true;
 
 #undef max
 
 namespace {
 
 #if CRUS_OPENGL_DEBUG_OUTPUT
-auto constexpr kOpenGLDebugSeverityHigh{true};
-auto constexpr kOpenGLDebugSeverityMedium{true};
-auto constexpr kOpenGLDebugSeverityLow{true};
-auto constexpr kOpenGLDebugSeverityNotification{false};
+auto constexpr kOpenGLDebugSeverityHigh = true;
+auto constexpr kOpenGLDebugSeverityMedium = true;
+auto constexpr kOpenGLDebugSeverityLow = true;
+auto constexpr kOpenGLDebugSeverityNotification = false;
 
 void CALLBACK DebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, GLchar const *message, void const *userParam);
 #endif
@@ -85,22 +86,22 @@ void OpenGLContext::SetupContext()
     if (hMainWndDC_ == nullptr)
         isle::log::Fatal() << "can't get window context.";
 
-    auto handlesPair = CreateDummyWindow();
+    auto [hDummyWnd, hDummyDC] = CreateDummyWindow();
 
     PIXELFORMATDESCRIPTOR hPFD = {0};
 
-    if (SetPixelFormat(handlesPair.second, 1, &hPFD) == FALSE)
+    if (SetPixelFormat(hDummyDC, 1, &hPFD) == FALSE)
         isle::log::Fatal() << "can't set dummy pixel format.";
 
-    auto const hShareRC = wglCreateContext(handlesPair.second);
+    auto const hShareRC = wglCreateContext(hDummyDC);
 
     if (hShareRC == nullptr)
         isle::log::Fatal() << "can't create share context.";
 
-    if (wglMakeCurrent(handlesPair.second, hShareRC) == FALSE)
+    if (wglMakeCurrent(hDummyDC, hShareRC) == FALSE)
         isle::log::Fatal() << "can't make share context current.";
 
-    int32 const attrilist[] = {
+    int32 constexpr attrilist[] = {
         WGL_SUPPORT_OPENGL_ARB, GL_TRUE,
         WGL_DRAW_TO_WINDOW_ARB, GL_TRUE,
         WGL_DOUBLE_BUFFER_ARB,  GL_TRUE,
@@ -126,7 +127,7 @@ void OpenGLContext::SetupContext()
     if (SetPixelFormat(hMainWndDC_, pfs, &hPFD) == FALSE)
         isle::log::Fatal() << "can't set renderer pixel format.";
 
-    int32 const attrlist[] = {
+    int32 constexpr attrlist[] = {
         WGL_CONTEXT_MAJOR_VERSION_ARB,  4,
         WGL_CONTEXT_MINOR_VERSION_ARB,  5,
         WGL_CONTEXT_FLAGS_ARB,          WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB,
@@ -158,18 +159,19 @@ void OpenGLContext::SetupContext()
     if (wglDeleteContext(hShareRC) == FALSE)
         isle::log::Fatal() << "share context is not deleted.";
 
-    DestroyDummyWindow(handlesPair.first, handlesPair.second);
+    DestroyDummyWindow(hDummyWnd, hDummyDC);
 
-#if CRUS_OPENGL_DEBUG_OUTPUT
-    glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS_ARB);
-    glDebugMessageCallback(DebugCallback, nullptr);
+    if constexpr (kCRUS_OPENGL_DEBUG_OUTPUT)
+    {
+        glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS_ARB);
+        glDebugMessageCallback(DebugCallback, nullptr);
 
-    //glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_HIGH, 0, nullptr, kOpenGLDebugSeverityHigh ? GL_TRUE : GL_FALSE);
-    //glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_MEDIUM, 0, nullptr, kOpenGLDebugSeverityMedium ? GL_TRUE : GL_FALSE);
-    //glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_LOW, 0, nullptr, kOpenGLDebugSeverityLow ? GL_TRUE : GL_FALSE);
-    glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_NOTIFICATION, 0, nullptr, kOpenGLDebugSeverityNotification ? GL_TRUE : GL_FALSE);
-    glDebugMessageControl(GL_DEBUG_SOURCE_APPLICATION, GL_DEBUG_TYPE_PUSH_GROUP, GL_DEBUG_SEVERITY_NOTIFICATION, 0, nullptr, GL_TRUE);
-#endif
+        //glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_HIGH, 0, nullptr, kOpenGLDebugSeverityHigh ? GL_TRUE : GL_FALSE);
+        //glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_MEDIUM, 0, nullptr, kOpenGLDebugSeverityMedium ? GL_TRUE : GL_FALSE);
+        //glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_LOW, 0, nullptr, kOpenGLDebugSeverityLow ? GL_TRUE : GL_FALSE);
+        glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_NOTIFICATION, 0, nullptr, kOpenGLDebugSeverityNotification ? GL_TRUE : GL_FALSE);
+        glDebugMessageControl(GL_DEBUG_SOURCE_APPLICATION, GL_DEBUG_TYPE_PUSH_GROUP, GL_DEBUG_SEVERITY_NOTIFICATION, 0, nullptr, GL_TRUE);
+    }
 }
 
 void OpenGLContext::DeleteContext()
@@ -214,6 +216,9 @@ namespace {
 #if CRUS_OPENGL_DEBUG_OUTPUT
 void CALLBACK DebugCallback(GLenum _source, GLenum _type, GLuint, GLenum _severity, GLsizei, GLchar const *_message, void const *)
 {
+    if constexpr (!kCRUS_OPENGL_DEBUG_OUTPUT)
+        return;
+
     std::ostringstream debug_message;
 
     switch (_source) {
@@ -334,7 +339,7 @@ std::pair<HWND, HDC> CreateDummyWindow()
     SetWindowPos(hDummyWnd, nullptr, 256, 256, 256, 256, SWP_DRAWFRAME | SWP_NOZORDER);
     ShowWindow(hDummyWnd, SW_HIDE);
 
-    return std::pair<HWND, HDC>(hDummyWnd, hDummyDC);
+    return std::make_pair(hDummyWnd, hDummyDC);
 }
 
 void DestroyDummyWindow(HWND _hDummyWnd, HDC _hDummyDC)
