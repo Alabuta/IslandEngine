@@ -12,6 +12,7 @@
 #define CRUS_PROGRAM_H
 
 #include <vector>
+#include <string_view>
 #include <initializer_list>
 
 #include "System\CrusSystem.h"
@@ -34,26 +35,26 @@ public:
         nTRANSFORM = 0,
     };
 
-    bool AssignNew(std::initializer_list<char const *> &&names);
+    bool AssignNew(std::initializer_list<std::string> &&names);
     void Destroy();
 
     void UseThis() const;
 
     uint32 program() const;
 
-    int32 GetAttributeLoc(astr name) const;
-    int32 GetUniformLoc(astr name) const;
+    int32 GetAttributeLoc(std::string_view name) const;
+    int32 GetUniformLoc(std::string_view name) const;
 
 private:
     static auto constexpr kINCLUDING_LEVEL{16};
     uint32 program_{0};
 
-    bool CreateShader(std::string const &source, uint32 type);
-    bool CompileShader(std::pair<uint32, astr> const &shaderInfo) const;
+    bool CreateShader(std::string_view const &source, uint32 type);
+    bool CompileShader(std::pair<uint32, std::string_view> const &shaderInfo) const;
 
     bool LinkAndValidateProgram() const;
 
-    std::string PreprocessIncludes(std::string const &source, std::string const &name, int32 includingLevel = 0) const;
+    std::string PreprocessIncludes(std::string const &source, std::string_view name, int32 includingLevel = 0) const;
 };
 
 __forceinline uint32 Program::program() const

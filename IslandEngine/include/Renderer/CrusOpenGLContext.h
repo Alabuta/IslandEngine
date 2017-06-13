@@ -13,6 +13,7 @@
 
 #include <stack>
 #include <mutex>
+#include <string_view>
 
 #ifndef _UNICODE
 #define _UNICODE
@@ -34,9 +35,9 @@ class OpenGLContext final {
 public:
 
     template<typename T>
-    auto GetProcedureAddress(acstr _name)
+    auto GetProcedureAddress(std::string_view _name)
     {
-        auto proc = reinterpret_cast<T *const>(wglGetProcAddress(_name));
+        auto proc = reinterpret_cast<T *const>(wglGetProcAddress(_name.data()));
 
         if (proc == nullptr
             || proc == reinterpret_cast<void *>(-1) || proc == reinterpret_cast<void *>(+1)
@@ -48,7 +49,7 @@ public:
                 isle::log::Fatal() << "can't load OpenGL32 library.";
 
             else
-                proc = reinterpret_cast<decltype(proc)>(GetProcAddress(hModule, _name));
+                proc = reinterpret_cast<decltype(proc)>(GetProcAddress(hModule, _name.data()));
         }
 
         if (proc == nullptr)
