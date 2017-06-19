@@ -7,6 +7,8 @@
 ****
 ********************************************************************************************************************************/
 #include <vector>
+#include <tuple>
+#include <cmath>
 
 #include "System\CrusSystem.h"
 
@@ -17,80 +19,85 @@
 #include "Interface\CrusGrid.h"
 
 namespace isle::intf {
-Position *Grid::Build(float _law, float _grle, uint16 _subdivs)
+auto Grid::Build(float _side, float _step, uint16 _subdivs)
 {
-    float const div = _law / _grle;
+    auto lines = static_cast<uint16>(std::floor(_side / _step));
+    auto subdivs = lines * (_subdivs - 1);
 
-    count_[0] = 8 * (uint16(div * (_subdivs - 1)) + 1);
-    count_[1] = 8 * uint16(div - 1);
+    auto const total = static_cast<decltype(lines)>(_side / (_step / _subdivs));
+    auto const sub = _step / _subdivs;
 
-    std::vector<Position> data_;
-    data_.reserve(count_[0] + count_[1] + 4 + 2 * 3);
+    std::vector<std::pair<Position, Color>> data;
+    data.reserve(total * 2 * 4 + 4 + 8 + 6);
 
-    data_.emplace_back(Position(+_law, 0.0f, -_law));
-    data_.emplace_back(Position(-_law, 0.0f, -_law));
-    data_.emplace_back(Position(-_law, 0.0f, +_law));
-    data_.emplace_back(Position(+_law, 0.0f, +_law));
+    auto color = colors::kGRAY;
 
-    data_.emplace_back(Position(-_law, 0.0f, -_law));
-    data_.emplace_back(Position(-_law, 0.0f, +_law));
-    data_.emplace_back(Position(+_law, 0.0f, +_law));
-    data_.emplace_back(Position(+_law, 0.0f, -_law));
+    for (auto i = 1; i <= total; ++i) {
+        color = i % _subdivs == 0 ? colors::kGRAY : colors::kDARKGRAY;
 
-    Position *const data = (Position *)malloc(sizeof(Position) * (count_[0] + count_[1] + 4 + 2 * 3));
+        data.emplace_back(Position{+i * sub, 0.f, +_side}, color);
+        data.emplace_back(Position{+i * sub, 0.f, -_side}, color);
+        data.emplace_back(Position{-i * sub, 0.f, +_side}, color);
+        data.emplace_back(Position{-i * sub, 0.f, -_side}, color);
 
-    if (data == nullptr)
-        return nullptr;
-
-    data[0] = Position(_law, 0.0f, -_law);    data[4] = Position(-_law, 0.0f, -_law);
-    data[1] = Position(-_law, 0.0f, -_law);    data[5] = Position(-_law, 0.0f, _law);
-    data[2] = Position(-_law, 0.0f, _law);    data[6] = Position(_law, 0.0f, _law);
-    data[3] = Position(_law, 0.0f, _law);    data[7] = Position(_law, 0.0f, -_law);
-
-    float incr = _grle / _subdivs, i = 0.0f;
-    uint16 j = 8;
-
-    for (uint32 k = 0; j < count_[0]; i += incr, ++k) {
-        if ((k % (_subdivs - 1)) == 0ui16)
-            i += incr;
-
-        data[j++] = Position(-i, 0.0f, -_law);    data[j++] = Position(-i, 0.0f, _law);
-        data[j++] = Position(i, 0.0f, _law);    data[j++] = Position(i, 0.0f, -_law);
-        data[j++] = Position(-_law, 0.0f, -i);    data[j++] = Position(_law, 0.0f, -i);
-        data[j++] = Position(_law, 0.0f, i);    data[j++] = Position(-_law, 0.0f, i);
+        data.emplace_back(Position{+_side, 0.f, +i * sub}, color);
+        data.emplace_back(Position{-_side, 0.f, +i * sub}, color);
+        data.emplace_back(Position{+_side, 0.f, -i * sub}, color);
+        data.emplace_back(Position{-_side, 0.f, -i * sub}, color);
     }
 
-    i = _grle;
+    data.emplace_back(Position{+_side, 0.f, -_side}, colors::kDARKGRAY);
+    data.emplace_back(Position{-_side, 0.f, -_side}, colors::kDARKGRAY);
+    data.emplace_back(Position{-_side, 0.f, +_side}, colors::kDARKGRAY);
+    data.emplace_back(Position{+_side, 0.f, +_side}, colors::kDARKGRAY);
 
-    for (; j < count_[0] + count_[1]; i += _grle) {
-        data[j++] = Position(-i, 0.0f, -_law);    data[j++] = Position(-i, 0.0f, _law);
-        data[j++] = Position(i, 0.0f, _law);    data[j++] = Position(i, 0.0f, -_law);
-        data[j++] = Position(-_law, 0.0f, -i);    data[j++] = Position(_law, 0.0f, -i);
-        data[j++] = Position(_law, 0.0f, i);    data[j++] = Position(-_law, 0.0f, i);
-    }
+    data.emplace_back(Position{-_side, 0.f, -_side}, colors::kDARKGRAY);
+    data.emplace_back(Position{-_side, 0.f, +_side}, colors::kDARKGRAY);
+    data.emplace_back(Position{+_side, 0.f, +_side}, colors::kDARKGRAY);
+    data.emplace_back(Position{+_side, 0.f, -_side}, colors::kDARKGRAY);
 
-    if (_grle == 0.0f || _subdivs == 0.0f)
-        return data;
+    data.emplace_back(Position{0.f, 0.f, +_side}, colors::kBLACK);
+    data.emplace_back(Position{0.f, 0.f, -_side}, colors::kBLACK);
+    data.emplace_back(Position{+_side, 0.f, 0.f}, colors::kBLACK);
+    data.emplace_back(Position{-_side, 0.f, 0.f}, colors::kBLACK);
 
-    data[j++] = Position(_law, 0.0f, 0.0f);    data[j++] = Position(-_law, 0.0f, 0.0f);
-    data[j++] = Position(0.0f, 0.0f, _law);    data[j++] = Position(0.0f, 0.0f, -_law);
+    data.emplace_back(Position{0.f, 0.f, 0.f}, colors::kRED);
+    data.emplace_back(Position{1.f, 0.f, 0.f}, colors::kRED);
 
-    data[j++] = Position(0.0f, 0.0f, 0.0f);     data[j++] = Position(1.0f, 0.0f, 0.0f);
-    data[j++] = Position(0.0f, 0.0f, 0.0f);     data[j++] = Position(0.0f, 1.0f, 0.0f);
-    data[j++] = Position(0.0f, 0.0f, 0.0f);     data[j++] = Position(0.0f, 0.0f, 1.0f);
+    data.emplace_back(Position{0.f, 0.f, 0.f}, colors::kGREEN);
+    data.emplace_back(Position{0.f, 1.f, 0.f}, colors::kGREEN);
+
+    data.emplace_back(Position{0.f, 0.f, 0.f}, colors::kBLUE);
+    data.emplace_back(Position{0.f, 0.f, 1.f}, colors::kBLUE);
+
+    count_ = static_cast<decltype(count_)>(data.size());
 
     return data;
 }
 
-void Grid::Update(float _law, float _grle, uint16 _subdivs)
+void Grid::Update(float _side, float _step, uint16 _subdivs)
 {
     shader_.AssignNew({"Interface/grid.glsl"});
 
-    Position *data = Build(_law, _grle, _subdivs);
-    if (data == nullptr)
-        return;
+    if (_side < 1.f) {
+        log::Warning() << "side value (length and width) may not be less than 1.";
+        _side = 15.f;
+    }
 
-    size_t const length = sizeof(Position) * (count_[0] + count_[1] + 4 + 2 * 3);
+    if (_step < 0.f) {
+        log::Warning() << "step value (grid line spacing) must be greater than 0.";
+        _step = 1.f;
+    }
+
+    if (_subdivs < 1) {
+        log::Warning() << "subdivisions value may not be less than 1.";
+        _subdivs = 5;
+    }
+
+    auto data = Build(_side, _step, _subdivs);
+
+    if (data.empty())
+        return;
 
     if (glIsVertexArray(vao_) == GL_TRUE)
         glDeleteVertexArrays(1, &vao_);
@@ -100,42 +107,26 @@ void Grid::Update(float _law, float _grle, uint16 _subdivs)
     {
         auto bo = 0u;
         Render::inst().CreateBO(bo);
-        glNamedBufferStorage(bo, length, data, GL_DYNAMIC_STORAGE_BIT);
+        glNamedBufferStorage(bo, sizeof(data[0]) * data.size(), data.data(), GL_DYNAMIC_STORAGE_BIT);
 
         glVertexArrayAttribBinding(vao_, Program::eIN_OUT_ID::nVERTEX, 0);
         glVertexArrayAttribFormat(vao_, Program::eIN_OUT_ID::nVERTEX, 3, GL_FLOAT, GL_FALSE, 0);
         glEnableVertexArrayAttrib(vao_, Program::eIN_OUT_ID::nVERTEX);
 
-        glVertexArrayVertexBuffer(vao_, 0, bo, 0, sizeof(Position));
-    }
+        glVertexArrayAttribBinding(vao_, Program::eIN_OUT_ID::nCOLOR, 0);
+        glVertexArrayAttribFormat(vao_, Program::eIN_OUT_ID::nCOLOR, 3, GL_FLOAT, GL_FALSE, sizeof(data[0].first));
+        glEnableVertexArrayAttrib(vao_, Program::eIN_OUT_ID::nCOLOR);
 
-    free(data);
+        glVertexArrayVertexBuffer(vao_, 0, bo, 0, sizeof(data[0]));
+    }
 }
 
 void Grid::Draw()
 {
-    using namespace colors;
-
     shader_.UseThis();
 
     glBindVertexArray(vao_);
 
-    glUniform4fv(Program::eUNIFORM_ID::nMAIN_COLOR, 1, kGRAY.c().data());
-    glDrawArrays(GL_LINES, 0, count_[0]);
-
-    glUniform4fv(Program::eUNIFORM_ID::nMAIN_COLOR, 1, kDARKGRAY.c().data());
-    glDrawArrays(GL_LINES, count_[0], count_[1]);
-
-    glUniform4fv(Program::eUNIFORM_ID::nMAIN_COLOR, 1, kBLACK.c().data());
-    glDrawArrays(GL_LINES, count_[0] + count_[1], 4);
-
-    glUniform4fv(Program::eUNIFORM_ID::nMAIN_COLOR, 1, kRED.c().data());
-    glDrawArrays(GL_LINES, count_[0] + count_[1] + 4, 2);
-
-    glUniform4fv(Program::eUNIFORM_ID::nMAIN_COLOR, 1, kGREEN.c().data());
-    glDrawArrays(GL_LINES, count_[0] + count_[1] + 4 + 2, 2);
-
-    glUniform4fv(Program::eUNIFORM_ID::nMAIN_COLOR, 1, kBLUE.c().data());
-    glDrawArrays(GL_LINES, count_[0] + count_[1] + 4 + 2 + 2, 2);
+    glDrawArrays(GL_LINES, 0, count_);
 }
 };

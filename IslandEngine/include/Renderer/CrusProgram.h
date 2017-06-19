@@ -22,7 +22,7 @@ class Program {
 public:
 
     enum eIN_OUT_ID {
-        nVERTEX = 0, nNORMAL, nTEXCRD,
+        nVERTEX = 0, nNORMAL, nTEXCRD, nCOLOR,
         nFRAG_COLOR = 0
     };
 

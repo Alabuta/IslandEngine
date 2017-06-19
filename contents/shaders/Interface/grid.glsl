@@ -12,20 +12,25 @@
 #if CRUS_VERTEX_SHADER
 
 layout(location = nVERTEX) in vec3 inVertex;
+layout(location = nCOLOR) in vec3 inColor;
+
+out vec3 color;
 
 void main()
 {
     gl_Position = TransformFromWorldToClip(inVertex);
+    color = inColor;
 }
 
 #elif CRUS_FRAGMENT_SHADER
 
 layout(location = nFRAG_COLOR/*, index = 0*/) out vec4 FragColor;
-layout(location = nMAIN_COLOR) uniform vec4 mainColor = vec4(vec3(0.0), 1.0);
+
+in vec3 color;
 
 void main()
 {
-    FragColor = mainColor;
+    FragColor = vec4(color, 1.0);
 }
 
 #endif

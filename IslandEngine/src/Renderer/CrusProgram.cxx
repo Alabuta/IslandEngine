@@ -10,6 +10,7 @@
 #include <fstream>
 #include <streambuf>
 #include <regex>
+#include <array>
 #include <cctype>
 //#include <filesystem>
 
@@ -23,7 +24,7 @@ auto constexpr kSHADERS_PATH = R"(../contents/shaders/)";
 };
 
 namespace isle {
-bool ReadShaderSource(std::string &_source, std::string const &_parentPath, std::string const &_name)
+std::string ReadShaderSource(std::string const &_parentPath, std::string const &_name)
 {
     if (_parentPath.empty() || _name.empty()) {
         log::Error() << "file name is invalid.";
@@ -38,7 +39,7 @@ bool ReadShaderSource(std::string &_source, std::string const &_parentPath, std:
         return false;
     }
 
-    _source = [&file = file]
+    auto source = [&file = file]
     {
         std::ostringstream stream;
         stream << file.rdbuf() << '\n';
@@ -48,15 +49,10 @@ bool ReadShaderSource(std::string &_source, std::string const &_parentPath, std:
 
     file.close();
 
-    if (_source.empty()) {
-        log::Error() << "can't read file: " << _name;
-        return false;
-    }
-
-    return true;
+    return source;
 }
 
-std::string Program::PreprocessIncludes(std::string const &_source, std::string const &_name, int32 _includingLevel) const
+std::string Program::PreprocessIncludes(std::string const &_source, std::string_view _name, int32 _includingLevel) const
 {
     if (_includingLevel > Program::kINCLUDING_LEVEL) {
         log::Error() << "maximum source file including level is " << Program::kINCLUDING_LEVEL;
@@ -68,7 +64,7 @@ std::string Program::PreprocessIncludes(std::string const &_source, std::string 
     std::stringstream input;
     std::ostringstream output;
 
-    auto fileName = std::regex_replace(_name, std::regex(R"(-|–|\.|/|\\)"), "_");
+    auto fileName = std::regex_replace(_name.data(), std::regex(R"(-|–|\.|/|\\)"), "_");
     std::transform(fileName.begin(), fileName.end(), fileName.begin(), [] (auto c) { return std::toupper<char>(c, std::locale()); });
 
     input << "#ifndef " << fileName << '\n';
@@ -87,7 +83,7 @@ std::string Program::PreprocessIncludes(std::string const &_source, std::string 
             std::string include_file_name(matches[1]);
             std::string include_file_source;
 
-            if (!ReadShaderSource(include_file_source, kSHADERS_PATH, include_file_name))
+            if (include_file_source = ReadShaderSource(kSHADERS_PATH, include_file_name); include_file_source.empty())
                 return _source;
 
             output << PreprocessIncludes(include_file_source, include_file_name, _includingLevel + 1) << '\n';
@@ -104,9 +100,9 @@ std::string Program::PreprocessIncludes(std::string const &_source, std::string 
     return output.good() ? output.str() : _source;
 }
 
-bool Program::AssignNew(std::initializer_list<char const *> &&_names)
+bool Program::AssignNew(std::initializer_list<std::string> &&_names)
 {
-    // If current shader program exist, destroy it and create the new shader.
+    // If current shader program do exist, destroy it and create the new shader.
     if (glIsProgram(program_) == GL_TRUE) {
         Destroy();
 
@@ -121,8 +117,10 @@ bool Program::AssignNew(std::initializer_list<char const *> &&_names)
     std::string source;
 
     for (auto const &name : names) {
-        if (!ReadShaderSource(source, kSHADERS_PATH, name))
+        if (source = ReadShaderSource(kSHADERS_PATH, name); source.empty()) {
+            log::Error() << "can't read file: " << name;
             return false;
+        }
 
         source = PreprocessIncludes(source, name);
 
@@ -152,10 +150,12 @@ void Program::Destroy()
 
     glUseProgram(0);
 
-    uint32 shaders[3] = {0, 0, 0};
+    std::array<uint32, 16> shaders{0};
     int32 count = -1;
 
-    glGetAttachedShaders(program_, 3, &count, shaders);
+    glGetAttachedShaders(program_, 3, &count, shaders.data());
+
+    count = std::clamp(count, 0, static_cast<int32>(shaders.size()));
 
     while (--count > -1) {
         if (glIsShader(shaders[count]) != 0) {
@@ -167,9 +167,9 @@ void Program::Destroy()
     glDeleteProgram(program_);
 }
 
-bool Program::CreateShader(std::string const &_source, uint32 _type)
+bool Program::CreateShader(std::string_view const &_source, uint32 _type)
 {
-    std::pair<uint32, astr> shaderInfo(glCreateShader(_type), "undefined shader");
+    auto shaderInfo = std::make_pair(glCreateShader(_type), "undefined shader");
 
     // Are used for shader source file preprocessing.
     std::ostringstream preprocessor_directives;
@@ -183,6 +183,7 @@ bool Program::CreateShader(std::string const &_source, uint32 _type)
                 << "\n#define nVERTEX       " << nVERTEX
                 << "\n#define nNORMAL       " << nNORMAL
                 << "\n#define nTEXCRD       " << nTEXCRD
+                << "\n#define nCOLOR        " << nCOLOR
                 << "\n#define nVIEWPORT     " << nVIEWPORT
                 << "\n#define nTRANSFORM    " << nTRANSFORM
                 << '\n';
@@ -223,7 +224,9 @@ bool Program::CreateShader(std::string const &_source, uint32 _type)
             break;
     }
 
-    std::string sources(preprocessor_directives.str() + _source);
+    preprocessor_directives << _source;
+
+    std::string sources(preprocessor_directives.good() ? std::move(preprocessor_directives.str()) : "");
     auto const str = sources.c_str();
 
     glShaderSource(shaderInfo.first, 1, &str, nullptr);
@@ -237,7 +240,7 @@ bool Program::CreateShader(std::string const &_source, uint32 _type)
     return true;
 }
 
-bool Program::CompileShader(std::pair<uint32, astr> const &_shaderInfo) const
+bool Program::CompileShader(std::pair<uint32, std::string_view> const &_shaderInfo) const
 {
     auto status = 0, length = -1;
 
@@ -291,9 +294,9 @@ void Program::UseThis() const
     glUseProgram(program_);
 }
 
-int32 Program::GetAttributeLoc(astr _name) const
+int32 Program::GetAttributeLoc(std::string_view _name) const
 {
-    auto attributeLocation = glGetAttribLocation(program_, _name);
+    auto attributeLocation = glGetAttribLocation(program_, _name.data());
 
     if (attributeLocation < 0)
         log::Warning() << "attribute is not exist or isn't being used: " << _name;
@@ -301,9 +304,9 @@ int32 Program::GetAttributeLoc(astr _name) const
     return attributeLocation;
 }
 
-int32 Program::GetUniformLoc(astr _name) const
+int32 Program::GetUniformLoc(std::string_view _name) const
 {
-    auto uniformLocation = glGetUniformLocation(program_, _name);
+    auto uniformLocation = glGetUniformLocation(program_, _name.data());
 
     if (uniformLocation < 0)
         log::Warning() << "uniform is not exist or isn't being used: " << _name;
