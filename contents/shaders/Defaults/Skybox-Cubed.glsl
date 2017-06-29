@@ -27,6 +27,8 @@ void main()
 
 #elif CRUS_FRAGMENT_SHADER
 
+layout(early_fragment_tests) in;
+
 layout(location = nFRAG_COLOR/*, index = 0*/) out vec4 FragColor;
 layout(location = nMAIN_COLOR) uniform vec4 mainColor = vec4(1.0);
 

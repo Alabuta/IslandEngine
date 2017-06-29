@@ -24,6 +24,8 @@ void main()
 
 #elif CRUS_FRAGMENT_SHADER
 
+layout(early_fragment_tests) in;
+
 layout(location = nFRAG_COLOR/*, index = 0*/) out vec4 FragColor;
 
 in vec3 color;

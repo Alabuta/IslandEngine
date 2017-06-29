@@ -37,6 +37,8 @@ void main()
 
 #elif CRUS_FRAGMENT_SHADER
 
+layout(early_fragment_tests) in;
+
 layout(binding = nMATERIAL, shared) uniform CMTS
 {
     vec4 Clr0;
