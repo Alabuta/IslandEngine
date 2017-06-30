@@ -29,10 +29,10 @@ namespace isle {
 */
 class Camera {
 public:
-    // The natural basis world unit vectors.
-    static math::Vector const kWORLD_AXIS_X;
-    static math::Vector const kWORLD_AXIS_Y;
-    static math::Vector const kWORLD_AXIS_Z;
+    // The basis world unit vectors.
+    static math::Vector constexpr kWORLD_AXIS_X{1.0f, 0.0f, 0.0f};
+    static math::Vector constexpr kWORLD_AXIS_Y{0.0f, 1.0f, 0.0f};
+    static math::Vector constexpr kWORLD_AXIS_Z{0.0f, 0.0f, 1.0f};
 
     enum class eCAM_BEHAVIOR {
         nNIL = 0x00, nFIRST, nFREE, nTHIRD, nSDK
@@ -65,16 +65,6 @@ public:
 private:
     std::shared_ptr<__hidden::ICameraBehaviour> behavior;
     math::Matrix view_;
-
-    /*union {
-        math::Matrix view_;
-
-        struct {
-            math::Vector xAxis_; float x_;
-            math::Vector yAxis_; float y_;
-            math::Vector zAxis_; float z_;
-        };
-    };*/
 
     math::Quaternion rot_;
 

@@ -17,9 +17,6 @@
 extern isle::Input::Controller controller;
 
 namespace isle {
-math::Vector const Camera::kWORLD_AXIS_X{1.0f, 0.0f, 0.0f};
-math::Vector const Camera::kWORLD_AXIS_Y{0.0f, 1.0f, 0.0f};
-math::Vector const Camera::kWORLD_AXIS_Z{0.0f, 0.0f, 1.0f};
 
 Camera::Camera() : behavior{std::make_shared<__hidden::ICameraEditorBehaviour>()}, pitch_{0.0f}, yaw_{0.0f}, view_{math::Matrix::Identity()} { }
 Camera::~Camera() { };
@@ -154,7 +151,6 @@ void Camera::UpdateView()
 
     /*auto m = view_.Rotate(kWORLD_AXIS_Y, yaw_);
     view_ = view_.Rotate(kWORLD_AXIS_X, pitch_) * m;*/
-
 
     view_.xOrigin() = -view_.xAxis().Normalize() * pos_;
     view_.yOrigin() = -view_.yAxis().Normalize() * pos_;
