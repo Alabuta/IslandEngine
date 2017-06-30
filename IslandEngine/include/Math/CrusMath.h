@@ -20,7 +20,7 @@
 #include "System\CrusIsland.h"
 #include "System\CrusTypes.h"
 
-#ifdef CRUS_USE_SSE_MATH
+#if CRUS_USE_SSE_MATH
 extern "C"
 {
 #include <mmintrin.h>

@@ -119,7 +119,7 @@ private:
 
         std::array<float, 16> vec_;
 
-#ifdef CRUS_USE_SSE_MATH
+#if CRUS_USE_SSE_MATH
         __m128 row_[4];
 #endif
 

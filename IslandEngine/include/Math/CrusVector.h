@@ -20,14 +20,13 @@ public:
 
     explicit Vector() = default;
 
-    Vector(Vector const &v);
+    constexpr Vector(Vector const &v);
+    Vector(Vector &&v);
 
     Vector(std::array<float, 3> &&vec);
     Vector(std::array<float, 3> const &vec);
 
-    explicit Vector(float x, float y, float z);
-
-    Vector(Vector &&v);
+    constexpr explicit Vector(float x, float y, float z);
 
     float x() const;
     float y() const;

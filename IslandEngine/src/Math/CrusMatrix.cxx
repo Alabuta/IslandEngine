@@ -32,7 +32,7 @@ Matrix::Matrix(float _m00, float _m01, float _m02, float _m03,
 
 Matrix Matrix::operator+ (Matrix const &_m) const
 {
-#ifdef CRUS_USE_SSE_MATH
+#if CRUS_USE_SSE_MATH
     Matrix temp;
 
     temp.row_[0] = _mm_add_ps(row_[0], _m.row_[0]);
@@ -54,7 +54,7 @@ Matrix Matrix::operator+ (Matrix const &_m) const
 
 Matrix Matrix::operator- (Matrix const &_m) const
 {
-#ifdef CRUS_USE_SSE_MATH
+#if CRUS_USE_SSE_MATH
     Matrix temp;
 
     temp.row_[0] = _mm_sub_ps(row_[0], _m.row_[0]);
@@ -76,7 +76,7 @@ Matrix Matrix::operator- (Matrix const &_m) const
 
 Matrix Matrix::operator* (Matrix const &_m) const
 {
-#ifdef CRUS_USE_SSE_MATH
+#if CRUS_USE_SSE_MATH
     Matrix temp;
 
     __m128 row[4] = {_m.row_[0], _m.row_[1], _m.row_[2], _m.row_[3]};
@@ -139,7 +139,7 @@ Matrix Matrix::operator* (Matrix const &_m) const
 
 Matrix Matrix::operator+ (float _s) const
 {
-#ifdef CRUS_USE_SSE_MATH
+#if CRUS_USE_SSE_MATH
     Matrix temp;
 
     auto const s = _mm_set_ps1(_s);
@@ -163,7 +163,7 @@ Matrix Matrix::operator+ (float _s) const
 
 Matrix Matrix::operator- (float _s) const
 {
-#ifdef CRUS_USE_SSE_MATH
+#if CRUS_USE_SSE_MATH
     Matrix temp;
 
     auto const s = _mm_set_ps1(_s);
@@ -187,7 +187,7 @@ Matrix Matrix::operator- (float _s) const
 
 Matrix Matrix::operator* (float _s) const
 {
-#ifdef CRUS_USE_SSE_MATH
+#if CRUS_USE_SSE_MATH
     Matrix temp;
 
     auto const s = _mm_set_ps1(_s);
@@ -223,7 +223,7 @@ bool Matrix::operator== (Matrix const &_m) const
 
 Matrix &Matrix::operator+= (Matrix const &_m)
 {
-#ifdef CRUS_USE_SSE_MATH
+#if CRUS_USE_SSE_MATH
     row_[0] = _mm_add_ps(row_[0], _m.row_[0]);
     row_[1] = _mm_add_ps(row_[1], _m.row_[1]);
     row_[2] = _mm_add_ps(row_[2], _m.row_[2]);
@@ -240,7 +240,7 @@ Matrix &Matrix::operator+= (Matrix const &_m)
 
 Matrix &Matrix::operator-= (Matrix const &_m)
 {
-#ifdef CRUS_USE_SSE_MATH
+#if CRUS_USE_SSE_MATH
     row_[0] = _mm_sub_ps(row_[0], _m.row_[0]);
     row_[1] = _mm_sub_ps(row_[1], _m.row_[1]);
     row_[2] = _mm_sub_ps(row_[2], _m.row_[2]);
@@ -257,7 +257,7 @@ Matrix &Matrix::operator-= (Matrix const &_m)
 
 Matrix &Matrix::operator*= (Matrix const &_m)
 {
-#ifdef CRUS_USE_SSE_MATH
+#if CRUS_USE_SSE_MATH
     // 16 mul; 12 sum
     __m128 row[4] = {_m.row_[0], _m.row_[1], _m.row_[2], _m.row_[3]};
     _MM_TRANSPOSE4_PS(row[0], row[1], row[2], row[3]);
@@ -319,7 +319,7 @@ Matrix &Matrix::operator*= (Matrix const &_m)
 
 Matrix &Matrix::operator+= (float _s)
 {
-#ifdef CRUS_USE_SSE_MATH
+#if CRUS_USE_SSE_MATH
     auto const s = _mm_set_ps1(_s);
 
     row_[0] = _mm_add_ps(row_[0], s);
@@ -338,7 +338,7 @@ Matrix &Matrix::operator+= (float _s)
 
 Matrix &Matrix::operator-= (float _s)
 {
-#ifdef CRUS_USE_SSE_MATH
+#if CRUS_USE_SSE_MATH
     auto const s = _mm_set_ps1(_s);
 
     row_[0] = _mm_sub_ps(row_[0], s);
@@ -357,7 +357,7 @@ Matrix &Matrix::operator-= (float _s)
 
 Matrix &Matrix::operator*= (float _s)
 {
-#ifdef CRUS_USE_SSE_MATH
+#if CRUS_USE_SSE_MATH
     auto const s = _mm_set_ps1(_s);
 
     row_[0] = _mm_mul_ps(row_[0], s);
@@ -539,7 +539,7 @@ Matrix Matrix::Inverse() const
 
 Matrix Matrix::Transpose(Matrix const &_m)
 {
-#ifdef CRUS_USE_SSE_MATH
+#if CRUS_USE_SSE_MATH
     auto temp(_m);
 
     _MM_TRANSPOSE4_PS(temp.row_[0], temp.row_[1], temp.row_[2], temp.row_[3]);
@@ -558,7 +558,7 @@ Matrix Matrix::Transpose(Matrix const &_m)
 
 Matrix const &Matrix::Transpose()
 {
-#ifdef CRUS_USE_SSE_MATH
+#if CRUS_USE_SSE_MATH
     _MM_TRANSPOSE4_PS(row_[0], row_[1], row_[2], row_[3]);
 #else
     vec_ = {

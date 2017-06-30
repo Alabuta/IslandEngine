@@ -11,7 +11,7 @@
 
 namespace isle::math {
 
-inline Vector::Vector(Vector const &_v) : Vector::Vector(_v.x_, _v.y_, _v.z_) { }
+inline constexpr Vector::Vector(Vector const &_v) : Vector::Vector(_v.x_, _v.y_, _v.z_) { }
 
 
 inline Vector::Vector(std::array<float, 3> &&_vec)
@@ -24,7 +24,7 @@ inline Vector::Vector(std::array<float, 3> const &_vec)
     vec_ = _vec;
 }
 
-inline Vector::Vector(float _x, float _y, float _z) : x_(_x), y_(_y), z_(_z) { }
+inline constexpr Vector::Vector(float _x, float _y, float _z) : x_(_x), y_(_y), z_(_z) { }
 
 inline Vector::Vector(Vector &&_v)
 {
