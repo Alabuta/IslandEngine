@@ -54,7 +54,8 @@ private:
 
     bool LinkAndValidateProgram() const;
 
-    std::string PreprocessIncludes(std::string const &source, std::string_view name, int32 includingLevel = 0) const;
+    static std::string ReadShaderSource(std::string const &parentPath, std::string const &name);
+    static std::string PreprocessIncludes(std::string const &source, std::string_view name, int32 includingLevel = 0);
 };
 
 __forceinline uint32 Program::program() const

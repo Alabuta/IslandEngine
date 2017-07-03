@@ -24,7 +24,7 @@ auto constexpr kSHADERS_PATH = R"(../contents/shaders/)";
 };
 
 namespace isle {
-std::string ReadShaderSource(std::string const &_parentPath, std::string const &_name)
+std::string Program::ReadShaderSource(std::string const &_parentPath, std::string const &_name)
 {
     if (_parentPath.empty() || _name.empty()) {
         log::Error() << "file name is invalid.";
@@ -44,7 +44,7 @@ std::string ReadShaderSource(std::string const &_parentPath, std::string const &
         std::ostringstream stream;
         stream << file.rdbuf() << '\n';
 
-        return stream.good() ? stream.str() : "\0";
+        return stream.good() ? stream.str() : std::string();
     } ();
 
     file.close();
@@ -52,7 +52,7 @@ std::string ReadShaderSource(std::string const &_parentPath, std::string const &
     return source;
 }
 
-std::string Program::PreprocessIncludes(std::string const &_source, std::string_view _name, int32 _includingLevel) const
+std::string Program::PreprocessIncludes(std::string const &_source, std::string_view _name, int32 _includingLevel)
 {
     if (_includingLevel > Program::kINCLUDING_LEVEL) {
         log::Error() << "maximum source file including level is " << Program::kINCLUDING_LEVEL;
@@ -122,7 +122,10 @@ bool Program::AssignNew(std::initializer_list<std::string> &&_names)
             return false;
         }
 
-        source = PreprocessIncludes(source, name);
+        if (source = PreprocessIncludes(source, name); source.empty()) {
+            log::Error() << "can't read file: " << name;
+            return false;
+        }
 
         if (!CreateShader(source, GL_VERTEX_SHADER))
             return false;
