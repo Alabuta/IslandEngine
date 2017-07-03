@@ -50,7 +50,7 @@ bool Texture::Init()
         glTextureStorage2D(id_, 1, image.bpp_, image.width_, image.height_);
         glTextureSubImage2D(id_, 0, 0, 0, image.width_, image.height_, image.format_, image.type_, image.data_.data());
 
-        //glGenerateMipmap(GL_TEXTURE_2D);
+        glGenerateTextureMipmap(id_);
 
         /*auto maxAnisotrophy{0.0f};
         glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &maxAnisotrophy);
@@ -68,6 +68,9 @@ bool Texture::Init()
         }};
 
         std::vector<std::future<bool>> futures;
+
+        /*for (auto &[index, name, image] : tuples)
+            ;*/
 
         for (auto &tuple : tuples)
             futures.emplace_back(std::async(/*std::launch::async, */LoadTARGA, &std::get<2>(tuple), path_ + std::get<1>(tuple)));
@@ -91,6 +94,8 @@ bool Texture::Init()
             glTextureSubImage3D(id_, 0, 0, 0, std::get<0>(tuple),
                                 std::get<2>(tuple).width_, std::get<2>(tuple).height_, 1,
                                 std::get<2>(tuple).format_, std::get<2>(tuple).type_, std::get<2>(tuple).data_.data());
+
+        glGenerateTextureMipmap(id_);
     }
 
     w_ = static_cast<uint16>(image.width_);
@@ -101,7 +106,7 @@ bool Texture::Init()
 
 void Texture::Bind() const
 {
-    GLenum target;
+    /*GLenum target;
 
     switch (type_) {
         case eTEXTURE_TYPE::n2D:
@@ -117,7 +122,9 @@ void Texture::Bind() const
             return;
     }
 
-    glBindTexture(target, id_);
+    glBindTexture(target, id_);*/
+
+    glBindTextureUnit(0, id_);
 }
 
 void Texture::ToStream(std::ostream &_stream) const

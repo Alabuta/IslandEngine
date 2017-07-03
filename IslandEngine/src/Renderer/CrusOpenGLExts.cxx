@@ -106,6 +106,12 @@ CRUS_INLINE void APIENTRY glBindTexture(GLenum target, GLuint texture)
     return glBindTexture(target, texture);
 }
 
+CRUS_INLINE void APIENTRY glBindTextureUnit(GLuint unit, GLuint texture)
+{
+    GL_PROC_INIT(glBindTextureUnit);
+    return glBindTextureUnit(unit, texture);
+}
+
 CRUS_INLINE void APIENTRY glBindVertexArray(GLuint array)
 {
     GL_PROC_INIT(glBindVertexArray);
