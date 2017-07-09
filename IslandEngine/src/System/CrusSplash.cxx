@@ -17,7 +17,9 @@ __hidden::Splash::Splash(HINSTANCE _hInstance, wcstr _imagePath) : hInstance_(_h
     BITMAP bm;
     GetObjectW(hBitmap, sizeof(BITMAP), &bm);
 
-    int32 ws[4] = {0, 0, bm.bmWidth, bm.bmHeight};
+    RECT rect = {
+        0, 0, bm.bmWidth, bm.bmHeight
+    };
 
     WNDCLASSW const wcs = {
         CS_NOCLOSE,
@@ -33,7 +35,7 @@ __hidden::Splash::Splash(HINSTANCE _hInstance, wcstr _imagePath) : hInstance_(_h
     if (RegisterClassW(&wcs) == 0ui16) return;
 
     hWnd_ = CreateWindowW(wcs.lpszClassName, L"", WS_POPUP,
-                          ws[0], ws[1], ws[2], ws[3],
+                          rect.left, rect.top, rect.right, rect.bottom,
                           nullptr, nullptr, wcs.hInstance, nullptr);
 
     if (hWnd_ == nullptr)
@@ -42,15 +44,15 @@ __hidden::Splash::Splash(HINSTANCE _hInstance, wcstr _imagePath) : hInstance_(_h
     if ((hDC_ = GetDC(hWnd_)) == nullptr)
         this->~Splash();
 
-    isle::Window::AdjustToWorkArea(*reinterpret_cast<RECT *const>(ws));
+    isle::Window::AdjustToWorkArea(rect);
 
-    SetWindowPos(hWnd_, nullptr, ws[0], ws[1], ws[2], ws[3], SWP_DRAWFRAME | SWP_NOZORDER);
+    SetWindowPos(hWnd_, nullptr, rect.left, rect.top, rect.right, rect.bottom, SWP_DRAWFRAME | SWP_NOZORDER);
     ShowWindow(hWnd_, SW_SHOWNORMAL);
 
     auto const hSComp = CreateCompatibleDC(hDC_);
     auto const hOldBitmap = SelectObject(hSComp, hBitmap);
 
-    BitBlt(hDC_, 0, 0, ws[2], ws[3], hSComp, 0, 0, SRCCOPY);
+    BitBlt(hDC_, 0, 0, rect.right, rect.bottom, hSComp, 0, 0, SRCCOPY);
 
     SelectObject(hSComp, hOldBitmap);
     DeleteObject(hBitmap);
