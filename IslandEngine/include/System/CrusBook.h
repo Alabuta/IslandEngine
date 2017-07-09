@@ -49,10 +49,12 @@ class LogStream final {
 public:
     std::mutex mutex_;
 
-    template<typename T>
-    void ToStream(T const &object)
+    template<class T>
+    void ToStream(T &&object)
     {
-        ToStream(object, std::bool_constant<HasToStreamMethod<T>::value>());
+        using Tt = std::decay_t<decltype(object)>;
+
+        ToStream(object, std::bool_constant<HasToStreamMethod<Tt>::value>());
     }
 
     void BeginLine(eSEVERITY _note);
@@ -76,7 +78,7 @@ private:
     void InitConsoleWindow();
 
     template<class T>
-    void ToStream(T const &object, std::true_type)
+    void ToStream(T &&object, std::true_type)
     {
         object.ToStream(stream_);
 
@@ -84,8 +86,8 @@ private:
             object.ToStream(conout_);
     }
 
-    template<typename T>
-    void ToStream(T const &object, std::false_type)
+    template<class T>
+    void ToStream(T &&object, std::false_type)
     {
         stream_ << object;
 
@@ -93,7 +95,7 @@ private:
             conout_ << object;
     }
 
-    template<typename T>
+    template<class T>
     class HasToStreamMethod {
         template<typename U, void(U::*)(std::ostream &) const> struct SFINAE { };
 
@@ -111,7 +113,7 @@ public:
     explicit Book(eSEVERITY severity);
     ~Book();
 
-    template<typename T>
+    template<class T>
     Book &operator<< (T const &object)
     {
         LogStream::inst().ToStream(object);
