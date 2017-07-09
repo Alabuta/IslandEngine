@@ -86,7 +86,7 @@ public:
     void ToStream(std::ostream &stream) const;
 
 private:
-    uint32 id_{0};
+    uint32 id_{0}, unit_{0};
     uint16 w_{0}, h_{0};
 
     eTEXTURE_TYPE type_{eTEXTURE_TYPE::nUNKNOWN};

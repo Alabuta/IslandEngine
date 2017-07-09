@@ -106,25 +106,7 @@ bool Texture::Init()
 
 void Texture::Bind() const
 {
-    /*GLenum target;
-
-    switch (type_) {
-        case eTEXTURE_TYPE::n2D:
-            target = GL_TEXTURE_2D;
-            break;
-
-        case eTEXTURE_TYPE::nCUBE:
-            target = GL_TEXTURE_CUBE_MAP;
-            break;
-
-        default:
-            isle::log::Warning() << "unsupported target enum, skipped.";
-            return;
-    }
-
-    glBindTexture(target, id_);*/
-
-    glBindTextureUnit(0, id_);
+    glBindTextureUnit(unit_, id_);
 }
 
 void Texture::ToStream(std::ostream &_stream) const
