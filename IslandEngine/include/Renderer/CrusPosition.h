@@ -42,7 +42,7 @@ public:
     bool operator== (Position const &v) const;
     bool operator!= (Position const &v) const;
 
-    std::string ToString() const;
+    std::string to_string() const;
     void ToStream(std::ostream &stream) const;
 
     operator std::string() const;

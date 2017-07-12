@@ -240,7 +240,7 @@ isle::Rect GetCroppedSpriteRect(isle::Image const &image, isle::Rect const &rect
 
 namespace isle {
 
-/*static*/ Sprite Sprite::Create(std::shared_ptr<Texture> const &_texture, uint32 _number, Rect const &_rect, Point const &_pivot, float _pixelsPerUnit)
+/*static*/ std::optional<Sprite> Sprite::Create(std::shared_ptr<Texture> const &_texture, uint32 _number, Rect const &_rect, Point const &_pivot, float _pixelsPerUnit)
 {
     Sprite sprite;
 

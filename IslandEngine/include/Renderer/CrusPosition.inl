@@ -97,7 +97,7 @@ inline Position const &Position::operator= (Position &&_v)
     return *this;
 }
 
-inline std::string Position::ToString() const
+inline std::string Position::to_string() const
 {
     static std::ostringstream ss;
     ss.str("");

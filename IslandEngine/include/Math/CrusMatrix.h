@@ -106,6 +106,8 @@ public:
 
     Vector origin() const;
 
+    void ToStream(std::ostream &stream) const;
+
 private:
     union alignas(sizeof(__m128))
     {

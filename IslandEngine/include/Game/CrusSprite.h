@@ -5,6 +5,7 @@
 
 #include <memory>
 #include <vector>
+#include <optional>
 
 #include "Math\CrusVector.h"
 #include "Renderer\CrusTexture.h"
@@ -19,7 +20,7 @@ namespace isle {
 class Sprite final : public CrusObject {
 public:
 
-    static Sprite Create(std::shared_ptr<Texture> const &texture, uint32 number, Rect const &rect, Point const &pivot, float pixelsPerUnit = 100);
+    static std::optional<Sprite> Create(std::shared_ptr<Texture> const &texture, uint32 number, Rect const &rect, Point const &pivot, float pixelsPerUnit = 100);
 
     Texture const &textureSheet() const;
 

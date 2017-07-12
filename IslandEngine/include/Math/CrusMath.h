@@ -69,6 +69,8 @@ class Matrix;
 class Quaternion;
 class Vector;
 
+//std::ostream &operator<< (std::ostream &stream, Vector const &vector);
+
 inline float DegToRad(float degree)
 {
     return degree * kPI_DIV_180;
