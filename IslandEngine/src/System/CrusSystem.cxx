@@ -63,25 +63,64 @@ struct TransformComponent {
     isle::math::Matrix transform;
 };
 
+struct Component {
+    static auto constexpr id = 0;
+};
+
+struct AudioComponent : Component {
+    static auto constexpr id = 1;
+
+    float volume;
+};
+
+struct MovementComponent : Component {
+    static auto constexpr id = 2;
+
+    float initial_speed;
+    float max_speed;
+};
+
+struct PhysicsComponent : Component {
+    static auto constexpr id = 3;
+
+    float mass;
+};
+
+struct MeshComponent : Component {
+    static auto constexpr id = 4;
+
+    int64 meshID;
+};
+
 using component_t = std::variant<PositionComponent *, VelocityComponent *, TransformComponent *>;
 
-class Entity {
+class Entity final {
 public:
+    
 
     template<class Component>
-    void AddComponent(Component &&component)
+    void AddComponent1(Component &&component)
     {
         components_.push_back(std::forward<Component>(component));
     }
 
-    /*void RemoveComponent(component_t &&component)
+    template<class T, class ... Args, typename = std::enable_if_t<std::is_base_of_v<Component, std::decay_t<T>>>>
+    auto AddComponent(Args &&...args)
     {
-        components.push_back(std::move(component));
-    }*/
+        if constexpr (std::is_same_v<T, AudioComponent>)
+            return &audioComponents_.emplace_back(std::forward<Args>(args)...);
 
-    auto &GetComponents()
-    {
-        return components_;
+        else if constexpr (std::is_same_v<T, MovementComponent>)
+            return &movementComponents_.emplace_back(std::forward<Args>(args)...);
+
+        else if constexpr (std::is_same_v<T, PhysicsComponent>)
+            return &physicsComponents_.emplace_back(std::forward<Args>(args)...);
+
+        else if constexpr (std::is_same_v<T, MeshComponent>)
+            return &meshComponents_.emplace_back(std::forward<Args>(args)...);
+
+        else
+            static_assert(always_false<T>::value, "unsupported component type");
     }
 
 private:
@@ -165,25 +204,28 @@ private:
 class Engine {
 public:
 
-    template<class T, class ... Args>
+    template<class T, class ... Args, typename = std::enable_if_t<std::is_base_of_v<Component, std::decay_t<T>>>>
     auto CreateComponent(Args &&...args)
     {
-        if constexpr (std::is_same_v<T, PositionComponent>)
-            return &positionComponents.emplace_back(std::forward<Args>(args)...);
+        if constexpr (std::is_same_v<T, AudioComponent>)
+            return &audioComponents_.emplace_back(std::forward<Args>(args)...);
 
-        else if constexpr (std::is_same_v<T, VelocityComponent>)
-            return &velocityComponents.emplace_back(std::forward<Args>(args)...);
+        else if constexpr (std::is_same_v<T, MovementComponent>)
+            return &movementComponents_.emplace_back(std::forward<Args>(args)...);
 
-        else if constexpr (std::is_same_v<T, TransformComponent>)
-            return &transformComponents.emplace_back(std::forward<Args>(args)...);
+        else if constexpr (std::is_same_v<T, PhysicsComponent>)
+            return &physicsComponents_.emplace_back(std::forward<Args>(args)...);
+
+        else if constexpr (std::is_same_v<T, MeshComponent>)
+            return &meshComponents_.emplace_back(std::forward<Args>(args)...);
 
         else
-            static_assert(always_false<T>::value, "unknown component type");
+            static_assert(always_false<T>::value, "unsupported component type");
     }
 
-    void AddEntity(std::unique_ptr<Entity> entity)
+    void AddEntity(Entity &&entity)
     {
-        auto components = entity->GetComponents();
+        /*auto components = entity->GetComponents();
 
         for (auto &component : components)
             std::visit([] (auto &&comp)
@@ -202,14 +244,14 @@ public:
             else
                 static_assert(always_false<T>::value, "non-exhaustive visitor!");
 
-        }, component);
+        }, component);*/
 
         entitites.push_back(std::move(entity));
 
         //systems[0]->AddNode();
     }
 
-    void AddSystem(int64 priority, std::unique_ptr<ISystem> &&system)
+    void AddSystem(uint16 priority, std::unique_ptr<ISystem> &&system)
     {
         systems.emplace(priority, std::move(system));
     }
@@ -221,16 +263,21 @@ public:
     }
 
 private:
-    std::vector<std::unique_ptr<Entity>> entitites;
-    std::map<int64, std::unique_ptr<ISystem>> systems;
+    std::vector<Entity> entitites;
+    std::map<uint16, std::unique_ptr<ISystem>> systems;
 
-    using node_t = std::variant<RenderSystem::Node, MoveSystem::Node>;
+    /*using node_t = std::variant<RenderSystem::Node, MoveSystem::Node>;
 
     std::vector<node_t> nodes;
 
     std::vector<PositionComponent> positionComponents;
     std::vector<VelocityComponent> velocityComponents;
-    std::vector<TransformComponent> transformComponents;
+    std::vector<TransformComponent> transformComponents;*/
+
+    std::vector<AudioComponent> audioComponents_;
+    std::vector<MovementComponent> movementComponents_;
+    std::vector<PhysicsComponent> physicsComponents_;
+    std::vector<MeshComponent> meshComponents_;
 };
 
 namespace isle {
@@ -242,31 +289,22 @@ Time System::time;
 
     Engine engine;
 
-    auto posComp = engine.CreateComponent<PositionComponent>(math::Vector{0.f, 1.f, 0.f});
-    auto velComp = engine.CreateComponent<VelocityComponent>(math::Vector{1.f, 0.f, 0.f});
-    //auto trsComp = engine.CreateComponent<TransformComponent>();
+    auto audioComp = engine.CreateComponent<AudioComponent>(64.f);
 
-    entity->AddComponent(posComp);
-    entity->AddComponent(velComp);
-    entity->AddComponent(engine.CreateComponent<TransformComponent>());
+    entity->AddComponent(audioComp);
 
     engine.AddEntity(std::move(entity));
 
     engine.AddSystem(0, std::make_unique<MoveSystem>());
     engine.AddSystem(1, std::make_unique<RenderSystem>());
 
-    log::Debug() << posComp->position;
-    log::Debug() << velComp->linear_velocity;
-
     engine.Update(1.f);
-
-    log::Debug() << posComp->position;
-    log::Debug() << velComp->linear_velocity;
 
     log::Debug() << "component_t " << sizeof(component_t);
     log::Debug() << "PositionComponent " << sizeof(PositionComponent);
     log::Debug() << "VelocityComponent " << sizeof(VelocityComponent);
     log::Debug() << "TransformComponent " << sizeof(TransformComponent);
+    log::Debug() << "PhysicsComponent " << sizeof(PhysicsComponent);
 
     log::Debug() << "MoveSystem " << sizeof(MoveSystem);
 
