@@ -9,9 +9,11 @@
 #include <cstdio>
 #include <cstdlib>
 #include <variant>
+#include <optional>
 #include <memory>
 #include <map>
 #include <any>
+#include <set>
 
 #include "Renderer\CrusPosition.h"
 
@@ -63,42 +65,58 @@ struct TransformComponent {
     isle::math::Matrix transform;
 };
 
+using entity_id_t = size_t;
+
 struct Component {
     static auto constexpr id = 0;
+
+    entity_id_t entityID;
+
+    Component(entity_id_t entityID) : entityID(entityID) { };
 };
 
-struct AudioComponent : Component {
+struct AudioComponent final : public Component {
     static auto constexpr id = 1;
 
     float volume;
+
+    AudioComponent(entity_id_t entityID, float volume) : Component(entityID), volume(volume) { };
 };
 
-struct MovementComponent : Component {
+struct MovementComponent final : Component {
     static auto constexpr id = 2;
 
     float initial_speed;
     float max_speed;
+
+    MovementComponent(entity_id_t entityID, float initial_speed, float max_speed) : Component(entityID), initial_speed(initial_speed), max_speed(max_speed) { };
 };
 
-struct PhysicsComponent : Component {
+struct PhysicsComponent final : Component {
     static auto constexpr id = 3;
 
     float mass;
+
+    PhysicsComponent(entity_id_t entityID, float mass) : Component(entityID), mass(mass) { };
 };
 
-struct MeshComponent : Component {
+struct MeshComponent final : Component {
     static auto constexpr id = 4;
 
     int64 meshID;
+
+    MeshComponent(entity_id_t entityID, int64 meshID) : Component(entityID), meshID(meshID) { };
 };
 
 using component_t = std::variant<PositionComponent *, VelocityComponent *, TransformComponent *>;
 
 class Entity final {
 public:
-    
+    entity_id_t id;
 
-    template<class Component>
+    constexpr Entity(entity_id_t id) noexcept : id(id) { };
+        
+    /*template<class Component>
     void AddComponent1(Component &&component)
     {
         components_.push_back(std::forward<Component>(component));
@@ -121,11 +139,16 @@ public:
 
         else
             static_assert(always_false<T>::value, "unsupported component type");
+    }*/
+
+    /*explicit*/ constexpr operator entity_id_t() const
+    {
+        return id;
     }
 
 private:
 
-    std::vector<component_t> components_;
+    //std::vector<component_t> components_;
 };
 
 class ISystem {
@@ -204,51 +227,36 @@ private:
 class Engine {
 public:
 
-    template<class T, class ... Args, typename = std::enable_if_t<std::is_base_of_v<Component, std::decay_t<T>>>>
-    auto CreateComponent(Args &&...args)
+    std::optional<entity_id_t> CreateEntity()
     {
-        if constexpr (std::is_same_v<T, AudioComponent>)
-            return &audioComponents_.emplace_back(std::forward<Args>(args)...);
-
-        else if constexpr (std::is_same_v<T, MovementComponent>)
-            return &movementComponents_.emplace_back(std::forward<Args>(args)...);
-
-        else if constexpr (std::is_same_v<T, PhysicsComponent>)
-            return &physicsComponents_.emplace_back(std::forward<Args>(args)...);
-
-        else if constexpr (std::is_same_v<T, MeshComponent>)
-            return &meshComponents_.emplace_back(std::forward<Args>(args)...);
-
-        else
-            static_assert(always_false<T>::value, "unsupported component type");
+        return entitites.emplace_back(entitites.size()).id;
     }
 
-    void AddEntity(Entity &&entity)
+    /*template<class E, typename = std::enable_if_t<std::is_same_v<Entity, std::decay_t<E>>>>
+    auto constexpr GetID(entity_id_t entity)
     {
-        /*auto components = entity->GetComponents();
+        return entity.id;
+    }*/
 
-        for (auto &component : components)
-            std::visit([] (auto &&comp)
-        {
-            using T = std::decay_t<decltype(comp)>;
+    template<class C, class ... Args, typename = std::enable_if_t<std::is_base_of_v<Component, std::decay_t<C>>>>
+    std::optional<C> AddComponent(Entity entity, Args &&...args)
+    {
+        if constexpr (std::is_same_v<C, AudioComponent>)
+            return audioComponents_.emplace_back(entity.id, std::forward<Args>(args)...);
 
-            if constexpr (std::is_same_v<T, PositionComponent *>)
-                isle::log::Debug() << "PositionComponent";
+        else if constexpr (std::is_same_v<C, MovementComponent>)
+            return movementComponents_.emplace_back(entity.id, std::forward<Args>(args)...);
 
-            else if constexpr (std::is_same_v<T, VelocityComponent *>)
-                isle::log::Debug() << "VelocityComponent";
+        else if constexpr (std::is_same_v<C, PhysicsComponent>)
+            return physicsComponents_.emplace_back(entity.id, std::forward<Args>(args)...);
 
-            else if constexpr (std::is_same_v<T, TransformComponent *>)
-                isle::log::Debug() << "TransformComponent";
+        else if constexpr (std::is_same_v<C, MeshComponent>)
+            return meshComponents_.emplace_back(entity.id, std::forward<Args>(args)...);
 
-            else
-                static_assert(always_false<T>::value, "non-exhaustive visitor!");
+        else
+            static_assert(always_false<C>::value, "unsupported component type");
 
-        }, component);*/
-
-        entitites.push_back(std::move(entity));
-
-        //systems[0]->AddNode();
+        components_.insert(components_.end(), std::vector<C>());
     }
 
     void AddSystem(uint16 priority, std::unique_ptr<ISystem> &&system)
@@ -278,6 +286,8 @@ private:
     std::vector<MovementComponent> movementComponents_;
     std::vector<PhysicsComponent> physicsComponents_;
     std::vector<MeshComponent> meshComponents_;
+
+    std::set<std::any> components_;
 };
 
 namespace isle {
@@ -285,20 +295,24 @@ Time System::time;
 
 /*static*/ void System::Setup()
 {
-    auto entity = std::make_unique<Entity>();
-
     Engine engine;
 
-    auto audioComp = engine.CreateComponent<AudioComponent>(64.f);
+    auto entity = engine.CreateEntity();
 
-    entity->AddComponent(audioComp);
+    auto audioComp = engine.AddComponent<AudioComponent>(entity.value(), 64.f);
+    auto physicsComp = engine.AddComponent<PhysicsComponent>(entity.value(), 2.f);
+
+    log::Debug() << "volume " << audioComp->volume;
+    log::Debug() << "mass " << physicsComp->mass;
+
+    /*entity->AddComponent(audioComp);
 
     engine.AddEntity(std::move(entity));
 
     engine.AddSystem(0, std::make_unique<MoveSystem>());
     engine.AddSystem(1, std::make_unique<RenderSystem>());
 
-    engine.Update(1.f);
+    engine.Update(1.f);*/
 
     log::Debug() << "component_t " << sizeof(component_t);
     log::Debug() << "PositionComponent " << sizeof(PositionComponent);
@@ -307,6 +321,7 @@ Time System::time;
     log::Debug() << "PhysicsComponent " << sizeof(PhysicsComponent);
 
     log::Debug() << "MoveSystem " << sizeof(MoveSystem);
+
 
     // This method for only start of system and used before splash screen creation.
     HWND const hExistWnd = FindWindowW(crus::names::kMAIN_WINDOW_CLASS, nullptr);
