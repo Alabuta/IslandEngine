@@ -20,6 +20,7 @@ void main()
 
     // You can just assign w component to z,
     // but then you have to change depth comprasion function to GL_LEQUAL.
+    // Instead, consider code example below.
     gl_Position.z = gl_Position.w * 0.999999;
 
     texCoord = -inVertex;
