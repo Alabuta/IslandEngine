@@ -241,7 +241,7 @@ public:
     template<class C, class ... Args, typename = std::enable_if_t<std::is_base_of_v<Component, std::decay_t<C>>>>
     std::optional<C> AddComponent(Entity entity, Args &&...args)
     {
-        if constexpr (std::is_same_v<C, AudioComponent>)
+        /*if constexpr (std::is_same_v<C, AudioComponent>)
             return audioComponents_.emplace_back(entity.id, std::forward<Args>(args)...);
 
         else if constexpr (std::is_same_v<C, MovementComponent>)
@@ -254,9 +254,10 @@ public:
             return meshComponents_.emplace_back(entity.id, std::forward<Args>(args)...);
 
         else
-            static_assert(always_false<C>::value, "unsupported component type");
+            static_assert(always_false<C>::value, "unsupported component type");*/
 
-        components_.insert(components_.end(), std::vector<C>());
+        auto it = components_.try_emplace(C::id, std::vector<C>()).first;
+        return std::any_cast<std::vector<C>>(it->second).emplace_back(entity.id, std::forward<Args>(args)...);
     }
 
     void AddSystem(uint16 priority, std::unique_ptr<ISystem> &&system)
@@ -282,12 +283,12 @@ private:
     std::vector<VelocityComponent> velocityComponents;
     std::vector<TransformComponent> transformComponents;*/
 
-    std::vector<AudioComponent> audioComponents_;
+    /*std::vector<AudioComponent> audioComponents_;
     std::vector<MovementComponent> movementComponents_;
     std::vector<PhysicsComponent> physicsComponents_;
-    std::vector<MeshComponent> meshComponents_;
+    std::vector<MeshComponent> meshComponents_;*/
 
-    std::set<std::any> components_;
+    std::map<decltype(Component::id), std::any> components_;
 };
 
 namespace isle {
