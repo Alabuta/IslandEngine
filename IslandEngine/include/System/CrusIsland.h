@@ -66,6 +66,9 @@ void Update();
 void DrawFrame();
 }
 
+// Guidelines Support Library 
+#include <gsl/gsl>
+
 // Are used for unit-tests.
 #include "xUnitTest\xUnitTest.h"
 
