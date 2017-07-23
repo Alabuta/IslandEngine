@@ -151,19 +151,19 @@ private:
     //std::vector<component_t> components_;
 };
 
+class Engine;
+
 class ISystem {
 public:
 
     virtual ~ISystem() = default;
 
-    virtual void Update(float time) = 0;
+    virtual bool Start(gsl::not_null<Engine *> engine) = 0;
 
-    void AddNode()
-    {
-        isle::log::Debug() << __FUNCTION__;
-    }
+    virtual void Update(float time) = 0;
 };
 
+#if _CRUS_NOT_YET_IMPLEMENTED
 class RenderSystem final : public ISystem {
 public:
 
@@ -223,8 +223,9 @@ private:
 
     std::vector<Node> nodes_;
 };
+#endif
 
-class Engine {
+class Engine final {
 public:
 
     std::optional<entity_id_t> CreateEntity()
@@ -257,23 +258,43 @@ public:
             static_assert(always_false<C>::value, "unsupported component type");*/
 
         auto it = components_.try_emplace(C::id, std::vector<C>()).first;
-        return std::any_cast<std::vector<C>>(it->second).emplace_back(entity.id, std::forward<Args>(args)...);
+
+        auto &container = std::any_cast<std::vector<C>>(it->second);
+
+        return container.emplace_back(entity.id, std::forward<Args>(args)...);
     }
 
-    void AddSystem(uint16 priority, std::unique_ptr<ISystem> &&system)
+    template<class C, typename = std::enable_if_t<std::is_base_of_v<Component, std::decay_t<C>>>>
+    std::optional<std::vector<C> *> GetComponents()
     {
-        systems.emplace(priority, std::move(system));
+        if (auto it = components_.find(C::id); it != components_.end())
+            return std::any_cast<std::vector<C>>(&(it->second));
+
+        else return std::nullopt;
+    }
+
+    void AddSystem(uint16 priority, std::unique_ptr<ISystem> system)
+    {
+        systems_.emplace(priority, std::move(system));
+    }
+
+    bool Start()
+    {
+        for (auto &system : systems_)
+            if(!system.second->Start(this))
+                return false;
+
+        return true;
     }
 
     void Update(float time)
     {
-        for (auto &system : systems)
+        for (auto &system : systems_)
             system.second->Update(time);
     }
 
 private:
     std::vector<Entity> entitites;
-    std::map<uint16, std::unique_ptr<ISystem>> systems;
 
     /*using node_t = std::variant<RenderSystem::Node, MoveSystem::Node>;
 
@@ -288,7 +309,66 @@ private:
     std::vector<PhysicsComponent> physicsComponents_;
     std::vector<MeshComponent> meshComponents_;*/
 
+    std::map<uint16, std::unique_ptr<ISystem>> systems_;
     std::map<decltype(Component::id), std::any> components_;
+};
+
+class AudioSystem final : public ISystem {
+public:
+
+    bool Start(gsl::not_null<Engine *> engine) override
+    {
+        if (auto components = engine->GetComponents<AudioComponent>(); components) {
+            audioComponents_ = components.value();
+            return true;
+        }
+
+        else return false;
+    }
+
+    void Update(float time) override
+    {
+        isle::log::Debug() << __FUNCTION__;
+
+        for (auto &component : *audioComponents_)
+            component.volume += 2.f;
+
+        for (auto &component : *audioComponents_)
+            isle::log::Debug() << "volume " << component.volume;
+    }
+
+private:
+
+    std::vector<AudioComponent> *audioComponents_;
+};
+
+class PhysicsSystem final : public ISystem {
+public:
+
+    bool Start(gsl::not_null<Engine *> engine) override
+    {
+        if (auto components = engine->GetComponents<PhysicsComponent>(); components) {
+            physicsComponents_ = components.value();
+            return true;
+        }
+
+        else return false;
+    }
+
+    void Update(float time) override
+    {
+        isle::log::Debug() << __FUNCTION__;
+
+        for (auto &component : *physicsComponents_)
+            component.mass += 2.f;
+
+        for (auto &component : *physicsComponents_)
+            isle::log::Debug() << "volume " << component.mass;
+    }
+
+private:
+
+    std::vector<PhysicsComponent> *physicsComponents_;
 };
 
 namespace isle {
@@ -303,25 +383,71 @@ Time System::time;
     auto audioComp = engine.AddComponent<AudioComponent>(entity.value(), 64.f);
     auto physicsComp = engine.AddComponent<PhysicsComponent>(entity.value(), 2.f);
 
-    log::Debug() << "volume " << audioComp->volume;
+    engine.AddSystem(2, std::make_unique<AudioSystem>());
+    engine.AddSystem(1, std::make_unique<PhysicsSystem>());
+
+    /*log::Debug() << "volume " << audioComp->volume;
     log::Debug() << "mass " << physicsComp->mass;
+
+    //auto bStartSucceeded = engine.Start();
+
+    //log::Debug() << "bStartSucceeded: " << std::boolalpha << bStartSucceeded;
+
+    //engine.Update(1.f);
+
+    log::Debug() << "volume " << audioComp->volume;
+    log::Debug() << "mass " << physicsComp->mass;*/
+
+    std::map<decltype(Component::id), std::any> components_;
+
+    components_.emplace(AudioComponent::id, std::make_any<std::vector<AudioComponent>>());
+
+    std::optional<std::vector<AudioComponent> *> optional;
+
+    if (auto it = components_.find(AudioComponent::id); it != components_.end()) {
+        optional = std::any_cast<std::vector<AudioComponent>>(&(it->second));
+    }
+
+    if (optional)
+        optional.value()->emplace_back(entity.value(), 64.f);
+
+    if (optional)
+        log::Debug() << "volume " << optional.value()->back().volume;
+
+    auto vec = std::any_cast<std::vector<AudioComponent>>(&components_.at(AudioComponent::id));
+
+    vec->back().volume += 20.f;
+
+    log::Debug() << "volume " << vec->back().volume;
+
+    if (auto it = components_.find(AudioComponent::id); it != components_.end()) {
+        optional = std::any_cast<std::vector<AudioComponent>>(&(it->second));
+    }
+
+    if (optional)
+        log::Debug() << "volume " << optional.value()->back().volume;
+
+    /*auto any = std::make_any<std::vector<AudioComponent>>();
+
+    auto vec = std::any_cast<std::vector<AudioComponent>>(&any);
+
+    vec->emplace_back(entity.value(), 64.f);
+
+    log::Debug() << "volume " << vec->back().volume;
+    log::Debug() << "volume " << std::any_cast<std::vector<AudioComponent>>(any).back().volume;*/
+
 
     /*entity->AddComponent(audioComp);
 
-    engine.AddEntity(std::move(entity));
+    engine.AddEntity(std::move(entity));*/
 
-    engine.AddSystem(0, std::make_unique<MoveSystem>());
-    engine.AddSystem(1, std::make_unique<RenderSystem>());
-
-    engine.Update(1.f);*/
-
-    log::Debug() << "component_t " << sizeof(component_t);
+    /*log::Debug() << "component_t " << sizeof(component_t);
     log::Debug() << "PositionComponent " << sizeof(PositionComponent);
     log::Debug() << "VelocityComponent " << sizeof(VelocityComponent);
     log::Debug() << "TransformComponent " << sizeof(TransformComponent);
-    log::Debug() << "PhysicsComponent " << sizeof(PhysicsComponent);
+    log::Debug() << "PhysicsComponent " << sizeof(PhysicsComponent);*/
 
-    log::Debug() << "MoveSystem " << sizeof(MoveSystem);
+    //log::Debug() << "MoveSystem " << sizeof(MoveSystem);
 
 
     // This method for only start of system and used before splash screen creation.
