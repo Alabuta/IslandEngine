@@ -374,6 +374,28 @@ private:
 namespace isle {
 Time System::time;
 
+std::map<decltype(Component::id), std::any> components_;
+
+
+template<class C, class ... Args, typename = std::enable_if_t<std::is_base_of_v<Component, std::decay_t<C>>>>
+std::optional<C *const> AddComponent(Entity entity, Args &&...args)
+{
+    auto it = components_.try_emplace(C::id, std::make_any<std::vector<C>>(16)).first;
+
+    auto container = std::any_cast<std::vector<C>>(&(it->second));
+
+    return &container->emplace_back(entity.id, std::forward<Args>(args)...);
+}
+
+template<class C, typename = std::enable_if_t<std::is_base_of_v<Component, std::decay_t<C>>>>
+std::optional<std::vector<C> *> GetComponents()
+{
+    if (auto it = components_.find(C::id); it != components_.end())
+        return std::any_cast<std::vector<C>>(&(it->second));
+
+    else return std::nullopt;
+}
+
 /*static*/ void System::Setup()
 {
     Engine engine;
@@ -398,23 +420,32 @@ Time System::time;
     log::Debug() << "volume " << audioComp->volume;
     log::Debug() << "mass " << physicsComp->mass;*/
 
-    std::map<decltype(Component::id), std::any> components_;
+    //components_.emplace(AudioComponent::id, std::make_any<std::vector<AudioComponent>>());
 
-    components_.emplace(AudioComponent::id, std::make_any<std::vector<AudioComponent>>());
+    auto x = AddComponent<AudioComponent>(entity.value(), 64.f);
 
-    std::optional<std::vector<AudioComponent> *> optional;
+    if (x)
+        x.value()->volume = 2.f;
 
-    if (auto it = components_.find(AudioComponent::id); it != components_.end()) {
-        optional = std::any_cast<std::vector<AudioComponent>>(&(it->second));
-    }
+    std::vector<AudioComponent> *audioComponent = GetComponents<AudioComponent>().value_or(nullptr);
 
-    if (optional)
-        optional.value()->emplace_back(entity.value(), 64.f);
+    /*if (audioComponent != nullptr)
+        audioComponent->emplace_back(entity.value(), 64.f);*/
 
-    if (optional)
-        log::Debug() << "volume " << optional.value()->back().volume;
+    if (audioComponent != nullptr)
+        for (auto const &ac : *audioComponent)
+            log::Debug() << "volume " << ac.volume;
 
-    auto vec = std::any_cast<std::vector<AudioComponent>>(&components_.at(AudioComponent::id));
+    AddComponent<AudioComponent>(entity.value(), 4.f);
+
+    if (x)
+        x.value()->volume = 8.f;
+
+    if (audioComponent != nullptr)
+        for (auto const &ac : *audioComponent)
+            log::Debug() << "volume " << ac.volume;
+
+    /*auto vec = std::any_cast<std::vector<AudioComponent>>(&components_.at(AudioComponent::id));
 
     vec->back().volume += 20.f;
 
@@ -425,7 +456,7 @@ Time System::time;
     }
 
     if (optional)
-        log::Debug() << "volume " << optional.value()->back().volume;
+        log::Debug() << "volume " << optional.value()->back().volume;*/
 
     /*auto any = std::make_any<std::vector<AudioComponent>>();
 
