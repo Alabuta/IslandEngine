@@ -72,6 +72,9 @@ struct Component {
 
     entity_id_t entityID;
 
+    Component() = default;
+    virtual ~Component() = default;
+
     Component(entity_id_t entityID) : entityID(entityID) { };
 };
 
@@ -240,28 +243,27 @@ public:
     }*/
 
     template<class C, class ... Args, typename = std::enable_if_t<std::is_base_of_v<Component, std::decay_t<C>>>>
-    std::optional<C> AddComponent(Entity entity, Args &&...args)
+    std::optional<C *const> AddComponent(Entity entity, Args &&...args)
     {
         /*if constexpr (std::is_same_v<C, AudioComponent>)
-            return audioComponents_.emplace_back(entity.id, std::forward<Args>(args)...);
+        return audioComponents_.emplace_back(entity.id, std::forward<Args>(args)...);
 
         else if constexpr (std::is_same_v<C, MovementComponent>)
-            return movementComponents_.emplace_back(entity.id, std::forward<Args>(args)...);
+        return movementComponents_.emplace_back(entity.id, std::forward<Args>(args)...);
 
         else if constexpr (std::is_same_v<C, PhysicsComponent>)
-            return physicsComponents_.emplace_back(entity.id, std::forward<Args>(args)...);
+        return physicsComponents_.emplace_back(entity.id, std::forward<Args>(args)...);
 
         else if constexpr (std::is_same_v<C, MeshComponent>)
-            return meshComponents_.emplace_back(entity.id, std::forward<Args>(args)...);
+        return meshComponents_.emplace_back(entity.id, std::forward<Args>(args)...);
 
         else
-            static_assert(always_false<C>::value, "unsupported component type");*/
+        static_assert(always_false<C>::value, "unsupported component type");*/
+        auto it = components_.try_emplace(C::id, std::make_any<std::vector<C>>()).first;
 
-        auto it = components_.try_emplace(C::id, std::vector<C>()).first;
+        auto container = std::any_cast<std::vector<C>>(&(it->second));
 
-        auto &container = std::any_cast<std::vector<C>>(it->second);
-
-        return container.emplace_back(entity.id, std::forward<Args>(args)...);
+        return &container->emplace_back(entity.id, std::forward<Args>(args)...);
     }
 
     template<class C, typename = std::enable_if_t<std::is_base_of_v<Component, std::decay_t<C>>>>
@@ -374,39 +376,30 @@ private:
 namespace isle {
 Time System::time;
 
-std::map<decltype(Component::id), std::any> components_;
-
-
-template<class C, class ... Args, typename = std::enable_if_t<std::is_base_of_v<Component, std::decay_t<C>>>>
-std::optional<C *const> AddComponent(Entity entity, Args &&...args)
-{
-    auto it = components_.try_emplace(C::id, std::make_any<std::vector<C>>(16)).first;
-
-    auto container = std::any_cast<std::vector<C>>(&(it->second));
-
-    return &container->emplace_back(entity.id, std::forward<Args>(args)...);
-}
-
-template<class C, typename = std::enable_if_t<std::is_base_of_v<Component, std::decay_t<C>>>>
-std::optional<std::vector<C> *> GetComponents()
-{
-    if (auto it = components_.find(C::id); it != components_.end())
-        return std::any_cast<std::vector<C>>(&(it->second));
-
-    else return std::nullopt;
-}
-
 /*static*/ void System::Setup()
 {
     Engine engine;
 
-    auto entity = engine.CreateEntity();
-
-    auto audioComp = engine.AddComponent<AudioComponent>(entity.value(), 64.f);
-    auto physicsComp = engine.AddComponent<PhysicsComponent>(entity.value(), 2.f);
-
     engine.AddSystem(2, std::make_unique<AudioSystem>());
     engine.AddSystem(1, std::make_unique<PhysicsSystem>());
+
+    auto entity = engine.CreateEntity();
+
+    auto x = engine.AddComponent<AudioComponent>(entity.value(), 64.f);
+    auto y = engine.AddComponent<PhysicsComponent>(entity.value(), 8.f);
+
+    if (x)
+        x.value()->volume = 2.f;
+
+    auto audioComponents = engine.GetComponents<AudioComponent>().value_or(nullptr);
+
+    engine.AddComponent<AudioComponent>(entity.value(), 4.f);
+
+    if (audioComponents != nullptr)
+        for (auto const &ac : *audioComponents)
+            log::Debug() << "volume " << ac.volume;
+
+    engine.Update(1.f);
 
     /*log::Debug() << "volume " << audioComp->volume;
     log::Debug() << "mass " << physicsComp->mass;
@@ -419,53 +412,6 @@ std::optional<std::vector<C> *> GetComponents()
 
     log::Debug() << "volume " << audioComp->volume;
     log::Debug() << "mass " << physicsComp->mass;*/
-
-    //components_.emplace(AudioComponent::id, std::make_any<std::vector<AudioComponent>>());
-
-    auto x = AddComponent<AudioComponent>(entity.value(), 64.f);
-
-    if (x)
-        x.value()->volume = 2.f;
-
-    std::vector<AudioComponent> *audioComponent = GetComponents<AudioComponent>().value_or(nullptr);
-
-    /*if (audioComponent != nullptr)
-        audioComponent->emplace_back(entity.value(), 64.f);*/
-
-    if (audioComponent != nullptr)
-        for (auto const &ac : *audioComponent)
-            log::Debug() << "volume " << ac.volume;
-
-    AddComponent<AudioComponent>(entity.value(), 4.f);
-
-    if (x)
-        x.value()->volume = 8.f;
-
-    if (audioComponent != nullptr)
-        for (auto const &ac : *audioComponent)
-            log::Debug() << "volume " << ac.volume;
-
-    /*auto vec = std::any_cast<std::vector<AudioComponent>>(&components_.at(AudioComponent::id));
-
-    vec->back().volume += 20.f;
-
-    log::Debug() << "volume " << vec->back().volume;
-
-    if (auto it = components_.find(AudioComponent::id); it != components_.end()) {
-        optional = std::any_cast<std::vector<AudioComponent>>(&(it->second));
-    }
-
-    if (optional)
-        log::Debug() << "volume " << optional.value()->back().volume;*/
-
-    /*auto any = std::make_any<std::vector<AudioComponent>>();
-
-    auto vec = std::any_cast<std::vector<AudioComponent>>(&any);
-
-    vec->emplace_back(entity.value(), 64.f);
-
-    log::Debug() << "volume " << vec->back().volume;
-    log::Debug() << "volume " << std::any_cast<std::vector<AudioComponent>>(any).back().volume;*/
 
 
     /*entity->AddComponent(audioComp);
@@ -481,7 +427,7 @@ std::optional<std::vector<C> *> GetComponents()
     //log::Debug() << "MoveSystem " << sizeof(MoveSystem);
 
 
-    // This method for only start of system and used before splash screen creation.
+    // This method for only system start and has to be used before splash screen creation.
     HWND const hExistWnd = FindWindowW(crus::names::kMAIN_WINDOW_CLASS, nullptr);
 
     if (hExistWnd != nullptr) {
