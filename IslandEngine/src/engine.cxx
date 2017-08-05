@@ -1,47 +1,35 @@
 /********************************************************************************************************************************
 ****
 ****    Source code of Island Engine.
-****    Copyright (C) 2009 - 2014 Crusoe's Island LLC.
+****    Copyright (C) 2009 - 2017 Crusoe's Island LLC.
 ****
 ****    Description: main cxx file - the beginning and the application end.
 ****
 ********************************************************************************************************************************/
+#include <variant>
+#include <array>
+#include <bitset>
+
 #include "engine.h"
+
 
 namespace cubemap {
 bool InitCubemap();
 void DrawCubemap();
 }
 
+namespace instanced {
+bool Init();
+void Draw();
+}
+
 auto index = 0u;
 auto spritesNumber = 0u;
 auto samples = 0u;
 
-class ISystem {
-public:
+auto spriteIndirectBO = 0u;
 
-    virtual ~ISystem() = default;
-
-    virtual void Update() = 0;
-};
-
-class RenderSystem final : public ISystem {
-public:
-
-    void Update() override
-    {
-        isle::log::Debug() << __FUNCTION__;
-    }
-};
-
-class MoveSystem final : public ISystem {
-public:
-
-    void Update() override
-    {
-        isle::log::Debug() << __FUNCTION__;
-    }
-};
+uint32 INSTANCING = 0;
 
 namespace app {
 void InitBuffers(std::vector<isle::Sprite> const &spriteSheet);
@@ -258,20 +246,97 @@ void DrawBackgorund()
 
 
 
+
+
+class Entity final {
+public:
+
+    constexpr Entity(/*gsl::not_null<EntityManager *const> manager, */uint64_t id) noexcept : id(id) { };
+
+    class ID final {
+    public:
+        constexpr explicit ID(uint64_t id) noexcept : id_(id) { };
+
+        constexpr uint64_t operator()() const noexcept { return id_; }
+
+        constexpr bool operator== (ID const &id) const noexcept { return id.id_ == id_; }
+        constexpr bool operator!= (ID const &id) const noexcept { return id.id_ != id_; }
+        constexpr bool operator< (ID const &id) const noexcept { return id.id_ < id_; }
+
+    private:
+        uint64_t id_;
+
+        ID() = delete;
+    } id;
+
+private:
+    ;
+};
+
+class EntityManager final {
+public:
+
+    constexpr static auto kMAX_COMPONENTS = 64;
+
+    Entity CreateEntity() noexcept
+    {
+        uint64_t index;
+
+        if (free_list_.empty()) {
+            index = ++index_counter_;
+        }
+
+        return Entity(0); //++entities
+    }
+
+    template<class C, class ... Args, typename = std::enable_if_t<std::is_base_of_v<Component, std::decay_t<C>>>>
+    decltype(auto) AddComponent(Args &&...args)
+    {
+        ;
+    }
+
+private:
+
+    uint64_t index_counter_ = 0;
+    std::vector<decltype(Entity::id)> free_list_;
+
+    std::bitset<kMAX_COMPONENTS> componentsMask;
+};
+
+struct Component {
+    static auto constexpr ID = 0;
+
+    Entity entity;
+
+    Component() = default;
+    virtual ~Component() = default;
+
+    Component(Entity entity) : entity(entity) { };
+};
+
+struct AudioComponent final : public Component {
+    static auto constexpr ID = 1;
+
+    float volume;
+
+    AudioComponent(Entity entity, float volume) : Component(entity), volume(volume) { };
+};
+
+struct MovementComponent final : Component {
+    static auto constexpr ID = 2;
+
+    float initial_speed;
+    float max_speed;
+
+    MovementComponent(Entity entity, float initial_speed, float max_speed) : Component(entity), initial_speed(initial_speed), max_speed(max_speed) { };
+};
+
+
 void Init()
 {
-    /*std::map<int, std::unique_ptr<ISystem>> systems;
-
-    systems.emplace(0, std::make_unique<RenderSystem>());
-    systems.emplace(1, std::make_unique<MoveSystem>());
-
-    for (auto const &system : systems)
-
-        system.second->Update();*/
-
     Camera::inst().Create(Camera::eCAM_BEHAVIOR::nFREE);
-    Camera::inst().SetPos(0.f, 1.f, 2.f);
-    Camera::inst().LookAt(0.f, 0.f, 0.f);
+    Camera::inst().SetPos(0.f, 1.f, 1.f);
+    Camera::inst().LookAt(0.f, 1.f, 0.f);
 
     // Application intialization function.
     glEnable(GL_CULL_FACE);
@@ -283,12 +348,17 @@ void Init()
 
     glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
-    grid.Update();
+    grid.Update(12.3f, 1.7f, 5);
 
     log::Debug() << measure<>::execution(InitBackground);
 
     cubemap::InitCubemap();
+
+    EntityManager entities;
+    auto entity = entities.CreateEntity();
 }
+
+
 
 void Update()
 { }
@@ -302,19 +372,18 @@ void DrawFrame()
     //glDrawArrays(GL_TRIANGLE_STRIP, 0, 4 * 6 + 4);
     //glDrawArraysInstancedBaseInstance(GL_TRIANGLE_STRIP, command.first, command.count, command.instanceCount, command.baseInstance);
     //glMultiDrawArrays(GL_TRIANGLE_FAN, first, count, 6);
-    //glMultiDrawElements(GL_TRIANGLE_FAN, count, GL_UNSIGNED_BYTE, reinterpret_cast<void const *const *>(indices), 6);
+    //glMultiDrawElements(GL_TRIANGLE_FAN, count, GL_UNSIGNED_BYTE, reinterpret_cast<void const *const *>(indicies), 6);
     //glDrawElements(GL_TRIANGLE_FAN, count[5], GL_UNSIGNED_BYTE, reinterpret_cast<void const *>(sizeof(uint8) * 4));
 
     glDepthMask(GL_FALSE);
-    DrawBackgorund();
+    DrawSprite();
     glDepthMask(GL_TRUE);
 }
-
 };
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int)
 {
-    isle::Window window(crus::names::kMAIN_WINDOW_NAME, hInstance, 600, 400);
+    isle::Window window(crus::names::kMAIN_WINDOW_NAME, hInstance, 800, 600);
 
     return isle::System::Loop();
 }
