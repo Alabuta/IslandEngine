@@ -246,15 +246,42 @@ void DrawBackgorund()
 
 
 
+constexpr auto kMAX_COMPONENTS = 64;
 
+class EntityManager;
+
+template<class C>
+class ComponentHandle;
 
 class Entity final {
 public:
 
-    constexpr Entity(/*gsl::not_null<EntityManager *const> manager, */uint64_t id) noexcept : id(id) { };
+    constexpr Entity(gsl::not_null<EntityManager *> manager, uint64_t id) noexcept : manager_(manager), id_(id) { };
+
+    constexpr bool operator== (Entity const &entity) const noexcept { return entity.id_ == id_; }
+    constexpr bool operator!= (Entity const &entity) const noexcept { return entity.id_ != id_; }
+    constexpr bool operator< (Entity const &entity) const noexcept { return entity.id_ < id_; }
+
+    operator bool() const
+    {
+        // TODO: implement validation routine.
+        return true;
+    }
+
+    void invalidate()
+    {
+        // TODO: implement invalidation routine.
+    }
+
+    void destroy()
+    {
+        // TODO: destroy and invalidate routine.
+    }
 
     class ID final {
     public:
+
+        constexpr ID() : id_(0) { };
         constexpr explicit ID(uint64_t id) noexcept : id_(id) { };
 
         constexpr uint64_t operator()() const noexcept { return id_; }
@@ -265,18 +292,71 @@ public:
 
     private:
         uint64_t id_;
+    };
 
-        ID() = delete;
-    } id;
+    static constexpr ID INVALID_ID()
+    {
+        return ID();
+    }
+
+    ID id() const noexcept { return id_; }
+
+    std::bitset<kMAX_COMPONENTS> component_mask() const
+    {
+        // TODO: implement entity's components bitset getter.
+        return {};
+    }
 
 private:
-    ;
+    ID id_;
+    EntityManager *manager_;
 };
+
+
+
+template<class C>
+class ComponentHandle final {
+public:
+
+    constexpr ComponentHandle() noexcept : manager_(nullptr) { };
+
+    operator bool() const
+    {
+        // TODO: implement validation routine.
+        return true;
+    }
+
+    C const *get() const
+    {
+        // TODO: asssert validation and return pointer to component
+        return nullptr;
+    }
+
+    void remove()
+    {
+        // TODO: remove and destroy routine.
+    }
+
+    Entity entity()
+    {
+        // TODO: validate and return associated entity.
+        return {};
+    }
+
+    constexpr bool operator== (ComponentHandle<C> const &component) const noexcept { return component.id_ == id_; }
+    constexpr bool operator!= (ComponentHandle<C> const &component) const noexcept { return component.id_ != id_; }
+
+private:
+    Entity::ID id_;
+    EntityManager *manager_;
+
+    constexpr ComponentHandle(gsl::not_null<EntityManager *> manager, Entity::ID id) noexcept : manager_(manager), id_(id) { };
+};
+
+
 
 class EntityManager final {
 public:
-
-    constexpr static auto kMAX_COMPONENTS = 64;
 
     Entity CreateEntity() noexcept
     {
@@ -286,7 +366,7 @@ public:
             index = ++index_counter_;
         }
 
-        return Entity(0); //++entities
+        return Entity(this, 0); //++entities
     }
 
     template<class C, class ... Args, typename = std::enable_if_t<std::is_base_of_v<Component, std::decay_t<C>>>>
@@ -298,12 +378,12 @@ public:
 private:
 
     uint64_t index_counter_ = 0;
-    std::vector<decltype(Entity::id)> free_list_;
+    std::vector<Entity::ID> free_list_;
 
     std::bitset<kMAX_COMPONENTS> componentsMask;
 };
 
-struct Component {
+/*struct Component {
     static auto constexpr ID = 0;
 
     Entity entity;
@@ -329,7 +409,7 @@ struct MovementComponent final : Component {
     float max_speed;
 
     MovementComponent(Entity entity, float initial_speed, float max_speed) : Component(entity), initial_speed(initial_speed), max_speed(max_speed) { };
-};
+};*/
 
 
 void Init()
