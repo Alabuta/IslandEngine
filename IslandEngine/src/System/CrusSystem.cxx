@@ -50,14 +50,14 @@ overloader(Ts...)->overloader<Ts...>;*/
 struct PositionComponent {
     isle::math::Vector position;
 
-    template<class T, typename = std::enable_if_t<std::is_same_v<isle::math::Vector, std::decay_t<T>>>>
+    template<class T, typename std::enable_if_t<std::is_same_v<isle::math::Vector, std::decay_t<T>>>* = 0>
     PositionComponent(T &&pos) : position(std::forward<T>(pos)) { };
 };
 
 struct VelocityComponent {
     isle::math::Vector linear_velocity;
 
-    template<class T, typename = std::enable_if_t<std::is_same_v<isle::math::Vector, std::decay_t<T>>>>
+    template<class T, typename std::enable_if_t<std::is_same_v<isle::math::Vector, std::decay_t<T>>>* = 0>
     VelocityComponent(T &&vel) : linear_velocity(std::forward<T>(vel)) { };
 };
 
@@ -125,7 +125,7 @@ public:
         components_.push_back(std::forward<Component>(component));
     }
 
-    template<class T, class ... Args, typename = std::enable_if_t<std::is_base_of_v<Component, std::decay_t<T>>>>
+    template<class T, class ... Args, typename std::enable_if_t<std::is_base_of_v<Component, std::decay_t<T>>>* = 0>
     auto AddComponent(Args &&...args)
     {
         if constexpr (std::is_same_v<T, AudioComponent>)
@@ -236,13 +236,13 @@ public:
         return entitites.emplace_back(entitites.size()).id;
     }
 
-    /*template<class E, typename = std::enable_if_t<std::is_same_v<Entity, std::decay_t<E>>>>
+    /*template<class E, typename std::enable_if_t<std::is_same_v<Entity, std::decay_t<E>>>* = 0>
     auto constexpr GetID(entity_id_t entity)
     {
         return entity.id;
     }*/
 
-    template<class C, class ... Args, typename = std::enable_if_t<std::is_base_of_v<Component, std::decay_t<C>>>>
+    template<class C, class ... Args, typename std::enable_if_t<std::is_base_of_v<Component, std::decay_t<C>>>* = 0>
     std::optional<C *const> AddComponent(Entity entity, Args &&...args)
     {
         /*if constexpr (std::is_same_v<C, AudioComponent>)
@@ -266,7 +266,7 @@ public:
         return &container->emplace_back(entity.id, std::forward<Args>(args)...);
     }
 
-    template<class C, typename = std::enable_if_t<std::is_base_of_v<Component, std::decay_t<C>>>>
+    template<class C, typename std::enable_if_t<std::is_base_of_v<Component, std::decay_t<C>>>* = 0>
     std::optional<std::vector<C> *> GetComponents()
     {
         if (auto it = components_.find(C::id); it != components_.end())
@@ -378,7 +378,7 @@ Time System::time;
 
 /*static*/ void System::Setup()
 {
-    Engine engine;
+    /*Engine engine;
 
     engine.AddSystem(2, std::make_unique<AudioSystem>());
     engine.AddSystem(1, std::make_unique<PhysicsSystem>());
@@ -399,7 +399,7 @@ Time System::time;
         for (auto const &ac : *audioComponents)
             log::Debug() << "volume " << ac.volume;
 
-    engine.Update(1.f);
+    engine.Update(1.f);*/
 
     /*log::Debug() << "volume " << audioComp->volume;
     log::Debug() << "mass " << physicsComp->mass;
