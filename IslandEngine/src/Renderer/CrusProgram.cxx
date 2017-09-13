@@ -130,6 +130,13 @@ bool Program::AssignNew(std::initializer_list<std::string> &&_names)
         if (!CreateShader(source, GL_VERTEX_SHADER))
             return false;
 
+        log::Debug() << name;
+        if (name == "Defaults/Sprites-Default.glsl") {
+            log::Debug() << "!!!!";
+            if (!CreateShader(source, GL_GEOMETRY_SHADER))
+                return false;
+        }
+
         if (!CreateShader(source, GL_FRAGMENT_SHADER))
             return false;
     }
@@ -194,6 +201,18 @@ bool Program::CreateShader(std::string_view const &_source, uint32 _type)
             shaderInfo.second = "vertex shader";
             break;
 
+        case GL_GEOMETRY_SHADER:
+            preprocessor_directives
+                << '\n'
+                << kGLSL_VERSION
+                << "\n#define CRUS_GEOMETRY_SHADER 1\n"
+                << "\n#define nVIEWPORT     " << nVIEWPORT
+                << "\n#define nTRANSFORM    " << nTRANSFORM
+                << '\n';
+
+            shaderInfo.second = "geometry shader";
+            break;
+
         case GL_FRAGMENT_SHADER:
             preprocessor_directives
                 << '\n'
@@ -204,16 +223,6 @@ bool Program::CreateShader(std::string_view const &_source, uint32 _type)
                 << '\n';
 
             shaderInfo.second = "fragment shader";
-            break;
-
-        case GL_GEOMETRY_SHADER:
-            preprocessor_directives
-                << '\n'
-                << kGLSL_VERSION
-                << "\n#define CRUS_GEOMETRY_SHADER 1\n"
-                << '\n';
-
-            shaderInfo.second = "geometry shader";
             break;
 
         case GL_COMPUTE_SHADER:
@@ -273,19 +282,33 @@ bool Program::LinkAndValidateProgram() const
     glLinkProgram(program_);
     glGetProgramiv(program_, GL_LINK_STATUS, &status[0]);
 
+    if (status[0] != GL_TRUE) {
+        glGetProgramiv(program_, GL_INFO_LOG_LENGTH, &length);
+
+        if (length < 1)
+            return false;
+
+        std::vector<char> log(length, '\0');
+        glGetProgramInfoLog(program_, static_cast<GLsizei>(log.size()), &length, log.data());
+
+        log::Error() << "{shader program} " << log.data();
+
+        return false;
+    }
+
     glValidateProgram(program_);
     glGetProgramiv(program_, GL_VALIDATE_STATUS, &status[1]);
 
-    if (status[0] == GL_TRUE && status[1] == GL_TRUE)
+    if (status[1] == GL_TRUE)
         return true;
 
     glGetProgramiv(program_, GL_INFO_LOG_LENGTH, &length);
 
-    std::vector<char> log(length, '\0');
-    glGetProgramInfoLog(program_, static_cast<GLsizei>(log.size()), &length, log.data());
-
     if (length < 1)
         return false;
+
+    std::vector<char> log(length, '\0');
+    glGetProgramInfoLog(program_, static_cast<GLsizei>(log.size()), &length, log.data());
 
     log::Error() << "{shader program} " << log.data();
 

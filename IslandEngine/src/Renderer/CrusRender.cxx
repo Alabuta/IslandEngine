@@ -141,9 +141,9 @@ void Render::DrawFrame()
     //vp_.MakeCurrent();
     vp_.cam().Update();
 
-    math::Matrix const matrices[] = {vp_.projView(), vp_.proj(), vp_.cam().view()};
+    math::Matrix const matrices[] = {vp_.projView(), vp_.proj(), vp_.cam().view(), vp_.viewport_};
 
-    UpdateViewport(0, 3, matrices);
+    UpdateViewport(0, 4, matrices);
 
     //glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 1, -1, "[Frame]");
 
@@ -208,7 +208,7 @@ void Render::InitBufferObjects()
             log::Fatal() << "can't init the SSBO: invalid index param: " << "TRANSFORM";
 
         CreateBO(TRANSFORM_);
-        glNamedBufferStorage(TRANSFORM_, sizeof(math::Matrix) * 3, nullptr, GL_DYNAMIC_STORAGE_BIT);
+        glNamedBufferStorage(TRANSFORM_, sizeof(math::Matrix) * 4, nullptr, GL_DYNAMIC_STORAGE_BIT);
 
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, Program::nTRANSFORM, TRANSFORM_);
         glShaderStorageBlockBinding(ubo.program(), index, Program::nTRANSFORM);

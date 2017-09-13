@@ -11,11 +11,11 @@
 #if CRUS_VERTEX_SHADER
 
 void main()
-{}
+{ }
 
 #elif CRUS_FRAGMENT_SHADER
 
 void main()
-{}
+{ }
 
 #endif

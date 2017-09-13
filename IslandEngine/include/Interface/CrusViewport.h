@@ -41,10 +41,10 @@ public:
     int16 w() const;
     int16 h() const;
 
-private:
+public:
     int16 x_, y_, w_, h_;
 
-    math::Matrix proj_;
+    math::Matrix proj_, viewport_;
     Camera *cam_;
 
     struct {

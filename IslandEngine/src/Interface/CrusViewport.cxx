@@ -48,6 +48,14 @@ void Viewport::SetViewport(int16 _x, int16 _y, int16 _w, int16 _h)
     );
 
     glViewport(x_, y_, w_, h_);
+
+    viewport_ = math::Matrix
+    (
+        w_ * 0.5f, 0.f, 0.f, 0.f,
+        0.f, h_ * 0.5f, 0.f, 0.f,
+        0.f, 0.f, 1.f, 0.f,
+        w_ * 0.5f + x_, h_ * 0.5f + y_, 0.0f, 1.0f
+    );
 }
 
 void Viewport::SetCamera(Camera *const _cam)

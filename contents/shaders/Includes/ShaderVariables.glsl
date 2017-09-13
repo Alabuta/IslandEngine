@@ -7,7 +7,7 @@
 ****
 ********************************************************************************************************************************/
 
-#if CRUS_VERTEX_SHADER
+#if CRUS_VERTEX_SHADER || CRUS_GEOMETRY_SHADER
 
 layout(binding = nVIEWPORT, std140) uniform VIEWPORT
 {
@@ -15,6 +15,7 @@ layout(binding = nVIEWPORT, std140) uniform VIEWPORT
 
     layout(row_major) mat4 mProj;
     layout(row_major) mat4 mView;
+    layout(row_major) mat4 mViewport;
 };
 
 layout(binding = nTRANSFORM, std430) buffer TRANSFORM
