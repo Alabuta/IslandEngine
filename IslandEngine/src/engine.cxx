@@ -66,13 +66,72 @@ std::future<bool> AssignNewProgram(Program &_program, T &&_names)
 #endif
 }
 
+//std::future<std::result_of_t<std::decay_t<Function>(std::decay_t<Args>...)>>
+//std::future<std::invoke_result_t<std::decay_t<Function>, std::decay_t<Args>...>>
+//async(Function &&f, Args &&...args)
+
+template<typename F, typename ...Args>
+auto async1(F func, Args &&...args)
+{
+    std::packaged_task<std::decay_t<Function>(std::decay_t<Args>...) >> task(func);
+
+    auto future = task.get_future();
+
+    std::thread thread(std::move(task), std::forward<Args>(args)...);
+    thread.detach();
+
+    return std::move(future);
+}
+
+auto async(std::function<bool()> func)
+{
+    std::packaged_task<bool()> task(func);
+
+    auto future = task.get_future();
+
+    std::thread thread(std::move(task));
+    thread.detach();
+
+    return std::move(future);
+}
+
 void InitBackground()
 {
-    transform.MakeIdentity();
-    matrices[1].Translate(0, 1, 0);
+    //math::Vector v(0, 1, 0);
+    /*auto m = math::Matrix::Identity();
 
-    auto assignedNewProgram = std::move(AssignNewProgram<std::initializer_list<char const *>>(flipbookProgram, {R"(Defaults/Sprites-Default.glsl)"}));
+    m.Translate(0, 1, 0);
+    isle::log::Debug() << m.TransformVector(math::Vector(0, 1, 0));
+
+    m.Translate(0, 2, 0);
+    isle::log::Debug() << m.TransformVector(math::Vector(0, 1, 0));
+
+    m.Translate(1, 1, 1);
+    isle::log::Debug() << m.TransformVector(math::Vector(0, 1, 0));*/
+
+    matrices[1].Translate(0, 1, -1);
+    matrices[0].Translate(-1, 1, 0);
+
+    //auto newProgram = std::move(AssignNewProgram<std::initializer_list<char const *>>(flipbookProgram, {R"(Defaults/Sprites-Default.glsl)"}));
     //flipbookProgram.AssignNew({"Defaults/Sprites-Default.glsl"});
+
+    auto newProgram = std::move(app::async([&program = flipbookProgram]
+    {
+        if (!program.AssignNew({R"(Defaults/Sprites-Default.glsl)"}))
+            return false;
+
+        /*auto index = glGetProgramResourceIndex(program.program(), GL_SHADER_STORAGE_BLOCK, "INSTANCING");
+
+        if (index == GL_INVALID_INDEX)
+        log::Fatal() << "can't init the SSBO: invalid index param: " << "INSTANCING";
+
+        Render::inst().CreateBO(INSTANCING);
+        glNamedBufferStorage(INSTANCING, sizeof(math::Matrix) * 2, nullptr, GL_DYNAMIC_STORAGE_BIT);
+
+        glShaderStorageBlockBinding(program.program(), index, Program::nINSTANCING);*/
+
+        return true;
+    }));
 
     if (!flipbookTexture.Init())
         return;
@@ -114,13 +173,11 @@ void InitBackground()
             y = i / spritesNumberHorizontally;
             x = i - y * spritesNumberHorizontally;
 
-            auto sprite = Sprite::Create(
+            if (auto sprite = Sprite::Create(
                 std::make_shared<Texture>(flipbookTexture), i,
                 Rect(x * static_cast<float>(spriteWidth), y * static_cast<float>(spriteHeight), static_cast<float>(spriteWidth), static_cast<float>(spriteHeight)),
-                Point{spriteWidth * 0.5f, spriteHeight * 0.5f}, pixelsPerUnit);
-
-            if (sprite)
-                _spriteSheet.push_back(std::move(sprite));
+                Point{spriteWidth * 0.5f, spriteHeight * 0.5f}, pixelsPerUnit))
+                _spriteSheet.push_back(std::move(*sprite));
 
             //std::this_thread::yield();
         }
@@ -145,7 +202,7 @@ void InitBackground()
     }
 
     /*for (auto &thread : threads)
-        thread.join();*/
+    thread.join();*/
 
     for (auto &future : futures)
         future.wait();
@@ -162,6 +219,8 @@ void InitBackground()
         log::Debug() << "invalid shader.";
         return;
     }
+
+    //else glBindBufferBase(GL_SHADER_STORAGE_BUFFER, Program::nINSTANCING, INSTANCING);
 }
 
 void InitBuffers(std::vector<isle::Sprite> const &_spriteSheet)
@@ -181,15 +240,31 @@ void InitBuffers(std::vector<isle::Sprite> const &_spriteSheet)
 
     Render::inst().CreateVAO(flipbook_vao);
 
+    /*{
+        Render::inst().CreateBO(spriteIndirectBO);
+
+        struct {
+            uint32 count;
+            uint32 primCount;
+            uint32 firstIndex;
+            uint32 baseVertex;
+            uint32 baseInstance;
+        } const command = {
+            4, 1, 0, 0, 0
+        };
+
+        glNamedBufferStorage(spriteIndirectBO, sizeof(command), &command, GL_DYNAMIC_STORAGE_BIT);
+    }*/
+
     {
-        uint16 const indices[] = {
+        uint16 const indicies[] = {
             0, 1, 2, 3
         };
 
         auto bo = 0u;
         Render::inst().CreateBO(bo);
 
-        glNamedBufferStorage(bo, sizeof(indices), indices, 0);
+        glNamedBufferStorage(bo, sizeof(indicies), indicies, 0);
         glVertexArrayElementBuffer(flipbook_vao, bo);
     }
 
@@ -211,34 +286,34 @@ void InitBuffers(std::vector<isle::Sprite> const &_spriteSheet)
     }
 }
 
-void DrawBackgorund()
+void DrawSprite()
 {
     flipbookTexture.Bind();
     flipbookProgram.UseThis();
 
     glBindVertexArray(flipbook_vao);
 
-    index = static_cast<decltype(index)>(std::fmod(System::time.elapsed() * samples, static_cast<float>(spritesNumber)) * 1);
+    index = static_cast<decltype(index)>(std::fmod(System::time.elapsed() * samples, spritesNumber));
 
-    /*std::sort(matrices.begin(), matrices.end(), [&] (auto const &a, auto const &b)
+    /*std::sort(matrices.begin(), matrices.end(), [] (auto const &a, auto const &b)
     {
-        auto dir_a = a.origin() - Render::inst().vp_.cam().view().origin();
-        auto dir_b = b.origin() - Render::inst().vp_.cam().view().origin();
+    auto dir_a = a.origin() - Render::inst().vp_.cam().view().origin();
+    auto dir_b = b.origin() - Render::inst().vp_.cam().view().origin();
 
-        return dir_a.GetLenght() < dir_b.GetLenght();
-    });
-
-    std::array<math::Matrix, 2> ms = {
-        Render::inst().vp_.projView() * matrices[0],
-        Render::inst().vp_.projView() * matrices[1]
-    };*/
+    return dir_a.GetLenght() < dir_b.GetLenght();
+    });*/
 
     matrices[0] = Render::inst().vp_.projView() * matrices[1];
 
     Render::inst().UpdateTransform(0, 2, matrices.data());
 
+    //glNamedBufferSubData(INSTANCING, 0 * sizeof(math::Matrix), 2 * sizeof(math::Matrix), matrices[0].m().data());
+
     //glDrawElements(GL_TRIANGLE_STRIP, 4, GL_UNSIGNED_SHORT, nullptr);
     glDrawElementsBaseVertex(GL_TRIANGLE_STRIP, 4, GL_UNSIGNED_SHORT, nullptr, index * 4);
+    //glDrawElementsInstancedBaseVertex(GL_TRIANGLE_STRIP, 4, GL_UNSIGNED_SHORT, nullptr, 2, index * 4);
+    //glBindBuffer(GL_DRAW_INDIRECT_BUFFER, spriteIndirectBO);
+    //glDrawElementsIndirect(GL_TRIANGLE_STRIP, GL_UNSIGNED_SHORT, nullptr);
 
     /*Render::inst().UpdateTransform(0, 1, &ms[1]);
     glDrawElementsBaseVertex(GL_TRIANGLE_STRIP, 4, GL_UNSIGNED_SHORT, nullptr, index * 4);*/
