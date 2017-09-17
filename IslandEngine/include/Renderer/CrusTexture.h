@@ -83,7 +83,7 @@ public:
     auto w() const { return w_; }
     auto h() const { return h_; }
 
-    void ToStream(std::ostream &stream) const;
+    std::ostream &ToStream(std::ostream &stream) const;
 
 private:
     uint32 id_{0}, unit_{0};

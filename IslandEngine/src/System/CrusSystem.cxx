@@ -266,7 +266,7 @@ public:
         return &container->emplace_back(entity.id, std::forward<Args>(args)...);
     }
 
-    template<class C, typename std::enable_if_t<std::is_base_of_v<Component, std::decay_t<C>>>* = 0>
+    template<class C, typename std::enable_if_t<std::is_base_of_v<Component, std::decay_t<C>>>...>
     std::optional<std::vector<C> *> GetComponents()
     {
         if (auto it = components_.find(C::id); it != components_.end())

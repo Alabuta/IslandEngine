@@ -22,7 +22,7 @@ public:
 
     eCOMPONENT_TYPES type() const override { return eCOMPONENT_TYPES::nVIEWPORT; }
 
-    void ToStream(std::ostream &stream) const;
+    std::ostream &ToStream(std::ostream &stream) const;
 
 private:
 };

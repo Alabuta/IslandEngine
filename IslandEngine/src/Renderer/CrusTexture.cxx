@@ -109,8 +109,8 @@ void Texture::Bind() const
     glBindTextureUnit(unit_, id_);
 }
 
-void Texture::ToStream(std::ostream &_stream) const
+std::ostream &Texture::ToStream(std::ostream &_stream) const
 {
-    _stream << name_;
+    return _stream << name_;
 }
 };

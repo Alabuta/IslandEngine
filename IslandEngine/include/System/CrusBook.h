@@ -50,11 +50,11 @@ public:
     std::mutex mutex_;
 
     template<class T>
-    void ToStream(T &&object)
+    std::ostream &ToStream(T &&object)
     {
         using Tt = std::decay_t<decltype(object)>;
 
-        ToStream(object, std::bool_constant<HasToStreamMethod<Tt>::value>());
+        return ToStream(object, std::bool_constant<HasToStreamMethod<Tt>::value>());
     }
 
     void BeginLine(eSEVERITY _note);
@@ -78,26 +78,30 @@ private:
     void InitConsoleWindow();
 
     template<class T>
-    void ToStream(T &&object, std::true_type)
+    std::ostream &ToStream(T &&object, std::true_type)
     {
         object.ToStream(stream_);
 
         if constexpr (kCRUS_DEBUG_CONSOLE)
             object.ToStream(conout_);
+
+        return stream_;
     }
 
     template<class T>
-    void ToStream(T &&object, std::false_type)
+    std::ostream &ToStream(T &&object, std::false_type)
     {
         stream_ << object;
 
         if constexpr (kCRUS_DEBUG_CONSOLE)
             conout_ << object;
+
+        return stream_;
     }
 
     template<class T>
     class HasToStreamMethod {
-        template<typename U, void(U::*)(std::ostream &) const> struct SFINAE { };
+        template<typename U, std::ostream &(U::*)(std::ostream &) const> struct SFINAE { };
 
         template<typename U> static char func(SFINAE<U, &U::ToStream>*);
         template<typename U> static int func(...);

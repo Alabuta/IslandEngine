@@ -49,7 +49,7 @@ public:
 
     Point const &max() const;
 
-    void ToStream(std::ostream &stream) const;
+    std::ostream &ToStream(std::ostream &stream) const;
 
 private:
 

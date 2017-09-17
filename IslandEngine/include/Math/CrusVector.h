@@ -87,7 +87,7 @@ public:
 
     static Vector One();
 
-    void ToStream(std::ostream &stream) const;
+    std::ostream &ToStream(std::ostream &stream) const;
     //friend std::ostream &operator<< (std::ostream &stream, Vector const &vector);
 
 private:

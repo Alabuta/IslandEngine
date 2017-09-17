@@ -662,11 +662,13 @@ Matrix const &Matrix::FromQuaternion(float const _q[])
     return *this;
 }
 
-inline void Matrix::ToStream(std::ostream &_stream) const
+inline std::ostream &Matrix::ToStream(std::ostream &_stream) const
 {
     _stream << _00_ << ' ' << _01_ << ' ' << _02_ << ' ' << _03_;
     _stream << _04_ << ' ' << _05_ << ' ' << _06_ << ' ' << _07_;
     _stream << _08_ << ' ' << _09_ << ' ' << _10_ << ' ' << _11_;
     _stream << _12_ << ' ' << _13_ << ' ' << _14_ << ' ' << _15_;
+
+    return _stream;
 }
 };

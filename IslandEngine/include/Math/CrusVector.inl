@@ -280,8 +280,8 @@ inline Vector const &Vector::Normalize()
     return Vector(1, 1, 1);
 }
 
-inline void Vector::ToStream(std::ostream &_stream) const
+inline std::ostream &Vector::ToStream(std::ostream &_stream) const
 {
-    _stream << x_ << "; " << y_ << "; " << z_;
+    return _stream << x_ << "; " << y_ << "; " << z_;
 }
 };

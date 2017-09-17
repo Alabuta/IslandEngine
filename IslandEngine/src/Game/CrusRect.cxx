@@ -86,8 +86,8 @@ Point Rect::PointToNormalized(Point &&_point) const
     return std::move(_point);
 }
 
-void Rect::ToStream(std::ostream &_stream) const
+std::ostream &Rect::ToStream(std::ostream &_stream) const
 {
-    _stream << x_ << "; " << y_ << "; " << width_ << "; " << height_ << ".";
+    return _stream << x_ << "; " << y_ << "; " << width_ << "; " << height_ << ".";
 }
 };

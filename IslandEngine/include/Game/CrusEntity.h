@@ -25,10 +25,9 @@ public:
 
     Transform const &transform() const;
 
-    void ToStream(std::ostream &stream) const
+    std::ostream &ToStream(std::ostream &stream) const
     {
-        stream;
-        return;
+        return stream;
     }
 
 private:

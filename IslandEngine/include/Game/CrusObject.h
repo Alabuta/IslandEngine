@@ -28,7 +28,7 @@ public:
 
     std::string name() const;
 
-    virtual void ToStream(std::ostream &stream) const = 0;
+    virtual std::ostream &ToStream(std::ostream &stream) const = 0;
 
 protected:
     uint32 instanceID{0};
