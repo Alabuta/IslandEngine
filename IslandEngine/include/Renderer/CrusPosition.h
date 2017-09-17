@@ -10,56 +10,56 @@
 
 #ifndef CRUS_POSITION_H              // Include guard "CrusPosition.h"
 #define CRUS_POSITION_H
+#include <string>
+#include <sstream>
 
 #include "Math\CrusMath.h"
 
 namespace isle {
-class Position {
-public:
+struct Position {
 
-    Position(Position const &v);
+    template<class T, typename std::enable_if_t<std::is_same_v<std::decay_t<T>, std::array<float, 3>>>...>
+    constexpr Position(T &&xyz) : xyz(std::forward(xyz)) { };
+    constexpr Position(float x, float y, float z = 0) : xyz({x, y, z}) { };
 
-    explicit Position(float const v[]);
-    explicit Position(float x, float y, float z = 0);
+    constexpr float x(float x) const { return xyz[0]; };
+    constexpr float y(float y) const { return xyz[1]; };
+    constexpr float z(float z) const { return xyz[2]; };
 
-    Position(Position &&v);
+    bool operator== (Position const &p)  const
+    {
+        return isle::math::CloseEnough(xyz[0], p.xyz[0])
+            && isle::math::CloseEnough(xyz[1], p.xyz[1])
+            && isle::math::CloseEnough(xyz[2], p.xyz[2]);
+    }
 
-    float x() const;
-    float y() const;
-    float z() const;
+    bool operator!= (Position const &p) const { return !(*this == p); }
 
-    float const *const v() const;
+    std::ostream &ToStream(std::ostream &_stream) const
+    {
+        return _stream << xyz[0] << "; " << xyz[1] << "; " << xyz[2];
+    }
 
-    float x(float x);
-    float y(float y);
-    float z(float z);
+    explicit operator std::string() const
+    {
+        static std::ostringstream ss;
+        ss.str("");
 
-    Position const &operator= (Position const &v);
-    Position const &operator= (float s);
+        ss << xyz[0] << "; " << xyz[1] << "; " << xyz[2];
 
-    Position const &operator= (Position &&v);
+        return ss.good() ? ss.str() : "[undefined]";
+    }
 
-    bool operator== (Position const &v) const;
-    bool operator!= (Position const &v) const;
-
-    std::string to_string() const;
-    void ToStream(std::ostream &stream) const;
-
-    operator std::string() const;
-
-private:
-    union {
-        struct {
-            float x_, y_, z_;
-        };
-
-        struct {
-            float v_[3];
-        };
-    };
-};
+    std::array<float, 3> xyz;
 };
 
-#include "Renderer\CrusPosition.inl"
+
+std::ostream &operator<< (std::ostream &stream, Position const &p)
+{
+    return p.ToStream(stream);
+}
+};
+
+//#include "Renderer\CrusPosition.inl"
 
 #endif // CRUS_POSITION_H

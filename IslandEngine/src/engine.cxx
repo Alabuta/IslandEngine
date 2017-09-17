@@ -11,6 +11,7 @@
 #include <bitset>
 
 #include "engine.h"
+#include "../contents/geometry/cube.h"
 
 
 namespace cubemap {
@@ -536,9 +537,13 @@ void DrawFrame()
 }
 };
 
+
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int)
 {
     isle::Window window(crus::names::kMAIN_WINDOW_NAME, hInstance, 800, 600);
+
+    std::copy(cube::positions.cbegin(), cube::positions.cend(), std::ostream_iterator<isle::Position>(std::cerr, " "));
+
 
     return isle::System::Loop();
 }

@@ -13,17 +13,17 @@
 
 namespace isle {
 
-inline Position::Position(Position const &_v) : Position::Position(_v.x_, _v.y_, _v.z_) { }
+inline constexpr Position::Position(float const _v[]) : x_(_v[0]), y_(_v[1]), z_(_v[2]) { }
+inline constexpr Position::Position(float _x, float _y, float _z) : x_(_x), y_(_y), z_(_z) { }
 
-inline Position::Position(float const _v[]) : x_(_v[0]), y_(_v[1]), z_(_v[2]) { }
-inline Position::Position(float _x, float _y, float _z) : x_(_x), y_(_y), z_(_z) { }
+//inline constexpr Position::Position(Position const &_v) : Position::Position(_v.x_, _v.y_, _v.z_) { }
 
-inline Position::Position(Position &&_v)
+/*inline constexpr Position::Position(Position &&_v)
 {
     x_ = std::move(_v.x_);
     y_ = std::move(_v.y_);
     z_ = std::move(_v.z_);
-}
+}*/
 
 inline float Position::x() const
 {
