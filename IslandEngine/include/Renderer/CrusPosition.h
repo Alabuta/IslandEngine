@@ -26,40 +26,18 @@ struct Position {
     constexpr float y(float y) const { return xyz[1]; };
     constexpr float z(float z) const { return xyz[2]; };
 
-    bool operator== (Position const &p)  const
-    {
-        return isle::math::CloseEnough(xyz[0], p.xyz[0])
-            && isle::math::CloseEnough(xyz[1], p.xyz[1])
-            && isle::math::CloseEnough(xyz[2], p.xyz[2]);
-    }
+    bool operator== (Position const &p)  const;
+    bool operator!= (Position const &p) const;
 
-    bool operator!= (Position const &p) const { return !(*this == p); }
+    void ToStream(std::ostream &_stream) const;
+    explicit operator std::string() const;
 
-    std::ostream &ToStream(std::ostream &_stream) const
-    {
-        return _stream << xyz[0] << "; " << xyz[1] << "; " << xyz[2];
-    }
-
-    explicit operator std::string() const
-    {
-        static std::ostringstream ss;
-        ss.str("");
-
-        ss << xyz[0] << "; " << xyz[1] << "; " << xyz[2];
-
-        return ss.good() ? ss.str() : "[undefined]";
-    }
+    //std::ostream &operator<< (std::ostream &stream, Position const &p) const;
 
     std::array<float, 3> xyz;
 };
-
-
-std::ostream &operator<< (std::ostream &stream, Position const &p)
-{
-    return p.ToStream(stream);
-}
 };
 
-//#include "Renderer\CrusPosition.inl"
+#include "Renderer\CrusPosition.inl"
 
 #endif // CRUS_POSITION_H
