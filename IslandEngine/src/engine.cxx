@@ -537,12 +537,37 @@ void DrawFrame()
 }
 };
 
+namespace isle {
+
+#if 0
+template<class C, typename = decltype(std::ostream << std::declval<C>(), void())>
+std::ostream &operator<< (std::ostream &stream, C &&container)
+{
+    /*using T = std::decay_t<C>;
+
+    stream << "[ ";
+    std::copy(container.cbegin(), container.cend(), std::ostream_iterator<typename T::value_type>(stream, " "));*/
+    return stream << "]";
+}
+#endif
+}
+
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int)
 {
     isle::Window window(crus::names::kMAIN_WINDOW_NAME, hInstance, 800, 600);
 
-    std::copy(cube::positions.cbegin(), cube::positions.cend(), std::ostream_iterator<isle::Position>(std::cerr, " "));
+    using namespace isle;
+
+    std::array<int, 4> array = {1, 2, 3, 4};
+    std::string string = "1234";
+
+    //log::Debug() << array;
+    //log::Debug() << string;
+
+    //std::copy(cube::positions.cbegin(), cube::positions.cend(), std::ostream_iterator<isle::Position>(std::cerr, " "));
+
+    //isle::log::Debug() << cube::positions;
 
 
     return isle::System::Loop();

@@ -23,12 +23,41 @@ constexpr auto kCRUS_DEBUG_CONSOLE = false;
 
 #include <sstream>
 #include <fstream>
+#include <utility>
 #include <mutex>
 
 #include "System\CrusTypes.h"
 
 namespace isle {
 namespace log {
+
+template<class C, class = void>
+struct is_iterable : std::false_type { };
+
+template<class C>
+struct is_iterable<C, std::void_t<decltype(cbegin(std::declval<C>())), decltype(cend(std::declval<C>()))>> : std::true_type { };
+
+template<class T>
+constexpr bool is_iterable_v = is_iterable<T>::value;
+
+template<class C, typename std::enable_if_t<is_iterable_v<std::decay_t<C>>>...>
+std::ostream &operator<< (std::ostream &stream, C &&container)
+{
+    using T = std::decay_t<C>;
+
+    stream << "[ ";
+    std::copy(container.cbegin(), container.cend(), std::ostream_iterator<typename T::value_type>(stream, " "));
+    return stream << "]";
+}
+
+template<class C, class = void>
+struct is_printable : std::false_type { };
+
+template<class C>
+struct is_printable<C, std::void_t<decltype(std::ostream << std::declval<C>())>> : std::true_type { };
+
+template<class T>
+constexpr bool is_printable_v = is_printable<T>::value;
 
 class Book;
 
@@ -49,12 +78,18 @@ class LogStream final {
 public:
     std::mutex mutex_;
 
-    template<class T>
-    std::ostream &ToStream(T &&object)
+    template<class T, typename std::enable_if_t<is_printable_v<std::decay_t<T>>>...>
+    void ToStream(T &&object)
+    {
+        stream_ << object;
+    }
+
+    template<class T, class = void>
+    void ToStream(T &&object)
     {
         using Tt = std::decay_t<decltype(object)>;
 
-        return ToStream(object, std::bool_constant<HasToStreamMethod<Tt>::value>());
+        ToStream(std::forward<T>(object), std::bool_constant<HasToStreamMethod<Tt>::value>());
     }
 
     void BeginLine(eSEVERITY _note);
@@ -78,30 +113,26 @@ private:
     void InitConsoleWindow();
 
     template<class T>
-    std::ostream &ToStream(T &&object, std::true_type)
+    void ToStream(T &&object, std::true_type)
     {
         object.ToStream(stream_);
 
         if constexpr (kCRUS_DEBUG_CONSOLE)
             object.ToStream(conout_);
-
-        return stream_;
     }
 
     template<class T>
-    std::ostream &ToStream(T &&object, std::false_type)
+    void ToStream(T &&object, std::false_type)
     {
         stream_ << object;
 
         if constexpr (kCRUS_DEBUG_CONSOLE)
             conout_ << object;
-
-        return stream_;
     }
 
     template<class T>
     class HasToStreamMethod {
-        template<typename U, std::ostream &(U::*)(std::ostream &) const> struct SFINAE { };
+        template<typename U, void(U::*)(std::ostream &) const> struct SFINAE { };
 
         template<typename U> static char func(SFINAE<U, &U::ToStream>*);
         template<typename U> static int func(...);
@@ -118,9 +149,9 @@ public:
     ~Book();
 
     template<class T>
-    Book &operator<< (T const &object)
+    Book &operator<< (T &&object)
     {
-        LogStream::inst().ToStream(object);
+        LogStream::inst().ToStream(std::forward<T>(object));
         return *this;
     }
 
