@@ -31,34 +31,6 @@ constexpr auto kCRUS_DEBUG_CONSOLE = false;
 namespace isle {
 namespace log {
 
-template<class C, class = void>
-struct is_iterable : std::false_type { };
-
-template<class C>
-struct is_iterable<C, std::void_t<decltype(cbegin(std::declval<C>())), decltype(cend(std::declval<C>()))>> : std::true_type { };
-
-template<class T>
-constexpr bool is_iterable_v = is_iterable<T>::value;
-
-template<class C, typename std::enable_if_t<is_iterable_v<std::decay_t<C>>>...>
-std::ostream &operator<< (std::ostream &stream, C &&container)
-{
-    using T = std::decay_t<C>;
-
-    stream << "[ ";
-    std::copy(container.cbegin(), container.cend(), std::ostream_iterator<typename T::value_type>(stream, " "));
-    return stream << "]";
-}
-
-template<class C, class = void>
-struct is_printable : std::false_type { };
-
-template<class C>
-struct is_printable<C, std::void_t<decltype(std::ostream << std::declval<C>())>> : std::true_type { };
-
-template<class T>
-constexpr bool is_printable_v = is_printable<T>::value;
-
 class Book;
 
 Book Info();
@@ -78,18 +50,10 @@ class LogStream final {
 public:
     std::mutex mutex_;
 
-    template<class T, typename std::enable_if_t<is_printable_v<std::decay_t<T>>>...>
+    template<class T>
     void ToStream(T &&object)
     {
-        stream_ << object;
-    }
-
-    template<class T, class = void>
-    void ToStream(T &&object)
-    {
-        using Tt = std::decay_t<decltype(object)>;
-
-        ToStream(std::forward<T>(object), std::bool_constant<HasToStreamMethod<Tt>::value>());
+        //stream_ << object;
     }
 
     void BeginLine(eSEVERITY _note);

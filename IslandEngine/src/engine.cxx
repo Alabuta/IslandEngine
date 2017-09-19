@@ -537,21 +537,29 @@ void DrawFrame()
 }
 };
 
+
+
 namespace isle {
 
-#if 0
-template<class C, typename = decltype(std::ostream << std::declval<C>(), void())>
+template<class C, class = std::enable_if_t<!is_printable_t<std::decay_t<C>> && is_iterable_v<std::decay_t<C>>>>
 std::ostream &operator<< (std::ostream &stream, C &&container)
 {
-    /*using T = std::decay_t<C>;
+    using T = std::decay_t<C>;
 
     stream << "[ ";
-    std::copy(container.cbegin(), container.cend(), std::ostream_iterator<typename T::value_type>(stream, " "));*/
+    std::copy(std::cbegin(container), std::cend(container), std::ostream_iterator<typename T::value_type>(stream, " "));
     return stream << "]";
 }
-#endif
-}
 
+struct S {
+    int x;
+} s;
+
+std::ostream &operator<< (std::ostream &stream, S s)
+{
+    return stream << "x: " << s.x;
+}
+}
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int)
 {
@@ -561,6 +569,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int)
 
     std::array<int, 4> array = {1, 2, 3, 4};
     std::string string = "1234";
+    std::array<S, 4> ss = {1, 2, 3, 4};
+
+    std::cout << s;
+    std::cout << ss;
+    std::cout << array;
+    std::cout << string;
 
     //log::Debug() << array;
     //log::Debug() << string;

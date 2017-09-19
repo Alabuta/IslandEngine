@@ -14,6 +14,8 @@
 
 #include <cfloat>
 #include <cmath>
+#include <iterator>
+#include <type_traits>
 
 // Engine types.
 using astr  = char const *;
@@ -45,6 +47,31 @@ bool IsInf(real f);
 bool IsNan(real f);
 
 bool IsEqualBasedULP(float a, float b, float max_diff, int32 ulp_diff);
+};
+
+
+
+namespace isle {
+template<class C, class = void>
+struct is_printable : std::false_type { };
+
+template<class C>
+struct is_printable<C, std::void_t<decltype(std::cout << std::declval<C>())>> : std::true_type { };
+
+/*template<class T>
+constexpr bool is_printable_v = is_printable<T>::value;*/
+
+template<class T>
+constexpr bool is_printable_t = std::is_same_v<is_printable<T>, std::true_type>;
+
+template<class C, class = void>
+struct is_iterable : std::false_type { };
+
+template<class C>
+struct is_iterable<C, std::void_t<decltype(std::cbegin(std::declval<C>()), std::cend(std::declval<C>()))>> : std::true_type { };
+
+template<class T>
+constexpr bool is_iterable_v = is_iterable<T>::value;
 };
 
 #endif // CRUS_TYPES_H
