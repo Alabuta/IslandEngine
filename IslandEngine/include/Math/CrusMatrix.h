@@ -106,7 +106,7 @@ public:
 
     Vector origin() const;
 
-    std::ostream &ToStream(std::ostream &stream) const;
+    friend std::ostream &operator<< (std::ostream &stream, Matrix const &matrix);
 
 private:
     union alignas(sizeof(__m128))

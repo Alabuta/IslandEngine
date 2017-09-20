@@ -326,8 +326,8 @@ bool Sprite::BuildGeometry()
     return true;
 }
 
-std::ostream &Sprite::ToStream(std::ostream &_stream) const
+inline std::ostream &operator<< (std::ostream &_stream, Sprite const &_sprite)
 {
-    return _stream << name_;
+    return _stream << _sprite.name_;
 }
 };

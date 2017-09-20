@@ -25,11 +25,6 @@ public:
 
     Transform const &transform() const;
 
-    std::ostream &ToStream(std::ostream &stream) const
-    {
-        return stream;
-    }
-
 private:
 
     Transform transform_;

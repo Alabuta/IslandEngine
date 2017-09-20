@@ -35,7 +35,7 @@ public:
     std::vector<Position> const &vertices() const;
     std::vector<UV> const &uvs() const;
 
-    std::ostream &ToStream(std::ostream &stream) const override;
+    friend std::ostream &operator<< (std::ostream &stream, Sprite const &sprite);
 
 private:
     std::string name_;

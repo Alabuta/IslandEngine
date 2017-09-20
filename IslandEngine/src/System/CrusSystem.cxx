@@ -34,11 +34,6 @@
 #include "Renderer\CrusRender.h"
 #include "Camera\CrusCamera.h"
 
-/*std::ostream &operator<< (std::ostream &stream, isle::math::Vector const &vector)
-{
-    return stream << vector.x() << "; " << vector.y() << "; " << vector.z();
-}*/
-
 /*template<typename... Ts>
 struct overloader : Ts... {
     using Ts::operator()...;

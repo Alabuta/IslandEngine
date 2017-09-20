@@ -83,7 +83,7 @@ public:
     auto w() const { return w_; }
     auto h() const { return h_; }
 
-    std::ostream &ToStream(std::ostream &stream) const;
+    friend std::ostream &operator<< (std::ostream &stream, Texture const &texture);
 
 private:
     uint32 id_{0}, unit_{0};

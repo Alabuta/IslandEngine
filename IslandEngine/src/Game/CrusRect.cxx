@@ -60,34 +60,34 @@ bool Rect::Overlaps(Rect const &_rect) const
 
 Point Rect::NormalizedToPoint(Point const &_normalizedCoords) const
 {
-    Point normalized{math::clamp(_normalizedCoords.x, 0.f, 1.f), math::clamp(_normalizedCoords.y, 0.f, 1.f)};
+    Point normalized{std::clamp(_normalizedCoords.x, 0.f, 1.f), std::clamp(_normalizedCoords.y, 0.f, 1.f)};
 
     return Point{xmin_ + width_ * normalized.x, ymin_ + height_ * normalized.y};
 }
 
 Point Rect::NormalizedToPoint(Point &&_normalizedCoords) const
 {
-    _normalizedCoords.x = xmin_ + width_ * math::clamp(_normalizedCoords.x, 0.f, 1.f);
-    _normalizedCoords.y = ymin_ + height_ * math::clamp(_normalizedCoords.y, 0.f, 1.f);
+    _normalizedCoords.x = xmin_ + width_ * std::clamp(_normalizedCoords.x, 0.f, 1.f);
+    _normalizedCoords.y = ymin_ + height_ * std::clamp(_normalizedCoords.y, 0.f, 1.f);
 
     return std::move(_normalizedCoords);
 }
 
 Point Rect::PointToNormalized(Point const &_point) const
 {
-    return Point{math::clamp((_point.x - xmin_) / width_, 0, 1), math::clamp((_point.y - ymin_) / height_, 0.f, 1.f)};
+    return Point{std::clamp((_point.x - xmin_) / width_, 0.f, 1.f), std::clamp((_point.y - ymin_) / height_, 0.f, 1.f)};
 }
 
 Point Rect::PointToNormalized(Point &&_point) const
 {
-    _point.x = math::clamp((_point.x - xmin_) / width_, 0.f, 1.f);
-    _point.y = math::clamp((_point.y - ymin_) / height_, 0.f, 1.f);
+    _point.x = std::clamp((_point.x - xmin_) / width_, 0.f, 1.f);
+    _point.y = std::clamp((_point.y - ymin_) / height_, 0.f, 1.f);
 
     return std::move(_point);
 }
 
-std::ostream &Rect::ToStream(std::ostream &_stream) const
+inline std::ostream &operator<< (std::ostream &_stream, Rect const &_rc)
 {
-    return _stream << x_ << "; " << y_ << "; " << width_ << "; " << height_ << ".";
+    return _stream << _rc.x_ << "; " << _rc.y_ << "; " << _rc.width_ << "; " << _rc.height_ << ".";
 }
 };

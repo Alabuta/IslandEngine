@@ -49,7 +49,7 @@ public:
 
     Point const &max() const;
 
-    std::ostream &ToStream(std::ostream &stream) const;
+    friend std::ostream &operator<< (std::ostream &stream, Rect const &rect);
 
 private:
 

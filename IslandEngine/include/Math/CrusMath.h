@@ -69,7 +69,7 @@ class Matrix;
 class Quaternion;
 class Vector;
 
-//std::ostream &operator<< (std::ostream &stream, Vector const &vector);
+//inline std::ostream &operator<< (std::ostream &stream, Vector const &vector);
 
 inline float DegToRad(float degree)
 {

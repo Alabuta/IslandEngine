@@ -50,14 +50,19 @@ class LogStream final {
 public:
     std::mutex mutex_;
 
-    template<class T>
-    void ToStream(T &&object)
-    {
-        //stream_ << object;
-    }
-
     void BeginLine(eSEVERITY _note);
     void EndLine();
+
+    template<class T>
+    std::ostream &ToStream(T &&object)
+    {
+        stream_ << object;
+
+        if constexpr (kCRUS_DEBUG_CONSOLE)
+            conout_ << object;
+
+        return stream_;
+    }
 
     static LogStream &inst()
     {
@@ -68,42 +73,12 @@ public:
 private:
 
     std::ostream stream_;
-    std::ofstream file_;
-    std::ofstream conout_;
+    std::ofstream conout_, file_;
 
     explicit LogStream();
     ~LogStream();
 
     void InitConsoleWindow();
-
-    template<class T>
-    void ToStream(T &&object, std::true_type)
-    {
-        object.ToStream(stream_);
-
-        if constexpr (kCRUS_DEBUG_CONSOLE)
-            object.ToStream(conout_);
-    }
-
-    template<class T>
-    void ToStream(T &&object, std::false_type)
-    {
-        stream_ << object;
-
-        if constexpr (kCRUS_DEBUG_CONSOLE)
-            conout_ << object;
-    }
-
-    template<class T>
-    class HasToStreamMethod {
-        template<typename U, void(U::*)(std::ostream &) const> struct SFINAE { };
-
-        template<typename U> static char func(SFINAE<U, &U::ToStream>*);
-        template<typename U> static int func(...);
-
-    public:
-        enum { value = sizeof(func<T>(0)) == sizeof(char) };
-    };
 };
 
 class Book final {

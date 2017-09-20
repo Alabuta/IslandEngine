@@ -28,8 +28,6 @@ public:
 
     std::string name() const;
 
-    virtual std::ostream &ToStream(std::ostream &stream) const = 0;
-
 protected:
     uint32 instanceID{0};
     std::string name_{""};
