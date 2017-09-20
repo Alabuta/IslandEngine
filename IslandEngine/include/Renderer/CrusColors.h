@@ -16,36 +16,26 @@
 namespace isle {
 class Color {
 public:
-    explicit Color() = default;
 
-    constexpr explicit Color(float r, float g, float b, float a = 1.f)
-        : r_(r), g_(g), b_(b), a_(a)
-    { };
+    template<class T, typename std::enable_if_t<std::is_same_v<std::decay_t<T>, std::array<float, 4>>>...>
+    constexpr Color(T &&rgb) : rgba(std::forward(rgb)) { };
+    constexpr Color(float r, float g, float b, float a = 1.f) : rgba({r, g, b, a}) { };
 
-    constexpr explicit Color(std::array<float, 4> const &vec)
-        : vec_(vec)
-    { };
+    friend std::ostream &operator<< (std::ostream &stream, Color const &color);
 
-    constexpr explicit Color(std::array<float, 4> &&vec)
-        : vec_(std::move(vec))
-    { };
-
-    float r() const { return r_; };
-    float g() const { return g_; };
-    float b() const { return b_; };
-    float a() const { return a_; };
-
-    std::array<float, 4> const &c() const { return vec_; };
-
-private:
     union {
         struct {
-            float r_, g_, b_, a_;
+            float r, g, b, a;
         };
 
-        std::array<float, 4> vec_;
+        std::array<float, 4> rgba;
     };
 };
+
+inline std::ostream &operator<< (std::ostream &_stream, Color const &_c)
+{
+    return _stream << _c.r << "; " << _c.g << "; " << _c.b << "; " << _c.a;
+}
 
 namespace colors {
 Color constexpr kCLEARGRAY(0.631372f, 0.631372f, 0.631372f);

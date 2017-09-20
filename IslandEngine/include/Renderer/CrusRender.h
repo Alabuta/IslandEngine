@@ -73,7 +73,7 @@ private:
 
 inline void Render::UpdateCMTS(size_t _offset, size_t _size, Color const *const _colors) const
 {
-    glNamedBufferSubData(CMTS_, _offset, _size, _colors->c().data());
+    glNamedBufferSubData(CMTS_, _offset, _size, _colors->rgba.data());
 }
 
 inline void Render::UpdateViewport(size_t _offset, size_t _count, math::Matrix const *const _matrices) const

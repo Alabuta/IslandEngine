@@ -42,7 +42,7 @@ void Render::Init()
         log::Fatal() << "maximum supported number of vertex attributes is less than required.";
 
     using namespace colors;
-    glClearColor(kCLEARGRAY.r(), kCLEARGRAY.g(), kCLEARGRAY.b(), 1.0f);
+    glClearColor(kCLEARGRAY.r, kCLEARGRAY.g, kCLEARGRAY.b, 1.0f);
     //glClearColor(41 / 256.0f, 34 / 256.0f, 37 / 256.0f, 1.0f);
 
     vp_.Create(intf::Viewport::eVIEWPORT_TYPE::nPERSPECTIVE);

@@ -132,7 +132,6 @@ bool Program::AssignNew(std::initializer_list<std::string> &&_names)
 
         log::Debug() << name;
         if (name == "Defaults/Sprites-Default.glsl") {
-            log::Debug() << "!!!!";
             if (!CreateShader(source, GL_GEOMETRY_SHADER))
                 return false;
         }
