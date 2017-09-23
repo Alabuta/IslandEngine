@@ -33,6 +33,7 @@ public:
 
     std::vector<uint16> const &indices() const;
     std::vector<Position> const &vertices() const;
+    std::vector<math::Vector> const &normals() const;
     std::vector<UV> const &uvs() const;
 
     friend std::ostream &operator<< (std::ostream &stream, Sprite const &sprite);
@@ -51,6 +52,7 @@ private:
 
     std::vector<uint16> indices_;
     std::vector<Position> vertices_;
+    std::vector<math::Vector> normals_;
     std::vector<UV> uvs_;
 
     bool BuildGeometry();
@@ -97,6 +99,11 @@ __forceinline std::vector<uint16> const &Sprite::indices() const
 __forceinline std::vector<Position> const &Sprite::vertices() const
 {
     return vertices_;
+}
+
+__forceinline std::vector<math::Vector> const &Sprite::normals() const
+{
+    return normals_;
 }
 
 __forceinline std::vector<UV> const &Sprite::uvs() const

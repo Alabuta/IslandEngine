@@ -297,6 +297,10 @@ bool Sprite::BuildGeometry()
 
     vertices_.shrink_to_fit();
 
+    normals_.clear();
+    normals_.insert(normals_.end(), vertices_.size(), math::Vector{0.f, 0.f, 1.f});
+    normals_.shrink_to_fit();
+
     Rect textureSheetRect;
 
     if (!textureSheet_.expired())

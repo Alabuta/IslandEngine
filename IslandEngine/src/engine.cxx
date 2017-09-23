@@ -228,6 +228,7 @@ void InitBuffers(std::vector<isle::Sprite> const &_spriteSheet)
 {
     struct Vertex {
         Position pos;
+        math::Vector normal;
         UV uv;
     };
 
@@ -235,7 +236,7 @@ void InitBuffers(std::vector<isle::Sprite> const &_spriteSheet)
 
     for (auto const &sprite : _spriteSheet)
         for (auto i = 0; i < sprite.vertices().size(); ++i)
-            vertex_buffer.emplace_back(Vertex{sprite.vertices()[i], sprite.uvs()[i]});
+            vertex_buffer.emplace_back(Vertex{sprite.vertices()[i], sprite.normals()[i], sprite.uvs()[i]});
 
     vertex_buffer.shrink_to_fit();
 
@@ -279,8 +280,12 @@ void InitBuffers(std::vector<isle::Sprite> const &_spriteSheet)
         glVertexArrayAttribFormat(flipbook_vao, Program::eIN_OUT_ID::nVERTEX, 3, GL_FLOAT, GL_FALSE, 0);
         glEnableVertexArrayAttrib(flipbook_vao, Program::eIN_OUT_ID::nVERTEX);
 
+        glVertexArrayAttribBinding(flipbook_vao, Program::eIN_OUT_ID::nNORMAL, 0);
+        glVertexArrayAttribFormat(flipbook_vao, Program::eIN_OUT_ID::nNORMAL, 3, GL_FLOAT, GL_FALSE, sizeof(Position));
+        glEnableVertexArrayAttrib(flipbook_vao, Program::eIN_OUT_ID::nNORMAL);
+
         glVertexArrayAttribBinding(flipbook_vao, Program::eIN_OUT_ID::nTEXCRD, 0);
-        glVertexArrayAttribFormat(flipbook_vao, Program::eIN_OUT_ID::nTEXCRD, 2, GL_FLOAT, GL_FALSE, sizeof(Position));
+        glVertexArrayAttribFormat(flipbook_vao, Program::eIN_OUT_ID::nTEXCRD, 2, GL_FLOAT, GL_FALSE, sizeof(Position) + sizeof(math::Vector));
         glEnableVertexArrayAttrib(flipbook_vao, Program::eIN_OUT_ID::nTEXCRD);
 
         glVertexArrayVertexBuffer(flipbook_vao, 0, bo, 0, sizeof(Vertex));
