@@ -182,6 +182,7 @@
     <None Include="resources\resource.aps" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\contents\geometry\hydrant" />
     <ClInclude Include="..\contents\geometry\cube.h" />
     <ClInclude Include="..\contents\geometry\geosphere.h" />
     <ClInclude Include="include\Renderer\CrusOpenGLContext.h" />
