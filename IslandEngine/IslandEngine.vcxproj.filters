@@ -64,6 +64,9 @@
     <Filter Include="Core\Systems">
       <UniqueIdentifier>{ed9bbbca-139e-46d3-bf8b-9f7077eed990}</UniqueIdentifier>
     </Filter>
+    <Filter Include="geometry">
+      <UniqueIdentifier>{813ed9a1-3526-4788-9280-ed1ec4ab48ad}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\engine.cxx" />
@@ -290,6 +293,9 @@
     </ClInclude>
     <ClInclude Include="include\Renderer\CrusOpenGLContext.h">
       <Filter>Core\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="contents\geometry\cube.h">
+      <Filter>geometry</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

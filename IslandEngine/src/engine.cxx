@@ -545,22 +545,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int)
 
     using namespace isle;
 
-    std::array<int, 4> array = {1, 2, 3, 4};
-    std::string string = "1234";
-    std::array<Color, 2> colors = {colors::kNAVYBLUE, colors::kINDIGO};
-
-    //log::Debug() << array;
-    log::Debug() << string;
-    /*log::Debug() << cube::positions;
-    log::Debug() << colors;*/
-
-    //std::cout << colors;
-    //log::Debug() << string;
-
-    //std::copy(cube::positions.cbegin(), cube::positions.cend(), std::ostream_iterator<isle::Position>(std::cerr, " "));
-
-    //isle::log::Debug() << cube::positions;
-
+    for (auto const &p : cube::positions)
+        log::Debug() << p;
 
     return isle::System::Loop();
 }
