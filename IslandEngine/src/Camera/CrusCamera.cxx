@@ -13,6 +13,7 @@
 
 #include "Camera\CameraBehaviour.h"
 #include "Camera\CrusCamera.h"
+#include <iomanip>
 
 extern isle::Input::Controller controller;
 
@@ -133,28 +134,51 @@ void Camera::UpdateView()
     POINT pt;
     GetCursorPos(&pt);
 
-    float const x = ws.left + (ws.right - ws.left) / 2.0f - pt.x;
-    float const y = ws.top + (ws.bottom - ws.top) / 2.0f - pt.y;
+    float const pt_x = ws.left + (ws.right - ws.left) / 2.0f - pt.x;
+    float const pt_y = ws.top + (ws.bottom - ws.top) / 2.0f - pt.y;
 
     SetCursorPos(ws.left + ((ws.right - ws.left) >> 1), ws.top + ((ws.bottom - ws.top) >> 1));
 
-    RestricYaw(x * 0.05f);
-    RestricPitch(y * 0.05f);
+    RestricYaw(pt_x * 0.05f);
+    RestricPitch(pt_y * 0.05f);
 
-    //RestricYaw(controller.x * 0.05f);
-    //RestricPitch(controller.y * 0.05f);
+    //RestricYaw(controller.u * 0.05f);
+    //RestricPitch(controller.v * 0.05f);
 
-    rot_.FromAxisAngle(kWORLD_AXIS_Y.vec.data(), yaw_);
-    rot_ ^= math::Quaternion::GetFromAxisAngle(kWORLD_AXIS_X.vec.data(), pitch_);
+    rot_.FromAxisAngle(kWORLD_AXIS_Y.xyz.data(), yaw_);
+    rot_ ^= math::Quaternion::GetFromAxisAngle(kWORLD_AXIS_X.xyz.data(), pitch_);
 
     view_.FromQuaternion(rot_.q());
 
     /*auto m = view_.Rotate(kWORLD_AXIS_Y, yaw_);
     view_ = view_.Rotate(kWORLD_AXIS_X, pitch_) * m;*/
 
-    view_.xOrigin() = -view_.xAxis().Normalize() * pos_;
-    view_.yOrigin() = -view_.yAxis().Normalize() * pos_;
-    view_.zOrigin() = -view_.zAxis().Normalize() * pos_;
+    auto const keyA = GetKeyState('A');
+    auto const keyD = GetKeyState('D');
+
+    float x = (((keyD >> 0xF) ? 1 : 0) - ((keyA >> 0xF) ? 1 : 0)) * 0.04f;
+
+    auto const keyE = GetKeyState('E');
+    auto const keyQ = GetKeyState('Q');
+
+    float y = (((keyE >> 0xF) ? 1 : 0) - ((keyQ >> 0xF) ? 1 : 0)) * 0.04f;
+
+    auto const keyW = GetKeyState('W');
+    auto const keyS = GetKeyState('S');
+
+    float z = (((keyS >> 0xF) ? 1 : 0) - ((keyW >> 0xF) ? 1 : 0)) * 0.04f;
+
+    auto const xAxis = math::Vector::GetNormalized(view_.xAxis());
+    auto const yAxis = math::Vector::GetNormalized(view_.yAxis());
+    auto const zAxis = math::Vector::GetNormalized(view_.zAxis());
+
+    pos_.x += math::Vector{xAxis.x, yAxis.x, zAxis.x} * math::Vector{x, y, z};
+    pos_.y += math::Vector{xAxis.y, yAxis.y, zAxis.y} * math::Vector{x, y, z};
+    pos_.z += math::Vector{xAxis.z, yAxis.z, zAxis.z} * math::Vector{x, y, z};
+
+    view_.xOrigin() = -xAxis * pos_;
+    view_.yOrigin() = -yAxis * pos_;
+    view_.zOrigin() = -zAxis * pos_;
 }
 
 void Camera::Update()
