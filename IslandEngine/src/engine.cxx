@@ -11,7 +11,7 @@
 #include <bitset>
 
 #include "engine.h"
-#include "../contents/geometry/cube.h"
+#include "../../contents/geometry/geosphere.h"
 
 
 namespace cubemap {
@@ -35,6 +35,10 @@ uint32 INSTANCING = 0;
 namespace app {
 void InitBuffers(std::vector<isle::Sprite> const &spriteSheet);
 intf::Grid grid;
+
+uint32 geom_vao;
+std::size_t geom_count;
+
 
 Program flipbookProgram;
 uint32 flipbook_vao;
@@ -118,7 +122,7 @@ void InitBackground()
 
     auto newProgram = std::move(app::async([&program = flipbookProgram]
     {
-        if (!program.AssignNew({R"(Defaults/Sprites-Default.glsl)"}))
+        if (!program.AssignNew({R"(Defaults/Solid-Wireframe.glsl)"}))
             return false;
 
         /*auto index = glGetProgramResourceIndex(program.program(), GL_SHADER_STORAGE_BLOCK, "INSTANCING");
@@ -316,13 +320,16 @@ void DrawSprite()
     //glNamedBufferSubData(INSTANCING, 0 * sizeof(math::Matrix), 2 * sizeof(math::Matrix), matrices[0].m().data());
 
     //glDrawElements(GL_TRIANGLE_STRIP, 4, GL_UNSIGNED_SHORT, nullptr);
-    glDrawElementsBaseVertex(GL_TRIANGLE_STRIP, 4, GL_UNSIGNED_SHORT, nullptr, index * 4);
+    //  glDrawElementsBaseVertex(GL_TRIANGLE_STRIP, 4, GL_UNSIGNED_SHORT, nullptr, index * 4);
     //glDrawElementsInstancedBaseVertex(GL_TRIANGLE_STRIP, 4, GL_UNSIGNED_SHORT, nullptr, 2, index * 4);
     //glBindBuffer(GL_DRAW_INDIRECT_BUFFER, spriteIndirectBO);
     //glDrawElementsIndirect(GL_TRIANGLE_STRIP, GL_UNSIGNED_SHORT, nullptr);
 
     /*Render::inst().UpdateTransform(0, 1, &ms[1]);
     glDrawElementsBaseVertex(GL_TRIANGLE_STRIP, 4, GL_UNSIGNED_SHORT, nullptr, index * 4);*/
+
+    glBindVertexArray(geom_vao);
+    glDrawArrays(GL_TRIANGLES, 0, 3 * geom_count);
 }
 
 
@@ -394,7 +401,6 @@ private:
 };
 
 
-
 template<class C>
 class ComponentHandle final {
 public:
@@ -433,7 +439,6 @@ private:
 
     constexpr ComponentHandle(gsl::not_null<EntityManager *> manager, Entity::ID id) noexcept : manager_(manager), id_(id) { };
 };
-
 
 
 class EntityManager final {
@@ -492,6 +497,78 @@ struct MovementComponent final : Component {
     MovementComponent(Entity entity, float initial_speed, float max_speed) : Component(entity), initial_speed(initial_speed), max_speed(max_speed) { };
 };*/
 
+void InitGeometry()
+{
+    using namespace geosphere;
+
+    geom_count = faces.size();
+
+    struct Vertex {
+        Position pos;
+        math::Vector normal;
+        UV uv;
+
+        /*template<typename P, typename N, typename U>
+        Vertex(P &&p, N &&n, U &&u) : pos(std::forward<P>(p)), n(std::forward<N>(n)), u(std::forward<U>(u)) { };*/
+    };
+
+    std::vector<Vertex> vertex_buffer;
+
+    for (auto const &face : faces) {
+        auto it_index = face.cbegin();
+
+        vertex_buffer.emplace_back(Vertex{
+            positions.at(*it_index),
+            normals.at(*std::next(it_index, 3)),
+            uvs.at(*std::next(it_index, 6))
+        });
+
+        vertex_buffer.emplace_back(Vertex{
+            positions.at(*++it_index),
+            normals.at(*std::next(it_index, 3)),
+            uvs.at(*std::next(it_index, 6))
+        });
+
+        vertex_buffer.emplace_back(Vertex{
+            positions.at(*++it_index),
+            normals.at(*std::next(it_index, 3)),
+            uvs.at(*std::next(it_index, 6))
+        });
+    }
+
+    vertex_buffer.shrink_to_fit();
+
+    Render::inst().CreateVAO(geom_vao);
+
+    /*{
+    auto bo = 0u;
+    Render::inst().CreateBO(bo);
+
+    glNamedBufferStorage(bo, sizeof(indicies), indicies, 0);
+    glVertexArrayElementBuffer(geom_vao, bo);
+    }*/
+
+    {
+        auto bo = 0u;
+        Render::inst().CreateBO(bo);
+
+        glNamedBufferStorage(bo, sizeof(Vertex) * vertex_buffer.size(), vertex_buffer.data(), 0);
+
+        glVertexArrayAttribBinding(geom_vao, Program::eIN_OUT_ID::nVERTEX, 0);
+        glVertexArrayAttribFormat(geom_vao, Program::eIN_OUT_ID::nVERTEX, 3, GL_FLOAT, GL_FALSE, 0);
+        glEnableVertexArrayAttrib(geom_vao, Program::eIN_OUT_ID::nVERTEX);
+
+        glVertexArrayAttribBinding(geom_vao, Program::eIN_OUT_ID::nNORMAL, 0);
+        glVertexArrayAttribFormat(geom_vao, Program::eIN_OUT_ID::nNORMAL, 3, GL_FLOAT, GL_TRUE, sizeof(Position));
+        glEnableVertexArrayAttrib(geom_vao, Program::eIN_OUT_ID::nNORMAL);
+
+        glVertexArrayAttribBinding(geom_vao, Program::eIN_OUT_ID::nTEXCRD, 0);
+        glVertexArrayAttribFormat(geom_vao, Program::eIN_OUT_ID::nTEXCRD, 2, GL_FLOAT, GL_FALSE, sizeof(Position) + sizeof(math::Vector));
+        glEnableVertexArrayAttrib(geom_vao, Program::eIN_OUT_ID::nTEXCRD);
+
+        glVertexArrayVertexBuffer(geom_vao, 0, bo, 0, sizeof(Vertex));
+    }
+}
 
 void Init()
 {
@@ -517,6 +594,8 @@ void Init()
 
     EntityManager entities;
     auto entity = entities.CreateEntity();
+
+    InitGeometry();
 }
 
 
@@ -547,11 +626,6 @@ void DrawFrame()
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int)
 {
     isle::Window window(crus::names::kMAIN_WINDOW_NAME, hInstance, 800, 600);
-
-    using namespace isle;
-
-    for (auto const &p : cube::positions)
-        log::Debug() << p;
 
     return isle::System::Loop();
 }
