@@ -72,6 +72,8 @@ public:
 
 private:
 
+    friend class Book;
+
     std::ostream stream_;
     std::ofstream conout_, file_;
 
@@ -93,6 +95,15 @@ public:
         LogStream::inst().ToStream(std::forward<T>(object));
         return *this;
     }
+
+#if _CRUS_TEMP_DISABLED
+    template<class T>
+    operator std::ostream_iterator<T>()
+    {
+        return std::ostream_iterator<T>(LogStream::inst().stream_, "; ");
+    
+    }
+#endif
 
 private:
 

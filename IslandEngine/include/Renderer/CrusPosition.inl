@@ -28,13 +28,13 @@ inline Position::operator std::string() const
     static std::ostringstream ss;
     ss.str("");
 
-    ss << xyz[0] << "; " << xyz[1] << "; " << xyz[2];
+    ss << xyz[0] << " " << xyz[1] << " " << xyz[2];
 
     return ss.good() ? ss.str() : "[undefined]";
 }
 
 inline std::ostream &operator<< (std::ostream &_stream, Position const &_p)
 {
-    return _stream << _p.xyz[0] << "; " << _p.xyz[1] << "; " << _p.xyz[2];
+    return _stream << _p.xyz[0] << " " << _p.xyz[1] << " " << _p.xyz[2];
 }
 };
