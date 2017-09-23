@@ -15,41 +15,27 @@
 #include "Math\CrusMath.h"
 
 namespace isle {
-class UV {
-public:
+struct UV {
 
-    UV(UV const &v);
+    UV() = default;
 
-    explicit UV(float const v[]);
-    explicit UV(float x, float y);
-
-    UV(UV &&v);
-
-    float x() const;
-    float y() const;
-
-    float const *const v() const;
-
-    float x(float x);
-    float y(float y);
-
-    UV const &operator= (UV const &v);
-    UV const &operator= (float s);
-
-    UV const &operator= (UV &&v);
+    template<class T, typename std::enable_if_t<std::is_same_v<std::decay_t<T>, std::array<float, 2>>>...>
+    constexpr UV(T &&uv) : uv(std::forward(uv)) { };
+    constexpr UV(float u, float v) : uv({u, v}) { };
 
     bool operator== (UV const &v) const;
     bool operator!= (UV const &v) const;
 
-private:
+    explicit operator std::string() const;
+
+    friend std::ostream &operator<< (std::ostream &stream, UV const &uv);
+
     union {
         struct {
-            float x_, y_;
+            float u, v;
         };
 
-        struct {
-            float v_[2];
-        };
+        std::array<float, 2> uv;
     };
 };
 };
