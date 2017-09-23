@@ -64,8 +64,8 @@ void Camera::SetBehavior(Camera::eCAM_BEHAVIOR _behavior)
 
     Create(_behavior);
 
-    pitch_ = -math::RadToDeg(std::acos(view_.yAxis().y()));     // Extract the pitch angle.
-    yaw_ = -math::RadToDeg(std::acos(view_.xAxis().x()));       // Extract the yaw angle.
+    pitch_ = -math::RadToDeg(std::acos(view_.yAxis().y));     // Extract the pitch angle.
+    yaw_ = -math::RadToDeg(std::acos(view_.xAxis().x));       // Extract the yaw angle.
 }
 
 void Camera::LookAt(math::Vector const &_aim)
@@ -73,8 +73,8 @@ void Camera::LookAt(math::Vector const &_aim)
     aim_ = _aim;
     view_.zAxis() = pos_ - aim_;
 
-    if (math::IsTooSmall(view_.zAxis().x()) && math::IsTooSmall(view_.zAxis().z()))
-        view_.zAxis().z() += math::kEPSILON;
+    if (math::IsTooSmall(view_.zAxis().x) && math::IsTooSmall(view_.zAxis().z))
+        view_.zAxis().z += math::kEPSILON;
 
     view_.zAxis().Normalize();
 
@@ -85,8 +85,8 @@ void Camera::LookAt(math::Vector const &_aim)
     view_.yOrigin() = -view_.yAxis() * pos_;
     view_.zOrigin() = -view_.zAxis() * pos_;
 
-    pitch_ = -math::RadToDeg(std::acos(view_.yAxis().y()));     // Extract the pitch angle.
-    yaw_ = -math::RadToDeg(std::acos(view_.xAxis().x()));       // Extract the yaw angle.
+    pitch_ = -math::RadToDeg(std::acos(view_.yAxis().y));     // Extract the pitch angle.
+    yaw_ = -math::RadToDeg(std::acos(view_.xAxis().x));       // Extract the yaw angle.
 
     // :TODO: remove.
     //rot_.FromMatrix4x4(view_.m());
@@ -141,11 +141,11 @@ void Camera::UpdateView()
     RestricYaw(x * 0.05f);
     RestricPitch(y * 0.05f);
 
-    //RestricYaw(controller.x() * 0.05f);
-    //RestricPitch(controller.y() * 0.05f);
+    //RestricYaw(controller.x * 0.05f);
+    //RestricPitch(controller.y * 0.05f);
 
-    rot_.FromAxisAngle(kWORLD_AXIS_Y.v().data(), yaw_);
-    rot_ ^= math::Quaternion::GetFromAxisAngle(kWORLD_AXIS_X.v().data(), pitch_);
+    rot_.FromAxisAngle(kWORLD_AXIS_Y.vec.data(), yaw_);
+    rot_ ^= math::Quaternion::GetFromAxisAngle(kWORLD_AXIS_X.vec.data(), pitch_);
 
     view_.FromQuaternion(rot_.q());
 

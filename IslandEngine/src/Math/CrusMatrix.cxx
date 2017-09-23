@@ -430,19 +430,19 @@ Matrix const &Matrix::Rotate(Vector const &_axis, float _degree)
     auto const s = std::sin(DegToRad(_degree));
     auto const c = std::cos(DegToRad(_degree));
 
-    _00_ = _axis.x() * _axis.x() * (1.f - c) + c;
-    _01_ = _axis.x() * _axis.y() * (1.f - c) + _axis.z() * s;
-    _02_ = _axis.x() * _axis.z() * (1.f - c) - _axis.y() * s;
+    _00_ = _axis.x * _axis.x * (1.f - c) + c;
+    _01_ = _axis.x * _axis.y * (1.f - c) + _axis.z * s;
+    _02_ = _axis.x * _axis.z * (1.f - c) - _axis.y * s;
     _03_ = 0.f;
 
-    _04_ = _axis.y() * _axis.x() * (1.f - c) - _axis.z() * s;
-    _05_ = _axis.y() * _axis.y() * (1.f - c) + c;
-    _06_ = _axis.y() * _axis.z() * (1.f - c) + _axis.x() * s;
+    _04_ = _axis.y * _axis.x * (1.f - c) - _axis.z * s;
+    _05_ = _axis.y * _axis.y * (1.f - c) + c;
+    _06_ = _axis.y * _axis.z * (1.f - c) + _axis.x * s;
     _07_ = 0.f;
 
-    _08_ = _axis.z() * _axis.x() * (1.f - c) + _axis.y() * s;
-    _09_ = _axis.z() * _axis.y() * (1.f - c) - _axis.x() * s;
-    _10_ = _axis.z() * _axis.z() * (1.f - c) + c;
+    _08_ = _axis.z * _axis.x * (1.f - c) + _axis.y * s;
+    _09_ = _axis.z * _axis.y * (1.f - c) - _axis.x * s;
+    _10_ = _axis.z * _axis.z * (1.f - c) + c;
     _11_ = 0.f;
 
     _12_ = 0.f;
@@ -561,7 +561,7 @@ Matrix const &Matrix::Transpose()
 #if CRUS_USE_SSE_MATH
     _MM_TRANSPOSE4_PS(row_[0], row_[1], row_[2], row_[3]);
 #else
-    vec_ = {
+    vec = {
         _00_, _04_, _08_, _12_,
         _01_, _05_, _09_, _13_,
         _02_, _06_, _10_, _14_,
@@ -604,11 +604,11 @@ Vector Matrix::TransformPosition(Vector &&_p) const
 
 void Matrix::TransformPosition(Vector &_p) const
 {
-    auto const np = _p.v();
+    auto const np = _p.vec;
 
-    _p.v()[0] = np[0] * _00_ + np[1] * _01_ + np[2] * _02_ + 1.f * _03_;
-    _p.v()[1] = np[0] * _04_ + np[1] * _05_ + np[2] * _06_ + 1.f * _07_;
-    _p.v()[2] = np[0] * _08_ + np[1] * _09_ + np[2] * _10_ + 1.f * _11_;
+    _p.vec[0] = np[0] * _00_ + np[1] * _01_ + np[2] * _02_ + 1.f * _03_;
+    _p.vec[1] = np[0] * _04_ + np[1] * _05_ + np[2] * _06_ + 1.f * _07_;
+    _p.vec[2] = np[0] * _08_ + np[1] * _09_ + np[2] * _10_ + 1.f * _11_;
 }
 
 Vector Matrix::TransformVector(Vector const &_v) const
@@ -631,11 +631,11 @@ Vector Matrix::TransformVector(Vector &&_v) const
 
 void Matrix::TransformVector(Vector &_v) const
 {
-    auto const nv = _v.v();
+    auto const nv = _v.vec;
 
-    _v.v()[0] = nv[0] * _00_ + nv[1] * _01_ + nv[2] * _02_;
-    _v.v()[1] = nv[0] * _04_ + nv[1] * _05_ + nv[2] * _06_;
-    _v.v()[2] = nv[0] * _08_ + nv[1] * _09_ + nv[2] * _10_;
+    _v.vec[0] = nv[0] * _00_ + nv[1] * _01_ + nv[2] * _02_;
+    _v.vec[1] = nv[0] * _04_ + nv[1] * _05_ + nv[2] * _06_;
+    _v.vec[2] = nv[0] * _08_ + nv[1] * _09_ + nv[2] * _10_;
 }
 
 Matrix const &Matrix::FromQuaternion(float const _q[])

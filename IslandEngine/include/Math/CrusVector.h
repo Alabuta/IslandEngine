@@ -11,6 +11,8 @@
 #ifndef CRUS_VECTOR_H               // Include guard "CrusVector.h"
 #define CRUS_VECTOR_H
 
+#include <array>
+
 #include "Math\CrusMath.h"
 
 namespace isle::math {
@@ -18,30 +20,18 @@ class Vector {
 public:
     UNIT_TEST_HERITABLE_CLASS;
 
-    explicit Vector() = default;
+    Vector() = default;
 
-    constexpr Vector(Vector const &v);
-    Vector(Vector &&v);
+    constexpr Vector(Vector const &vector) = default;
+    constexpr Vector(Vector &&vector) = default;
 
-    Vector(std::array<float, 3> &&vec);
-    Vector(std::array<float, 3> const &vec);
+    /*template<class T, typename std::enable_if_t<std::is_same_v<std::decay_t<T>, Vector>>...>
+    constexpr Vector(T &&vector) : vec(std::forward<typename T::vec>(vector.vec)) { };*/
 
-    constexpr explicit Vector(float x, float y, float z);
+    template<class T, typename std::enable_if_t<std::is_same_v<std::decay_t<T>, std::array<float, 3>>>...>
+    constexpr Vector(T &&array) : vec(std::forward<T>(array)) { };
 
-    float x() const;
-    float y() const;
-    float z() const;
-
-    std::array<float, 3> const &v() const;
-    std::array<float, 3> &v();
-
-    float x(float x);
-    float y(float y);
-    float z(float z);
-
-    float &x();
-    float &y();
-    float &z();
+    constexpr Vector(float x, float y, float z) : vec({x, y, z}) { };
 
     Vector operator+ (Vector const &v) const;
     Vector operator- (Vector const &v) const;
@@ -54,9 +44,9 @@ public:
     Vector operator* (float s) const;
     Vector operator/ (float s) const;
 
-    Vector const &operator= (Vector const &v);
     Vector const &operator= (float s);
 
+    Vector const &operator= (Vector const &v);
     Vector const &operator= (Vector &&v);
 
     bool operator== (Vector const &v) const;
@@ -82,20 +72,27 @@ public:
 
     Vector const &Normalize();
 
-    static Vector GetNormalized(Vector const &v);
+    template<class T, typename std::enable_if_t<std::is_same_v<std::decay_t<T>, Vector>>...>
+    static Vector GetNormalized(T &&v)
+    {
+        if constexpr (std::is_rvalue_reference_v<T>)
+            return std::move(v.Normalize());
+
+        else return Vector(v).Normalize();
+    }
+
     static Vector GetNormalized(float x, float y, float z);
 
     static Vector One();
 
     friend std::ostream &operator<< (std::ostream &stream, Vector const &vector);
 
-private:
     union {
         struct {
-            float x_, y_, z_;
+            float x, y, z;
         };
 
-        std::array<float, 3> vec_;
+        std::array<float, 3> vec;
     };
 };
 };

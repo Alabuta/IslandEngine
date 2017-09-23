@@ -11,157 +11,77 @@
 
 namespace isle::math {
 
-inline constexpr Vector::Vector(Vector const &_v) : Vector::Vector(_v.x_, _v.y_, _v.z_) { }
-
-
-inline Vector::Vector(std::array<float, 3> &&_vec)
-{
-    vec_ = std::move(_vec);
-}
-
-inline Vector::Vector(std::array<float, 3> const &_vec)
-{
-    vec_ = _vec;
-}
-
-inline constexpr Vector::Vector(float _x, float _y, float _z) : x_(_x), y_(_y), z_(_z) { }
-
-inline Vector::Vector(Vector &&_v)
-{
-    x_ = std::move(_v.x_);
-    y_ = std::move(_v.y_);
-    z_ = std::move(_v.z_);
-}
-
-inline float Vector::x() const
-{
-    return x_;
-}
-
-inline float Vector::y() const
-{
-    return y_;
-}
-
-inline float Vector::z() const
-{
-    return z_;
-}
-
-inline std::array<float, 3> const &Vector::v() const
-{
-    return vec_;
-}
-
-inline std::array<float, 3> &Vector::v()
-{
-    return vec_;
-}
-
-inline float Vector::x(float _x)
-{
-    return x_ = _x;
-}
-
-inline float Vector::y(float _y)
-{
-    return y_ = _y;
-}
-
-inline float Vector::z(float _z)
-{
-    return z_ = _z;
-}
-
-inline float &Vector::x()
-{
-    return x_;
-}
-
-inline float &Vector::y()
-{
-    return y_;
-}
-
-inline float &Vector::z()
-{
-    return z_;
-}
-
 inline Vector Vector::operator+ (Vector const &_v) const
 {
-    return Vector(x_ + _v.x_, y_ + _v.y_, z_ + _v.z_);
+    return Vector(x + _v.x, y + _v.y, z + _v.z);
 }
 
 inline Vector Vector::operator- (Vector const &_v) const
 {
-    return Vector(x_ - _v.x_, y_ - _v.y_, z_ - _v.z_);
+    return Vector(x - _v.x, y - _v.y, z - _v.z);
 }
 
 inline Vector Vector::operator^ (Vector const &_v) const
 {
     return Vector
     (
-        y_ * _v.z_ - z_ * _v.y_,
-        z_ * _v.x_ - x_ * _v.z_,
-        x_ * _v.y_ - y_ * _v.x_
+        y * _v.z - z * _v.y,
+        z * _v.x - x * _v.z,
+        x * _v.y - y * _v.x
     );
 }
 
 inline float Vector::operator* (Vector const &_v) const
 {
-    return x_ * _v.x_ + y_ * _v.y_ + z_ * _v.z_;
+    return x * _v.x + y * _v.y + z * _v.z;
 }
 
 inline Vector Vector::operator+ (float _s) const
 {
-    return Vector(x_ + _s, y_ + _s, z_ + _s);
+    return Vector(x + _s, y + _s, z + _s);
 }
 
 inline Vector Vector::operator- (float _s) const
 {
-    return Vector(x_ - _s, y_ - _s, z_ - _s);
+    return Vector(x - _s, y - _s, z - _s);
 }
 
 inline Vector Vector::operator* (float _s) const
 {
-    return Vector(x_ * _s, y_ * _s, z_ * _s);
+    return Vector(x * _s, y * _s, z * _s);
 }
 
 inline Vector Vector::operator/ (float _s) const
 {
     float const s = 1.0f / _s;
-    return Vector(x_ * s, y_ * s, z_ * s);
-}
-
-inline Vector const &Vector::operator= (Vector const &_v)
-{
-    if (this != &_v) {
-        x_ = _v.x_;  y_ = _v.y_;  z_ = _v.z_;
-    }
-
-    return *this;
+    return Vector(x * s, y * s, z * s);
 }
 
 inline Vector const &Vector::operator= (float _s)
 {
-    x_ = _s;  y_ = _s;  z_ = _s;
+    x = _s;  y = _s;  z = _s;
+    return *this;
+}
+
+inline Vector const &Vector::operator= (Vector const &_v)
+{
+    if (this != &_v)
+        vec = _v.vec;
+
     return *this;
 }
 
 inline Vector const &Vector::operator= (Vector &&_v)
 {
-    x_ = std::move(_v.x_);
-    y_ = std::move(_v.y_);
-    z_ = std::move(_v.z_);
+    vec = std::move(_v.vec);
     return *this;
 }
 
 inline bool Vector::operator== (Vector const &_v) const
 {
-    return CloseEnough(x_, _v.x_)
-        && CloseEnough(y_, _v.y_)
-        && CloseEnough(z_, _v.z_);
+    return CloseEnough(x, _v.x)
+        && CloseEnough(y, _v.y)
+        && CloseEnough(z, _v.z);
 }
 
 inline bool Vector::operator!= (Vector const &_v) const
@@ -171,38 +91,38 @@ inline bool Vector::operator!= (Vector const &_v) const
 
 inline Vector const &Vector::operator+= (Vector const &_v)
 {
-    x_ += _v.x_;    y_ += _v.y_;    z_ += _v.z_;
+    x += _v.x;    y += _v.y;    z += _v.z;
     return *this;
 }
 
 inline Vector const &Vector::operator-= (Vector const &_v)
 {
-    x_ -= _v.x_;    y_ -= _v.y_;    z_ -= _v.z_;
+    x -= _v.x;    y -= _v.y;    z -= _v.z;
     return *this;
 }
 
 inline Vector const &Vector::operator^= (Vector const &_v)
 {
-    return *this = Vector(y_ * _v.z_ - z_ * _v.y_,
-                          z_ * _v.x_ - x_ * _v.z_,
-                          x_ * _v.y_ - y_ * _v.x_);
+    return *this = Vector(y * _v.z - z * _v.y,
+                          z * _v.x - x * _v.z,
+                          x * _v.y - y * _v.x);
 }
 
 inline Vector const &Vector::operator+= (float _s)
 {
-    x_ += _s;    y_ += _s;    z_ += _s;
+    x += _s;    y += _s;    z += _s;
     return *this;
 }
 
 inline Vector const &Vector::operator-= (float _s)
 {
-    x_ -= _s;    y_ -= _s;    z_ -= _s;
+    x -= _s;    y -= _s;    z -= _s;
     return *this;
 }
 
 inline Vector const &Vector::operator*= (float _s)
 {
-    x_ *= _s;    y_ *= _s;    z_ *= _s;
+    x *= _s;    y *= _s;    z *= _s;
     return *this;
 }
 
@@ -210,7 +130,7 @@ inline Vector const &Vector::operator/= (float _s)
 {
     float const s = 1.0f / _s;
 
-    x_ *= s;    y_ *= s;    z_ *= s;
+    x *= s;    y *= s;    z *= s;
     return *this;
 }
 
@@ -221,18 +141,18 @@ inline Vector const &Vector::operator+ () const
 
 inline Vector Vector::operator- () const
 {
-    return Vector(-x_, -y_, -z_);
+    return Vector(-x, -y, -z);
 }
 
 inline Vector const &Vector::operator++ ()
 {
-    ++x_;    ++y_;    ++z_;
+    ++x;    ++y;    ++z;
     return *this;
 }
 
 inline Vector const &Vector::operator-- ()
 {
-    --x_;    --y_;    --z_;
+    --x;    --y;    --z;
     return *this;
 }
 
@@ -252,7 +172,7 @@ inline Vector operator-- (Vector &_v, int32)
 
 inline float Vector::GetNorm() const
 {
-    return x_ * x_ + y_ * y_ + z_ * z_;
+    return x * x + y * y + z * z;
 }
 
 inline float Vector::GetLenght() const
@@ -263,11 +183,6 @@ inline float Vector::GetLenght() const
 inline Vector const &Vector::Normalize()
 {
     return *this /= GetLenght();
-}
-
-/*static*/ inline Vector Vector::GetNormalized(Vector const &_v)
-{
-    return Vector(_v).Normalize();
 }
 
 /*static*/ inline Vector Vector::GetNormalized(float _x, float _y, float _z)
@@ -282,6 +197,6 @@ inline Vector const &Vector::Normalize()
 
 inline std::ostream &operator<< (std::ostream &_stream, Vector const &_v)
 {
-    return _stream << _v.x_ << "; " << _v.y_ << "; " << _v.z_;
+    return _stream << _v.x << "; " << _v.y << "; " << _v.z;
 }
 };
