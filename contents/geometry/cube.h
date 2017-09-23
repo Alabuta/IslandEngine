@@ -12,9 +12,7 @@ namespace cube {
 // 14 Texture Coordinates
 // 12 Triangles
 
-using isle::Position;
-
-constexpr std::array<Position, 8> positions = {{
+constexpr std::array<isle::Position, 8> positions = {{
     {-0.5f, -0.5f, +0.5f},
     {+0.5f, -0.5f, +0.5f},
     {-0.5f, +0.5f, +0.5f},
@@ -25,9 +23,7 @@ constexpr std::array<Position, 8> positions = {{
     {+0.5f, -0.5f, -0.5f}
 }};
 
-using isle::math::Vector;
-
-constexpr std::array<Vector, 6> normals = {{
+constexpr std::array<isle::math::Vector, 6> normals = {{
     {+0.0f, +0.0f, +1.0f},
     {+0.0f, +1.0f, +0.0f},
     {+0.0f, +0.0f, -1.0f},
@@ -36,9 +32,7 @@ constexpr std::array<Vector, 6> normals = {{
     {-1.0f, +0.0f, +0.0f}
 }};
 
-using isle::UV;
-
-constexpr std::array<UV, 14> uvs = {{
+constexpr std::array<isle::UV, 14> uvs = {{
     {0.375f, 0.00f}, {0.625f, 0.25f},
     {0.375f, 0.25f}, {0.625f, 0.00f},
     {0.625f, 0.50f}, {0.375f, 0.50f},

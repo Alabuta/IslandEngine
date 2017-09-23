@@ -294,7 +294,9 @@
     <ClInclude Include="include\Renderer\CrusOpenGLContext.h">
       <Filter>Core\Renderer</Filter>
     </ClInclude>
-    <ClInclude Include="contents\geometry\cube.h">
+    <ClInclude Include="..\contents\geometry\cube.h">
+      <Filter>geometry</Filter>
+    </ClInclude>
       <Filter>geometry</Filter>
     </ClInclude>
   </ItemGroup>
