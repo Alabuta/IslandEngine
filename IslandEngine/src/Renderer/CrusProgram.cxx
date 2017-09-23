@@ -130,8 +130,7 @@ bool Program::AssignNew(std::initializer_list<std::string> &&_names)
         if (!CreateShader(source, GL_VERTEX_SHADER))
             return false;
 
-        log::Debug() << name;
-        if (name == "Defaults/Sprites-Default.glsl") {
+        if (name == "Defaults/Solid-Wireframe.glsl") {
             if (!CreateShader(source, GL_GEOMETRY_SHADER))
                 return false;
         }
