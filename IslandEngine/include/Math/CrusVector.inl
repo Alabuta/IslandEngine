@@ -66,14 +66,14 @@ inline Vector const &Vector::operator= (float _s)
 inline Vector const &Vector::operator= (Vector const &_v)
 {
     if (this != &_v)
-        vec = _v.vec;
+        xyz = _v.xyz;
 
     return *this;
 }
 
 inline Vector const &Vector::operator= (Vector &&_v)
 {
-    vec = std::move(_v.vec);
+    xyz = std::move(_v.xyz);
     return *this;
 }
 

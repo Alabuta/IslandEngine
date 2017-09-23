@@ -604,11 +604,11 @@ Vector Matrix::TransformPosition(Vector &&_p) const
 
 void Matrix::TransformPosition(Vector &_p) const
 {
-    auto const np = _p.vec;
+    auto const np = _p.xyz;
 
-    _p.vec[0] = np[0] * _00_ + np[1] * _01_ + np[2] * _02_ + 1.f * _03_;
-    _p.vec[1] = np[0] * _04_ + np[1] * _05_ + np[2] * _06_ + 1.f * _07_;
-    _p.vec[2] = np[0] * _08_ + np[1] * _09_ + np[2] * _10_ + 1.f * _11_;
+    _p.xyz[0] = np[0] * _00_ + np[1] * _01_ + np[2] * _02_ + 1.f * _03_;
+    _p.xyz[1] = np[0] * _04_ + np[1] * _05_ + np[2] * _06_ + 1.f * _07_;
+    _p.xyz[2] = np[0] * _08_ + np[1] * _09_ + np[2] * _10_ + 1.f * _11_;
 }
 
 Vector Matrix::TransformVector(Vector const &_v) const
@@ -631,11 +631,11 @@ Vector Matrix::TransformVector(Vector &&_v) const
 
 void Matrix::TransformVector(Vector &_v) const
 {
-    auto const nv = _v.vec;
+    auto const nv = _v.xyz;
 
-    _v.vec[0] = nv[0] * _00_ + nv[1] * _01_ + nv[2] * _02_;
-    _v.vec[1] = nv[0] * _04_ + nv[1] * _05_ + nv[2] * _06_;
-    _v.vec[2] = nv[0] * _08_ + nv[1] * _09_ + nv[2] * _10_;
+    _v.xyz[0] = nv[0] * _00_ + nv[1] * _01_ + nv[2] * _02_;
+    _v.xyz[1] = nv[0] * _04_ + nv[1] * _05_ + nv[2] * _06_;
+    _v.xyz[2] = nv[0] * _08_ + nv[1] * _09_ + nv[2] * _10_;
 }
 
 Matrix const &Matrix::FromQuaternion(float const _q[])

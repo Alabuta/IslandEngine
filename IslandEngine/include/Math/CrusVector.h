@@ -26,12 +26,12 @@ public:
     constexpr Vector(Vector &&vector) = default;
 
     /*template<class T, typename std::enable_if_t<std::is_same_v<std::decay_t<T>, Vector>>...>
-    constexpr Vector(T &&vector) : vec(std::forward<typename T::vec>(vector.vec)) { };*/
+    constexpr Vector(T &&vector) : uv(std::forward<typename T::uv>(vector.uv)) { };*/
 
     template<class T, typename std::enable_if_t<std::is_same_v<std::decay_t<T>, std::array<float, 3>>>...>
-    constexpr Vector(T &&array) : vec(std::forward<T>(array)) { };
+    constexpr Vector(T &&array) : xyz(std::forward<T>(array)) { };
 
-    constexpr Vector(float x, float y, float z) : vec({x, y, z}) { };
+    constexpr Vector(float x, float y, float z) : xyz({x, y, z}) { };
 
     Vector operator+ (Vector const &v) const;
     Vector operator- (Vector const &v) const;
@@ -92,7 +92,7 @@ public:
             float x, y, z;
         };
 
-        std::array<float, 3> vec;
+        std::array<float, 3> xyz;
     };
 };
 };
