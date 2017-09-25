@@ -294,13 +294,13 @@
     <ClInclude Include="include\Renderer\CrusOpenGLContext.h">
       <Filter>Core\Renderer</Filter>
     </ClInclude>
-    <ClInclude Include="..\contents\geometry\cube.h">
-      <Filter>geometry</Filter>
-    </ClInclude>
     <ClInclude Include="..\contents\geometry\hydrant">
       <Filter>geometry</Filter>
     </ClInclude>
-    <ClInclude Include="..\contents\geometry\geosphere.h">
+    <ClInclude Include="..\contents\geometry\cube">
+      <Filter>geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="..\contents\geometry\geosphere">
       <Filter>geometry</Filter>
     </ClInclude>
   </ItemGroup>
