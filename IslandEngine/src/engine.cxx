@@ -114,8 +114,8 @@ void InitBackground()
     m.Translate(1, 1, 1);
     isle::log::Debug() << m.TransformVector(math::Vector(0, 1, 0));*/
 
-    matrices[1].Translate(0, 1, -1);
-    matrices[0].Translate(-1, 1, 0);
+    //matrices[1].Translate(0, 1, -1);
+    //matrices[0].Translate(-1, 1, 0);
 
     //auto newProgram = std::move(AssignNewProgram<std::initializer_list<char const *>>(flipbookProgram, {R"(Defaults/Sprites-Default.glsl)"}));
     //flipbookProgram.AssignNew({"Defaults/Sprites-Default.glsl"});
@@ -312,6 +312,8 @@ void DrawSprite()
 
     return dir_a.GetLenght() < dir_b.GetLenght();
     });*/
+
+    matrices[1].Translate(0.f, 0.78f, -0.75f);
 
     matrices[0] = Render::inst().vp_.projView() * matrices[1];
 
@@ -573,8 +575,8 @@ void InitGeometry()
 void Init()
 {
     Camera::inst().Create(Camera::eCAM_BEHAVIOR::nFREE);
-    Camera::inst().SetPos(0.f, 1.f, 1.f);
-    Camera::inst().LookAt(0.f, 1.f, 0.f);
+    Camera::inst().SetPos(-0.75f, 1.25f, -0.25f);
+    Camera::inst().LookAt(0.f, 1.25f, 0.f);
 
     // Application intialization function.
     glEnable(GL_CULL_FACE);
@@ -625,7 +627,7 @@ void DrawFrame()
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int)
 {
-    isle::Window window(crus::names::kMAIN_WINDOW_NAME, hInstance, 800, 600);
+    isle::Window window(crus::names::kMAIN_WINDOW_NAME, hInstance, 1920, 1080);
 
     return isle::System::Loop();
 }
