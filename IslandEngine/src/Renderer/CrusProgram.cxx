@@ -188,12 +188,13 @@ bool Program::CreateShader(std::string_view const &_source, uint32 _type)
                 << '\n'
                 << kGLSL_VERSION
                 << "\n#define CRUS_VERTEX_SHADER 1\n"
-                << "\n#define nVERTEX       " << nVERTEX
-                << "\n#define nNORMAL       " << nNORMAL
-                << "\n#define nTEXCRD       " << nTEXCRD
-                << "\n#define nCOLOR        " << nCOLOR
-                << "\n#define nVIEWPORT     " << nVIEWPORT
-                << "\n#define nTRANSFORM    " << nTRANSFORM
+                << "\n#define nVERTEX        " << nVERTEX
+                << "\n#define nNORMAL        " << nNORMAL
+                << "\n#define nTEXCRD        " << nTEXCRD
+                << "\n#define nCOLOR         " << nCOLOR
+                << "\n#define nVIEWPORT      " << nVIEWPORT
+                << "\n#define nTRANSFORM     " << nTRANSFORM
+                << "\n#define nVIEWPORT_RECT " << nVIEWPORT_RECT
                 << '\n';
 
             shaderInfo.second = "vertex shader";
@@ -204,8 +205,9 @@ bool Program::CreateShader(std::string_view const &_source, uint32 _type)
                 << '\n'
                 << kGLSL_VERSION
                 << "\n#define CRUS_GEOMETRY_SHADER 1\n"
-                << "\n#define nVIEWPORT     " << nVIEWPORT
-                << "\n#define nTRANSFORM    " << nTRANSFORM
+                << "\n#define nVIEWPORT      " << nVIEWPORT
+                << "\n#define nTRANSFORM     " << nTRANSFORM
+                << "\n#define nVIEWPORT_RECT " << nVIEWPORT_RECT
                 << '\n';
 
             shaderInfo.second = "geometry shader";

@@ -27,7 +27,7 @@ public:
     };
 
     enum eUNIFORM_ID {
-        nVIEWPORT = 0,
+        nVIEWPORT = 0, nVIEWPORT_RECT,
         nMAIN_COLOR = 0
     };
 
