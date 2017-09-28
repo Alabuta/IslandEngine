@@ -7,7 +7,10 @@
 ****
 ********************************************************************************************************************************/
 
+
 #if CRUS_VERTEX_SHADER || CRUS_GEOMETRY_SHADER
+
+layout(location = nVIEWPORT_RECT) uniform vec4 viewport = vec4(0, 0, 1920, 1080);
 
 layout(binding = nVIEWPORT, std140) uniform VIEWPORT
 {
