@@ -18,7 +18,7 @@ layout(binding = nVIEWPORT, std140) uniform VIEWPORT
     layout(row_major) mat4 mViewport;
 };
 
-layout(binding = nTRANSFORM, std430) buffer TRANSFORM
+layout(binding = nTRANSFORM, std430) readonly buffer TRANSFORM
 {
     layout(row_major) readonly mat4 mProjViewModel;
 
