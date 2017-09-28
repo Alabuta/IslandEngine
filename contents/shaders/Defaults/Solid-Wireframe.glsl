@@ -16,16 +16,18 @@ layout(location = nVERTEX) in vec3 inVertex;
 layout(location = nTEXCRD) in vec2 inTexCoord;
 
 out from_vs_data {
-    vec4 position;
+    vec2 position;
     vec2 texCoord;
 } vs_data;
 
 void main()
 {
-    vs_data.position = mView * mModel * vec4(inVertex, 1.0);
+    gl_Position = TransformFromModelToClip(inVertex);
+
     vs_data.texCoord = inTexCoord;
 
-    gl_Position = mProj * vs_data.position;
+    // Transform each vertex from clip space into viewport space.
+    vs_data.position = normalizedToViewport(gl_Position.xy / gl_Position.w);
 }
 
 #elif CRUS_GEOMETRY_SHADER
@@ -34,7 +36,7 @@ layout(triangles) in;
 layout(triangle_strip, max_vertices = 3) out;
 
 in from_vs_data {
-    vec4 position;
+    vec2 position;
     vec2 texCoord;
 } vs_data[];
 
@@ -54,19 +56,19 @@ const uint infoB[] = {1, 1, 2, 0, 2, 1, 2};
 const uint infoAd[] = {2, 2, 1, 1, 0, 0, 0};
 const uint infoBd[] = {2, 2, 1, 2, 0, 2, 1};
 
-void simpleCase(in vec2 points[3])
+void simpleCase()
 {
     // Edge vectors of the transformed triangle.
-    const vec2 a = points[1] - points[2];
-    const vec2 b = points[2] - points[0];
-    const vec2 c = points[1] - points[0];
+    const vec2 ab = vs_data[1].position - vs_data[0].position;
+    const vec2 bc = vs_data[2].position - vs_data[1].position;
+    const vec2 ca = vs_data[0].position - vs_data[2].position;
 
-    const float area = abs(b.x * c.y - b.y * c.x);
+    const float area = abs(fma(ab.x, ca.y, -ab.y * ca.x));
 
     // Vertices' heights.
-    const float ha = area / length(a);
-    const float hb = area / length(b);
-    const float hc = area / length(c);
+    const float ha = area / length(bc);
+    const float hb = area / length(ca);
+    const float hc = area / length(ab);
 
     gs_data.edgeA = vec4(ha, 0.0, 0.0, 0.0);
     gs_data.texCoord = vs_data[0].texCoord;
@@ -89,14 +91,6 @@ void simpleCase(in vec2 points[3])
     EmitVertex();
 }
 
-vec2 projToWindow(in vec4 position)
-{
-    const vec4 viewport = vec4(0, 0, 1920, 1080);
-
-    return vec2(viewport.z * 0.5 * (position.x / position.w + 1.0) + viewport.x,
-                viewport.w * 0.5 * (position.y / position.w + 1.0) + viewport.y);
-}
-
 void main()
 {
     gs_data.mask = (gl_in[0].gl_Position.z < 0.0 ? 4 : 0) + (gl_in[1].gl_Position.z < 0.0 ? 2 : 0) + (gl_in[2].gl_Position.z < 0.0 ? 1 : 0);
@@ -105,39 +99,28 @@ void main()
     if (gs_data.mask == 7)
         return;
 
-    vec2 points[3];
-
-    // Transform each vertex into viewport space
-    /*points[0] = (mViewport * (gl_in[0].gl_Position / gl_in[0].gl_Position.w)).xy;
-    points[1] = (mViewport * (gl_in[1].gl_Position / gl_in[1].gl_Position.w)).xy;
-    points[2] = (mViewport * (gl_in[2].gl_Position / gl_in[2].gl_Position.w)).xy;*/
-
-    points[0] = projToWindow(gl_in[0].gl_Position / gl_in[0].gl_Position.w);
-    points[1] = projToWindow(gl_in[1].gl_Position / gl_in[1].gl_Position.w);
-    points[2] = projToWindow(gl_in[2].gl_Position / gl_in[2].gl_Position.w);
-
     if (gs_data.mask == 0) {
-        simpleCase(points);
+        simpleCase();
     }
 
     else {
-        gs_data.edgeA.xy = points[infoA[gs_data.mask]];
-        gs_data.edgeB.xy = points[infoB[gs_data.mask]];
+        gs_data.edgeA.xy = vs_data[infoA[gs_data.mask]].position;
+        gs_data.edgeB.xy = vs_data[infoB[gs_data.mask]].position;
 
-        gs_data.edgeA.zw = normalize(gs_data.edgeA.xy - points[infoAd[gs_data.mask]]);
-        gs_data.edgeB.zw = normalize(gs_data.edgeB.xy - points[infoBd[gs_data.mask]]);
+        gs_data.edgeA.zw = normalize(gs_data.edgeA.xy - vs_data[infoAd[gs_data.mask]].position);
+        gs_data.edgeB.zw = normalize(gs_data.edgeB.xy - vs_data[infoBd[gs_data.mask]].position);
 
-        gs_data.position = points[0];
+        gs_data.position = vs_data[0].position;
         gs_data.texCoord = vs_data[0].texCoord;
         gl_Position = gl_in[0].gl_Position;
         EmitVertex();
 
-        gs_data.position = points[1];
+        gs_data.position = vs_data[1].position;
         gs_data.texCoord = vs_data[1].texCoord;
         gl_Position = gl_in[1].gl_Position;
         EmitVertex();
 
-        gs_data.position = points[2];
+        gs_data.position = vs_data[2].position;
         gs_data.texCoord = vs_data[2].texCoord;
         gl_Position = gl_in[2].gl_Position;
         EmitVertex();
@@ -151,7 +134,11 @@ void main()
 layout(early_fragment_tests) in;
 
 layout(location = nFRAG_COLOR/*, index = 0*/) out vec4 FragColor;
-layout(location = nMAIN_COLOR) uniform vec4 mainColor = vec4(0.8, 0.8, 0.8, 1.0);
+
+layout(location = nMAIN_COLOR) uniform vec4 mainColor = vec4(0.8, 0.8, 0.8, 0.0);
+
+uniform vec4 wireColor = vec4(0, 0.64, 0, 1.0);
+uniform vec2 wireWidthAndFadeDistance = vec2(1.0, 1.0);
 
 layout(binding = 0) uniform sampler2D mainTexture;
 
@@ -202,16 +189,11 @@ void main()
     // Find the smallest distance
     const float dist = getDistanceToEdges();
 
-    const float width = 1.0;
+    const float mix_val = smoothstep(wireWidthAndFadeDistance.x - 1, wireWidthAndFadeDistance.x + 1, dist);
 
-    const float mix_val = smoothstep(width - 1, width + 1, dist);
+    float fading = clamp(wireWidthAndFadeDistance.y * gl_FragCoord.w, 0, 1);
 
-    FragColor = mix(vec4(0, 0.64, 0, 1.0), mainColor, mix_val);
-
-    //FragColor = vec4(0, 0.64, 0, exp2(-2.0 * dist * dist));
-
-    /*if (FragColor.a == 0.0)
-        discard;*/
+    FragColor = mix(wireColor, mainColor, mix_val) * fading;
 }
 
 #endif
