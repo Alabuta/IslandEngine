@@ -303,6 +303,9 @@
     <ClInclude Include="..\contents\geometry\geosphere">
       <Filter>geometry</Filter>
     </ClInclude>
+    <ClInclude Include="..\contents\geometry\Hebe">
+      <Filter>geometry</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="resources\resource.aps">
