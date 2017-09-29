@@ -11,7 +11,7 @@
 #include <bitset>
 
 #include "engine.h"
-#include "../../contents/geometry/cube"
+#include "../../contents/geometry/Hebe"
 
 
 namespace cubemap {
@@ -501,7 +501,7 @@ struct MovementComponent final : Component {
 
 void InitGeometry()
 {
-    using namespace cube;
+    using namespace Hebe;
 
     geom_count = faces.size();
 
