@@ -135,7 +135,7 @@ layout(early_fragment_tests) in;
 
 layout(location = nFRAG_COLOR/*, index = 0*/) out vec4 FragColor;
 
-layout(location = nMAIN_COLOR) uniform vec4 mainColor = vec4(0.8, 0.8, 0.8, 0.0);
+layout(location = nMAIN_COLOR) uniform vec4 mainColor = vec4(0.8, 0.8, 0.8, 1.0);
 
 uniform vec4 wireColor = vec4(0, 0.64, 0, 1.0);
 uniform vec2 wireWidthAndFadeDistance = vec2(1.0, 1.0);
@@ -193,7 +193,7 @@ void main()
 
     float fading = clamp(wireWidthAndFadeDistance.y * gl_FragCoord.w, 0, 1);
 
-    FragColor = mix(wireColor, mainColor, mix_val) * fading;
+    FragColor = mix(wireColor, mainColor, mix_val) * max(fading, mainColor.a);
 }
 
 #endif
