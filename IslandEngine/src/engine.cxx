@@ -37,7 +37,7 @@ void InitBuffers(std::vector<isle::Sprite> const &spriteSheet);
 intf::Grid grid;
 
 uint32 geom_vao;
-std::size_t geom_count;
+uint32 geom_count;
 
 
 Program flipbookProgram;
@@ -329,9 +329,6 @@ void DrawSprite()
 
     /*Render::inst().UpdateTransform(0, 1, &ms[1]);
     glDrawElementsBaseVertex(GL_TRIANGLE_STRIP, 4, GL_UNSIGNED_SHORT, nullptr, index * 4);*/
-
-    glBindVertexArray(geom_vao);
-    glDrawArrays(GL_TRIANGLES, 0, 3 * geom_count);
 }
 
 
@@ -503,7 +500,7 @@ void InitGeometry()
 {
     using namespace Hebe;
 
-    geom_count = faces.size();
+    geom_count = static_cast<decltype(geom_count)>(faces.size());
 
     struct Vertex {
         Position pos;
@@ -616,6 +613,12 @@ void DrawFrame()
     //glMultiDrawArrays(GL_TRIANGLE_FAN, first, count, 6);
     //glMultiDrawElements(GL_TRIANGLE_FAN, count, GL_UNSIGNED_BYTE, reinterpret_cast<void const *const *>(indicies), 6);
     //glDrawElements(GL_TRIANGLE_FAN, count[5], GL_UNSIGNED_BYTE, reinterpret_cast<void const *>(sizeof(uint8) * 4));
+    
+    flipbookTexture.Bind();
+    flipbookProgram.UseThis();
+
+    glBindVertexArray(geom_vao);
+    glDrawArrays(GL_TRIANGLES, 0, 3 * geom_count);
 
     glDepthMask(GL_FALSE);
     DrawSprite();
