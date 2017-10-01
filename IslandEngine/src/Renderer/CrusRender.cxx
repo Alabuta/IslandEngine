@@ -33,7 +33,18 @@ void Render::Init()
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
 
-    //glDepthRangedNV(0, 1);
+    glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+
+    // Application intialization function.
+    glEnable(GL_CULL_FACE);
+    //glEnable(GL_DEPTH_CLAMP);
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    //glClipControl(GL_LOWER_LEFT, GL_ZERO_TO_ONE);
+    //glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+    //glDepthRange(0, 1);
 
     auto maxAttribs = -1;
     glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &maxAttribs);

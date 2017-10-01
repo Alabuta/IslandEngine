@@ -575,16 +575,6 @@ void Init()
     Camera::inst().SetPos(-0.75f, 1.25f, -0.25f);
     Camera::inst().LookAt(0.f, 1.25f, 0.f);
 
-    // Application intialization function.
-    glEnable(GL_CULL_FACE);
-
-    //glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-    glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
-
     grid.Update(12.3f, 1.7f, 5);
 
     log::Debug() << measure<>::execution(InitBackground);

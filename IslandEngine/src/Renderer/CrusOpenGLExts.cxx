@@ -179,6 +179,12 @@ CRUS_INLINE GLenum APIENTRY glClientWaitSync(GLsync sync, GLbitfield flags, GLui
     return glClientWaitSync(sync, flags, timeout);
 }
 
+CRUS_INLINE void APIENTRY glClipControl(GLenum origin, GLenum depth)
+{
+    GL_PROC_INIT(glClipControl);
+    return glClipControl(origin, depth);
+}
+
 CRUS_INLINE void APIENTRY glCompileShader(GLuint shader)
 {
     GL_PROC_INIT(glCompileShader);
