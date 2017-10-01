@@ -156,17 +156,17 @@ void Camera::UpdateView()
     auto const keyA = GetKeyState('A');
     auto const keyD = GetKeyState('D');
 
-    float x = (((keyD >> 0xF) ? 1 : 0) - ((keyA >> 0xF) ? 1 : 0)) * 0.04f;
+    float x = (((keyD >> 0xF) ? 1 : 0) - ((keyA >> 0xF) ? 1 : 0)) * 0.02f;
 
     auto const keyE = GetKeyState('E');
     auto const keyQ = GetKeyState('Q');
 
-    float y = (((keyE >> 0xF) ? 1 : 0) - ((keyQ >> 0xF) ? 1 : 0)) * 0.04f;
+    float y = (((keyE >> 0xF) ? 1 : 0) - ((keyQ >> 0xF) ? 1 : 0)) * 0.02f;
 
     auto const keyW = GetKeyState('W');
     auto const keyS = GetKeyState('S');
 
-    float z = (((keyS >> 0xF) ? 1 : 0) - ((keyW >> 0xF) ? 1 : 0)) * 0.04f;
+    float z = (((keyS >> 0xF) ? 1 : 0) - ((keyW >> 0xF) ? 1 : 0)) * 0.02f;
 
     auto const xAxis = math::Vector::GetNormalized(view_.xAxis());
     auto const yAxis = math::Vector::GetNormalized(view_.yAxis());
