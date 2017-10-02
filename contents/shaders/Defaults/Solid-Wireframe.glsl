@@ -110,20 +110,12 @@ void main()
         gs_data.edgeA.zw = normalize(gs_data.edgeA.xy - vs_data[infoAd[gs_data.mask]].position);
         gs_data.edgeB.zw = normalize(gs_data.edgeB.xy - vs_data[infoBd[gs_data.mask]].position);
 
-        gs_data.position = vs_data[0].position;
-        gs_data.texCoord = vs_data[0].texCoord;
-        gl_Position = gl_in[0].gl_Position;
-        EmitVertex();
+        for (int i = 0; i < 3; ++i) {
+            gs_data.position = vs_data[i].position;
+            gs_data.texCoord = vs_data[i].texCoord;
+            gl_Position = gl_in[i].gl_Position;
 
-        gs_data.position = vs_data[1].position;
-        gs_data.texCoord = vs_data[1].texCoord;
-        gl_Position = gl_in[1].gl_Position;
-        EmitVertex();
-
-        gs_data.position = vs_data[2].position;
-        gs_data.texCoord = vs_data[2].texCoord;
-        gl_Position = gl_in[2].gl_Position;
-        EmitVertex();
+            EmitVertex();
     }
 
     EndPrimitive();
