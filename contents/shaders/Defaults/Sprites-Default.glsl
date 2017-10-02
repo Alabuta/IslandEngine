@@ -10,6 +10,7 @@
 #pragma include("Includes/ShaderHelpers.glsl")
 
 #if CRUS_VERTEX_SHADER
+#pragma shader_stage("vertex")
 
 layout(location = nVERTEX) in vec3 inVertex;
 layout(location = nNORMAL) in vec3 inNormal;
@@ -25,6 +26,7 @@ void main()
 }
 
 #elif CRUS_FRAGMENT_SHADER
+#pragma shader_stage("fragment")
 
 layout(early_fragment_tests) in;
 

@@ -10,6 +10,7 @@
 #pragma include("Includes/ShaderHelpers.glsl")
 
 #if CRUS_VERTEX_SHADER
+#pragma shader_stage("vertex")
 
 layout(location = nVERTEX) in vec3 inVertex;
 //layout(location = nNORMAL) in vec3 inNormal;
@@ -31,6 +32,7 @@ void main()
 }
 
 #elif CRUS_GEOMETRY_SHADER
+#pragma shader_stage("geometry")
 
 layout(triangles) in;
 layout(triangle_strip, max_vertices = 3) out;
@@ -116,12 +118,14 @@ void main()
             gl_Position = gl_in[i].gl_Position;
 
             EmitVertex();
+        }
     }
 
     EndPrimitive();
 }
 
 #elif CRUS_FRAGMENT_SHADER
+#pragma shader_stage("fragment")
 
 layout(early_fragment_tests) in;
 

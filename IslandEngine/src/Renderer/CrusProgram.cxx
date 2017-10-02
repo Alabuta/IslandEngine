@@ -24,6 +24,34 @@ auto constexpr kSHADERS_PATH = R"(../contents/shaders/)";
 };
 
 namespace isle {
+std::tuple<bool, bool, bool> GetShaderStages(std::string const &_source)
+{
+    static std::regex const rex_shader_stage_pattern(R"(^\s*#\s*pragma\s+shader_stage[(]["](.*)["][)].*)");
+
+    auto begin = std::sregex_iterator(_source.cbegin(), _source.cend(), rex_shader_stage_pattern);
+    auto end = std::sregex_iterator();
+
+    log::Debug() << "found " << std::distance(begin, end);
+
+    auto stages = std::make_tuple(false, false, false);
+
+    using namespace std::string_literals;
+    std::array<std::string, 3> names = {"vertex"s, "geometry"s, "fragment"s};
+
+    for (auto it = begin; it != end; ++it) {
+        if (names[0] == (*it)[1])
+            std::get<0>(stages) = true;
+
+        else if (names[1] == (*it)[1])
+            std::get<1>(stages) = true;
+
+        else if (names[2] == (*it)[1])
+            std::get<2>(stages) = true;
+    }
+
+    return stages;
+}
+
 std::string Program::ReadShaderSource(std::string const &_parentPath, std::string const &_name)
 {
     if (_parentPath.empty() || _name.empty()) {
@@ -122,20 +150,20 @@ bool Program::AssignNew(std::initializer_list<std::string> &&_names)
             return false;
         }
 
+        auto const [vertex, geometry, fragment] = GetShaderStages(source);
+
         if (source = PreprocessIncludes(source, name); source.empty()) {
             log::Error() << "can't read file: " << name;
             return false;
         }
 
-        if (!CreateShader(source, GL_VERTEX_SHADER))
+        if (vertex && !CreateShader(source, GL_VERTEX_SHADER))
             return false;
 
-        if (name == "Defaults/Solid-Wireframe.glsl") {
-            if (!CreateShader(source, GL_GEOMETRY_SHADER))
-                return false;
-        }
+        if (geometry && !CreateShader(source, GL_GEOMETRY_SHADER))
+            return false;
 
-        if (!CreateShader(source, GL_FRAGMENT_SHADER))
+        if (fragment && !CreateShader(source, GL_FRAGMENT_SHADER))
             return false;
     }
 
