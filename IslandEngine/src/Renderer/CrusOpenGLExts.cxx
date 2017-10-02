@@ -342,6 +342,12 @@ CRUS_INLINE void APIENTRY glDepthRange(GLdouble zNear, GLdouble zFar)
     return glDepthRange(zNear, zFar);
 }
 
+CRUS_INLINE void APIENTRY glDepthRangef(GLfloat zNear, GLfloat zFar)
+{
+    GL_PROC_INIT(glDepthRangef);
+    return glDepthRangef(zNear, zFar);
+}
+
 CRUS_INLINE void APIENTRY glDetachShader(GLuint program, GLuint shader)
 {
     GL_PROC_INIT(glDetachShader);

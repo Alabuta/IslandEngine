@@ -37,14 +37,15 @@ void Render::Init()
 
     // Application intialization function.
     glEnable(GL_CULL_FACE);
-    //glEnable(GL_DEPTH_CLAMP);
+    //glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+    glEnable(GL_DEPTH_CLAMP);
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    //glClipControl(GL_LOWER_LEFT, GL_ZERO_TO_ONE);
-    //glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-    //glDepthRange(0, 1);
+    glDepthRangef(0.f, 1.f);
+    glClipControl(GL_LOWER_LEFT, GL_ZERO_TO_ONE);
 
     auto maxAttribs = -1;
     glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &maxAttribs);
