@@ -113,8 +113,8 @@ UNIT_SUITE_CLASS(isle::math::Vector)
 
     // The bool operators...
     {
-        float const x = rand<float>(), y = rand<float>(), z = rand<float>();
-        Vector const v1(x, y, z), v2(x, y, z);
+        float const rx = rand<float>(), ry = rand<float>(), rz = rand<float>();
+        Vector const v1(rx, ry, rz), v2(rx, ry, rz);
 
         CHECK(v1 == v2, "operator== (Vector const &) const")
         CHECK(!(v1 != v2), "operator!= (Vector const &) const")
