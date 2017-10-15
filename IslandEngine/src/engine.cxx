@@ -331,7 +331,7 @@ void DrawSprite()
     glDrawElementsBaseVertex(GL_TRIANGLE_STRIP, 4, GL_UNSIGNED_SHORT, nullptr, index * 4);*/
 }
 
-
+#if _CRUS_NOT_YET_IMPLEMENTED
 
 constexpr auto kMAX_COMPONENTS = 64;
 
@@ -496,6 +496,8 @@ struct MovementComponent final : Component {
     MovementComponent(Entity entity, float initial_speed, float max_speed) : Component(entity), initial_speed(initial_speed), max_speed(max_speed) { };
 };*/
 
+#endif
+
 void InitGeometry()
 {
     using namespace Hebe;
@@ -581,8 +583,8 @@ void Init()
 
     cubemap::InitCubemap();
 
-    EntityManager entities;
-    auto entity = entities.CreateEntity();
+    /*EntityManager entities;
+    auto entity = entities.CreateEntity();*/
 
     InitGeometry();
 }

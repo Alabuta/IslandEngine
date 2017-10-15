@@ -42,6 +42,8 @@ struct overloader : Ts... {
 template<typename... Ts>
 overloader(Ts...)->overloader<Ts...>;*/
 
+#if _CRUS_NOT_YET_IMPLEMENTED
+
 struct PositionComponent {
     isle::math::Vector position;
 
@@ -160,6 +162,7 @@ public:
 
     virtual void Update(float time) = 0;
 };
+#endif
 
 #if _CRUS_NOT_YET_IMPLEMENTED
 class RenderSystem final : public ISystem {
@@ -223,6 +226,7 @@ private:
 };
 #endif
 
+#if _CRUS_NOT_YET_IMPLEMENTED
 class Engine final {
 public:
 
@@ -367,6 +371,7 @@ private:
 
     std::vector<PhysicsComponent> *physicsComponents_;
 };
+#endif
 
 namespace isle {
 Time System::time;
