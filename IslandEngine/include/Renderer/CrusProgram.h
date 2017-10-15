@@ -49,6 +49,8 @@ private:
     static auto constexpr kINCLUDING_LEVEL{16};
     uint32 program_{0};
 
+    uint32 CreateShaderObject(std::string_view source, uint32 type);
+
     bool CreateShader(std::string_view const &source, uint32 type);
     bool CompileShader(std::pair<uint32, std::string_view> const &shaderInfo) const;
 

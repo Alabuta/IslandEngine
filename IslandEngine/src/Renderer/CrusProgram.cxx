@@ -12,6 +12,7 @@
 #include <regex>
 #include <array>
 #include <cctype>
+#include <unordered_map>
 //#include <filesystem>
 
 
@@ -28,6 +29,24 @@ std::tuple<bool, bool, bool> GetShaderStages(std::string const &_source)
 {
     static std::regex const rex_shader_stage_pattern(R"(^\s*#\s*pragma\s+shader_stage[(]["](.*)["][)].*)");
 
+    {
+        std::vector<std::string> sources;
+        //std::unordered_map<std::string, std::string> sources;
+
+        auto begin = std::sregex_token_iterator(_source.cbegin(), _source.cend(), rex_shader_stage_pattern, -1);
+        auto end = std::sregex_token_iterator();
+
+        for (auto it = begin; it != end; ++it) {
+            sources.emplace_back(std::move(*it));
+
+            /*log::Debug() << it->first;
+            log::Debug() << it->second;*/
+        }
+
+        for (auto const &source : sources)
+            log::Debug() << source;
+    }
+
     auto begin = std::sregex_iterator(_source.cbegin(), _source.cend(), rex_shader_stage_pattern);
     auto end = std::sregex_iterator();
 
@@ -36,7 +55,7 @@ std::tuple<bool, bool, bool> GetShaderStages(std::string const &_source)
     auto stages = std::make_tuple(false, false, false);
 
     using namespace std::string_literals;
-    std::array<std::string, 3> names = {"vertex"s, "geometry"s, "fragment"s};
+    static const std::array<std::string, 3> names = {"vertex"s, "geometry"s, "fragment"s};
 
     for (auto it = begin; it != end; ++it) {
         if (names[0] == (*it)[1])
@@ -144,6 +163,8 @@ bool Program::AssignNew(std::initializer_list<std::string> &&_names)
 
     std::string source;
 
+    std::vector<uint32> shaderObjects;
+
     for (auto const &name : names) {
         if (source = ReadShaderSource(kSHADERS_PATH, name); source.empty()) {
             log::Error() << "can't read file: " << name;
@@ -157,17 +178,32 @@ bool Program::AssignNew(std::initializer_list<std::string> &&_names)
             return false;
         }
 
-        if (vertex && !CreateShader(source, GL_VERTEX_SHADER))
-            return false;
+        if (vertex)
+            if (auto vertexShaderObject = CreateShaderObject(source, GL_VERTEX_SHADER); vertexShaderObject != 0)
+                shaderObjects.push_back(vertexShaderObject);
 
-        if (geometry && !CreateShader(source, GL_GEOMETRY_SHADER))
-            return false;
+            else return false;
 
-        if (fragment && !CreateShader(source, GL_FRAGMENT_SHADER))
-            return false;
+        if (geometry)
+            if (auto geometryShaderObject = CreateShaderObject(source, GL_GEOMETRY_SHADER); geometryShaderObject != 0)
+                shaderObjects.push_back(geometryShaderObject);
+
+            else return false;
+
+        if (fragment)
+            if (auto fragmentShaderObject = CreateShaderObject(source, GL_FRAGMENT_SHADER); fragmentShaderObject != 0)
+                shaderObjects.push_back(fragmentShaderObject);
+
+            else return false;
     }
 
+    for (auto shaderObject : shaderObjects)
+        glAttachShader(program_, shaderObject);
+
     if (LinkAndValidateProgram()) {
+        for (auto shaderObject : shaderObjects)
+            glDetachShader(program_, shaderObject);
+
         if (glIsProgram(program_) != GL_TRUE) {
             log::Error() << "invalid program number: " << program_ << " from " << names.begin();
             return false;
@@ -175,6 +211,9 @@ bool Program::AssignNew(std::initializer_list<std::string> &&_names)
 
         else return true;
     }
+
+    for (auto shaderObject : shaderObjects)
+        glDetachShader(program_, shaderObject);
 
     return false;
 }
@@ -203,73 +242,177 @@ void Program::Destroy()
     glDeleteProgram(program_);
 }
 
+uint32 Program::CreateShaderObject(std::string_view _source, uint32 _type)
+{
+    static std::unordered_map<uint32, std::string> const shaderTypes = {
+        {GL_VERTEX_SHADER, "vertex shader"},
+        {GL_FRAGMENT_SHADER, "fragment shader"},
+        {GL_GEOMETRY_SHADER, "geometry shader"}
+    };
+
+    auto const shaderObject = glCreateShader(_type);
+
+    const auto preprocessorDirectives = [] (uint32 type)
+    {
+        // Used for shader source file preprocessing.
+        std::ostringstream preprocessor_directives;
+
+        switch (type) {
+            case GL_VERTEX_SHADER:
+                preprocessor_directives
+                    << '\n'
+                    << kGLSL_VERSION
+                    << "\n#define CRUS_VERTEX_SHADER 1\n"
+                    << "\n#define nVERTEX        " << nVERTEX
+                    << "\n#define nNORMAL        " << nNORMAL
+                    << "\n#define nTEXCRD        " << nTEXCRD
+                    << "\n#define nCOLOR         " << nCOLOR
+                    << "\n#define nVIEWPORT      " << nVIEWPORT
+                    << "\n#define nTRANSFORM     " << nTRANSFORM
+                    << "\n#define nVIEWPORT_RECT " << nVIEWPORT_RECT
+                    << '\n';
+                break;
+
+            case GL_GEOMETRY_SHADER:
+                preprocessor_directives
+                    << '\n'
+                    << kGLSL_VERSION
+                    << "\n#define CRUS_GEOMETRY_SHADER 1\n"
+                    << "\n#define nVIEWPORT      " << nVIEWPORT
+                    << "\n#define nTRANSFORM     " << nTRANSFORM
+                    << "\n#define nVIEWPORT_RECT " << nVIEWPORT_RECT
+                    << '\n';
+                break;
+
+            case GL_FRAGMENT_SHADER:
+                preprocessor_directives
+                    << '\n'
+                    << kGLSL_VERSION
+                    << "\n#define CRUS_FRAGMENT_SHADER 1\n"
+                    << "\n#define nFRAG_COLOR   " << nFRAG_COLOR
+                    << "\n#define nMAIN_COLOR   " << nMAIN_COLOR
+                    << '\n';
+                break;
+
+            case GL_COMPUTE_SHADER:
+                preprocessor_directives
+                    << '\n'
+                    << kGLSL_VERSION
+                    << "\n#define CRUS_COMPUTE_SHADER 1\n"
+                    << '\n';
+                break;
+        }
+
+        using namespace std::string_literals;
+        return preprocessor_directives.good() ? preprocessor_directives.str() : ""s;
+
+    } (_type);
+
+    std::array<char const *const, 2> const sources = {
+        preprocessorDirectives.data(), _source.data()
+    };
+
+    glShaderSource(shaderObject, static_cast<int32>(sources.size()), sources.data(), nullptr);
+    glCompileShader(shaderObject);
+
+    auto success = 0;
+    glGetShaderiv(shaderObject, GL_COMPILE_STATUS, &success);
+
+    if (success != GL_TRUE) {
+        auto length = -1;
+        glGetShaderiv(shaderObject, GL_INFO_LOG_LENGTH, &length);
+
+        std::vector<char> log(length, '\0');
+        glGetShaderInfoLog(shaderObject, static_cast<int32>(log.size()), &length, log.data());
+
+        glDeleteShader(shaderObject);
+
+        if (length < 1)
+            return false;
+
+        log::Error() << "{" << shaderTypes.at(_type) << "} " << log.data();
+
+        return 0;
+    }
+
+    glObjectLabel(GL_SHADER, shaderObject, -1, shaderTypes.at(_type).data());
+
+    return shaderObject;
+}
+
 bool Program::CreateShader(std::string_view const &_source, uint32 _type)
 {
     auto shaderInfo = std::make_pair(glCreateShader(_type), "undefined shader");
 
-    // Are used for shader source file preprocessing.
-    std::ostringstream preprocessor_directives;
+    const auto preprocessor_directives = [&shaderInfo] (uint32 type)
+    {
+        // Are used for shader source file preprocessing.
+        std::ostringstream preprocessor_directives;
 
-    switch (_type) {
-        case GL_VERTEX_SHADER:
-            preprocessor_directives
-                << '\n'
-                << kGLSL_VERSION
-                << "\n#define CRUS_VERTEX_SHADER 1\n"
-                << "\n#define nVERTEX        " << nVERTEX
-                << "\n#define nNORMAL        " << nNORMAL
-                << "\n#define nTEXCRD        " << nTEXCRD
-                << "\n#define nCOLOR         " << nCOLOR
-                << "\n#define nVIEWPORT      " << nVIEWPORT
-                << "\n#define nTRANSFORM     " << nTRANSFORM
-                << "\n#define nVIEWPORT_RECT " << nVIEWPORT_RECT
-                << '\n';
+        switch (type) {
+            case GL_VERTEX_SHADER:
+                preprocessor_directives
+                    << '\n'
+                    << kGLSL_VERSION
+                    << "\n#define CRUS_VERTEX_SHADER 1\n"
+                    << "\n#define nVERTEX        " << nVERTEX
+                    << "\n#define nNORMAL        " << nNORMAL
+                    << "\n#define nTEXCRD        " << nTEXCRD
+                    << "\n#define nCOLOR         " << nCOLOR
+                    << "\n#define nVIEWPORT      " << nVIEWPORT
+                    << "\n#define nTRANSFORM     " << nTRANSFORM
+                    << "\n#define nVIEWPORT_RECT " << nVIEWPORT_RECT
+                    << '\n';
 
-            shaderInfo.second = "vertex shader";
-            break;
+                shaderInfo.second = "vertex shader";
+                break;
 
-        case GL_GEOMETRY_SHADER:
-            preprocessor_directives
-                << '\n'
-                << kGLSL_VERSION
-                << "\n#define CRUS_GEOMETRY_SHADER 1\n"
-                << "\n#define nVIEWPORT      " << nVIEWPORT
-                << "\n#define nTRANSFORM     " << nTRANSFORM
-                << "\n#define nVIEWPORT_RECT " << nVIEWPORT_RECT
-                << '\n';
+            case GL_GEOMETRY_SHADER:
+                preprocessor_directives
+                    << '\n'
+                    << kGLSL_VERSION
+                    << "\n#define CRUS_GEOMETRY_SHADER 1\n"
+                    << "\n#define nVIEWPORT      " << nVIEWPORT
+                    << "\n#define nTRANSFORM     " << nTRANSFORM
+                    << "\n#define nVIEWPORT_RECT " << nVIEWPORT_RECT
+                    << '\n';
 
-            shaderInfo.second = "geometry shader";
-            break;
+                shaderInfo.second = "geometry shader";
+                break;
 
-        case GL_FRAGMENT_SHADER:
-            preprocessor_directives
-                << '\n'
-                << kGLSL_VERSION
-                << "\n#define CRUS_FRAGMENT_SHADER 1\n"
-                << "\n#define nFRAG_COLOR   " << nFRAG_COLOR
-                << "\n#define nMAIN_COLOR   " << nMAIN_COLOR
-                << '\n';
+            case GL_FRAGMENT_SHADER:
+                preprocessor_directives
+                    << '\n'
+                    << kGLSL_VERSION
+                    << "\n#define CRUS_FRAGMENT_SHADER 1\n"
+                    << "\n#define nFRAG_COLOR   " << nFRAG_COLOR
+                    << "\n#define nMAIN_COLOR   " << nMAIN_COLOR
+                    << '\n';
 
-            shaderInfo.second = "fragment shader";
-            break;
+                shaderInfo.second = "fragment shader";
+                break;
 
-        case GL_COMPUTE_SHADER:
-            preprocessor_directives
-                << '\n'
-                << kGLSL_VERSION
-                << "\n#define CRUS_COMPUTE_SHADER 1\n"
-                << '\n';
+            case GL_COMPUTE_SHADER:
+                preprocessor_directives
+                    << '\n'
+                    << kGLSL_VERSION
+                    << "\n#define CRUS_COMPUTE_SHADER 1\n"
+                    << '\n';
 
-            shaderInfo.second = "compute shader";
-            break;
-    }
+                shaderInfo.second = "compute shader";
+                break;
+        }
 
-    preprocessor_directives << _source;
+        using namespace std::string_literals;
+        return preprocessor_directives.good() ? preprocessor_directives.str() : ""s;
 
-    std::string sources(preprocessor_directives.good() ? std::move(preprocessor_directives.str()) : "");
-    auto const str = sources.c_str();
+    } (_type);
 
-    glShaderSource(shaderInfo.first, 1, &str, nullptr);
+    std::array<char const *const, 2> const sources = {
+        preprocessor_directives.data(), _source.data()
+    };
+
+    glShaderSource(shaderInfo.first, static_cast<int32>(sources.size()), sources.data(), nullptr);
 
     if (!CompileShader(shaderInfo))
         return false;
@@ -284,21 +427,23 @@ bool Program::CompileShader(std::pair<uint32, std::string_view> const &_shaderIn
 {
     auto status = 0, length = -1;
 
-    glCompileShader(_shaderInfo.first);
-    glGetShaderiv(_shaderInfo.first, GL_COMPILE_STATUS, &status);
+    auto const &[object, type] = _shaderInfo;
+
+    glCompileShader(object);
+    glGetShaderiv(object, GL_COMPILE_STATUS, &status);
 
     if (status == GL_TRUE)
         return true;
 
-    glGetShaderiv(_shaderInfo.first, GL_INFO_LOG_LENGTH, &length);
+    glGetShaderiv(object, GL_INFO_LOG_LENGTH, &length);
 
     std::vector<char> log(length, '\0');
-    glGetShaderInfoLog(_shaderInfo.first, static_cast<GLsizei>(log.size()), &length, log.data());
+    glGetShaderInfoLog(object, static_cast<GLsizei>(log.size()), &length, log.data());
 
     if (length < 1)
         return false;
 
-    log::Error() << "{" << _shaderInfo.second << "} " << log.data();
+    log::Error() << "{" << type << "} " << log.data();
 
     return false;
 }
