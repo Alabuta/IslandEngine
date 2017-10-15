@@ -98,8 +98,8 @@ void main()
     gs_data.mask = (gl_in[0].gl_Position.z < 0.0 ? 4 : 0) + (gl_in[1].gl_Position.z < 0.0 ? 2 : 0) + (gl_in[2].gl_Position.z < 0.0 ? 1 : 0);
 
     // All vertices behind the viewport.
-    if (gs_data.mask == 7)
-        return;
+    /*if (gs_data.mask == 7)
+        return;*/
 
     if (gs_data.mask == 0) {
         simpleCase();
