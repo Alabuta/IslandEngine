@@ -69,11 +69,8 @@ bool Texture::Init()
 
         std::vector<std::future<bool>> futures;
 
-        /*for (auto &[index, name, image] : tuples)
-            ;*/
-
-        for (auto &tuple : tuples)
-            futures.emplace_back(std::async(/*std::launch::async, */LoadTARGA, &std::get<2>(tuple), path_ + std::get<1>(tuple)));
+        for (auto &[index, name, image] : tuples)
+            futures.emplace_back(std::async(/*std::launch::async, */LoadTARGA, &image, path_ + name));
 
         Render::inst().CreateTBO(GL_TEXTURE_CUBE_MAP, id_);
 
@@ -89,11 +86,9 @@ bool Texture::Init()
                 return false;
 
         glTextureStorage2D(id_, 1, std::get<2>(tuples[0]).bpp_, std::get<2>(tuples[0]).width_, std::get<2>(tuples[0]).height_);
-        
-        for (auto const &tuple : tuples)
-            glTextureSubImage3D(id_, 0, 0, 0, std::get<0>(tuple),
-                                std::get<2>(tuple).width_, std::get<2>(tuple).height_, 1,
-                                std::get<2>(tuple).format_, std::get<2>(tuple).type_, std::get<2>(tuple).data_.data());
+
+        for (auto &[index, name, image] : tuples)
+            glTextureSubImage3D(id_, 0, 0, 0, index, image.width_,  image.height_, 1, image.format_, image.type_, image.data_.data());
 
         glGenerateTextureMipmap(id_);
     }
