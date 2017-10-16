@@ -9,8 +9,7 @@
 #pragma include("Includes/ShaderVariables.glsl")
 #pragma include("Includes/ShaderHelpers.glsl")
 
-#if CRUS_VERTEX_SHADER
-#pragma shader_stage("vertex")
+#pragma stage("vertex")
 
 layout(location = nVERTEX) in vec3 inVertex;
 layout(location = nCOLOR) in vec3 inColor;
@@ -23,8 +22,7 @@ void main()
     color = inColor;
 }
 
-#elif CRUS_FRAGMENT_SHADER
-#pragma shader_stage("fragment")
+#pragma stage("fragment")
 
 layout(early_fragment_tests) in;
 
@@ -36,5 +34,3 @@ void main()
 {
     FragColor = vec4(color, 1.0);
 }
-
-#endif

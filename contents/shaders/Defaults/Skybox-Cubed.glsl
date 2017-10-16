@@ -8,8 +8,7 @@
 ****************************************************************************************/
 #pragma include("Includes/ShaderVariables.glsl")
 
-#if CRUS_VERTEX_SHADER
-#pragma shader_stage("vertex")
+#pragma stage("vertex")
 
 layout(location = nVERTEX) in vec3 inVertex;
 
@@ -27,8 +26,7 @@ void main()
     texCoord = -inVertex;
 }
 
-#elif CRUS_FRAGMENT_SHADER
-#pragma shader_stage("fragment")
+#pragma stage("fragment")
 
 layout(early_fragment_tests) in;
 
@@ -43,5 +41,3 @@ void main()
 {
     FragColor = texture(skybox, texCoord) * mainColor;
 }
-
-#endif

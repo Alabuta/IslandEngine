@@ -9,8 +9,7 @@
 #pragma include("Includes/ShaderVariables.glsl")
 #pragma include("Includes/ShaderHelpers.glsl")
 
-#if CRUS_VERTEX_SHADER
-#pragma shader_stage("vertex")
+#pragma stage("vertex")
 
 layout(location = nVERTEX) in vec3 inVertex;
 //layout(location = nNORMAL) in vec3 inNormal;
@@ -31,8 +30,7 @@ void main()
     vs_data.position = normalizedToViewport(gl_Position.xy / gl_Position.w);
 }
 
-#elif CRUS_GEOMETRY_SHADER
-#pragma shader_stage("geometry")
+#pragma stage("geometry")
 
 layout(triangles) in;
 layout(triangle_strip, max_vertices = 3) out;
@@ -124,19 +122,17 @@ void main()
     EndPrimitive();
 }
 
-#elif CRUS_FRAGMENT_SHADER
-#pragma shader_stage("fragment")
+#pragma stage("fragment")
 
 layout(early_fragment_tests) in;
 
 layout(location = nFRAG_COLOR/*, index = 0*/) out vec4 FragColor;
-
 layout(location = nMAIN_COLOR) uniform vec4 mainColor = vec4(0.8, 0.8, 0.8, 1.0);
+
+layout(binding = 0) uniform sampler2D mainTexture;
 
 uniform vec4 wireColor = vec4(0, 0.64, 0, 1.0);
 uniform vec2 wireWidthAndFadeDistance = vec2(0.64, 1.0);
-
-layout(binding = 0) uniform sampler2D mainTexture;
 
 in from_gs_data {
     noperspective vec2 position;
@@ -191,5 +187,3 @@ void main()
 
     FragColor = mix(wireColor, mainColor, mix_val) * max(fading, mainColor.a);
 }
-
-#endif

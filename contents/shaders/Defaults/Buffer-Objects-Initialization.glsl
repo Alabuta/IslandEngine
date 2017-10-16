@@ -8,16 +8,12 @@
 ********************************************************************************************************************************/
 #pragma include("Includes/ShaderVariables.glsl")
 
-#if CRUS_VERTEX_SHADER
-#pragma shader_stage("vertex")
+#pragma stage("vertex")
 
 void main()
 { }
 
-#elif CRUS_FRAGMENT_SHADER
-#pragma shader_stage("fragment")
+#pragma stage("fragment")
 
 void main()
 { }
-
-#endif
