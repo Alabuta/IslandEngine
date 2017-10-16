@@ -25,50 +25,22 @@ auto constexpr kSHADERS_PATH = R"(../contents/shaders/)";
 };
 
 namespace isle {
-std::tuple<bool, bool, bool> GetShaderStages(std::string const &_source)
+auto GetShaderStages(std::string const &_source)
 {
-    static std::regex const rex_shader_stage_pattern(R"(^\s*#\s*pragma\s+shader_stage[(]["](.*)["][)].*)");
-
-    {
-        std::vector<std::string> sources;
-        //std::unordered_map<std::string, std::string> sources;
-
-        auto begin = std::sregex_token_iterator(_source.cbegin(), _source.cend(), rex_shader_stage_pattern, -1);
-        auto end = std::sregex_token_iterator();
-
-        for (auto it = begin; it != end; ++it) {
-            sources.emplace_back(std::move(*it));
-
-            /*log::Debug() << it->first;
-            log::Debug() << it->second;*/
-        }
-
-        for (auto const &source : sources)
-            log::Debug() << source;
-    }
-
-    auto begin = std::sregex_iterator(_source.cbegin(), _source.cend(), rex_shader_stage_pattern);
-    auto end = std::sregex_iterator();
-
-    log::Debug() << "found " << std::distance(begin, end);
-
-    auto stages = std::make_tuple(false, false, false);
-
     using namespace std::string_literals;
-    static const std::array<std::string, 3> names = {"vertex"s, "geometry"s, "fragment"s};
+    static std::regex const rex_shader_stage_pattern(R"(^\s*#\s*pragma\s+stage[(]["](.*)["][)].*)", std::regex::optimize);
 
-    for (auto it = begin; it != end; ++it) {
-        if (names[0] == (*it)[1])
-            std::get<0>(stages) = true;
+    std::unordered_map<std::string, std::string> sources;
 
-        else if (names[1] == (*it)[1])
-            std::get<1>(stages) = true;
+    auto begin = std::sregex_token_iterator(_source.cbegin(), _source.cend(), rex_shader_stage_pattern, {-1, 1});
+    auto end = std::sregex_token_iterator();
 
-        else if (names[2] == (*it)[1])
-            std::get<2>(stages) = true;
-    }
+    sources.emplace("undefined"s, std::move(*begin));
 
-    return stages;
+    for (auto it = std::next(begin); it != end; std::advance(it, 2))
+        sources.emplace(std::move(*it), std::move(*std::next(it)));
+
+    return sources;
 }
 
 std::string Program::ReadShaderSource(std::string const &_parentPath, std::string const &_name)
@@ -106,7 +78,7 @@ std::string Program::PreprocessIncludes(std::string const &_source, std::string_
         return _source;
     }
 
-    static std::regex const re(R"(^\s*#\s*pragma\s+include[(]["](.*)["][)].*)");
+    static std::regex const re(R"(^\s*#\s*pragma\s+include[(]["](.*)["][)].*)", std::regex::optimize);
 
     std::stringstream input;
     std::ostringstream output;
@@ -149,6 +121,8 @@ std::string Program::PreprocessIncludes(std::string const &_source, std::string_
 
 bool Program::AssignNew(std::initializer_list<std::string> &&_names)
 {
+    using namespace std::string_literals;
+
     // If current shader program do exist, destroy it and create the new shader.
     if (glIsProgram(program_) == GL_TRUE) {
         Destroy();
@@ -171,30 +145,34 @@ bool Program::AssignNew(std::initializer_list<std::string> &&_names)
             return false;
         }
 
-        auto const [vertex, geometry, fragment] = GetShaderStages(source);
+        auto sources = GetShaderStages(source);
 
-        if (source = PreprocessIncludes(source, name); source.empty()) {
+        /*for (auto &[type, src] : sources) {
+            if (src = PreprocessIncludes(src, name); src.empty()) {
+                log::Error() << "can't read file: " << name;
+                return false;
+            }
+        }*/
+
+        auto includes = std::move(sources.at("undefined"s));
+        if (includes = PreprocessIncludes(includes, name); includes.empty()) {
             log::Error() << "can't read file: " << name;
             return false;
         }
+        sources.extract("undefined"s);
 
-        if (vertex)
-            if (auto vertexShaderObject = CreateShaderObject(source, GL_VERTEX_SHADER); vertexShaderObject != 0)
-                shaderObjects.push_back(vertexShaderObject);
+        static std::unordered_map<std::string, uint32> const shaderTypes = {
+            {"vertex", GL_VERTEX_SHADER},
+            {"fragment", GL_FRAGMENT_SHADER},
+            {"geometry", GL_GEOMETRY_SHADER}
+        };
 
-            else return false;
-
-        if (geometry)
-            if (auto geometryShaderObject = CreateShaderObject(source, GL_GEOMETRY_SHADER); geometryShaderObject != 0)
-                shaderObjects.push_back(geometryShaderObject);
-
-            else return false;
-
-        if (fragment)
-            if (auto fragmentShaderObject = CreateShaderObject(source, GL_FRAGMENT_SHADER); fragmentShaderObject != 0)
-                shaderObjects.push_back(fragmentShaderObject);
+        for (auto &[type, src] : sources) {
+            if (auto shaderObject = CreateShaderObject(includes, src, shaderTypes.at(type)); shaderObject != 0)
+                shaderObjects.push_back(shaderObject);
 
             else return false;
+        }
     }
 
     for (auto shaderObject : shaderObjects)
@@ -242,12 +220,12 @@ void Program::Destroy()
     glDeleteProgram(program_);
 }
 
-uint32 Program::CreateShaderObject(std::string_view _source, uint32 _type)
+uint32 Program::CreateShaderObject(std::string_view _includes, std::string_view _source, uint32 _type)
 {
     static std::unordered_map<uint32, std::string> const shaderTypes = {
-        {GL_VERTEX_SHADER, "vertex shader"},
-        {GL_FRAGMENT_SHADER, "fragment shader"},
-        {GL_GEOMETRY_SHADER, "geometry shader"}
+        {GL_VERTEX_SHADER, "vertex"},
+        {GL_FRAGMENT_SHADER, "fragment"},
+        {GL_GEOMETRY_SHADER, "geometry"}
     };
 
     auto const shaderObject = glCreateShader(_type);
@@ -308,8 +286,8 @@ uint32 Program::CreateShaderObject(std::string_view _source, uint32 _type)
 
     } (_type);
 
-    std::array<char const *const, 2> const sources = {
-        preprocessorDirectives.data(), _source.data()
+    std::array<char const *const, 3> const sources = {
+        preprocessorDirectives.data(), _includes.data(), _source.data()
     };
 
     glShaderSource(shaderObject, static_cast<int32>(sources.size()), sources.data(), nullptr);
@@ -330,7 +308,7 @@ uint32 Program::CreateShaderObject(std::string_view _source, uint32 _type)
         if (length < 1)
             return false;
 
-        log::Error() << "{" << shaderTypes.at(_type) << "} " << log.data();
+        log::Error() << "[" << shaderTypes.at(_type) << " shader] " << log.data();
 
         return 0;
     }
