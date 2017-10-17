@@ -51,8 +51,6 @@ private:
 
     uint32 CreateShaderObject(std::string_view includes, std::string_view source, uint32 type);
 
-    bool CreateShader(std::string_view const &source, uint32 type);
-    bool CompileShader(std::pair<uint32, std::string_view> const &shaderInfo) const;
 
     bool LinkAndValidateProgram() const;
 
