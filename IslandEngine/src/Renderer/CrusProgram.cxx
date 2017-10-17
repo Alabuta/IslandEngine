@@ -19,26 +19,43 @@
 #include "Renderer\CrusRender.h"
 #include "Renderer\CrusProgram.h"
 
+#undef max
+
 namespace {
 auto constexpr kGLSL_VERSION = R"(#version 450 core)";
 auto constexpr kSHADERS_PATH = R"(../contents/shaders/)";
 };
 
 namespace isle {
+//std::unordered_map<std::string, std::string> Program::cachedIncludeFiles;
+std::set<std::string> Program::cachedIncludeNames;
+std::vector<std::string> Program::cachedIncludeFiles;
+
 auto GetShaderStages(std::string const &_source)
 {
     using namespace std::string_literals;
     static std::regex const rex_shader_stage_pattern(R"(^\s*#\s*pragma\s+stage[(]["](.*)["][)].*)", std::regex::optimize);
 
-    std::unordered_map<std::string, std::string> sources;
+    static std::unordered_map<std::string, uint32> const shaderTypes = {
+        {"vertex", GL_VERTEX_SHADER},
+        {"fragment", GL_FRAGMENT_SHADER},
+        {"geometry", GL_GEOMETRY_SHADER}
+    };
+
+    std::unordered_map<uint32, std::string> sources;
 
     auto begin = std::sregex_token_iterator(_source.cbegin(), _source.cend(), rex_shader_stage_pattern, {-1, 1});
     auto end = std::sregex_token_iterator();
 
-    sources.emplace("undefined"s, std::move(*begin));
+    log::Debug() << std::count(_source.cbegin(), _source.cend(), '\n');
 
-    for (auto it = std::next(begin); it != end; std::advance(it, 2))
-        sources.emplace(std::move(*it), std::move(*std::next(it)));
+    sources.emplace(std::numeric_limits<uint32>::max(), std::move(*begin));//"#line "s + std::to_string(-1) + "\n" + 
+
+    for (auto it = std::next(begin); it != end; std::advance(it, 2)) {
+        //log::Debug() << std::count(std::string(*std::next(it)).cbegin(), std::string(*std::next(it)).cend(), '\n');
+
+        sources.emplace(shaderTypes.at(*it), std::move(*std::next(it)));
+    }
 
     return sources;
 }
@@ -119,6 +136,67 @@ std::string Program::PreprocessIncludes(std::string const &_source, std::string_
     return output.good() ? output.str() : _source;
 }
 
+
+std::vector<std::string> Program::PreprocessIncludes2(std::string const &_source, std::string_view _name, int32 _includingLevel)
+{
+    using namespace std::string_literals;
+
+    if (_includingLevel > Program::kINCLUDING_LEVEL) {
+        log::Error() << "maximum source file including level is " << Program::kINCLUDING_LEVEL;
+        return {};
+    }
+
+    static std::regex const re(R"(^\s*#\s*pragma\s+include[(]["](.*)["][)].*)", std::regex::optimize);
+
+    std::stringstream input;
+    std::ostringstream output;
+
+    auto fileName = std::regex_replace(_name.data(), std::regex(R"(-|–|\.|/|\\)"), "_");
+    std::transform(fileName.begin(), fileName.end(), fileName.begin(), [] (auto c) { return std::tolower<char>(c, std::locale()); });
+
+    /*input << "#ifndef " << fileName << '\n';
+    input << "#define " << fileName << '\n';*/
+
+    //int64 line_number = -1;
+
+    //input << "#line " << line_number << " \"" << _name << "\"\n";
+    input << _source;
+
+    std::smatch matches;
+    std::string line;
+
+    while (std::getline(input, line)) {
+        if (std::regex_search(line, matches, re)) {
+            std::string include_file_name(matches[1]);
+            std::string include_file_source;
+
+            if (cachedIncludeNames.find(include_file_name) == cachedIncludeNames.cend()) {
+                if (include_file_source = ReadShaderSource(kSHADERS_PATH, include_file_name); include_file_source.empty())
+                    return { };
+
+                else {
+                    cachedIncludeNames.emplace(std::move(include_file_name));
+                    cachedIncludeFiles.push_back("#line "s + std::to_string(-1) + "\n" + std::move(include_file_source));
+                }
+            }
+
+            PreprocessIncludes2(include_file_source, include_file_name, _includingLevel + 1);
+
+            //output << PreprocessIncludes2(include_file_source, include_file_name, _includingLevel + 1) << '\n';
+            //output << "#line " << line_number << " \"" << _name << "\"\n";
+        }
+
+        //else output << line << '\n';
+
+        //++line_number;
+    }
+
+    //output << "#endif // " << fileName << std::endl;
+
+    return {};
+    //return output.good() ? output.str() : _source;
+}
+
 bool Program::AssignNew(std::initializer_list<std::string> &&_names)
 {
     using namespace std::string_literals;
@@ -154,21 +232,29 @@ bool Program::AssignNew(std::initializer_list<std::string> &&_names)
             }
         }*/
 
-        auto includes = std::move(sources.at("undefined"s));
-        if (includes = PreprocessIncludes(includes, name); includes.empty()) {
+        auto includes = std::move(sources.at(std::numeric_limits<uint32>::max()));
+        sources.extract(std::numeric_limits<uint32>::max());
+
+        PreprocessIncludes2(includes, name);
+
+        log::Debug() << "--------------------------------------------";
+        log::Debug() << name;
+
+        for (auto const &name : cachedIncludeNames)
+            log::Debug() << name << "::";
+
+        /*std::vector<std::string> includeFiles;
+
+        for (auto &includeFile : cachedIncludeFiles)
+            includeFiles.push_back(std::move(includeFile.second));*/
+
+        /*if (includes = PreprocessIncludes(includes, name); includes.empty()) {
             log::Error() << "can't read file: " << name;
             return false;
-        }
-        sources.extract("undefined"s);
+        }*/
 
-        static std::unordered_map<std::string, uint32> const shaderTypes = {
-            {"vertex", GL_VERTEX_SHADER},
-            {"fragment", GL_FRAGMENT_SHADER},
-            {"geometry", GL_GEOMETRY_SHADER}
-        };
-
-        for (auto &[type, src] : sources) {
-            if (auto shaderObject = CreateShaderObject(includes, src, shaderTypes.at(type)); shaderObject != 0)
+        for (auto const &[type, src] : sources) {
+            if (auto shaderObject = CreateShaderObject(cachedIncludeFiles, src, type); shaderObject != 0)
                 shaderObjects.push_back(shaderObject);
 
             else return false;
@@ -220,7 +306,7 @@ void Program::Destroy()
     glDeleteProgram(program_);
 }
 
-uint32 Program::CreateShaderObject(std::string_view _includes, std::string_view _source, uint32 _type)
+uint32 Program::CreateShaderObject(std::vector<std::string> const &_includes, std::string_view _source, uint32 _type)
 {
     static std::unordered_map<uint32, std::string> const shaderTypes = {
         {GL_VERTEX_SHADER, "vertex"},
@@ -286,9 +372,14 @@ uint32 Program::CreateShaderObject(std::string_view _includes, std::string_view 
 
     } (_type);
 
-    std::array<char const *const, 3> const sources = {
-        preprocessorDirectives.data(), _includes.data(), _source.data()
-    };
+    std::vector<char const *> sources;
+
+    sources.push_back(preprocessorDirectives.data());
+
+    for (auto const &include : _includes)
+        sources.push_back(include.data());
+
+    sources.push_back(_source.data());
 
     glShaderSource(shaderObject, static_cast<int32>(sources.size()), sources.data(), nullptr);
     glCompileShader(shaderObject);

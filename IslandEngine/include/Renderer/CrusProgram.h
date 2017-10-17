@@ -13,6 +13,7 @@
 
 #include <vector>
 #include <string_view>
+#include <set>
 #include <initializer_list>
 
 #include "System\CrusSystem.h"
@@ -47,15 +48,19 @@ public:
 
 private:
     static auto constexpr kINCLUDING_LEVEL{16};
+    //static std::unordered_map<std::string, std::string> cachedIncludeFiles;
+    static std::set<std::string> cachedIncludeNames;
+    static std::vector<std::string> cachedIncludeFiles;
+
     uint32 program_{0};
 
-    uint32 CreateShaderObject(std::string_view includes, std::string_view source, uint32 type);
-
+    uint32 CreateShaderObject(std::vector<std::string> const &includes, std::string_view source, uint32 type);
 
     bool LinkAndValidateProgram() const;
 
     static std::string ReadShaderSource(std::string const &parentPath, std::string const &name);
     static std::string PreprocessIncludes(std::string const &source, std::string_view name, int32 includingLevel = 0);
+    static std::vector<std::string> PreprocessIncludes2(std::string const &source, std::string_view name, int32 includingLevel = 0);
 };
 
 __forceinline uint32 Program::program() const
