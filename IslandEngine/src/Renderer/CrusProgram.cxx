@@ -47,14 +47,19 @@ auto GetShaderStages(std::string const &_source)
     auto begin = std::sregex_token_iterator(_source.cbegin(), _source.cend(), rex_shader_stage_pattern, {-1, 1});
     auto end = std::sregex_token_iterator();
 
-    log::Debug() << std::count(_source.cbegin(), _source.cend(), '\n');
+    auto total = std::count(_source.cbegin(), _source.cend(), '\n');
 
-    sources.emplace(std::numeric_limits<uint32>::max(), std::move(*begin));//"#line "s + std::to_string(-1) + "\n" + 
+    auto const &stageStart = sources.emplace(std::numeric_limits<uint32>::max(), std::move(*begin)).first;//"#line "s + std::to_string(-1) + "\n" + 
+    auto start = std::count(stageStart->second.cbegin(), stageStart->second.cend(), '\n');
+    log::Debug() << total << "-" << start;
+
+    auto stageCount = (std::distance(begin, end) - 1) / 2;
+    log::Debug() << stageCount;
 
     for (auto it = std::next(begin); it != end; std::advance(it, 2)) {
-        //log::Debug() << std::count(std::string(*std::next(it)).cbegin(), std::string(*std::next(it)).cend(), '\n');
+        auto const &stageSource = sources.try_emplace(shaderTypes.at(*it), std::move(*std::next(it))).first;
 
-        sources.emplace(shaderTypes.at(*it), std::move(*std::next(it)));
+        log::Debug() << std::count(stageSource->second.cbegin(), stageSource->second.cend(), '\n');
     }
 
     return sources;
@@ -176,6 +181,7 @@ std::vector<std::string> Program::PreprocessIncludes2(std::string const &_source
 
                 else {
                     cachedIncludeNames.emplace(std::move(include_file_name));
+                    //output << "#line " << line_number << " \"" << _name << "\"\n";
                     cachedIncludeFiles.push_back("#line "s + std::to_string(-1) + "\n" + std::move(include_file_source));
                 }
             }
@@ -308,6 +314,7 @@ void Program::Destroy()
 
 uint32 Program::CreateShaderObject(std::vector<std::string> const &_includes, std::string_view _source, uint32 _type)
 {
+    using namespace std::string_literals;
     static std::unordered_map<uint32, std::string> const shaderTypes = {
         {GL_VERTEX_SHADER, "vertex"},
         {GL_FRAGMENT_SHADER, "fragment"},
@@ -375,7 +382,9 @@ uint32 Program::CreateShaderObject(std::vector<std::string> const &_includes, st
     std::vector<char const *> sources;
 
     sources.push_back(preprocessorDirectives.data());
-
+    
+    //output << "#line " << line_number << " \"" << _name << "\"\n";
+    //"#line "s + std::to_string(-1) + "\n" +
     for (auto const &include : _includes)
         sources.push_back(include.data());
 
