@@ -64,7 +64,7 @@ std::string Program::ReadShaderSource(std::string const &_parentPath, std::strin
 {
     if (_parentPath.empty() || _name.empty()) {
         log::Error() << "file name is invalid.";
-        return false;
+        return {};
     }
 
     std::string path(_parentPath + _name);
@@ -72,7 +72,7 @@ std::string Program::ReadShaderSource(std::string const &_parentPath, std::strin
 
     if (!file.is_open()) {
         log::Error() << "can't open file: " << _name;
-        return false;
+        return {};
     }
 
     auto source = [&file = file]
