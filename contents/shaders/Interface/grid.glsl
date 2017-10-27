@@ -9,7 +9,9 @@
 #pragma include("Includes/ShaderVariables.glsl")
 #pragma include("Includes/ShaderHelpers.glsl")
 
-#pragma stage("vertex")
+
+
+#	pragma stage("vertex")
 
 layout(location = nVERTEX) in vec3 inVertex;
 layout(location = nCOLOR) in vec3 inColor;

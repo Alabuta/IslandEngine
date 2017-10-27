@@ -31,10 +31,10 @@ namespace isle {
 std::set<std::string> Program::cachedIncludeNames;
 std::vector<std::string> Program::cachedIncludeFiles;
 
-auto GetShaderStages(std::string const &_source)
+auto DivideSourceByStages(std::string const &_name, std::string const &_source)
 {
     using namespace std::string_literals;
-    static std::regex const rex_shader_stage_pattern(R"(^\s*#\s*pragma\s+stage[(]["](.*)["][)].*)", std::regex::optimize);
+    static std::regex const rex_shader_stage_pattern("^[ |\t]*#[ |\t]*pragma[ |\t]+stage[(][\"](.*)[\"][)].*", std::regex::optimize);
 
     static std::unordered_map<std::string, uint32> const shaderTypes = {
         {"vertex", GL_VERTEX_SHADER},
@@ -49,17 +49,16 @@ auto GetShaderStages(std::string const &_source)
 
     auto total = std::count(_source.cbegin(), _source.cend(), '\n');
 
-    auto const &stageStart = sources.emplace(std::numeric_limits<uint32>::max(), std::move(*begin)).first;//"#line "s + std::to_string(-1) + "\n" + 
-    auto start = std::count(stageStart->second.cbegin(), stageStart->second.cend(), '\n');
-    log::Debug() << total << "-" << start;
-
-    auto stageCount = (std::distance(begin, end) - 1) / 2;
-    log::Debug() << stageCount;
+    auto const &stageStart = sources.emplace(std::numeric_limits<uint32>::max(), std::move(*begin)).first;
+    auto count = std::count(stageStart->second.cbegin(), stageStart->second.cend(), '\n');
 
     for (auto it = std::next(begin); it != end; std::advance(it, 2)) {
-        auto const &stageSource = sources.try_emplace(shaderTypes.at(*it), std::move(*std::next(it))).first;
+        auto const &stageSource = sources.try_emplace(
+            shaderTypes.at(*it),
+            "#line "s + std::to_string(count + 1) + " \"" + _name + "\"\n" + std::string(*std::next(it))
+        ).first;
 
-        log::Debug() << std::count(stageSource->second.cbegin(), stageSource->second.cend(), '\n');
+        count += std::count(stageSource->second.cbegin(), stageSource->second.cend(), '\n') - 1;
     }
 
     return sources;
@@ -229,7 +228,7 @@ bool Program::AssignNew(std::initializer_list<std::string> &&_names)
             return false;
         }
 
-        auto sources = GetShaderStages(source);
+        auto sources = DivideSourceByStages(name, source);
 
         /*for (auto &[type, src] : sources) {
             if (src = PreprocessIncludes(src, name); src.empty()) {
