@@ -132,7 +132,7 @@ layout(location = nMAIN_COLOR) uniform vec4 mainColor = vec4(0.8, 0.8, 0.8, 1.0)
 layout(binding = 0) uniform sampler2D mainTexture;
 
 uniform vec4 wireColor = vec4(0, 0.64, 0, 1.0);
-uniform vec2 wireWidthAndFadeDistance = vec2(0.64, 1.0);
+uniform vec2 wireWidthAndFadeDistance = vec2(0.8, 0.4);
 
 in from_gs_data {
     noperspective vec2 position;
@@ -181,9 +181,11 @@ void main()
     // Find the smallest distance
     const float dist = getDistanceToEdges();
 
-    const float mix_val = smoothstep(wireWidthAndFadeDistance.x - 1, wireWidthAndFadeDistance.x + 1, dist);
+    const float fading = clamp(wireWidthAndFadeDistance.y / gl_FragCoord.w, 0, 1);
 
-    float fading = clamp(wireWidthAndFadeDistance.y * gl_FragCoord.w, 0, 1);
+    const float width = wireWidthAndFadeDistance.x;
 
-    FragColor = mix(wireColor, mainColor, mix_val) * max(fading, mainColor.a);
+    const float mix_val = clamp(smoothstep(width - 1, width + 1, dist) + fading, 0, 1);
+
+    FragColor = mix(wireColor, mainColor, mix_val);
 }
