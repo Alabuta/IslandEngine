@@ -11,7 +11,7 @@
 #include <crtdbg.h>
 
 #include <iostream>
-#include <gsl/gsl>
+//#include <gsl/gsl>
 
 #include "FBX.h"
 

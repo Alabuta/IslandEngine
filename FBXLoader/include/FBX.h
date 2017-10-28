@@ -4,7 +4,7 @@
 #include <memory>
 #include <string_view>
 
-#include <gsl/gsl>
+// #include <gsl/gsl>
 
 #include <fbxsdk.h>
 #include <fbxsdk\scene\geometry\fbxnode.h>
@@ -18,8 +18,8 @@ public:
 
     std::string GetMetaData() const;
 
-    void DisplayHeirarchy(gsl::not_null<FbxNode const*> node) const;
-    void DisplayContent(gsl::not_null<FbxNode const*> node) const;
+    void DisplayHeirarchy(FbxNode const *node) const;
+    void DisplayContent(FbxNode const *node) const;
 
     //void GetMetaDataConnections
 
@@ -27,7 +27,7 @@ private:
 
     template<class T>
     struct FBXObjectDeleter {
-        void operator() (gsl::not_null<T *> object)
+        void operator() (T *object)
         {
             object->Destroy();
         }
@@ -38,7 +38,7 @@ private:
 
     std::unique_ptr<FbxScene, FBXObjectDeleter<FbxScene>> scene_;
 
-    void DisplayAttribute(gsl::not_null<FbxMesh const*> mesh) const;
+    void DisplayAttribute(FbxMesh const *mesh) const;
 };
 
 std::ostream &operator<< (std::ostream &stream, FbxNodeAttribute::EType attributeType);

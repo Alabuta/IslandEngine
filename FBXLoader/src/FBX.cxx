@@ -72,15 +72,15 @@ bool FBX::ImportScene(std::string_view _path, std::string_view _sceneName)
 
     FbxAxisSystem::MayaYUp.ConvertScene(scene_.get());
 
-    gsl::not_null<FbxNode *> rootNode = scene_->GetRootNode();
+    FbxNode *rootNode = scene_->GetRootNode();
 
    /* if (rootNode) {
         for (auto i = 0; i < rootNode->GetChildCount(); ++i)
             std::cout << *rootNode->GetChild(i);
     }*/
 
-    DisplayHeirarchy(rootNode.get());
-    DisplayContent(rootNode.get());
+    DisplayHeirarchy(rootNode);
+    DisplayContent(rootNode);
 
     return true;
 }
@@ -107,7 +107,7 @@ std::string FBX::GetMetaData() const
     return ss.good() ? ss.str() : "";
 }
 
-void FBX::DisplayHeirarchy(gsl::not_null<FbxNode const*> node) const
+void FBX::DisplayHeirarchy(FbxNode const *node) const
 {
     static size_t depth = 0;
 
@@ -121,7 +121,7 @@ void FBX::DisplayHeirarchy(gsl::not_null<FbxNode const*> node) const
     depth -= 4;
 }
 
-void FBX::DisplayContent(gsl::not_null<FbxNode const*> node) const
+void FBX::DisplayContent(FbxNode const *node) const
 {
     auto attribute = node->GetNodeAttribute();
 
@@ -138,7 +138,7 @@ void FBX::DisplayContent(gsl::not_null<FbxNode const*> node) const
     }
 }
 
-void FBX::DisplayAttribute(gsl::not_null<FbxMesh const*> mesh) const
+void FBX::DisplayAttribute(FbxMesh const *mesh) const
 {
     std::cout << mesh->GetName();
 
