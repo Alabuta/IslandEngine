@@ -8,7 +8,7 @@
 ********************************************************************************************************************************/
 
 
-#if CRUS_VERTEX_SHADER || CRUS_GEOMETRY_SHADER
+#if CRUS_VERTEX_STAGE || CRUS_GEOMETRY_STAGE
 
 layout(location = nVIEWPORT_RECT) uniform vec4 viewport = vec4(0, 0, 1920, 1080);
 
@@ -29,6 +29,6 @@ layout(binding = nTRANSFORM, std430) readonly buffer TRANSFORM
     layout(row_major) readonly mat4 mNormal; // Inverted and transposed model (world) matrix.
 };
 
-#elif CRUS_FRAGMENT_SHADER
+#elif CRUS_FRAGMENT_STAGE
 
-#endif // CRUS_VERTEX_SHADER & CRUS_FRAGMENT_SHADER
+#endif // CRUS_VERTEX_STAGE & CRUS_FRAGMENT_STAGE

@@ -10,7 +10,7 @@
 
 //const float Fcoef = 2.0 / log2(4194304.0 + 1.0);
 
-#if CRUS_VERTEX_SHADER
+#if CRUS_VERTEX_STAGE
 
 layout(location = nVERTEX) in vec3 inVertex;
 layout(location = nTEXCRD) in vec2 inTexCoord;
@@ -35,7 +35,7 @@ void main()
     texCoord = inTexCoord;
 }
 
-#elif CRUS_FRAGMENT_SHADER
+#elif CRUS_FRAGMENT_STAGE
 
 layout(early_fragment_tests) in;
 

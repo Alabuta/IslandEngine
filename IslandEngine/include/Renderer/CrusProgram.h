@@ -49,8 +49,8 @@ public:
 private:
     static auto constexpr kINCLUDING_LEVEL{16};
     //static std::unordered_map<std::string, std::string> cachedIncludeFiles;
-    static std::set<std::string> cachedIncludeNames;
-    static std::vector<std::string> cachedIncludeFiles;
+    thread_local static std::set<std::string> cachedIncludeNames;
+    thread_local static std::vector<std::string> cachedIncludeFiles;
 
     uint32 program_{0};
 
@@ -59,8 +59,8 @@ private:
     bool LinkAndValidateProgram() const;
 
     static std::string ReadShaderSource(std::string const &parentPath, std::string const &name);
-    static std::string PreprocessIncludes(std::string const &source, std::string_view name, int32 includingLevel = 0);
-    static std::vector<std::string> PreprocessIncludes2(std::string const &source, std::string_view name, int32 includingLevel = 0);
+    static std::unordered_map<uint32, std::string> SeparateByStages(std::string const &name, std::string &includes, std::string const &source);
+    static void PreprocessIncludes(std::string const &source, std::string_view name, int32 includingLevel = 0);
 };
 
 __forceinline uint32 Program::program() const

@@ -8,7 +8,7 @@
 ********************************************************************************************************************************/
 #pragma include("Includes/ShaderVariables.glsl")
 
-#if CRUS_VERTEX_SHADER
+#if CRUS_VERTEX_STAGE
 
 vec2 clippedToViewport(in vec4 position)
 {
@@ -32,6 +32,6 @@ vec4 TransformFromWorldToClip(vec3 position)
     return mProjView * vec4(position, 1.0);
 }
 
-#elif CRUS_FRAGMENT_SHADER
+#elif CRUS_FRAGMENT_STAGE
 
-#endif // CRUS_VERTEX_SHADER & CRUS_FRAGMENT_SHADER
+#endif // CRUS_VERTEX_STAGE & CRUS_FRAGMENT_STAGE
