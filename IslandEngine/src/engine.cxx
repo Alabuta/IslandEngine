@@ -11,7 +11,7 @@
 #include <bitset>
 
 #include "engine.h"
-#include "../../contents/geometry/Hebe"
+#include "../../contents/geometry/hydrant"
 
 
 namespace cubemap {
@@ -36,15 +36,21 @@ namespace app {
 void InitBuffers(std::vector<isle::Sprite> const &spriteSheet);
 intf::Grid grid;
 
+Program geom_program;
+
+
 uint32 geom_vao;
 uint32 geom_count;
+
+
 
 
 Program flipbookProgram;
 uint32 flipbook_vao;
 Texture flipbookTexture(Texture::eTEXTURE_TYPE::n2D, "sprites-cat-running");//RobotBoyWalkSprite
 
-std::array<math::Matrix, 2> matrices = {
+std::array<math::Matrix, 3> matrices = {
+    math::Matrix::Identity(),
     math::Matrix::Identity(),
     math::Matrix::Identity()
 };
@@ -500,9 +506,9 @@ struct MovementComponent final : Component {
 
 void InitGeometry()
 {
-    using namespace Hebe;
+    using namespace hydrant;
 
-    geom_count = static_cast<decltype(geom_count)>(faces.size());
+    geom_count = static_cast<decltype(geom_count)>(faces.size()) + 3 * 2;
 
     struct Vertex {
         Position pos;
@@ -536,6 +542,42 @@ void InitGeometry()
             uvs.at(*std::next(it_index, 6))
         });
     }
+
+    vertex_buffer.emplace_back(Vertex{
+        {-10,  -.64f, -10},
+        {0, 1, 0},
+        {0, 1}
+    });
+
+    vertex_buffer.emplace_back(Vertex{
+        {-10,  -.64f, 10},
+        {0, 1, 0},
+        {0, 0}
+    });
+
+    vertex_buffer.emplace_back(Vertex{
+        {10,  -.64f, -10},
+        {0, 1, 0},
+        {1, 1}
+    });
+
+    vertex_buffer.emplace_back(Vertex{
+        {10,  -.64f, -10},
+        {0, 1, 0},
+        {1, 1}
+    });
+
+    vertex_buffer.emplace_back(Vertex{
+        {-10,  -.64f, 10},
+        {0, 1, 0},
+        {0, 0}
+    });
+
+    vertex_buffer.emplace_back(Vertex{
+        {10, -.64f, 10},
+        {0, 1, 0},
+        {1, 0}
+    });
 
     vertex_buffer.shrink_to_fit();
 
@@ -579,12 +621,16 @@ void Init()
 
     grid.Update(12.3f, 1.7f, 5);
 
-    log::Debug() << measure<>::execution(InitBackground);
+    // log::Debug() << measure<>::execution(InitBackground);
 
     cubemap::InitCubemap();
 
     /*EntityManager entities;
     auto entity = entities.CreateEntity();*/
+
+
+    if (!geom_program.AssignNew({R"(Defaults/Diffuse-Lambert.glsl)"}))
+        return;
 
     InitGeometry();
 }
@@ -606,15 +652,26 @@ void DrawFrame()
     //glMultiDrawElements(GL_TRIANGLE_FAN, count, GL_UNSIGNED_BYTE, reinterpret_cast<void const *const *>(indicies), 6);
     //glDrawElements(GL_TRIANGLE_FAN, count[5], GL_UNSIGNED_BYTE, reinterpret_cast<void const *>(sizeof(uint8) * 4));
     
-    flipbookTexture.Bind();
-    flipbookProgram.UseThis();
+    /*flipbookTexture.Bind();
+    flipbookProgram.UseThis();*/
+
+    geom_program.UseThis();
+
+    matrices[1].Translate(0.2f, 0.78f, -0.75f);
+    // matrices[1].Scale(1.f, 0.75f, 0.25f);
+
+    matrices[0] = Render::inst().vp_.projView() * matrices[1];
+
+    matrices[2] = matrices[1].Inverse().Transpose();
+
+    Render::inst().UpdateTransform(0, 3, matrices.data());
 
     glBindVertexArray(geom_vao);
     glDrawArrays(GL_TRIANGLES, 0, 3 * geom_count);
 
-    glDepthMask(GL_FALSE);
+    /*glDepthMask(GL_FALSE);
     DrawSprite();
-    glDepthMask(GL_TRUE);
+    glDepthMask(GL_TRUE);*/
 }
 };
 
