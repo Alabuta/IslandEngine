@@ -359,6 +359,9 @@
     <None Include="..\contents\shaders\Defaults\Solid-Wireframe.glsl">
       <Filter>Shader sources\Defaults</Filter>
     </None>
+    <None Include="..\contents\shaders\Defaults\Diffuse-Lambert.glsl">
+      <Filter>Shader sources\Defaults</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resources\resource.rc">
