@@ -16,7 +16,7 @@ out vec3 texCoord;
 
 void main()
 {
-    gl_Position = mProjView * vec4(inVertex, 0.0);
+    gl_Position = TransformFromWorldToClip(vec4(inVertex, 0));
 
     // You can just assign w component to z,
     // but then you have to change depth comprasion function to GL_LEQUAL.

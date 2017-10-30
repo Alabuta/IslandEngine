@@ -22,7 +22,7 @@ out from_vs_data {
 
 void main()
 {
-    gl_Position = TransformFromModelToClip(inVertex);
+    gl_Position = TransformFromModelToClip(vec4(inVertex, 1));
 
     vs_data.texCoord = inTexCoord;
 

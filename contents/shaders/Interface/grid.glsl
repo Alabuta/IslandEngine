@@ -20,7 +20,7 @@ out vec3 color;
 
 void main()
 {
-    gl_Position = TransformFromWorldToClip(inVertex);
+    gl_Position = TransformFromWorldToClip(vec4(inVertex, 1));
     color = inColor;
 }
 

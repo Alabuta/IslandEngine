@@ -22,14 +22,29 @@ vec2 normalizedToViewport(in vec2 position)
                 viewport.w * 0.5 * (position.y + 1.0) + viewport.y);
 }
 
-vec4 TransformFromModelToClip(vec3 position)
+vec4 TransformFromModelToClip(vec4 position)
 {
-    return mProjViewModel * vec4(position, 1.0);
+    return mProjViewModel * position;
 }
 
-vec4 TransformFromWorldToClip(vec3 position)
+vec4 TransformFromWorldToClip(vec4 position)
 {
-    return mProjView * vec4(position, 1.0);
+    return mProjView * position;
+}
+
+vec4 TransformFromViewToClip(vec4 position)
+{
+    return mProj * position;
+}
+
+vec4 TransformFromWorldToView(vec4 position)
+{
+    return mView * position;
+}
+
+vec4 TransformFromModelToWorld(vec4 position)
+{
+    return mModel * position;
 }
 
 #elif CRUS_FRAGMENT_STAGE
