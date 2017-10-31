@@ -37,10 +37,11 @@ void InitBuffers(std::vector<isle::Sprite> const &spriteSheet);
 intf::Grid grid;
 
 Program geom_program;
-
-
 uint32 geom_vao;
 uint32 geom_count;
+
+Program quad_program;
+uint32 quad_vao;
 
 
 
@@ -613,6 +614,40 @@ void InitGeometry()
     }
 }
 
+void InitFullscreenQuad()
+{
+    if (!quad_program.AssignNew({R"(Defaults/Fullscreen-Quad.glsl)"}))
+        return;
+
+    Render::inst().CreateVAO(quad_vao);
+
+    struct Vertex {
+        float x, y;
+    };
+
+    std::array<Vertex, 4> vertices = {{
+        {-1.f, +1.f}, {-1.f, -1.f}, {1.f, 1.f}, {1.f, -1.f}
+    }};
+
+    auto bo = 0u;
+    Render::inst().CreateBO(bo);
+
+    glNamedBufferStorage(bo, sizeof(Vertex) * vertices.size(), vertices.data(), 0);
+
+    glVertexArrayAttribBinding(quad_vao, Program::eIN_OUT_ID::nVERTEX, 0);
+    glVertexArrayAttribFormat(quad_vao, Program::eIN_OUT_ID::nVERTEX, 2, GL_FLOAT, GL_FALSE, 0);
+    glEnableVertexArrayAttrib(quad_vao, Program::eIN_OUT_ID::nVERTEX);
+
+    glVertexArrayVertexBuffer(quad_vao, 0, bo, 0, sizeof(Vertex));
+}
+
+void RenderFullscreenQuad()
+{
+    quad_program.UseThis();
+    glBindVertexArray(quad_vao);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 8);
+}
+
 void Init()
 {
     Camera::inst().Create(Camera::eCAM_BEHAVIOR::nFREE);
@@ -628,11 +663,12 @@ void Init()
     /*EntityManager entities;
     auto entity = entities.CreateEntity();*/
 
+    InitFullscreenQuad();
 
-    if (!geom_program.AssignNew({R"(Defaults/Diffuse-Lambert.glsl)"}))
+    /* if (!geom_program.AssignNew({R"(Defaults/Diffuse-Lambert.glsl)"}))
         return;
 
-    InitGeometry();
+    InitGeometry();*/
 }
 
 
@@ -655,7 +691,7 @@ void DrawFrame()
     /*flipbookTexture.Bind();
     flipbookProgram.UseThis();*/
 
-    geom_program.UseThis();
+    /*geom_program.UseThis();
 
     matrices[1].Translate(0.2f, 0.78f, -0.75f);
     // matrices[1].Scale(1.f, 0.75f, 0.25f);
@@ -667,7 +703,9 @@ void DrawFrame()
     Render::inst().UpdateTransform(0, 3, matrices.data());
 
     glBindVertexArray(geom_vao);
-    glDrawArrays(GL_TRIANGLES, 0, 3 * geom_count);
+    glDrawArrays(GL_TRIANGLES, 0, 3 * geom_count);*/
+
+    RenderFullscreenQuad();
 
     /*glDepthMask(GL_FALSE);
     DrawSprite();
