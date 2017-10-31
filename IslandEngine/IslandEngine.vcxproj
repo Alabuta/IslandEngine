@@ -164,6 +164,7 @@
     <ResourceCompile Include="resources\resource.rc" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\contents\shaders\Defaults\Fullscreen-Quad.glsl" />
     <None Include="..\contents\shaders\Defaults\Diffuse-Lambert.glsl" />
     <None Include="..\contents\shaders\Defaults\Solid-Wireframe.glsl" />
     <None Include="..\contents\shaders\Defaults\Unlit-Instanced.glsl" />

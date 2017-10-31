@@ -332,6 +332,9 @@
     <None Include="..\contents\shaders\test.glsl">
       <Filter>Shader sources</Filter>
     </None>
+    <None Include="..\contents\shaders\Defaults\Fullscreen-Quad.glsl">
+      <Filter>Shader sources\Defaults</Filter>
+    </None>
     <None Include="..\contents\shaders\Defaults\Sprites-Default.glsl">
       <Filter>Shader sources\Defaults</Filter>
     </None>
