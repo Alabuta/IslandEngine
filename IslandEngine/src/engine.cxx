@@ -42,7 +42,10 @@ uint32 geom_count;
 
 Program quad_program;
 uint32 quad_vao;
-
+uint32 quad_tid;
+uint32 quad_fbo;
+uint32 quad_depth;
+Texture quad_texture(Texture::eTEXTURE_TYPE::n2D, "sprites-cat-running");//RobotBoyWalkSprite
 
 
 
@@ -619,6 +622,33 @@ void InitFullscreenQuad()
     if (!quad_program.AssignNew({R"(Defaults/Fullscreen-Quad.glsl)"}))
         return;
 
+    uint32 quad_fbo;
+
+    glGenFramebuffers(1, &quad_fbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, quad_fbo);
+
+    Render::inst().CreateTBO(GL_TEXTURE_2D, quad_tid);
+
+    glTextureParameteri(quad_tid, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTextureParameteri(quad_tid, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    glTextureStorage2D(quad_tid, 1, GL_RGBA, 1024, 1024);
+    // glTextureSubImage2D(id_, 0, 0, 0, image.width_, image.height_, image.format_, image.type_, image.data_.data());
+
+    /* glGenTextures(1, &quad_tid);
+    glBindTexture(GL_TEXTURE_2D, quad_tid);
+    glTexStorage*/
+
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, quad_tid, 0);
+
+    /*if (!quad_texture.Init())
+        return;*/
+
+    glGenRenderbuffers(1, &quad_depth);
+    glBindRenderbuffer(GL_RENDERBUFFER, quad_depth);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, 1024, 1024);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, quad_depth);
+
     Render::inst().CreateVAO(quad_vao);
 
     struct Vertex {
@@ -643,6 +673,7 @@ void InitFullscreenQuad()
 
 void RenderFullscreenQuad()
 {
+    quad_texture.Bind();
     quad_program.UseThis();
     glBindVertexArray(quad_vao);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 8);
@@ -688,8 +719,8 @@ void DrawFrame()
     //glMultiDrawElements(GL_TRIANGLE_FAN, count, GL_UNSIGNED_BYTE, reinterpret_cast<void const *const *>(indicies), 6);
     //glDrawElements(GL_TRIANGLE_FAN, count[5], GL_UNSIGNED_BYTE, reinterpret_cast<void const *>(sizeof(uint8) * 4));
     
-    /*flipbookTexture.Bind();
-    flipbookProgram.UseThis();*/
+    //flipbookTexture.Bind();
+    //flipbookProgram.UseThis();
 
     /*geom_program.UseThis();
 
