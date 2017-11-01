@@ -506,6 +506,12 @@ CRUS_INLINE void APIENTRY glFramebufferTextureLayer(GLenum target, GLenum attach
     return glFramebufferTextureLayer(target, attachment, texture, level, layer);
 }
 
+CRUS_INLINE void APIENTRY glFramebufferTexture2D(GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level)
+{
+    GL_PROC_INIT(glFramebufferTexture2D);
+    return glFramebufferTexture2D(target, attachment, textarget, texture, level);
+}
+
 // glG ---------------------------------------------------------------------------------
 CRUS_INLINE void APIENTRY glGenBuffers(GLsizei n, GLuint *buffers)
 {
