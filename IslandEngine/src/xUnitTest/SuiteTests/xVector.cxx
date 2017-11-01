@@ -73,26 +73,26 @@ UNIT_SUITE_CLASS(isle::math::Vector)
 
     // The sum, sub, mult and div with scalar operators...
     {
-        float const x = rand<float>(), y = rand<float>(), z = rand<float>();
+        float const vx = rand<float>(), vy = rand<float>(), vz = rand<float>();
         float const s = rand<float>();
 
-        Vector const v(x, y, z);
+        Vector const v(vx, vy, vz);
 
-        CHECK_EQUAL(x + s, (v + s).x, "operator+ (float) const: 'x'")
-        CHECK_EQUAL(y + s, (v + s).y, "operator+ (float) const: 'y'")
-        CHECK_EQUAL(z + s, (v + s).z, "operator+ (float) const: 'z'")
+        CHECK_EQUAL(vx + s, (v + s).x, "operator+ (float) const: 'x'")
+        CHECK_EQUAL(vy + s, (v + s).y, "operator+ (float) const: 'y'")
+        CHECK_EQUAL(vz + s, (v + s).z, "operator+ (float) const: 'z'")
 
-        CHECK_EQUAL(x - s, (v - s).x, "operator- (float) const: 'x'")
-        CHECK_EQUAL(y - s, (v - s).y, "operator- (float) const: 'y'")
-        CHECK_EQUAL(z - s, (v - s).z, "operator- (float) const: 'z'")
+        CHECK_EQUAL(vx - s, (v - s).x, "operator- (float) const: 'x'")
+        CHECK_EQUAL(vy - s, (v - s).y, "operator- (float) const: 'y'")
+        CHECK_EQUAL(vz - s, (v - s).z, "operator- (float) const: 'z'")
 
-        CHECK_EQUAL(x * s, (v * s).x, "operator* (float) const: 'x'")
-        CHECK_EQUAL(y * s, (v * s).y, "operator* (float) const: 'y'")
-        CHECK_EQUAL(z * s, (v * s).z, "operator* (float) const: 'z'")
+        CHECK_EQUAL(vx * s, (v * s).x, "operator* (float) const: 'x'")
+        CHECK_EQUAL(vy * s, (v * s).y, "operator* (float) const: 'y'")
+        CHECK_EQUAL(vz * s, (v * s).z, "operator* (float) const: 'z'")
 
-        CHECK_EQUAL(x / s, (v / s).x, "operator/ (float) const: 'x'")
-        CHECK_EQUAL(y / s, (v / s).y, "operator/ (float) const: 'y'")
-        CHECK_EQUAL(z / s, (v / s).z, "operator/ (float) const: 'z'")
+        CHECK_EQUAL(vx / s, (v / s).x, "operator/ (float) const: 'x'")
+        CHECK_EQUAL(vy / s, (v / s).y, "operator/ (float) const: 'y'")
+        CHECK_EQUAL(vz / s, (v / s).z, "operator/ (float) const: 'z'")
     }
 
     // The assignment operators...
@@ -191,8 +191,8 @@ UNIT_SUITE_CLASS(isle::math::Vector)
 
     // The positive and negative operators...
     {
-        float const x = rand<float>(), y = rand<float>(), z = rand<float>();
-        Vector const v1(x, y, z), v2(-x, -y, -z);
+        float const vx = rand<float>(), vy = rand<float>(), vz = rand<float>();
+        Vector const v1(vx, vy, vz), v2(-vx, -vy, -vz);
 
         CHECK_EQUAL(+v1.x, (-v2).x, "operator-(+) () const: 'x'")
         CHECK_EQUAL(+v1.y, (-v2).y, "operator-(+) () const: 'y'")
@@ -201,24 +201,24 @@ UNIT_SUITE_CLASS(isle::math::Vector)
 
     // Increment and decrement operators...
     {
-        float const x = rand<float>(), y = rand<float>(), z = rand<float>();
-        Vector v1(x, y, z), v2(x, y, z);
+        float const vx = rand<float>(), vy = rand<float>(), vz = rand<float>();
+        Vector v1(vx, vy, vz), v2(vx, vy, vz);
 
-        CHECK_EQUAL(x + 1.0f, (++v1).x, "operator++ (): 'x'")
-        CHECK_EQUAL(y + 2.0f, (++v1).y, "operator++ (): 'y'")
-        CHECK_EQUAL(z + 3.0f, (++v1).z, "operator++ (): 'z'")
+        CHECK_EQUAL(vx + 1.0f, (++v1).x, "operator++ (): 'x'")
+        CHECK_EQUAL(vy + 2.0f, (++v1).y, "operator++ (): 'y'")
+        CHECK_EQUAL(vz + 3.0f, (++v1).z, "operator++ (): 'z'")
 
-        CHECK_EQUAL(x - 1.0f, (--v2).x, "operator-- (): 'x'")
-        CHECK_EQUAL(y - 2.0f, (--v2).y, "operator-- (): 'y'")
-        CHECK_EQUAL(z - 3.0f, (--v2).z, "operator-- (): 'z'")
+        CHECK_EQUAL(vx - 1.0f, (--v2).x, "operator-- (): 'x'")
+        CHECK_EQUAL(vy - 2.0f, (--v2).y, "operator-- (): 'y'")
+        CHECK_EQUAL(vz - 3.0f, (--v2).z, "operator-- (): 'z'")
 
-        CHECK_EQUAL(x + 3.0f, (v1++).x, "operator++ (Vector &, int32): 'x'")
-        CHECK_EQUAL(y + 4.0f, (v1++).y, "operator++ (Vector &, int32): 'y'")
-        CHECK_EQUAL(z + 5.0f, (v1++).z, "operator++ (Vector &, int32): 'z'")
+        CHECK_EQUAL(vx + 3.0f, (v1++).x, "operator++ (Vector &, int32): 'x'")
+        CHECK_EQUAL(vy + 4.0f, (v1++).y, "operator++ (Vector &, int32): 'y'")
+        CHECK_EQUAL(vz + 5.0f, (v1++).z, "operator++ (Vector &, int32): 'z'")
 
-        CHECK_EQUAL(x - 3.0f, (v2--).x, "operator-- (Vector &, int32): 'x'")
-        CHECK_EQUAL(y - 4.0f, (v2--).y, "operator-- (Vector &, int32): 'y'")
-        CHECK_EQUAL(z - 5.0f, (v2--).z, "operator-- (Vector &, int32): 'z'")
+        CHECK_EQUAL(vx - 3.0f, (v2--).x, "operator-- (Vector &, int32): 'x'")
+        CHECK_EQUAL(vy - 4.0f, (v2--).y, "operator-- (Vector &, int32): 'y'")
+        CHECK_EQUAL(vz - 5.0f, (v2--).z, "operator-- (Vector &, int32): 'z'")
     }
 
     // The vector routines...
