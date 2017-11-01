@@ -34,9 +34,9 @@ namespace {
 #define SET(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t)\
             {{a, b}, {c, d}, {e, f}, {g, h}, {i, j}, {k, l}, {m, n}, {o, p}, {q, r}, {s, t}}
 
-size_t const kMARKERS_WIDTH = 10;
+std::size_t constexpr kMARKERS_WIDTH = 10;
 
-CHAR_INFO const kMARKERS[][kMARKERS_WIDTH] = {
+CHAR_INFO constexpr kMARKERS[][kMARKERS_WIDTH] = {
     SET('I', 2, 'n', 2, 'f', 2, 'o', 2, ' ', 0, ' ', 0, ' ', 0, ' ', 0, ' ', 0, ':', 1),
     SET('D', 3, 'e', 3, 'b', 3, 'u', 3, 'g', 3, ' ', 0, ' ', 0, ' ', 0, ' ', 0, ':', 1),
     SET('W', 4, 'a', 4, 'r', 4, 'n', 4, 'i', 4, 'n', 4, 'g', 4, ' ', 0, ' ', 0, ':', 1),
