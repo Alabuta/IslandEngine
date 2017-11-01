@@ -31,10 +31,12 @@ void main()
 layout(early_fragment_tests) in;
 
 layout(location = nFRAG_COLOR/*, index = 0*/) out vec4 FragColor;
+layout(binding = 0) uniform sampler2D mainTexture;
 
 in vec2 texCoord;
 
 void main()
 {
-    FragColor = vec4(texCoord.xy, 0, 1);
+    FragColor = texture(mainTexture, texCoord);
+    FragColor.a = 1;
 }

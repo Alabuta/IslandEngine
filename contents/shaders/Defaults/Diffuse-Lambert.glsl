@@ -56,6 +56,6 @@ void main()
     float diffuse = max(dot(n, l) + offset, 0) / (1 + offset);
 #endif
 
-    FragColor = vec4(mainColor.xyz * diffuse, mainColor.a);
-    //FragColor = vec4(position.xyz, 1);
+    //FragColor = vec4(mainColor.xyz * diffuse, mainColor.a);
+    FragColor = vec4(n.xyz, 1);
 }

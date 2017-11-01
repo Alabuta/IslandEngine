@@ -39,5 +39,5 @@ noperspective in vec3 edge_distance;
 
 void main()
 {
-    FragColor = texture2D(mainTexture, texCoord) * mainColor;
+    FragColor = texture(mainTexture, texCoord) * mainColor;
 }
