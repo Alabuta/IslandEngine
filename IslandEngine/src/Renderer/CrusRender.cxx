@@ -153,9 +153,9 @@ void Render::DrawFrame()
     //vp_.MakeCurrent();
     vp_.cam().Update();
 
-    math::Matrix const matrices[] = {vp_.projView(), vp_.proj(), vp_.cam().view(), vp_.viewport_};
+    std::array<math::Matrix, 3> const matrices = {vp_.projView(), vp_.proj(), vp_.cam().view()};
 
-    UpdateViewport(0, 4, matrices);
+    UpdateViewport(0, matrices.size(), matrices.data());
 
     //glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 1, -1, "[Frame]");
 

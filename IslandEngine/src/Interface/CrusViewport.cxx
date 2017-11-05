@@ -27,7 +27,7 @@ void Viewport::SetViewport(int16 _x, int16 _y, int16 _w, int16 _h)
 
     // :TODO: find the correct near and far plane values.
     auto const kFOV = 72.0f, zNear = 0.01f, zFar = 100.0f;//4194304.0f;//4194304.0f
-    auto const cotang = 1.0f / std::tan(kFOV * math::kPI_DIV_180 * 0.5f);
+    auto const f = 1.0f / std::tan(kFOV * math::kPI_DIV_180 * 0.5f);
 
     auto const aspect = static_cast<float>(w_) / static_cast<float>(h_);
 
@@ -41,8 +41,8 @@ void Viewport::SetViewport(int16 _x, int16 _y, int16 _w, int16 _h)
 
     proj_ = math::Matrix
     (
-        cotang / aspect, 0.f, 0.f, 0.f,
-        0.f, cotang, 0.f, 0.f,
+        f / aspect, 0.f, 0.f, 0.f,
+        0.f, f, 0.f, 0.f,
         0.f, 0.f, kA, kB,
         0.f, 0.f, -1.f, 0.f
     );
