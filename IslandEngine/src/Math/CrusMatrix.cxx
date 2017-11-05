@@ -11,16 +11,6 @@
 #include "Math\CrusVector.h"
 
 namespace isle::math {
-Matrix::Matrix(float _m00, float _m01, float _m02, float _m03,
-               float _m04, float _m05, float _m06, float _m07,
-               float _m08, float _m09, float _m10, float _m11,
-               float _m12, float _m13, float _m14, float _m15)
-{
-    _00_ = _m00;  _01_ = _m01;  _02_ = _m02; _03_ = _m03;
-    _04_ = _m04;  _05_ = _m05;  _06_ = _m06; _07_ = _m07;
-    _08_ = _m08;  _09_ = _m09;  _10_ = _m10; _11_ = _m11;
-    _12_ = _m12;  _13_ = _m13;  _14_ = _m14; _15_ = _m15;
-}
 
 /*Matrix::Matrix(Vector const &_position, Vector const &_rotation, Vector const &_sizing)
 {
@@ -35,10 +25,10 @@ Matrix Matrix::operator+ (Matrix const &_m) const
 #if CRUS_USE_SSE_MATH
     Matrix temp;
 
-    temp.row_[0] = _mm_add_ps(row_[0], _m.row_[0]);
-    temp.row_[1] = _mm_add_ps(row_[1], _m.row_[1]);
-    temp.row_[2] = _mm_add_ps(row_[2], _m.row_[2]);
-    temp.row_[3] = _mm_add_ps(row_[3], _m.row_[3]);
+    temp.rows_[0] = _mm_add_ps(rows_[0], _m.rows_[0]);
+    temp.rows_[1] = _mm_add_ps(rows_[1], _m.rows_[1]);
+    temp.rows_[2] = _mm_add_ps(rows_[2], _m.rows_[2]);
+    temp.rows_[3] = _mm_add_ps(rows_[3], _m.rows_[3]);
 
     return temp;
 #else
@@ -57,10 +47,10 @@ Matrix Matrix::operator- (Matrix const &_m) const
 #if CRUS_USE_SSE_MATH
     Matrix temp;
 
-    temp.row_[0] = _mm_sub_ps(row_[0], _m.row_[0]);
-    temp.row_[1] = _mm_sub_ps(row_[1], _m.row_[1]);
-    temp.row_[2] = _mm_sub_ps(row_[2], _m.row_[2]);
-    temp.row_[3] = _mm_sub_ps(row_[3], _m.row_[3]);
+    temp.rows_[0] = _mm_sub_ps(rows_[0], _m.rows_[0]);
+    temp.rows_[1] = _mm_sub_ps(rows_[1], _m.rows_[1]);
+    temp.rows_[2] = _mm_sub_ps(rows_[2], _m.rows_[2]);
+    temp.rows_[3] = _mm_sub_ps(rows_[3], _m.rows_[3]);
 
     return temp;
 #else
@@ -79,35 +69,35 @@ Matrix Matrix::operator* (Matrix const &_m) const
 #if CRUS_USE_SSE_MATH
     Matrix temp;
 
-    __m128 row[4] = {_m.row_[0], _m.row_[1], _m.row_[2], _m.row_[3]};
+    __m128 row[4] = {_m.rows_[0], _m.rows_[1], _m.rows_[2], _m.rows_[3]};
     _MM_TRANSPOSE4_PS(row[0], row[1], row[2], row[3]);
 
     {
-        auto const sum1 = _mm_hadd_ps(_mm_mul_ps(row_[0], row[0]), _mm_mul_ps(row_[0], row[1]));
-        auto const sum2 = _mm_hadd_ps(_mm_mul_ps(row_[0], row[2]), _mm_mul_ps(row_[0], row[3]));
+        auto const sum1 = _mm_hadd_ps(_mm_mul_ps(rows_[0], row[0]), _mm_mul_ps(rows_[0], row[1]));
+        auto const sum2 = _mm_hadd_ps(_mm_mul_ps(rows_[0], row[2]), _mm_mul_ps(rows_[0], row[3]));
 
-        temp.row_[0] = _mm_hadd_ps(sum1, sum2);
+        temp.rows_[0] = _mm_hadd_ps(sum1, sum2);
     }
 
     {
-        auto const sum1 = _mm_hadd_ps(_mm_mul_ps(row_[1], row[0]), _mm_mul_ps(row_[1], row[1]));
-        auto const sum2 = _mm_hadd_ps(_mm_mul_ps(row_[1], row[2]), _mm_mul_ps(row_[1], row[3]));
+        auto const sum1 = _mm_hadd_ps(_mm_mul_ps(rows_[1], row[0]), _mm_mul_ps(rows_[1], row[1]));
+        auto const sum2 = _mm_hadd_ps(_mm_mul_ps(rows_[1], row[2]), _mm_mul_ps(rows_[1], row[3]));
 
-        temp.row_[1] = _mm_hadd_ps(sum1, sum2);
+        temp.rows_[1] = _mm_hadd_ps(sum1, sum2);
     }
 
     {
-        auto const sum1 = _mm_hadd_ps(_mm_mul_ps(row_[2], row[0]), _mm_mul_ps(row_[2], row[1]));
-        auto const sum2 = _mm_hadd_ps(_mm_mul_ps(row_[2], row[2]), _mm_mul_ps(row_[2], row[3]));
+        auto const sum1 = _mm_hadd_ps(_mm_mul_ps(rows_[2], row[0]), _mm_mul_ps(rows_[2], row[1]));
+        auto const sum2 = _mm_hadd_ps(_mm_mul_ps(rows_[2], row[2]), _mm_mul_ps(rows_[2], row[3]));
 
-        temp.row_[2] = _mm_hadd_ps(sum1, sum2);
+        temp.rows_[2] = _mm_hadd_ps(sum1, sum2);
     }
 
     {
-        auto const sum1 = _mm_hadd_ps(_mm_mul_ps(row_[3], row[0]), _mm_mul_ps(row_[3], row[1]));
-        auto const sum2 = _mm_hadd_ps(_mm_mul_ps(row_[3], row[2]), _mm_mul_ps(row_[3], row[3]));
+        auto const sum1 = _mm_hadd_ps(_mm_mul_ps(rows_[3], row[0]), _mm_mul_ps(rows_[3], row[1]));
+        auto const sum2 = _mm_hadd_ps(_mm_mul_ps(rows_[3], row[2]), _mm_mul_ps(rows_[3], row[3]));
 
-        temp.row_[3] = _mm_hadd_ps(sum1, sum2);
+        temp.rows_[3] = _mm_hadd_ps(sum1, sum2);
     }
 
     return temp;
@@ -144,10 +134,10 @@ Matrix Matrix::operator+ (float _s) const
 
     auto const s = _mm_set_ps1(_s);
 
-    temp.row_[0] = _mm_add_ps(row_[0], s);
-    temp.row_[1] = _mm_add_ps(row_[1], s);
-    temp.row_[2] = _mm_add_ps(row_[2], s);
-    temp.row_[3] = _mm_add_ps(row_[3], s);
+    temp.rows_[0] = _mm_add_ps(rows_[0], s);
+    temp.rows_[1] = _mm_add_ps(rows_[1], s);
+    temp.rows_[2] = _mm_add_ps(rows_[2], s);
+    temp.rows_[3] = _mm_add_ps(rows_[3], s);
 
     return temp;
 #else
@@ -168,10 +158,10 @@ Matrix Matrix::operator- (float _s) const
 
     auto const s = _mm_set_ps1(_s);
 
-    temp.row_[0] = _mm_sub_ps(row_[0], s);
-    temp.row_[1] = _mm_sub_ps(row_[1], s);
-    temp.row_[2] = _mm_sub_ps(row_[2], s);
-    temp.row_[3] = _mm_sub_ps(row_[3], s);
+    temp.rows_[0] = _mm_sub_ps(rows_[0], s);
+    temp.rows_[1] = _mm_sub_ps(rows_[1], s);
+    temp.rows_[2] = _mm_sub_ps(rows_[2], s);
+    temp.rows_[3] = _mm_sub_ps(rows_[3], s);
 
     return temp;
 #else
@@ -192,10 +182,10 @@ Matrix Matrix::operator* (float _s) const
 
     auto const s = _mm_set_ps1(_s);
 
-    temp.row_[0] = _mm_mul_ps(row_[0], s);
-    temp.row_[1] = _mm_mul_ps(row_[1], s);
-    temp.row_[2] = _mm_mul_ps(row_[2], s);
-    temp.row_[3] = _mm_mul_ps(row_[3], s);
+    temp.rows_[0] = _mm_mul_ps(rows_[0], s);
+    temp.rows_[1] = _mm_mul_ps(rows_[1], s);
+    temp.rows_[2] = _mm_mul_ps(rows_[2], s);
+    temp.rows_[3] = _mm_mul_ps(rows_[3], s);
 
     return temp;
 #else
@@ -224,10 +214,10 @@ bool Matrix::operator== (Matrix const &_m) const
 Matrix &Matrix::operator+= (Matrix const &_m)
 {
 #if CRUS_USE_SSE_MATH
-    row_[0] = _mm_add_ps(row_[0], _m.row_[0]);
-    row_[1] = _mm_add_ps(row_[1], _m.row_[1]);
-    row_[2] = _mm_add_ps(row_[2], _m.row_[2]);
-    row_[3] = _mm_add_ps(row_[3], _m.row_[3]);
+    rows_[0] = _mm_add_ps(rows_[0], _m.rows_[0]);
+    rows_[1] = _mm_add_ps(rows_[1], _m.rows_[1]);
+    rows_[2] = _mm_add_ps(rows_[2], _m.rows_[2]);
+    rows_[3] = _mm_add_ps(rows_[3], _m.rows_[3]);
 #else
     _00_ += _m._00_;  _01_ += _m._01_;  _02_ += _m._02_; _03_ += _m._03_;
     _04_ += _m._04_;  _05_ += _m._05_;  _06_ += _m._06_; _07_ += _m._07_;
@@ -241,10 +231,10 @@ Matrix &Matrix::operator+= (Matrix const &_m)
 Matrix &Matrix::operator-= (Matrix const &_m)
 {
 #if CRUS_USE_SSE_MATH
-    row_[0] = _mm_sub_ps(row_[0], _m.row_[0]);
-    row_[1] = _mm_sub_ps(row_[1], _m.row_[1]);
-    row_[2] = _mm_sub_ps(row_[2], _m.row_[2]);
-    row_[3] = _mm_sub_ps(row_[3], _m.row_[3]);
+    rows_[0] = _mm_sub_ps(rows_[0], _m.rows_[0]);
+    rows_[1] = _mm_sub_ps(rows_[1], _m.rows_[1]);
+    rows_[2] = _mm_sub_ps(rows_[2], _m.rows_[2]);
+    rows_[3] = _mm_sub_ps(rows_[3], _m.rows_[3]);
 #else
     _00_ -= _m._00_;  _01_ -= _m._01_;  _02_ -= _m._02_; _03_ -= _m._03_;
     _04_ -= _m._04_;  _05_ -= _m._05_;  _06_ -= _m._06_; _07_ -= _m._07_;
@@ -259,35 +249,35 @@ Matrix &Matrix::operator*= (Matrix const &_m)
 {
 #if CRUS_USE_SSE_MATH
     // 16 mul; 12 sum
-    __m128 row[4] = {_m.row_[0], _m.row_[1], _m.row_[2], _m.row_[3]};
+    __m128 row[4] = {_m.rows_[0], _m.rows_[1], _m.rows_[2], _m.rows_[3]};
     _MM_TRANSPOSE4_PS(row[0], row[1], row[2], row[3]);
 
     {
-        auto const sum1 = _mm_hadd_ps(_mm_mul_ps(row_[0], row[0]), _mm_mul_ps(row_[0], row[1]));
-        auto const sum2 = _mm_hadd_ps(_mm_mul_ps(row_[0], row[2]), _mm_mul_ps(row_[0], row[3]));
+        auto const sum1 = _mm_hadd_ps(_mm_mul_ps(rows_[0], row[0]), _mm_mul_ps(rows_[0], row[1]));
+        auto const sum2 = _mm_hadd_ps(_mm_mul_ps(rows_[0], row[2]), _mm_mul_ps(rows_[0], row[3]));
 
-        row_[0] = _mm_hadd_ps(sum1, sum2);
+        rows_[0] = _mm_hadd_ps(sum1, sum2);
     }
 
     {
-        auto const sum1 = _mm_hadd_ps(_mm_mul_ps(row_[1], row[0]), _mm_mul_ps(row_[1], row[1]));
-        auto const sum2 = _mm_hadd_ps(_mm_mul_ps(row_[1], row[2]), _mm_mul_ps(row_[1], row[3]));
+        auto const sum1 = _mm_hadd_ps(_mm_mul_ps(rows_[1], row[0]), _mm_mul_ps(rows_[1], row[1]));
+        auto const sum2 = _mm_hadd_ps(_mm_mul_ps(rows_[1], row[2]), _mm_mul_ps(rows_[1], row[3]));
 
-        row_[1] = _mm_hadd_ps(sum1, sum2);
+        rows_[1] = _mm_hadd_ps(sum1, sum2);
     }
 
     {
-        auto const sum1 = _mm_hadd_ps(_mm_mul_ps(row_[2], row[0]), _mm_mul_ps(row_[2], row[1]));
-        auto const sum2 = _mm_hadd_ps(_mm_mul_ps(row_[2], row[2]), _mm_mul_ps(row_[2], row[3]));
+        auto const sum1 = _mm_hadd_ps(_mm_mul_ps(rows_[2], row[0]), _mm_mul_ps(rows_[2], row[1]));
+        auto const sum2 = _mm_hadd_ps(_mm_mul_ps(rows_[2], row[2]), _mm_mul_ps(rows_[2], row[3]));
 
-        row_[2] = _mm_hadd_ps(sum1, sum2);
+        rows_[2] = _mm_hadd_ps(sum1, sum2);
     }
 
     {
-        auto const sum1 = _mm_hadd_ps(_mm_mul_ps(row_[3], row[0]), _mm_mul_ps(row_[3], row[1]));
-        auto const sum2 = _mm_hadd_ps(_mm_mul_ps(row_[3], row[2]), _mm_mul_ps(row_[3], row[3]));
+        auto const sum1 = _mm_hadd_ps(_mm_mul_ps(rows_[3], row[0]), _mm_mul_ps(rows_[3], row[1]));
+        auto const sum2 = _mm_hadd_ps(_mm_mul_ps(rows_[3], row[2]), _mm_mul_ps(rows_[3], row[3]));
 
-        row_[3] = _mm_hadd_ps(sum1, sum2);
+        rows_[3] = _mm_hadd_ps(sum1, sum2);
     }
 #else
     // 64 mul; 48 sum.
@@ -322,10 +312,10 @@ Matrix &Matrix::operator+= (float _s)
 #if CRUS_USE_SSE_MATH
     auto const s = _mm_set_ps1(_s);
 
-    row_[0] = _mm_add_ps(row_[0], s);
-    row_[1] = _mm_add_ps(row_[1], s);
-    row_[2] = _mm_add_ps(row_[2], s);
-    row_[3] = _mm_add_ps(row_[3], s);
+    rows_[0] = _mm_add_ps(rows_[0], s);
+    rows_[1] = _mm_add_ps(rows_[1], s);
+    rows_[2] = _mm_add_ps(rows_[2], s);
+    rows_[3] = _mm_add_ps(rows_[3], s);
 #else
     _00_ += _s; _01_ += _s; _02_ += _s; _03_ += _s;
     _04_ += _s; _05_ += _s; _06_ += _s; _07_ += _s;
@@ -341,10 +331,10 @@ Matrix &Matrix::operator-= (float _s)
 #if CRUS_USE_SSE_MATH
     auto const s = _mm_set_ps1(_s);
 
-    row_[0] = _mm_sub_ps(row_[0], s);
-    row_[1] = _mm_sub_ps(row_[1], s);
-    row_[2] = _mm_sub_ps(row_[2], s);
-    row_[3] = _mm_sub_ps(row_[3], s);
+    rows_[0] = _mm_sub_ps(rows_[0], s);
+    rows_[1] = _mm_sub_ps(rows_[1], s);
+    rows_[2] = _mm_sub_ps(rows_[2], s);
+    rows_[3] = _mm_sub_ps(rows_[3], s);
 #else
     _00_ -= _s; _01_ -= _s; _02_ -= _s; _03_ -= _s;
     _04_ -= _s; _05_ -= _s; _06_ -= _s; _07_ -= _s;
@@ -360,10 +350,10 @@ Matrix &Matrix::operator*= (float _s)
 #if CRUS_USE_SSE_MATH
     auto const s = _mm_set_ps1(_s);
 
-    row_[0] = _mm_mul_ps(row_[0], s);
-    row_[1] = _mm_mul_ps(row_[1], s);
-    row_[2] = _mm_mul_ps(row_[2], s);
-    row_[3] = _mm_mul_ps(row_[3], s);
+    rows_[0] = _mm_mul_ps(rows_[0], s);
+    rows_[1] = _mm_mul_ps(rows_[1], s);
+    rows_[2] = _mm_mul_ps(rows_[2], s);
+    rows_[3] = _mm_mul_ps(rows_[3], s);
 #else
     _00_ *= _s; _01_ *= _s; _02_ *= _s; _03_ *= _s;
     _04_ *= _s; _05_ *= _s; _06_ *= _s; _07_ *= _s;
@@ -374,7 +364,7 @@ Matrix &Matrix::operator*= (float _s)
     return *this;
 }
 
-Matrix const &Matrix::RotateOnOX(float _degree)
+Matrix &Matrix::RotateOnOX(float _degree)
 {
     //  1  0  0  0
     //  0  c -s  0
@@ -391,7 +381,7 @@ Matrix const &Matrix::RotateOnOX(float _degree)
     return *this;
 }
 
-Matrix const &Matrix::RotateOnOY(float _degree)
+Matrix &Matrix::RotateOnOY(float _degree)
 {
     //  c  0 -s  0
     //  0  1  0  0
@@ -408,7 +398,7 @@ Matrix const &Matrix::RotateOnOY(float _degree)
     return *this;
 }
 
-Matrix const &Matrix::RotateOnOZ(float _degree)
+Matrix &Matrix::RotateOnOZ(float _degree)
 {
     //  c -s  0  0
     //  s  c  0  0
@@ -425,7 +415,7 @@ Matrix const &Matrix::RotateOnOZ(float _degree)
     return *this;
 }
 
-Matrix const &Matrix::Rotate(Vector const &_axis, float _degree)
+Matrix &Matrix::Rotate(Vector const &_axis, float _degree)
 {
     auto const s = std::sin(DegToRad(_degree));
     auto const c = std::cos(DegToRad(_degree));
@@ -453,7 +443,7 @@ Matrix const &Matrix::Rotate(Vector const &_axis, float _degree)
     return *this;
 }
 
-Matrix const &Matrix::Rotate(float _x, float _y, float _z, float _angle)
+Matrix &Matrix::Rotate(float _x, float _y, float _z, float _angle)
 {
     Vector const axis(_x, _y, _z);
     Rotate(axis, _angle);
@@ -461,7 +451,7 @@ Matrix const &Matrix::Rotate(float _x, float _y, float _z, float _angle)
     return *this;
 }
 
-Matrix const &Matrix::Scale(float _x, float _y, float _z)
+Matrix &Matrix::Scale(float _x, float _y, float _z)
 {
     // x  0  0  0
     // 0  y  0  0
@@ -475,16 +465,16 @@ Matrix const &Matrix::Scale(float _x, float _y, float _z)
     return *this;
 }
 
-Matrix const &Matrix::Translate(float _x, float _y, float _z)
+Matrix &Matrix::Translate(float _x, float _y, float _z)
 {
     // 1  0  0  x
     // 0  1  0  y
     // 0  0  1  z
     // 0  0  0  1
 
-    x_ = _x;
-    y_ = _y;
-    z_ = _z;
+    x = _x;
+    y = _y;
+    z = _z;
 
     return *this;
 }
@@ -493,28 +483,27 @@ float Matrix::Minor(uint8 _a, uint8 _b, uint8 _c, uint8 _d, uint8 _e, uint8 _f) 
 {
     _a <<= 2;    _b <<= 2;    _c <<= 2;
 
-    return vec_[_a + _d] * (vec_[_b + _e] * vec_[_c + _f] - vec_[_c + _e] * vec_[_b + _f]) -
-           vec_[_a + _e] * (vec_[_b + _d] * vec_[_c + _f] - vec_[_c + _d] * vec_[_b + _f]) +
-           vec_[_a + _f] * (vec_[_b + _d] * vec_[_c + _e] - vec_[_c + _d] * vec_[_b + _e]);
+    return m[_a + _d] * (m[_b + _e] * m[_c + _f] - m[_c + _e] * m[_b + _f]) -
+           m[_a + _e] * (m[_b + _d] * m[_c + _f] - m[_c + _d] * m[_b + _f]) +
+           m[_a + _f] * (m[_b + _d] * m[_c + _e] - m[_c + _d] * m[_b + _e]);
 }
 
 float Matrix::Det() const
 {
-    return _00_ * Minor(1, 2, 3, 1, 2, 3) - _01_ * Minor(1, 2, 3, 0, 2, 3) +
-           _02_ * Minor(1, 2, 3, 0, 1, 3) - _03_ * Minor(1, 2, 3, 0, 1, 2);
+    return _00_ * Minor(1, 2, 3, 1, 2, 3) - _04_ * Minor(1, 2, 3, 0, 2, 3) +
+           _08_ * Minor(1, 2, 3, 0, 1, 3) - _12_ * Minor(1, 2, 3, 0, 1, 2);
 }
 
-Matrix Matrix::Inverse() const
+Matrix &Matrix::Inverse()
 {
     float det = Det();
 
     if (det == 0.0f)
-        return *this;
+        return this->MakeIdentity();
 
     det = 1.0f / det;
 
-    return Matrix
-    (
+    m = {
         +Minor(1, 2, 3, 1, 2, 3) * det,
         -Minor(0, 2, 3, 1, 2, 3) * det,
         +Minor(0, 1, 3, 1, 2, 3) * det,
@@ -534,6 +523,41 @@ Matrix Matrix::Inverse() const
         +Minor(0, 2, 3, 0, 1, 2) * det,
         -Minor(0, 1, 3, 0, 1, 2) * det,
         +Minor(0, 1, 2, 0, 1, 2) * det
+    };
+
+    return *this;
+}
+
+/*static*/ Matrix Matrix::Inverse(Matrix const &_m)
+{
+    float det = _m.Det();
+
+    if (det == 0.0f)
+        return _m.Identity();
+
+    det = 1.0f / det;
+
+    return Matrix
+    (
+        +_m.Minor(1, 2, 3, 1, 2, 3) * det,
+        -_m.Minor(0, 2, 3, 1, 2, 3) * det,
+        +_m.Minor(0, 1, 3, 1, 2, 3) * det,
+        -_m.Minor(0, 1, 2, 1, 2, 3) * det,
+
+        -_m.Minor(1, 2, 3, 0, 2, 3) * det,
+        +_m.Minor(0, 2, 3, 0, 2, 3) * det,
+        -_m.Minor(0, 1, 3, 0, 2, 3) * det,
+        +_m.Minor(0, 1, 2, 0, 2, 3) * det,
+
+        +_m.Minor(1, 2, 3, 0, 1, 3) * det,
+        -_m.Minor(0, 2, 3, 0, 1, 3) * det,
+        +_m.Minor(0, 1, 3, 0, 1, 3) * det,
+        -_m.Minor(0, 1, 2, 0, 1, 3) * det,
+
+        -_m.Minor(1, 2, 3, 0, 1, 2) * det,
+        +_m.Minor(0, 2, 3, 0, 1, 2) * det,
+        -_m.Minor(0, 1, 3, 0, 1, 2) * det,
+        +_m.Minor(0, 1, 2, 0, 1, 2) * det
     );
 }
 
@@ -542,7 +566,7 @@ Matrix Matrix::Transpose(Matrix const &_m)
 #if CRUS_USE_SSE_MATH
     auto temp(_m);
 
-    _MM_TRANSPOSE4_PS(temp.row_[0], temp.row_[1], temp.row_[2], temp.row_[3]);
+    _MM_TRANSPOSE4_PS(temp.rows_[0], temp.rows_[1], temp.rows_[2], temp.rows_[3]);
 
     return temp;
 #else
@@ -556,12 +580,12 @@ Matrix Matrix::Transpose(Matrix const &_m)
 #endif
 }
 
-Matrix const &Matrix::Transpose()
+Matrix &Matrix::Transpose()
 {
 #if CRUS_USE_SSE_MATH
-    _MM_TRANSPOSE4_PS(row_[0], row_[1], row_[2], row_[3]);
+    _MM_TRANSPOSE4_PS(rows_[0], rows_[1], rows_[2], rows_[3]);
 #else
-    vec = {
+    m = {
         _00_, _04_, _08_, _12_,
         _01_, _05_, _09_, _13_,
         _02_, _06_, _10_, _14_,
@@ -572,9 +596,9 @@ Matrix const &Matrix::Transpose()
     return *this;
 }
 
-Matrix const &Matrix::MakeIdentity()
+Matrix &Matrix::MakeIdentity()
 {
-    vec_.fill(0.f);
+    m.fill(0.f);
 
     _00_ = 1.f;
     _05_ = 1.f;
@@ -638,7 +662,7 @@ void Matrix::TransformVector(Vector &_v) const
     _v.xyz[2] = nv[0] * _08_ + nv[1] * _09_ + nv[2] * _10_;
 }
 
-Matrix const &Matrix::FromQuaternion(float const _q[])
+Matrix &Matrix::FromQuaternion(float const _q[])
 {
     float const c[12] = {
         _q[1] + _q[1],  _q[2] + _q[2],  _q[3] + _q[3],
@@ -660,6 +684,19 @@ Matrix const &Matrix::FromQuaternion(float const _q[])
     _15_ = 1.0f;
 
     return *this;
+}
+
+/*static*/ Matrix Matrix::GetNormalMatrix(Matrix const &ModelViewMatrix)
+{
+    auto normalMatrix = ModelViewMatrix;
+
+    normalMatrix._03_ = 0.f;
+    normalMatrix._07_ = 0.f;
+    normalMatrix._11_ = 0.f;
+
+    normalMatrix.row = {0.f, 0.f, 0.f, 1.f};
+
+    return Inverse(normalMatrix).Transpose();
 }
 
 

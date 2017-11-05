@@ -19,23 +19,24 @@ class Matrix {
 public:
     UNIT_TEST_HERITABLE_CLASS;
 
-    explicit Matrix() = default;
+    Matrix() = default;
 
-    Matrix(Matrix &&m);
-    Matrix(Matrix const &m);
+    constexpr Matrix(Matrix const &m) = default;
+    constexpr Matrix(Matrix &&m) = default;
 
-    Matrix(std::array<float, 16> &&vec);
-    Matrix(std::array<float, 16> const &vec);
+    template<class T, typename std::enable_if_t<std::is_same_v<std::decay_t<T>, std::array<float, 16>>>...>
+    constexpr Matrix(T &&array) : m(std::forward<T>(array)) { };
 
     //explicit Matrix(Vector const &position, Vector const &rotation, Vector const &sizing);
 
-    explicit Matrix(float m00, float m01, float m02, float m03,
-                    float m04, float m05, float m06, float m07,
-                    float m08, float m09, float m10, float m11,
-                    float m12, float m13, float m14, float m15);
+    /*constexpr Matrix(float m00, float m01, float m02, float m03,
+                     float m04, float m05, float m06, float m07,
+                     float m08, float m09, float m10, float m11,
+                     float m12, float m13, float m14, float m15);*/
 
-    std::array<float, 16> const &m() const;
-    std::array<float, 16> &m();
+    constexpr Matrix(float _m00, float _m01, float _m02, float _m03, float _m04, float _m05, float _m06, float _m07,
+                     float _m08, float _m09, float _m10, float _m11, float _m12, float _m13, float _m14, float _m15) : 
+        m({_m00, _m01, _m02, _m03, _m04, _m05, _m06, _m07, _m08, _m09, _m10, _m11, _m12, _m13, _m14, _m15}) { };
 
     Matrix operator+ (Matrix const &m) const;
     Matrix operator- (Matrix const &m) const;
@@ -63,26 +64,27 @@ public:
     Matrix &operator*= (float s);
     Matrix &operator/= (float s);
 
-    Matrix const &RotateOnOX(float angle);
-    Matrix const &RotateOnOY(float angle);
-    Matrix const &RotateOnOZ(float angle);
+    Matrix &RotateOnOX(float angle);
+    Matrix &RotateOnOY(float angle);
+    Matrix &RotateOnOZ(float angle);
 
-    Matrix const &Rotate(Vector const &axis, float angle);
-    Matrix const &Rotate(float x, float y, float z, float angle);
+    Matrix &Rotate(Vector const &axis, float angle);
+    Matrix &Rotate(float x, float y, float z, float angle);
 
-    Matrix const &Scale(float x, float y, float z);
-    Matrix const &Translate(float x, float y, float z);
+    Matrix &Scale(float x, float y, float z);
+    Matrix &Translate(float x, float y, float z);
 
     float Minor(uint8, uint8, uint8, uint8, uint8, uint8) const;
     float Det() const;
 
-    Matrix Inverse() const;
+    static Matrix Inverse(Matrix const &m);
+    Matrix &Inverse();
 
     static Matrix Transpose(Matrix const &m);
-    Matrix const &Transpose();
+    Matrix &Transpose();
 
     static Matrix Identity();
-    Matrix const &MakeIdentity();
+    Matrix &MakeIdentity();
 
     Vector TransformPosition(Vector const &p) const;
     Vector TransformPosition(Vector &&p) const;
@@ -92,37 +94,32 @@ public:
     Vector TransformVector(Vector &&v) const;
     void TransformVector(Vector &v) const;
 
-    Matrix const &FromQuaternion(float const q[]);
-    // :TODO: maybe it was better if deleted.
+    Matrix &FromQuaternion(float const q[]);
+    // :TODO: perhaps it's better to delete.
     //static Matrix GetFromQuaternion(float const *const q);
 
-    Vector &xAxis();
-    Vector &yAxis();
-    Vector &zAxis();
-
-    float &xOrigin();
-    float &yOrigin();
-    float &zOrigin();
-
-    Vector origin() const;
+    static Matrix GetNormalMatrix(Matrix const &ModelViewMatrix);
 
     friend std::ostream &operator<< (std::ostream &stream, Matrix const &matrix);
 
-private:
+#if CRUS_USE_SSE_MATH
     union alignas(sizeof(__m128))
+#else
+    union
+#endif
     {
         // A little tricky, but it necessary. ;)
         struct {
-            Vector xAxis_; float x_;
-            Vector yAxis_; float y_;
-            Vector zAxis_; float z_;
-            float div_[4];
+            Vector xAxis; float x;
+            Vector yAxis; float y;
+            Vector zAxis; float z;
+            std::array<float, 4> row;
         };
 
-        std::array<float, 16> vec_;
+        std::array<float, 16> m;
 
 #if CRUS_USE_SSE_MATH
-        __m128 row_[4];
+        __m128 rows_[4];
 #endif
 
         struct {

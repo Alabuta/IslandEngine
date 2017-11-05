@@ -60,34 +60,34 @@ void Camera::SetBehavior(Camera::eCAM_BEHAVIOR _behavior)
 
     else if (_behavior == eCAM_BEHAVIOR::nFREE && (behavior_ == eCAM_BEHAVIOR::nTHIRD || behavior_ == eCAM_BEHAVIOR::nSDK)) {
         pos_ = aim_;
-        aim = -view_.zAxis();
+        aim = -view_.zAxis;
     }
 
     Create(_behavior);
 
-    pitch_ = -math::RadToDeg(std::acos(view_.yAxis().y));     // Extract the pitch angle.
-    yaw_ = -math::RadToDeg(std::acos(view_.xAxis().x));       // Extract the yaw angle.
+    pitch_ = -math::RadToDeg(std::acos(view_.yAxis.y));     // Extract the pitch angle.
+    yaw_ = -math::RadToDeg(std::acos(view_.xAxis.x));       // Extract the yaw angle.
 }
 
 void Camera::LookAt(math::Vector const &_aim)
 {
     aim_ = _aim;
-    view_.zAxis() = pos_ - aim_;
+    view_.zAxis = pos_ - aim_;
 
-    if (math::IsTooSmall(view_.zAxis().x) && math::IsTooSmall(view_.zAxis().z))
-        view_.zAxis().z += math::kEPSILON;
+    if (math::IsTooSmall(view_.zAxis.x) && math::IsTooSmall(view_.zAxis.z))
+        view_.zAxis.z += math::kEPSILON;
 
-    view_.zAxis().Normalize();
+    view_.zAxis.Normalize();
 
-    view_.xAxis() = (kWORLD_AXIS_Y ^ view_.zAxis()).Normalize();
-    view_.yAxis() = (view_.zAxis() ^ view_.xAxis()).Normalize();
+    view_.xAxis = (kWORLD_AXIS_Y ^ view_.zAxis).Normalize();
+    view_.yAxis = (view_.zAxis ^ view_.xAxis).Normalize();
 
-    view_.xOrigin() = -view_.xAxis() * pos_;
-    view_.yOrigin() = -view_.yAxis() * pos_;
-    view_.zOrigin() = -view_.zAxis() * pos_;
+    view_.x = -view_.xAxis * pos_;
+    view_.y = -view_.yAxis * pos_;
+    view_.z = -view_.zAxis * pos_;
 
-    pitch_ = -math::RadToDeg(std::acos(view_.yAxis().y));     // Extract the pitch angle.
-    yaw_ = -math::RadToDeg(std::acos(view_.xAxis().x));       // Extract the yaw angle.
+    pitch_ = -math::RadToDeg(std::acos(view_.yAxis.y));     // Extract the pitch angle.
+    yaw_ = -math::RadToDeg(std::acos(view_.xAxis.x));       // Extract the yaw angle.
 
     // :TODO: remove.
     //rot_.FromMatrix4x4(view_.m());
@@ -168,17 +168,17 @@ void Camera::UpdateView()
 
     float z = (((keyS >> 0xF) ? 1 : 0) - ((keyW >> 0xF) ? 1 : 0)) * 0.02f;
 
-    auto const xAxis = math::Vector::GetNormalized(view_.xAxis());
-    auto const yAxis = math::Vector::GetNormalized(view_.yAxis());
-    auto const zAxis = math::Vector::GetNormalized(view_.zAxis());
+    auto const xAxis = math::Vector::GetNormalized(view_.xAxis);
+    auto const yAxis = math::Vector::GetNormalized(view_.yAxis);
+    auto const zAxis = math::Vector::GetNormalized(view_.zAxis);
 
     pos_.x += math::Vector{xAxis.x, yAxis.x, zAxis.x} * math::Vector{x, y, z};
     pos_.y += math::Vector{xAxis.y, yAxis.y, zAxis.y} * math::Vector{x, y, z};
     pos_.z += math::Vector{xAxis.z, yAxis.z, zAxis.z} * math::Vector{x, y, z};
 
-    view_.xOrigin() = -xAxis * pos_;
-    view_.yOrigin() = -yAxis * pos_;
-    view_.zOrigin() = -zAxis * pos_;
+    view_.x = -xAxis * pos_;
+    view_.y = -yAxis * pos_;
+    view_.z = -zAxis * pos_;
 }
 
 void Camera::Update()

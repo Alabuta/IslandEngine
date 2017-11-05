@@ -78,12 +78,12 @@ inline void Render::UpdateCMTS(size_t _offset, size_t _size, Color const *const 
 
 inline void Render::UpdateViewport(size_t _offset, size_t _count, math::Matrix const *const _matrices) const
 {
-    glNamedBufferSubData(VIEWPORT_, _offset * sizeof(math::Matrix), _count * sizeof(math::Matrix), _matrices->m().data());
+    glNamedBufferSubData(VIEWPORT_, _offset * sizeof(math::Matrix), _count * sizeof(math::Matrix), _matrices->m.data());
 }
 
 inline void Render::UpdateTransform(size_t _offset, size_t _count, math::Matrix const *const _matrices) const
 {
-    glNamedBufferSubData(TRANSFORM_, _offset * sizeof(math::Matrix), _count * sizeof(math::Matrix), _matrices->m().data());
+    glNamedBufferSubData(TRANSFORM_, _offset * sizeof(math::Matrix), _count * sizeof(math::Matrix), _matrices->m.data());
 }
 };
 
