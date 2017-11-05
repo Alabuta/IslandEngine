@@ -42,6 +42,11 @@ vec4 TransformFromWorldToView(vec4 position)
     return mView * position;
 }
 
+vec4 TransformFromModelToView(vec4 position)
+{
+    return mView * mModel * position;
+}
+
 vec4 TransformFromModelToWorld(vec4 position)
 {
     return mModel * position;

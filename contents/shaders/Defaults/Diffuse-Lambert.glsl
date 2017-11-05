@@ -14,7 +14,7 @@
 layout(location = nVERTEX) in vec3 inVertex;
 layout(location = nNORMAL) in vec3 inNormal;
 
-/*layout(location = nMAIN_COLOR)*/ uniform vec4 lightPosition = vec4(10, 10, 10, 0);
+/*layout(location = 0)*/ uniform vec4 lightPosition = vec4(10, 10, 10, 0);
 
 out vec4 light;
 out vec4 normal;
@@ -22,12 +22,16 @@ out vec4 position;
 
 void main()
 {
-    position = TransformFromModelToWorld(vec4(inVertex, 1));
-
     normal = normalize(mNormal * vec4(inNormal, 0));
-    light = normalize(lightPosition - position);
+    // normal.xyz = normalize(transpose(inverse(mat3(mView * mModel))) * inNormal);
 
-    position = TransformFromWorldToView(position);
+    position = TransformFromModelToView(vec4(inVertex, 1));
+
+    if (lightPosition.w == 0)
+        light = normalize(mView * lightPosition);
+
+    else light = normalize(mView * lightPosition - position);
+
     gl_Position = TransformFromViewToClip(position);
 }
 
@@ -43,19 +47,22 @@ in vec4 normal;
 in vec4 position;
 
 #define HALF_LAMBERT 1
+#define WRAPPED_AROUND_LAMBERT 0
 
 void main()
 {
-    vec3 n = normalize(normal).xyz;
-    vec3 l = normalize(light).xyz;
+    vec3 n = normalize(normal.xyz);
+    vec3 l = normalize(light.xyz);
 
 #if HALF_LAMBERT
     float diffuse = (dot(n, l) * 0.5 + 0.5);
 #elif WRAPPED_AROUND_LAMBERT
     const float offset = 0.5;
     float diffuse = max(dot(n, l) + offset, 0) / (1 + offset);
+#else
+    float diffuse = dot(n, l);
 #endif
 
-    //FragColor = vec4(mainColor.xyz * diffuse, mainColor.a);
-    FragColor = vec4(n.xyz, 1);
+    FragColor = vec4(mainColor.xyz * diffuse, mainColor.a);
+    // FragColor = vec4(n.xyz, 1);
 }
