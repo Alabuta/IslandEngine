@@ -7,6 +7,8 @@
 ****
 ********************************************************************************************************************************/
 #include <numeric>
+#include <algorithm>
+#include <iostream>
 #include "..\src\Math\CrusMatrix.cxx"
 
 UNIT_SUITE_CLASS(isle::math::Matrix)
@@ -18,57 +20,32 @@ UNIT_SUITE_CLASS(isle::math::Matrix)
     // The class constructor testing...
     {
         std::array<float, 16> vec;
-        for (auto &a : vec)
-            a = rand<float>();
+        std::generate(vec.begin(), vec.end(), rand<float>);
 
         Matrix const m1(vec[0], vec[1], vec[02], vec[03], vec[04], vec[05], vec[06], vec[07],
                         vec[8], vec[9], vec[10], vec[11], vec[12], vec[13], vec[14], vec[15]);
 
         for (auto i = 0; i < 16; ++i)
-            CHECK_EQUAL(vec[i], m1.vec_[i], "Matrix(float, float, ...)");
+            CHECK_EQUAL(vec[i], m1.m[i], "Matrix(float, float, ...)");
 
         Matrix const m2(vec);
         Matrix const m3(std::array<float, 16>{vec[0], vec[1], vec[02], vec[03], vec[04], vec[05], vec[06], vec[07],
                         vec[8], vec[9], vec[10], vec[11], vec[12], vec[13], vec[14], vec[15]});
 
         for (auto i = 0; i < 16; ++i)
-            CHECK_EQUAL(vec[i], m2.vec_[i], "Matrix(std::array<float, 16> const &)");
+            CHECK_EQUAL(vec[i], m2.m[i], "Matrix(std::array<float, 16> const &)");
 
         for (auto i = 0; i < 16; ++i)
-            CHECK_EQUAL(vec[i], m3.vec_[i], "Matrix(std::array<float, 16> &&)");
+            CHECK_EQUAL(vec[i], m3.m[i], "Matrix(std::array<float, 16> &&)");
 
         Matrix const m4(m2);
         Matrix const m5(std::move(Matrix(vec)));
 
         for (auto i = 0; i < 16; ++i)
-            CHECK_EQUAL(vec[i], m4.vec_[i], "Matrix(Matrix const &)");
+            CHECK_EQUAL(vec[i], m4.m[i], "Matrix(Matrix const &)");
 
         for (auto i = 0; i < 16; ++i)
-            CHECK_EQUAL(vec[i], m5.vec_[i], "Matrix(Matrix &&)");
-    }
-
-    // Getters...
-    {
-        std::array<float, 16> vec;
-        for (auto &a : vec)
-            a = rand<float>();
-
-        Matrix const m(vec);
-
-        for (auto i = 0; i < 16; ++i)
-            CHECK_EQUAL(m.vec_[i], m.m()[i], "m() const")
-    }
-
-    // Setters...
-    {
-        std::array<float, 16> vec;
-        for (auto &a : vec)
-            a = rand<float>();
-
-        Matrix m1;
-
-        for (auto i = 0; i < 16; ++i)
-            CHECK_EQUAL(vec[i], m1.m()[i] = vec[i], "m()");
+            CHECK_EQUAL(vec[i], m5.m[i], "Matrix(Matrix &&)");
     }
 
     // The sum and sub operators...
@@ -76,65 +53,61 @@ UNIT_SUITE_CLASS(isle::math::Matrix)
         std::array<float, 16> vecs[2];
 
         for (auto &vec : vecs)
-            for (auto &a : vec)
-                a = rand<float>();
+            std::generate(vec.begin(), vec.end(), rand<float>);
 
         Matrix const m1(vecs[0]), m2(vecs[1]);
 
         for (auto i = 0; i < 16; ++i)
-            CHECK_EQUAL(vecs[0][i] + vecs[1][i], (m1 + m2).m()[i], "operator+ (Matrix const &) const");
+            CHECK_EQUAL(vecs[0][i] + vecs[1][i], (m1 + m2).m[i], "operator+ (Matrix const &) const");
 
         for (auto i = 0; i < 16; ++i)
-            CHECK_EQUAL(vecs[0][i] - vecs[1][i], (m1 - m2).m()[i], "operator- (Matrix const &) const");
+            CHECK_EQUAL(vecs[0][i] - vecs[1][i], (m1 - m2).m[i], "operator- (Matrix const &) const");
     }
 
     // The sum, sub, mult and div with scalar operators...
     {
         std::array<float, 16> vec;
-        for (auto &a : vec)
-            a = rand<float>();
+        std::generate(vec.begin(), vec.end(), rand<float>);
 
         Matrix const m(vec);
 
         float const s = rand<float>();
 
         for (auto i = 0; i < 16; ++i)
-            CHECK_EQUAL(m.m()[i] + s, (m + s).m()[i], "operator+ (float) const");
+            CHECK_EQUAL(m.m[i] + s, (m + s).m[i], "operator+ (float) const");
 
         for (auto i = 0; i < 16; ++i)
-            CHECK_EQUAL(m.m()[i] - s, (m - s).m()[i], "operator- (float) const");
+            CHECK_EQUAL(m.m[i] - s, (m - s).m[i], "operator- (float) const");
 
         for (auto i = 0; i < 16; ++i)
-            CHECK_EQUAL(m.m()[i] * s, (m * s).m()[i], "operator* (float) const");
+            CHECK_EQUAL(m.m[i] * s, (m * s).m[i], "operator* (float) const");
 
         for (auto i = 0; i < 16; ++i)
-            CHECK_EQUAL(m.m()[i] / s, (m / s).m()[i], "operator/ (float) const");
+            CHECK_EQUAL(m.m[i] / s, (m / s).m[i], "operator/ (float) const");
     }
 
     // The assignment operators...
     {
         std::array<float, 16> vec;
-        for (auto &a : vec)
-            a = rand<float>();
+        std::generate(vec.begin(), vec.end(), rand<float>);
 
         Matrix const m0(vec);
 
         Matrix m1;
 
         for (auto i = 0; i < 16; ++i)
-            CHECK_EQUAL(m0.m()[i], (m1 = m0).m()[i], "operator= (Matrix const &)");
+            CHECK_EQUAL(m0.m[i], (m1 = m0).m[i], "operator= (Matrix const &)");
 
         m1 = m1;
 
         for (auto i = 0; i < 16; ++i)
-            CHECK_EQUAL(m0.m()[i], (m1 = m0).m()[i], "operator= (Matrix const &)");
+            CHECK_EQUAL(m0.m[i], (m1 = m0).m[i], "operator= (Matrix const &)");
     }
 
     // The bool operators...
     {
         std::array<float, 16> vec;
-        for (auto &a : vec)
-            a = rand<float>();
+        std::generate(vec.begin(), vec.end(), rand<float>);
 
         Matrix const m1(vec), m2(vec);
 
@@ -147,8 +120,7 @@ UNIT_SUITE_CLASS(isle::math::Matrix)
         std::array<float, 16> vecs[2];
 
         for (auto &vec : vecs)
-            for (auto &a : vec)
-                a = rand<float>();
+            std::generate(vec.begin(), vec.end(), rand<float>);
 
         Matrix const m1(vecs[0]), m2(vecs[1]);
         Matrix m3;
@@ -157,20 +129,19 @@ UNIT_SUITE_CLASS(isle::math::Matrix)
         m3 += m2;
 
         for (auto i = 0; i < 16; ++i)
-            CHECK_EQUAL(vecs[0][i] + vecs[1][i], m3.m()[i], "operator+= (Matrix const &)");
+            CHECK_EQUAL(vecs[0][i] + vecs[1][i], m3.m[i], "operator+= (Matrix const &)");
 
-            m3 = m1;
+        m3 = m1;
         m3 -= m2;
 
         for (auto i = 0; i < 16; ++i)
-            CHECK_EQUAL(vecs[0][i] - vecs[1][i], m3.m()[i], "operator-= (Matrix const &)");
+            CHECK_EQUAL(vecs[0][i] - vecs[1][i], m3.m[i], "operator-= (Matrix const &)");
     }
 
     // The sum, sub, mult and div with scalar operators...
     {
         std::array<float, 16> vec;
-        for (auto &a : vec)
-            a = rand<float>();
+        std::generate(vec.begin(), vec.end(), rand<float>);
 
         Matrix const m1(vec);
 
@@ -182,25 +153,25 @@ UNIT_SUITE_CLASS(isle::math::Matrix)
         m2 += s;
 
         for (auto i = 0; i < 16; ++i)
-            CHECK_EQUAL(m1.m()[i] + s, m2.m()[i], "operator/= (float)");
+            CHECK_EQUAL(m1.m[i] + s, m2.m[i], "operator/= (float)");
 
-            m2 = m1;
+        m2 = m1;
         m2 -= s;
 
         for (auto i = 0; i < 16; ++i)
-            CHECK_EQUAL(m1.m()[i] - s, m2.m()[i], "operator/= (float)");
+            CHECK_EQUAL(m1.m[i] - s, m2.m[i], "operator/= (float)");
 
-            m2 = m1;
+        m2 = m1;
         m2 *= s;
 
         for (auto i = 0; i < 16; ++i)
-            CHECK_EQUAL(m1.m()[i] * s, m2.m()[i], "operator/= (float)");
+            CHECK_EQUAL(m1.m[i] * s, m2.m[i], "operator/= (float)");
 
-            m2 = m1;
+        m2 = m1;
         m2 /= s;
 
         for (auto i = 0; i < 16; ++i)
-            CHECK_EQUAL(m1.m()[i] / s, m2.m()[i], "operator/= (float)");
+            CHECK_EQUAL(m1.m[i] / s, m2.m[i], "operator/= (float)");
     }
 
     // The matrix determinant routines...
@@ -213,6 +184,7 @@ UNIT_SUITE_CLASS(isle::math::Matrix)
         );
 
         CHECK_EQUAL(-5322.2631f, m.Det(), "Det() const");
+        CHECK_EQUAL(1.f, Matrix::Identity().Det(), "Det() const");
     }
 
     // Identity matrix creation routines...
@@ -225,8 +197,7 @@ UNIT_SUITE_CLASS(isle::math::Matrix)
         );
 
         std::array<float, 16> vec;
-        for (auto &a : vec)
-            a = rand<float>();
+        std::generate(vec.begin(), vec.end(), rand<float>);
 
         Matrix m(vec);
 
@@ -257,8 +228,7 @@ UNIT_SUITE_CLASS(isle::math::Matrix)
     // The matrix multiplication operators...
     {
         std::array<float, 16> vec;
-        for (auto &a : vec)
-            a = rand<float>();
+        std::generate(vec.begin(), vec.end(), rand<float>);
 
         Matrix const m(vec);
 
@@ -275,10 +245,10 @@ UNIT_SUITE_CLASS(isle::math::Matrix)
         );
 
         Matrix m1;
-        std::iota(m1.vec_.begin(), m1.vec_.end(), 1.f);
+        std::iota(m1.m.begin(), m1.m.end(), 1.f);
 
         Matrix m2;
-        std::iota(m2.vec_.begin(), m2.vec_.end(), -7.f);
+        std::iota(m2.m.begin(), m2.m.end(), -7.f);
 
         CHECK(m0 == m1 * m2, "Matrix operator* (Matrix const &) const");
         CHECK(m0 != m2 * m1, "Matrix operator* (Matrix const &) const");
@@ -320,16 +290,74 @@ UNIT_SUITE_CLASS(isle::math::Matrix)
         //CHECK(Vector(-1, 0, 0) == m.TransformPosition(Vector(0, 1, 0)), "TransformPosition(Vector &&) const");
     }
 
+    {
+
+    }
+
     // The matrix inverse routines...
-    /*{
-    std::array<float, 16> vec;
-    for (auto &a : vec)
-    a = rand<float>();
+    {
+        Matrix identity(
+            1, 0, 0, 0,
+            0, 1, 0, 0,
+            0, 0, 1, 0,
+            0, 0, 0, 1
+        );
 
-    Matrix const m(vec);
+        identity.Inverse();
 
-    auto transposed = Matrix::Transpose(m);
+        CHECK(Matrix::Identity() == identity, "Matrix &Inverse()");
 
-    CHECK(Matrix::Identity() == transposed * m, "Matrix operator* (Matrix const &) const");
-    }*/
+        {
+            Matrix m(
+                1, 2, -3, 4,
+                5, -6, 7, 8,
+                -9, 10, 11, 12,
+                13, 14, -15, -16
+            );
+
+            Matrix const inverted(
+                -1 / 153.f, 137 / 1530.f, -2 / 765.f, 7 / 170.f,
+                -1 / 612.f, -2 / 765.f, 151 / 3060.f, 3 / 85.f,
+                -47 / 306.f, 83 / 1530.f, 59 / 1530.f, 3 / 170.f,
+                7 / 51.f, 1 / 51.f, 1 / 204.f, -1 / 68.f
+            );
+
+            CHECK(inverted == Matrix::Inverse(m), "static Matrix Inverse()");
+
+            m.Inverse();
+
+            CHECK(inverted == m, "Matrix &Inverse()");
+        }
+
+        {
+            std::array<float, 16> vecs[2];
+
+            for (auto &vec : vecs)
+                std::generate(vec.begin(), vec.end(), rand<float>);
+
+            Matrix const m1(vecs[0]), m2(vecs[1]);
+
+            auto mi1 = m1, mi2 = m2;
+
+            mi1.Inverse();
+            mi2.Inverse();
+
+            CHECK(Matrix::Inverse(m1) * Matrix::Inverse(m2) == mi1 * mi2, "Matrix &Inverse()");
+        }
+
+        {
+            std::array<float, 16> vec;
+            std::generate(vec.begin(), vec.end(), rand<float>);
+
+            Matrix m(vec);
+
+            std::cout << (m.Det() == 0.0f) << '\n';
+
+            //auto inverted_transposed = Matrix::Transpose(Matrix::Inverse(m));
+            auto mm = m;
+            mm.Inverse().Transpose();
+
+            CHECK(mm == m.Transpose().Inverse(), "Matrix &Inverse()");
+        }
+    }
 }
