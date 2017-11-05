@@ -622,8 +622,6 @@ void InitFullscreenQuad()
     if (!quad_program.AssignNew({R"(Defaults/Fullscreen-Quad.glsl)"}))
         return;
 
-    uint32 quad_fbo;
-
     glGenFramebuffers(1, &quad_fbo);
     glBindFramebuffer(GL_FRAMEBUFFER, quad_fbo);
 
@@ -632,22 +630,23 @@ void InitFullscreenQuad()
     glTextureParameteri(quad_tid, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTextureParameteri(quad_tid, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-    glTextureStorage2D(quad_tid, 1, GL_RGBA, 1024, 1024);
-    // glTextureSubImage2D(id_, 0, 0, 0, image.width_, image.height_, image.format_, image.type_, image.data_.data());
-
-    /* glGenTextures(1, &quad_tid);
-    glBindTexture(GL_TEXTURE_2D, quad_tid);
-    glTexStorage*/
+    glTextureStorage2D(quad_tid, 1, GL_RGBA8, 1920, 1080);
+    //glTextureSubImage2D(quad_tid, 0, 0, 0, 1920, 1080, GL_RGBA, GL_RGBA8, nullptr);
 
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, quad_tid, 0);
 
-    /*if (!quad_texture.Init())
-        return;*/
-
     glGenRenderbuffers(1, &quad_depth);
     glBindRenderbuffer(GL_RENDERBUFFER, quad_depth);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, 1024, 1024);
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, quad_depth);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, 1920, 1080);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, quad_depth);
+
+    std::uint32_t constexpr drawBuffers[] = { GL_COLOR_ATTACHMENT0 };
+    glDrawBuffers(1, drawBuffers);
+
+    if (auto result = glCheckFramebufferStatus(GL_FRAMEBUFFER); result != GL_FRAMEBUFFER_COMPLETE)
+        log::Debug() << "framebuffer error:" << result;
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     Render::inst().CreateVAO(quad_vao);
 
@@ -673,7 +672,7 @@ void InitFullscreenQuad()
 
 void RenderFullscreenQuad()
 {
-    quad_texture.Bind();
+    //quad_texture.Bind();
     quad_program.UseThis();
     glBindVertexArray(quad_vao);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 8);
@@ -685,7 +684,7 @@ void Init()
     Camera::inst().SetPos(-0.75f, 1.25f, -0.25f);
     Camera::inst().LookAt(0.f, 1.25f, 0.f);
 
-    grid.Update(12.3f, 1.7f, 5);
+    grid.Update(15, 1, 5);
 
     // log::Debug() << measure<>::execution(InitBackground);
 
@@ -696,10 +695,10 @@ void Init()
 
     InitFullscreenQuad();
 
-    /* if (!geom_program.AssignNew({R"(Defaults/Diffuse-Lambert.glsl)"}))
+    if (!geom_program.AssignNew({R"(Defaults/Diffuse-Lambert.glsl)"}))
         return;
 
-    InitGeometry();*/
+    InitGeometry();
 }
 
 
@@ -709,6 +708,10 @@ void Update()
 
 void DrawFrame()
 {
+    glBindFramebuffer(GL_FRAMEBUFFER, quad_fbo);
+    glViewport(0, 0, 1920, 1080);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
     grid.Draw();
 
     cubemap::DrawCubemap();
@@ -722,20 +725,26 @@ void DrawFrame()
     //flipbookTexture.Bind();
     //flipbookProgram.UseThis();
 
-    /*geom_program.UseThis();
+    geom_program.UseThis();
 
     matrices[1].Translate(0.2f, 0.78f, -0.75f);
     // matrices[1].Scale(1.f, 0.75f, 0.25f);
 
     matrices[0] = Render::inst().vp_.projView() * matrices[1];
 
-    matrices[2] = matrices[1].Inverse().Transpose();
+    matrices[2] = math::Matrix::GetNormalMatrix(Render::inst().vp_.cam().view() * matrices[1]);
 
     Render::inst().UpdateTransform(0, 3, matrices.data());
 
     glBindVertexArray(geom_vao);
-    glDrawArrays(GL_TRIANGLES, 0, 3 * geom_count);*/
+    glDrawArrays(GL_TRIANGLES, 0, 3 * geom_count);
 
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    glViewport(0, 0, 1920, 1080);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    glBindTextureUnit(0, quad_tid);
     RenderFullscreenQuad();
 
     /*glDepthMask(GL_FALSE);
