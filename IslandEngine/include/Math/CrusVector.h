@@ -31,7 +31,7 @@ public:
     template<class T, typename std::enable_if_t<std::is_same_v<std::decay_t<T>, std::array<float, 3>>>...>
     constexpr Vector(T &&array) : xyz(std::forward<T>(array)) { };
 
-    constexpr Vector(float x, float y, float z) : xyz({x, y, z}) { };
+    constexpr Vector(float x, float y, float z) : xyz({ x, y, z }) { };
 
     Vector operator+ (Vector const &v) const;
     Vector operator- (Vector const &v) const;

@@ -22,7 +22,6 @@ namespace isle::intf {
 auto Grid::Build(float _side, float _step, uint16 _subdivs)
 {
     auto lines = static_cast<uint16>(std::floor(_side / _step));
-    auto subdivs = lines * (_subdivs - 1);
 
     auto const total = static_cast<decltype(lines)>(_side / (_step / _subdivs));
     auto const sub = _step / _subdivs;
