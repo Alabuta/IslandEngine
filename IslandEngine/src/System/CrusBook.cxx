@@ -174,21 +174,20 @@ void LogStream::BeginLine(eSEVERITY _severity)
 {
     auto const index = static_cast<std::underlying_type<eSEVERITY>::type>(_severity);
 
-    if constexpr (kCRUS_DEBUG_CONSOLE)
-    {
-        auto const hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+#if _CRUS_DEBUG_CONSOLE
+    auto const hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 
-        CONSOLE_SCREEN_BUFFER_INFO info;
-        GetConsoleScreenBufferInfo(hConsole, &info);
+    CONSOLE_SCREEN_BUFFER_INFO info;
+    GetConsoleScreenBufferInfo(hConsole, &info);
 
-        SMALL_RECT rcDraw = {
-            1,  info.dwCursorPosition.Y,
-            kMARKERS_WIDTH, info.dwCursorPosition.Y
-        };
+    SMALL_RECT rcDraw = {
+        1,  info.dwCursorPosition.Y,
+        kMARKERS_WIDTH, info.dwCursorPosition.Y
+    };
 
-        WriteConsoleOutputW(hConsole, kMARKERS[index], {kMARKERS_WIDTH, 1}, {0, 0}, &rcDraw);
-        SetConsoleCursorPosition(hConsole, {kMARKERS_WIDTH + 2, info.dwCursorPosition.Y});
-    }
+    WriteConsoleOutputW(hConsole, kMARKERS[index], {kMARKERS_WIDTH, 1}, {0, 0}, &rcDraw);
+    SetConsoleCursorPosition(hConsole, {kMARKERS_WIDTH + 2, info.dwCursorPosition.Y});
+#endif
 
     stream_ << kSEVERITIES[index] << ' ';
 }
