@@ -8,7 +8,6 @@
 ********************************************************************************************************************************/
 #include <iostream>
 #include <limits>
-#include <random>
 #include <sstream>
 
 #include "Math\CrusMath.h"
@@ -43,38 +42,14 @@ Test::Test(std::string &&_class_name, std::string &&_file_name) : next_(nullptr)
     return results().All();
 }
 
-template<>
-__declspec(noinline) int32_t rand<int32_t>()
-{
-    // The seed.
-    static std::random_device rd;
-    // Mersenne-Twister engine.
-    std::mt19937 mt(rd());
-    std::uniform_int_distribution<> value(std::numeric_limits<int32_t>::min(), std::numeric_limits<int32_t>::max());
-
-    return value(rd);
-}
-
-template<>
-__declspec(noinline) float rand<float>()
-{
-    // The seed.
-    static std::random_device rd;
-    // Mersenne-Twister engine.
-    std::mt19937 mt(rd());
-    std::uniform_real_distribution<float> value(-1000000.f, 1000000.f);
-
-    return value(rd);
-}
-
 void Check(bool _expression, Test const &_test, int32_t _line, std::string &&_msg)
 {
     Test::results().Add();
 
     if(_expression) return;
 
-    std::ostringstream msg(_msg);
-    msg << ": false expression";
+    std::ostringstream msg;
+    msg << _msg << ": false expression";
 
     Test::results().Failed(_test, _line, msg.good() ? msg.str() : kBAD_STRING);
 }

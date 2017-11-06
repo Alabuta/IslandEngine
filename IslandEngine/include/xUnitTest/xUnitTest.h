@@ -12,6 +12,11 @@
 #define CRUS_XUNIT_TEST_H
 
 #include <string>
+#include <random>
+
+// Disable any definitions min() and max() macroses.
+#undef max
+#undef min
 
 #define UNIT_TEST_HERITABLE_CLASS       class Test;
 
@@ -47,7 +52,28 @@ private:
 };
 
 template<typename T>
-T rand();
+T rand()
+{
+    // The seed.
+    static std::random_device rd;
+
+    // Mersenne-Twister engine.
+    std::mt19937 mt(rd());
+
+    if constexpr (std::is_floating_point_v<T>)
+    {
+        std::uniform_real_distribution<T> value(-1e6F, 1e6F);
+        return value(rd);
+    }
+
+    else if constexpr (std::is_integral_v <T>)
+    {
+        std::uniform_int_distribution<T> value(std::numeric_limits<T>::lowest(), std::numeric_limits<T>::max());
+        return value(rd);
+    }
+
+    else static_assert(false, "unsupported type.");
+}
 
 void Check(bool expression, Test const &test, int32_t line, std::string &&_msg);
 
