@@ -36,16 +36,13 @@ using uint32 = unsigned __int32;
 using uint64 = unsigned __int64;
 
 union real {
-    float f_;
-    int32 i_;
+    float f;
+    int32 i;
 };
 
 // Values sizes of application usertypes.
 namespace crus
 {
-bool IsInf(real f);
-bool IsNan(real f);
-
 bool IsEqualBasedULP(float a, float b, float max_diff, int32 ulp_diff);
 };
 

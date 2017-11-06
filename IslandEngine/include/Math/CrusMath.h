@@ -11,6 +11,9 @@
 #ifndef CRUS_MATH_H                 // Include guard "CrusMath.h"
 #define CRUS_MATH_H
 
+#define _CRUS_REAL_CHECK_ON_INF 1
+#define _CRUS_REAL_CHECK_ON_NAN 1
+
 #include <cmath>
 #include <memory>
 #include <algorithm>
@@ -64,6 +67,7 @@ auto constexpr kPI_DIV_180_INV = 57.2957795130823208767f;
 
 auto constexpr kEPSILON = std::numeric_limits<float>::epsilon();
 auto constexpr kINF = std::numeric_limits<float>::infinity();
+auto constexpr kMIN = 1e-5F; //  std::numeric_limits<float>::min();
 
 class Matrix;
 class Quaternion;
@@ -85,18 +89,6 @@ inline float RadToDeg(float radian)
 {
     return deg*3.141592 / 180;
 }*/
-
-inline bool CloseEnough(float a, float b)
-{
-    return crus::IsEqualBasedULP(a, b, kEPSILON, std::numeric_limits<float>::digits10);
-    //fabsf((a - b) / (b != 0.0f ? b : 1.0f)) < kEPSILON;
-}
-
-inline bool IsTooSmall(float x)
-{
-    return std::abs(x) < kEPSILON;
-    //return CloseEnough(0.0f, val);
-}
 
 inline float clamp(float x, float min, float max)
 {
@@ -192,47 +184,65 @@ inline float float_distance(float a, float b)
     std::frexp(val, &exp);
 }
 #endif
-};
-};
 
-inline bool crus::IsInf(real _f)
+inline bool CloseEnough(float a, float b, float tolerance = kMIN)
 {
-    return (_f.i_ & 0x7FFFFFFF) == 0x7F800000;
+    // return std::abs((a - b) / (b != 0.0f ? b : 1.0f)) <= kMIN;
+
+/*#if _CRUS_REAL_CHECK_ON_INF
+    if (std::isinf(a) || std::isinf(b))
+        return a == b;
+#endif
+
+#if _CRUS_REAL_CHECK_ON_NAN
+    if (std::isnan(a) || std::isnan(b))
+        return false;
+#endif*/
+
+    return crus::IsEqualBasedULP(a, b, tolerance, std::numeric_limits<float>::digits - 1);
 }
 
-inline bool crus::IsNan(real _f)
+inline bool IsTooSmall(float x, float kindaSmallEnough = kMIN)
 {
-    return ((_f.i_ & 0x7F800000) == 0x7F800000 && (_f.i_ & 0x7F800000) != 0);
+    return std::abs(x) < kindaSmallEnough;
+    // return CloseEnough(0.0f, val);
 }
+};
+};
 
 // :TODO: move to other place.
 inline bool crus::IsEqualBasedULP(float _a, float _b, float _max_diff, int32 _ulp_diff)
 {
-    real a, b;
-
-    a.f_ = _a;
-    b.f_ = _b;
-
 #if _CRUS_REAL_CHECK_ON_INF
-    if(IsInf(a) || IsInf(b))
-        return a.f_ == _b.f_;
+    if(std::isinf(_a) || std::isinf(_b))
+        return _a == _b;
 #endif
 
 #if _CRUS_REAL_CHECK_ON_NAN
-    if(IsNan(a) || IsNan(b))
+    if(std::isnan(_a) || std::isnan(_b))
         return false;
 #endif
 
-    if(fabsf(a.f_ - b.f_) <= _max_diff * (b.f_ > a.f_ ? b.f_ : a.f_))
+    if (isle::math::IsTooSmall(_a, _max_diff) && isle::math::IsTooSmall(_b, _max_diff))
         return true;
 
-    /*if (std::abs(a.f_ - b.f_) <= _max_diff * std::max(b.f_ > a.f_ ? b.f_ : a.f_, std::numeric_limits<float>::epsilon()))
+    return std::abs(_a - _b) <= std::max(std::abs(_a), std::abs(_b)) * _max_diff;
+
+    real a, b;
+
+    a.f = _a;
+    b.f = _b;
+
+    /*if(std::abs(a.f_ - b.f_) <= _max_diff * (b.f_ > a.f_ ? b.f_ : a.f_))
         return true;*/
 
-    if((a.i_ >> 31) != (b.i_ >> 31))
+    if (std::abs(a.f - b.f) <= _max_diff * std::max(b.f > a.f ? b.f : a.f, isle::math::kMIN))
+        return true;
+
+    if((a.i >> 31) != (b.i >> 31))
         return false;
 
-    if(abs(a.i_ - b.i_) <= _ulp_diff)
+    if(abs(a.i - b.i) <= _ulp_diff)
         return true;
 
     return false;
