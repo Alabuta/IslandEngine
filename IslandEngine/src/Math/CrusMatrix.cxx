@@ -490,75 +490,59 @@ float Matrix::Minor(uint8 _a, uint8 _b, uint8 _c, uint8 _d, uint8 _e, uint8 _f) 
 
 float Matrix::Det() const
 {
-    return _00_ * Minor(1, 2, 3, 1, 2, 3) - _04_ * Minor(1, 2, 3, 0, 2, 3) +
-           _08_ * Minor(1, 2, 3, 0, 1, 3) - _12_ * Minor(1, 2, 3, 0, 1, 2);
+    return _00_ * Minor(1, 2, 3, 1, 2, 3) - _01_ * Minor(1, 2, 3, 0, 2, 3) +
+           _02_ * Minor(1, 2, 3, 0, 1, 3) - _03_ * Minor(1, 2, 3, 0, 1, 2);
 }
 
 Matrix &Matrix::Inverse()
 {
-    float det = Det();
+    constexpr Vector small(kMIN, kMIN, kMIN);
+
+    auto a = xAxis == small;
+    auto b = yAxis == small;
+    auto c = zAxis == small;
+
+    if (a && b && c)
+        return this->MakeIdentity();
+
+    auto det = Det();
 
     if (det == 0.0f)
         return this->MakeIdentity();
 
-    det = 1.0f / det;
-
+    // Get transposed cofactor matrix.
     m = {
-        +Minor(1, 2, 3, 1, 2, 3) * det,
-        -Minor(0, 2, 3, 1, 2, 3) * det,
-        +Minor(0, 1, 3, 1, 2, 3) * det,
-        -Minor(0, 1, 2, 1, 2, 3) * det,
+        +Minor(1, 2, 3, 1, 2, 3),
+        -Minor(0, 2, 3, 1, 2, 3),
+        +Minor(0, 1, 3, 1, 2, 3),
+        -Minor(0, 1, 2, 1, 2, 3),
 
-        -Minor(1, 2, 3, 0, 2, 3) * det,
-        +Minor(0, 2, 3, 0, 2, 3) * det,
-        -Minor(0, 1, 3, 0, 2, 3) * det,
-        +Minor(0, 1, 2, 0, 2, 3) * det,
+        -Minor(1, 2, 3, 0, 2, 3),
+        +Minor(0, 2, 3, 0, 2, 3),
+        -Minor(0, 1, 3, 0, 2, 3),
+        +Minor(0, 1, 2, 0, 2, 3),
 
-        +Minor(1, 2, 3, 0, 1, 3) * det,
-        -Minor(0, 2, 3, 0, 1, 3) * det,
-        +Minor(0, 1, 3, 0, 1, 3) * det,
-        -Minor(0, 1, 2, 0, 1, 3) * det,
+        +Minor(1, 2, 3, 0, 1, 3),
+        -Minor(0, 2, 3, 0, 1, 3),
+        +Minor(0, 1, 3, 0, 1, 3),
+        -Minor(0, 1, 2, 0, 1, 3),
 
-        -Minor(1, 2, 3, 0, 1, 2) * det,
-        +Minor(0, 2, 3, 0, 1, 2) * det,
-        -Minor(0, 1, 3, 0, 1, 2) * det,
-        +Minor(0, 1, 2, 0, 1, 2) * det
+        -Minor(1, 2, 3, 0, 1, 2),
+        +Minor(0, 2, 3, 0, 1, 2),
+        -Minor(0, 1, 3, 0, 1, 2),
+        +Minor(0, 1, 2, 0, 1, 2)
     };
 
-    return *this;
+    // Transpose();
+
+    return *this /= det;
 }
 
 /*static*/ Matrix Matrix::Inverse(Matrix const &_m)
 {
-    float det = _m.Det();
+    auto temp(_m);
 
-    if (det == 0.0f)
-        return _m.Identity();
-
-    det = 1.0f / det;
-
-    return Matrix
-    (
-        +_m.Minor(1, 2, 3, 1, 2, 3) * det,
-        -_m.Minor(0, 2, 3, 1, 2, 3) * det,
-        +_m.Minor(0, 1, 3, 1, 2, 3) * det,
-        -_m.Minor(0, 1, 2, 1, 2, 3) * det,
-
-        -_m.Minor(1, 2, 3, 0, 2, 3) * det,
-        +_m.Minor(0, 2, 3, 0, 2, 3) * det,
-        -_m.Minor(0, 1, 3, 0, 2, 3) * det,
-        +_m.Minor(0, 1, 2, 0, 2, 3) * det,
-
-        +_m.Minor(1, 2, 3, 0, 1, 3) * det,
-        -_m.Minor(0, 2, 3, 0, 1, 3) * det,
-        +_m.Minor(0, 1, 3, 0, 1, 3) * det,
-        -_m.Minor(0, 1, 2, 0, 1, 3) * det,
-
-        -_m.Minor(1, 2, 3, 0, 1, 2) * det,
-        +_m.Minor(0, 2, 3, 0, 1, 2) * det,
-        -_m.Minor(0, 1, 3, 0, 1, 2) * det,
-        +_m.Minor(0, 1, 2, 0, 1, 2) * det
-    );
+    return temp.Inverse();
 }
 
 Matrix Matrix::Transpose(Matrix const &_m)
@@ -702,10 +686,11 @@ Matrix &Matrix::FromQuaternion(float const _q[])
 
 inline std::ostream &operator<< (std::ostream &_stream, Matrix const &_m)
 {
-    _stream << _m._00_ << ' ' << _m._01_ << ' ' << _m._02_ << ' ' << _m._03_;
-    _stream << _m._04_ << ' ' << _m._05_ << ' ' << _m._06_ << ' ' << _m._07_;
-    _stream << _m._08_ << ' ' << _m._09_ << ' ' << _m._10_ << ' ' << _m._11_;
-    _stream << _m._12_ << ' ' << _m._13_ << ' ' << _m._14_ << ' ' << _m._15_;
+    _stream << std::fixed;
+    _stream << _m._00_ << ' ' << _m._01_ << ' ' << _m._02_ << ' ' << _m._03_ << '\n';
+    _stream << _m._04_ << ' ' << _m._05_ << ' ' << _m._06_ << ' ' << _m._07_ << '\n';
+    _stream << _m._08_ << ' ' << _m._09_ << ' ' << _m._10_ << ' ' << _m._11_ << '\n';
+    _stream << _m._12_ << ' ' << _m._13_ << ' ' << _m._14_ << ' ' << _m._15_ << '\n';
 
     return _stream;
 }

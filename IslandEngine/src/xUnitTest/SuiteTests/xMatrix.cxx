@@ -69,21 +69,21 @@ UNIT_SUITE_CLASS(isle::math::Matrix)
         std::array<float, 16> vec;
         std::generate(vec.begin(), vec.end(), rand<float>);
 
-        Matrix const m(vec);
+        Matrix const matrx(vec);
 
         float const s = rand<float>();
 
         for (auto i = 0; i < 16; ++i)
-            CHECK_EQUAL(m.m[i] + s, (m + s).m[i], "operator+ (float) const");
+            CHECK_EQUAL(matrx.m[i] + s, (matrx + s).m[i], "operator+ (float) const");
 
         for (auto i = 0; i < 16; ++i)
-            CHECK_EQUAL(m.m[i] - s, (m - s).m[i], "operator- (float) const");
+            CHECK_EQUAL(matrx.m[i] - s, (matrx - s).m[i], "operator- (float) const");
 
         for (auto i = 0; i < 16; ++i)
-            CHECK_EQUAL(m.m[i] * s, (m * s).m[i], "operator* (float) const");
+            CHECK_EQUAL(matrx.m[i] * s, (matrx * s).m[i], "operator* (float) const");
 
         for (auto i = 0; i < 16; ++i)
-            CHECK_EQUAL(m.m[i] / s, (m / s).m[i], "operator/ (float) const");
+            CHECK_EQUAL(matrx.m[i] / s, (matrx / s).m[i], "operator/ (float) const");
     }
 
     // The assignment operators...
@@ -176,14 +176,14 @@ UNIT_SUITE_CLASS(isle::math::Matrix)
 
     // The matrix determinant routines...
     {
-        Matrix m(
+        Matrix matrx(
             +1.3f, +5.0f, +9.0f, +3.1f,
             -2.4f, +6.0f, -2.3f, +4.9f,
             +3.0f, +7.7f, -1.1f, -5.0f,
             +4.0f, -8.1f, +2.0f, +6.0f
         );
 
-        CHECK_EQUAL(-5322.2631f, m.Det(), "Det() const");
+        CHECK_EQUAL(-5322.2631f, matrx.Det(), "Det() const");
         CHECK_EQUAL(1.f, Matrix::Identity().Det(), "Det() const");
     }
 
@@ -199,30 +199,52 @@ UNIT_SUITE_CLASS(isle::math::Matrix)
         std::array<float, 16> vec;
         std::generate(vec.begin(), vec.end(), rand<float>);
 
-        Matrix m(vec);
+        Matrix matrx(vec);
 
         CHECK(identity == Matrix::Identity(), "Identity()");
-        CHECK(identity == m.MakeIdentity(), "MakeIdentity()");
+        CHECK(identity == matrx.MakeIdentity(), "MakeIdentity()");
     }
 
     // The matrix transpose routines...
     {
-        Matrix m(
-            1.f, -2.f, -3.f, -4.f,
-            5.f, -6.f, -7.f, -8.f,
-            9.f, -10.f, 11.f, 12.f,
-            13.f, 14.f, 15.f, 16.f
-        );
+        {
+            Matrix matrx(
+                1.f, -2.f, -3.f, -4.f,
+                5.f, -6.f, -7.f, -8.f,
+                9.f, -10.f, 11.f, 12.f,
+                13.f, 14.f, 15.f, 16.f
+            );
 
-        Matrix const transposed(
-            +1.f, +5.f, +9.f, +13.f,
-            -2.f, -6.f, -10.f, 14.f,
-            -3.f, -7.f, +11.f, 15.f,
-            -4.f, -8.f, +12.f, 16.f
-        );
+            Matrix const transposed(
+                +1.f, +5.f, +9.f, +13.f,
+                -2.f, -6.f, -10.f, 14.f,
+                -3.f, -7.f, +11.f, 15.f,
+                -4.f, -8.f, +12.f, 16.f
+            );
 
-        CHECK(transposed == Matrix::Transpose(m), "Transpose(Matrix const &)");
-        CHECK(transposed == m.Transpose(), "Transpose()");
+            CHECK(transposed == Matrix::Transpose(matrx), "Transpose(Matrix const &)");
+            CHECK(transposed == matrx.Transpose(), "Transpose()");
+        }
+
+        {
+            Matrix permutation(
+                0, 0, 0, 1,
+                0, 0, 1, 0,
+                1, 0, 0, 0,
+                0, 1, 0, 0
+            );
+
+            auto transposed = Matrix::Transpose(permutation);
+
+            CHECK(permutation * transposed == Matrix::Identity(), "Transpose(Matrix const &)");
+            CHECK(transposed * permutation == Matrix::Identity(), "Transpose(Matrix const &)");
+        }
+
+        /*{
+            auto const a = 
+            Matrix orthogonal(
+            );
+        }*/
     }
 
     // The matrix multiplication operators...
@@ -230,12 +252,12 @@ UNIT_SUITE_CLASS(isle::math::Matrix)
         std::array<float, 16> vec;
         std::generate(vec.begin(), vec.end(), rand<float>);
 
-        Matrix const m(vec);
+        Matrix const matrx(vec);
 
         CHECK(Matrix::Identity() == Matrix::Identity() * Matrix::Identity(), "Matrix operator* (Matrix const &) const");
 
-        CHECK(m == Matrix::Identity() * m, "Matrix operator* (Matrix const &) const");
-        CHECK(m == m * Matrix::Identity(), "Matrix operator* (Matrix const &) const");
+        CHECK(matrx == Matrix::Identity() * matrx, "Matrix operator* (Matrix const &) const");
+        CHECK(matrx == matrx * Matrix::Identity(), "Matrix operator* (Matrix const &) const");
 
         Matrix const m0(
             +10.f, 20.f, 30.f, 40.f,
@@ -272,26 +294,22 @@ UNIT_SUITE_CLASS(isle::math::Matrix)
         Vector v(vec);
         auto const saved = v;
 
-        auto m = Matrix::Identity();
-        m.TransformPosition(v);
+        auto matrx = Matrix::Identity();
+        matrx.TransformPosition(v);
 
         CHECK(saved == v, "TransformPosition(Vector &) const");
 
-        m.Translate(-vec[0], -vec[1], -vec[2]);
-        m.TransformPosition(v);
+        matrx.Translate(-vec[0], -vec[1], -vec[2]);
+        matrx.TransformPosition(v);
 
         CHECK(Vector(0, 0, 0) == v, "TransformPosition(Vector &) const");
-        CHECK(Vector(0, 0, 0) == m.TransformPosition(saved), "TransformPosition(Vector &) const");
-        CHECK(Vector(0, 0, 0) == m.TransformPosition(Vector(vec)), "TransformPosition(Vector &&) const");
+        CHECK(Vector(0, 0, 0) == matrx.TransformPosition(saved), "TransformPosition(Vector &) const");
+        CHECK(Vector(0, 0, 0) == matrx.TransformPosition(Vector(vec)), "TransformPosition(Vector &&) const");
 
-        m = Matrix::Identity();
-        m.RotateOnOZ(90.f);
+        matrx = Matrix::Identity();
+        matrx.RotateOnOZ(90.f);
 
-        //CHECK(Vector(-1, 0, 0) == m.TransformPosition(Vector(0, 1, 0)), "TransformPosition(Vector &&) const");
-    }
-
-    {
-
+        //CHECK(Vector(-1, 0, 0) == matrx.TransformPosition(Vector(0, 1, 0)), "TransformPosition(Vector &&) const");
     }
 
     // The matrix inverse routines...
@@ -308,7 +326,7 @@ UNIT_SUITE_CLASS(isle::math::Matrix)
         CHECK(Matrix::Identity() == identity, "Matrix &Inverse()");
 
         {
-            Matrix m(
+            Matrix matrx(
                 1, 2, -3, 4,
                 5, -6, 7, 8,
                 -9, 10, 11, 12,
@@ -322,11 +340,34 @@ UNIT_SUITE_CLASS(isle::math::Matrix)
                 7 / 51.f, 1 / 51.f, 1 / 204.f, -1 / 68.f
             );
 
-            CHECK(inverted == Matrix::Inverse(m), "static Matrix Inverse()");
+            CHECK(inverted == Matrix::Inverse(matrx), "static Matrix Inverse()");
 
-            m.Inverse();
+            matrx.Inverse();
 
-            CHECK(inverted == m, "Matrix &Inverse()");
+            CHECK(inverted == matrx, "Matrix &Inverse()");
+        }
+
+        {
+            std::array<float, 16> vec;
+            std::generate(vec.begin(), vec.end(), rand<float>);
+
+            Matrix const m1(vec);
+            Matrix const m2 = Matrix::Inverse(m1);
+
+            auto const det = m1.Det();
+
+            if (det != 0.0f) {
+                auto const b1 = m1 * m2 == m2 * m1;
+                auto const b2 = m1 * m2 == Matrix::Identity();
+
+                CHECK(b1, "Matrix Inverse(Matrix const &)");
+                CHECK(b2, "Matrix Inverse(Matrix const &)");
+
+                if (!b1 || !b2) {
+                    std::cout << '\n' << det << '\t' << std::boolalpha << CloseEnough(det, kMIN);
+                    std::cout << '\n' << m1 << "\n\n" << m2 << "\n\n" << m1 * m2 << "\n\n" << m2 * m1 << '\n';
+                }
+            }
         }
 
         {
@@ -349,15 +390,29 @@ UNIT_SUITE_CLASS(isle::math::Matrix)
             std::array<float, 16> vec;
             std::generate(vec.begin(), vec.end(), rand<float>);
 
-            Matrix m(vec);
+            Matrix matrx(vec);
 
-            std::cout << (m.Det() == 0.0f) << '\n';
+            if (matrx.Det() != 0.0f) {
+                auto inverted_transposed = Matrix::Transpose(Matrix::Inverse(matrx));
 
-            //auto inverted_transposed = Matrix::Transpose(Matrix::Inverse(m));
-            auto mm = m;
-            mm.Inverse().Transpose();
+                auto const b = inverted_transposed == matrx.Transpose().Inverse();
 
-            CHECK(mm == m.Transpose().Inverse(), "Matrix &Inverse()");
+                CHECK(b, "Matrix &Inverse()");
+
+                if (!b)
+                    std::cout << '\n' << matrx << "\n\n" << inverted_transposed << '\n';
+            }
+        }
+
+        {
+            Matrix permutation(
+                0, 0, 0, 1,
+                0, 0, 1, 0,
+                1, 0, 0, 0,
+                0, 1, 0, 0
+            );
+
+            CHECK(Matrix::Transpose(permutation) == Matrix::Inverse(permutation), "Transpose(Matrix const &) or Inverse(Matrix const &)");
         }
     }
 }
