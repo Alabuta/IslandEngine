@@ -27,6 +27,12 @@ UNIT_SUITE_CLASS(isle::math)
         CHECK(float_next(x) > x, "float_next(float)");
         CHECK(float_prior(x) < x, "float_prior(float)");
 
+        CHECK(float_next(0.f) == std::numeric_limits<float>::min(), "float_next(float)");
+        CHECK(float_next(-std::numeric_limits<float>::min()) == 0.f, "float_next(float)");
+
+        CHECK(float_prior(std::numeric_limits<float>::min()) == 0.f, "float_prior(float)");
+        CHECK(float_prior(0.f) == -std::numeric_limits<float>::min(), "float_prior(float)");
+
         CHECK(float_next(float_prior(x)) == x, "float_prior(float)");
     }
 
@@ -48,7 +54,11 @@ UNIT_SUITE_CLASS(isle::math)
 
         CHECK(CloseEnough((1.f / 10.f) * 10.f, 1.f), "CloseEnough(float, float)");
 
-
         CHECK(CloseEnough(0.999999762f, 1.f), "CloseEnough(float, float)");
+
+        CHECK(CloseEnough(kMIN, kMIN + std::numeric_limits<float>::min()), "CloseEnough(float, float)");
+        CHECK(CloseEnough(kMIN, kMIN - std::numeric_limits<float>::min()), "CloseEnough(float, float)");
+
+        CHECK(!CloseEnough(kMIN, 2.f * kMIN - std::numeric_limits<float>::min()), "CloseEnough(float, float)");
     }
 }
