@@ -32,6 +32,8 @@ layout(early_fragment_tests) in;
 
 layout(location = nFRAG_COLOR/*, index = 0*/) out vec4 FragColor;
 layout(binding = 0) uniform sampler2D mainTexture;
+layout(binding = 1) uniform sampler2D posTexture;
+layout(binding = 2) uniform sampler2D normTexture;
 
 in vec2 texCoord;
 

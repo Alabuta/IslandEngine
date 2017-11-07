@@ -45,6 +45,9 @@ uint32 quad_vao;
 uint32 quad_tid;
 uint32 quad_fbo;
 uint32 quad_depth;
+
+uint32 pos_tex, norm_tex, color_tex;
+
 Texture quad_texture(Texture::eTEXTURE_TYPE::n2D, "sprites-cat-running");//RobotBoyWalkSprite
 
 
@@ -625,23 +628,46 @@ void InitFullscreenQuad()
     glGenFramebuffers(1, &quad_fbo);
     glBindFramebuffer(GL_FRAMEBUFFER, quad_fbo);
 
-    Render::inst().CreateTBO(GL_TEXTURE_2D, quad_tid);
-
-    glTextureParameteri(quad_tid, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTextureParameteri(quad_tid, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-    glTextureStorage2D(quad_tid, 1, GL_RGBA8, 1920, 1080);
-    //glTextureSubImage2D(quad_tid, 0, 0, 0, 1920, 1080, GL_RGBA, GL_RGBA8, nullptr);
-
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, quad_tid, 0);
-
     glGenRenderbuffers(1, &quad_depth);
     glBindRenderbuffer(GL_RENDERBUFFER, quad_depth);
     glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, 1920, 1080);
+
+    {
+        Render::inst().CreateTBO(GL_TEXTURE_2D, color_tex);
+
+        glTextureParameteri(color_tex, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTextureParameteri(color_tex, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+        glTextureStorage2D(color_tex, 1, GL_RGBA8, 1920, 1080);
+        //glTextureSubImage2D(quad_tid, 0, 0, 0, 1920, 1080, GL_RGBA, GL_RGBA8, nullptr);
+    }
+
+    {
+        Render::inst().CreateTBO(GL_TEXTURE_2D, pos_tex);
+
+        glTextureParameteri(pos_tex, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTextureParameteri(pos_tex, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+        glTextureStorage2D(pos_tex, 1, GL_RGB32F, 1920, 1080);
+    }
+
+    {
+        Render::inst().CreateTBO(GL_TEXTURE_2D, norm_tex);
+
+        glTextureParameteri(norm_tex, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTextureParameteri(norm_tex, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+        glTextureStorage2D(norm_tex, 1, GL_RGB32F, 1920, 1080);
+    }
+
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, color_tex, 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, pos_tex, 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, norm_tex, 0);
+
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, quad_depth);
 
-    std::uint32_t constexpr drawBuffers[] = { GL_COLOR_ATTACHMENT0 };
-    glDrawBuffers(1, drawBuffers);
+    std::array<std::uint32_t, 3> constexpr drawBuffers = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1,  GL_COLOR_ATTACHMENT2 };
+    glDrawBuffers(drawBuffers.size(), drawBuffers.data());
 
     if (auto result = glCheckFramebufferStatus(GL_FRAMEBUFFER); result != GL_FRAMEBUFFER_COMPLETE)
         log::Debug() << "framebuffer error:" << result;
@@ -739,12 +765,16 @@ void DrawFrame()
     glBindVertexArray(geom_vao);
     glDrawArrays(GL_TRIANGLES, 0, 3 * geom_count);
 
+    glFinish();
+
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     glViewport(0, 0, 1920, 1080);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    glBindTextureUnit(0, quad_tid);
+    glBindTextureUnit(0, color_tex);
+    glBindTextureUnit(1, pos_tex);
+    glBindTextureUnit(2, norm_tex);
     RenderFullscreenQuad();
 
     /*glDepthMask(GL_FALSE);

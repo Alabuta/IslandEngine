@@ -40,6 +40,10 @@ void main()
 layout(early_fragment_tests) in;
 
 layout(location = nFRAG_COLOR/*, index = 0*/) out vec4 FragColor;
+layout(location = 1) out vec3 FragPosition;
+layout(location = 2) out vec3 FragNormal;
+
+
 layout(location = nMAIN_COLOR) uniform vec4 mainColor = vec4(1.0); // vec4(0, 0.74609375, 1, 1);
 
 in vec4 light;
@@ -65,4 +69,7 @@ void main()
 
     FragColor = vec4(mainColor.xyz * diffuse, mainColor.a);
     // FragColor = vec4(n.xyz, 1);
+
+    FragPosition = position.xyz;
+    FragNormal = n.xyz;
 }
