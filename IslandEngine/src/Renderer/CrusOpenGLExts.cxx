@@ -239,10 +239,22 @@ CRUS_INLINE void APIENTRY glCreateBuffers(GLsizei n, GLuint *buffers)
     return glCreateBuffers(n, buffers);
 }
 
+CRUS_INLINE void APIENTRY glCreateFramebuffers(GLsizei n, GLuint *framebuffers)
+{
+    GL_PROC_INIT(glCreateFramebuffers);
+    return glCreateFramebuffers(n, framebuffers);
+}
+
 CRUS_INLINE GLuint APIENTRY glCreateProgram(void)
 {
     GL_PROC_INIT(glCreateProgram);
     return glCreateProgram();
+}
+
+CRUS_INLINE void APIENTRY glCreateRenderbuffers(GLsizei n, GLuint *renderbuffers)
+{
+    GL_PROC_INIT(glCreateRenderbuffers);
+    return glCreateRenderbuffers(n, renderbuffers);
 }
 
 CRUS_INLINE GLuint APIENTRY glCreateShader(GLenum type)
@@ -985,6 +997,36 @@ CRUS_INLINE void APIENTRY glNamedBufferSubData(GLuint buffer, GLintptr offset, G
 {
     GL_PROC_INIT(glNamedBufferSubData);
     return glNamedBufferSubData(buffer, offset, size, data);
+}
+
+CRUS_INLINE void APIENTRY glNamedFramebufferDrawBuffers(GLuint framebuffer, GLsizei n, const GLenum *bufs)
+{
+    GL_PROC_INIT(glNamedFramebufferDrawBuffers);
+    return glNamedFramebufferDrawBuffers(framebuffer, n, bufs);
+}
+
+CRUS_INLINE void APIENTRY glNamedFramebufferRenderbuffer(GLuint framebuffer, GLenum attachment, GLenum renderbuffertarget, GLuint renderbuffer)
+{
+    GL_PROC_INIT(glNamedFramebufferRenderbuffer);
+    return glNamedFramebufferRenderbuffer(framebuffer, attachment, renderbuffertarget, renderbuffer);
+}
+
+CRUS_INLINE GLenum APIENTRY glCheckNamedFramebufferStatus(GLuint framebuffer, GLenum target)
+{
+    GL_PROC_INIT(glCheckNamedFramebufferStatus);
+    return glCheckNamedFramebufferStatus(framebuffer, target);
+}
+
+CRUS_INLINE void APIENTRY glNamedFramebufferTexture(GLuint framebuffer, GLenum attachment, GLuint texture, GLint level)
+{
+    GL_PROC_INIT(glNamedFramebufferTexture);
+    return glNamedFramebufferTexture(framebuffer, attachment, texture, level);
+}
+
+CRUS_INLINE void APIENTRY glNamedRenderbufferStorage(GLuint renderbuffer, GLenum internalformat, GLsizei width, GLsizei height)
+{
+    GL_PROC_INIT(glNamedRenderbufferStorage);
+    return glNamedRenderbufferStorage(renderbuffer, internalformat, width, height);
 }
 
 // glO ---------------------------------------------------------------------------------
