@@ -1643,6 +1643,12 @@ CRUS_INLINE void APIENTRY glUniformBlockBinding(GLuint program, GLuint uniformBl
     return glUniformBlockBinding(program, uniformBlockIndex, uniformBlockBinding);
 }
 
+CRUS_INLINE void APIENTRY glUniformSubroutinesuiv(GLenum shadertype, GLsizei count, const GLuint *indices)
+{
+    GL_PROC_INIT(glUniformSubroutinesuiv);
+    return glUniformSubroutinesuiv(shadertype, count, indices);
+}
+
 CRUS_INLINE GLboolean APIENTRY glUnmapBuffer(GLenum target)
 {
     GL_PROC_INIT(glUnmapBuffer);
