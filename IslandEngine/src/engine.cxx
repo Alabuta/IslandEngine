@@ -622,7 +622,7 @@ void InitGeometry()
 
 void InitFullscreenQuad()
 {
-    if (!quad_program.AssignNew({R"(Defaults/Fullscreen-Quad.glsl)"}))
+    if (!quad_program.AssignNew({R"(Defaults/SSAO.glsl)"}))
         return;
 
     glCreateFramebuffers(1, &quad_fbo);
@@ -640,6 +640,8 @@ void InitFullscreenQuad()
         glTextureParameteri(color_tex, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTextureParameteri(color_tex, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glTextureParameteri(color_tex, GL_TEXTURE_MAX_LEVEL, 0);
+        glTextureParameteri(color_tex, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTextureParameteri(color_tex, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
         glTextureStorage2D(color_tex, 1, GL_RGBA8, 1920, 1080);
         //glTextureSubImage2D(quad_tid, 0, 0, 0, 1920, 1080, GL_RGBA, GL_RGBA8, nullptr);
@@ -653,6 +655,8 @@ void InitFullscreenQuad()
         glTextureParameteri(pos_tex, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glTextureParameteri(pos_tex, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         glTextureParameteri(pos_tex, GL_TEXTURE_MAX_LEVEL, 0);
+        glTextureParameteri(pos_tex, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTextureParameteri(pos_tex, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
         glTextureStorage2D(pos_tex, 1, GL_RGBA32F, 1920, 1080);
     }
@@ -665,6 +669,8 @@ void InitFullscreenQuad()
         glTextureParameteri(norm_tex, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glTextureParameteri(norm_tex, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         glTextureParameteri(norm_tex, GL_TEXTURE_MAX_LEVEL, 0);
+        glTextureParameteri(norm_tex, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTextureParameteri(norm_tex, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
         glTextureStorage2D(norm_tex, 1, GL_RGBA32F, 1920, 1080);
     }
@@ -684,11 +690,15 @@ void InitFullscreenQuad()
     Render::inst().CreateVAO(quad_vao);
 
     struct Vertex {
-        float x, y;
+        Position pos;
+        math::Vector normal;
     };
 
     std::array<Vertex, 4> vertices = {{
-        {-1.f, +1.f}, {-1.f, -1.f}, {1.f, 1.f}, {1.f, -1.f}
+        {{-1.f, +1.f, 0.f}, {}},
+        {{-1.f, -1.f, 0.f}, {}},
+        {{+1.f, +1.f, 0.f}, {}},
+        {{+1.f, -1.f, 0.f}, {}}
     }};
 
     auto bo = 0u;
@@ -697,8 +707,12 @@ void InitFullscreenQuad()
     glNamedBufferStorage(bo, sizeof(Vertex) * vertices.size(), vertices.data(), 0);
 
     glVertexArrayAttribBinding(quad_vao, Program::eIN_OUT_ID::nVERTEX, 0);
-    glVertexArrayAttribFormat(quad_vao, Program::eIN_OUT_ID::nVERTEX, 2, GL_FLOAT, GL_FALSE, 0);
+    glVertexArrayAttribFormat(quad_vao, Program::eIN_OUT_ID::nVERTEX, 3, GL_FLOAT, GL_FALSE, 0);
     glEnableVertexArrayAttrib(quad_vao, Program::eIN_OUT_ID::nVERTEX);
+
+    glVertexArrayAttribBinding(quad_vao, Program::eIN_OUT_ID::nNORMAL, 0);
+    glVertexArrayAttribFormat(quad_vao, Program::eIN_OUT_ID::nNORMAL, 3, GL_FLOAT, GL_TRUE, sizeof(Position));
+    glEnableVertexArrayAttrib(quad_vao, Program::eIN_OUT_ID::nNORMAL);
 
     glVertexArrayVertexBuffer(quad_vao, 0, bo, 0, sizeof(Vertex));
 }
@@ -706,7 +720,7 @@ void InitFullscreenQuad()
 void RenderFullscreenQuad()
 {
     //quad_texture.Bind();
-    quad_program.UseThis();
+    //quad_program.UseThis();
     glBindVertexArray(quad_vao);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 8);
 }
@@ -721,7 +735,7 @@ void Init()
 
     // log::Debug() << measure<>::execution(InitBackground);
 
-    //cubemap::InitCubemap();
+    cubemap::InitCubemap();
 
     /*EntityManager entities;
     auto entity = entities.CreateEntity();*/
@@ -745,9 +759,9 @@ void DrawFrame()
     glEnable(GL_DEPTH_TEST);
     // glClearNamedFramebufferfv(quad_fbo, GL_COLOR | GL_DEPTH, 0, &glm::vec4(0.0f, 0.5f, 1.0f, 1.0f)[0]);
 
-    //grid.Draw();
+    grid.Draw();
 
-    //cubemap::DrawCubemap();
+    cubemap::DrawCubemap();
 
     //glDrawArrays(GL_TRIANGLE_STRIP, 0, 4 * 6 + 4);
     //glDrawArraysInstancedBaseInstance(GL_TRIANGLE_STRIP, command.first, command.count, command.instanceCount, command.baseInstance);
@@ -758,7 +772,13 @@ void DrawFrame()
     //flipbookTexture.Bind();
     //flipbookProgram.UseThis();
 
-    geom_program.UseThis();
+    //geom_program.UseThis();
+    quad_program.UseThis();
+
+    uint32 const index0 = 0, index1 = 1;
+
+    glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, &index0);
+    glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &index0);
 
     matrices[1].Translate(0.2f, 0.78f, -0.75f);
     // matrices[1].Scale(1.f, 0.75f, 0.25f);
@@ -775,6 +795,9 @@ void DrawFrame()
     glFinish();
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, &index1);
+    glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &index1);
 
     glViewport(0, 0, 1920, 1080);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
