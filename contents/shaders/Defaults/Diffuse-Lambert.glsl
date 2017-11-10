@@ -18,14 +18,12 @@ layout(location = nNORMAL) in vec3 inNormal;
 
 out vec4 light;
 out vec4 normal;
-out vec4 position;
 
 void main()
 {
     normal = normalize(mNormal * vec4(inNormal, 0));
-    // normal.xyz = normalize(transpose(inverse(mat3(mView * mModel))) * inNormal);
 
-    position = TransformFromModelToView(vec4(inVertex, 1));
+    vec4 position = TransformFromModelToView(vec4(inVertex, 1));
 
     if (lightPosition.w == 0)
         light = normalize(mView * lightPosition);
@@ -40,15 +38,11 @@ void main()
 layout(early_fragment_tests) in;
 
 layout(location = nFRAG_COLOR) out vec4 FragColor;
-layout(location = 1) out vec4 FragPosition;
-layout(location = 2) out vec4 FragNormal;
 
-
-/* layout(location = nMAIN_COLOR) uniform */vec4 mainColor = vec4(1.0); // vec4(0, 0.74609375, 1, 1);
+layout(location = nMAIN_COLOR) uniform vec4 mainColor = vec4(1.0); // vec4(0, 0.74609375, 1, 1);
 
 in vec4 light;
 in vec4 normal;
-in vec4 position;
 
 #define HALF_LAMBERT 1
 #define WRAPPED_AROUND_LAMBERT 0
@@ -68,8 +62,4 @@ void main()
 #endif
 
     FragColor = vec4(mainColor.xyz * diffuse, mainColor.a);
-    // FragColor = vec4(n.xyz, 1);
-
-    FragPosition = vec4(position.xyz, 1);
-    FragNormal = vec4(n, 1);
 }
