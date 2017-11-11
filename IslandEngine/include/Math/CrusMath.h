@@ -90,6 +90,11 @@ inline float RadToDeg(float radian)
     return deg*3.141592 / 180;
 }*/
 
+inline float lerp(float a, float b, float f)
+{
+    return a + f * (b - a);
+}
+
 inline float clamp(float x, float min, float max)
 {
     return std::max(std::min(x, max), min);
