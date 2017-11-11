@@ -168,7 +168,7 @@
     <None Include="..\contents\shaders\Defaults\Fullscreen-Quad.glsl" />
     <None Include="..\contents\shaders\Defaults\Diffuse-Lambert.glsl" />
     <None Include="..\contents\shaders\Defaults\Solid-Wireframe.glsl" />
-    <None Include="..\contents\shaders\Defaults\Unlit-Instanced.glsl" />
+    <None Include="..\contents\shaders\Defaults\Unlit-Simple.glsl" />
     <None Include="..\contents\shaders\Defaults\Skybox-Cubed.glsl" />
     <None Include="..\contents\shaders\Defaults\Dummy-Shader.glsl" />
     <None Include="..\contents\shaders\Defaults\Sprites-Default.glsl" />

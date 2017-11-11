@@ -3,7 +3,7 @@
 ****    Source code of Island Engine.
 ****    Copyright (C) 2009 - 2017 Crusoe's Island LLC.
 ****
-****    Description: default instancing shader file.
+****    Description: default unlit shader file.
 ****
 ****************************************************************************************/
 #pragma include("Includes/ShaderVariables.glsl")
@@ -15,16 +15,16 @@ layout(location = nVERTEX) in vec3 inVertex;
 
 void main()
 {
-    gl_Position = TransformInstancedFromModelToClip(inVertex);
+    gl_Position = TransformFromModelToClip(vec4(inVertex, 1));
 }
 
 #pragma stage("fragment")
 
 layout(early_fragment_tests) in;
 
-out vec4 FragColor;
+layout(location = nFRAG_COLOR) out vec4 FragColor;
 
 void main()
 {
-    FragColor = vec4(1.0);
+    FragColor = vec4(1);
 }
