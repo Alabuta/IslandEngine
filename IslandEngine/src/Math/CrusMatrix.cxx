@@ -69,33 +69,33 @@ Matrix Matrix::operator* (Matrix const &_m) const
 #if CRUS_USE_SSE_MATH
     Matrix temp;
 
-    __m128 row[4] = {_m.rows_[0], _m.rows_[1], _m.rows_[2], _m.rows_[3]};
-    _MM_TRANSPOSE4_PS(row[0], row[1], row[2], row[3]);
+    __m128 rows[4] = {_m.rows_[0], _m.rows_[1], _m.rows_[2], _m.rows_[3]};
+    _MM_TRANSPOSE4_PS(rows[0], rows[1], rows[2], rows[3]);
 
     {
-        auto const sum1 = _mm_hadd_ps(_mm_mul_ps(rows_[0], row[0]), _mm_mul_ps(rows_[0], row[1]));
-        auto const sum2 = _mm_hadd_ps(_mm_mul_ps(rows_[0], row[2]), _mm_mul_ps(rows_[0], row[3]));
+        auto const sum1 = _mm_hadd_ps(_mm_mul_ps(rows_[0], rows[0]), _mm_mul_ps(rows_[0], rows[1]));
+        auto const sum2 = _mm_hadd_ps(_mm_mul_ps(rows_[0], rows[2]), _mm_mul_ps(rows_[0], rows[3]));
 
         temp.rows_[0] = _mm_hadd_ps(sum1, sum2);
     }
 
     {
-        auto const sum1 = _mm_hadd_ps(_mm_mul_ps(rows_[1], row[0]), _mm_mul_ps(rows_[1], row[1]));
-        auto const sum2 = _mm_hadd_ps(_mm_mul_ps(rows_[1], row[2]), _mm_mul_ps(rows_[1], row[3]));
+        auto const sum1 = _mm_hadd_ps(_mm_mul_ps(rows_[1], rows[0]), _mm_mul_ps(rows_[1], rows[1]));
+        auto const sum2 = _mm_hadd_ps(_mm_mul_ps(rows_[1], rows[2]), _mm_mul_ps(rows_[1], rows[3]));
 
         temp.rows_[1] = _mm_hadd_ps(sum1, sum2);
     }
 
     {
-        auto const sum1 = _mm_hadd_ps(_mm_mul_ps(rows_[2], row[0]), _mm_mul_ps(rows_[2], row[1]));
-        auto const sum2 = _mm_hadd_ps(_mm_mul_ps(rows_[2], row[2]), _mm_mul_ps(rows_[2], row[3]));
+        auto const sum1 = _mm_hadd_ps(_mm_mul_ps(rows_[2], rows[0]), _mm_mul_ps(rows_[2], rows[1]));
+        auto const sum2 = _mm_hadd_ps(_mm_mul_ps(rows_[2], rows[2]), _mm_mul_ps(rows_[2], rows[3]));
 
         temp.rows_[2] = _mm_hadd_ps(sum1, sum2);
     }
 
     {
-        auto const sum1 = _mm_hadd_ps(_mm_mul_ps(rows_[3], row[0]), _mm_mul_ps(rows_[3], row[1]));
-        auto const sum2 = _mm_hadd_ps(_mm_mul_ps(rows_[3], row[2]), _mm_mul_ps(rows_[3], row[3]));
+        auto const sum1 = _mm_hadd_ps(_mm_mul_ps(rows_[3], rows[0]), _mm_mul_ps(rows_[3], rows[1]));
+        auto const sum2 = _mm_hadd_ps(_mm_mul_ps(rows_[3], rows[2]), _mm_mul_ps(rows_[3], rows[3]));
 
         temp.rows_[3] = _mm_hadd_ps(sum1, sum2);
     }
@@ -249,33 +249,33 @@ Matrix &Matrix::operator*= (Matrix const &_m)
 {
 #if CRUS_USE_SSE_MATH
     // 16 mul; 12 sum
-    __m128 row[4] = {_m.rows_[0], _m.rows_[1], _m.rows_[2], _m.rows_[3]};
-    _MM_TRANSPOSE4_PS(row[0], row[1], row[2], row[3]);
+    __m128 rows[4] = {_m.rows_[0], _m.rows_[1], _m.rows_[2], _m.rows_[3]};
+    _MM_TRANSPOSE4_PS(rows[0], rows[1], rows[2], rows[3]);
 
     {
-        auto const sum1 = _mm_hadd_ps(_mm_mul_ps(rows_[0], row[0]), _mm_mul_ps(rows_[0], row[1]));
-        auto const sum2 = _mm_hadd_ps(_mm_mul_ps(rows_[0], row[2]), _mm_mul_ps(rows_[0], row[3]));
+        auto const sum1 = _mm_hadd_ps(_mm_mul_ps(rows_[0], rows[0]), _mm_mul_ps(rows_[0], rows[1]));
+        auto const sum2 = _mm_hadd_ps(_mm_mul_ps(rows_[0], rows[2]), _mm_mul_ps(rows_[0], rows[3]));
 
         rows_[0] = _mm_hadd_ps(sum1, sum2);
     }
 
     {
-        auto const sum1 = _mm_hadd_ps(_mm_mul_ps(rows_[1], row[0]), _mm_mul_ps(rows_[1], row[1]));
-        auto const sum2 = _mm_hadd_ps(_mm_mul_ps(rows_[1], row[2]), _mm_mul_ps(rows_[1], row[3]));
+        auto const sum1 = _mm_hadd_ps(_mm_mul_ps(rows_[1], rows[0]), _mm_mul_ps(rows_[1], rows[1]));
+        auto const sum2 = _mm_hadd_ps(_mm_mul_ps(rows_[1], rows[2]), _mm_mul_ps(rows_[1], rows[3]));
 
         rows_[1] = _mm_hadd_ps(sum1, sum2);
     }
 
     {
-        auto const sum1 = _mm_hadd_ps(_mm_mul_ps(rows_[2], row[0]), _mm_mul_ps(rows_[2], row[1]));
-        auto const sum2 = _mm_hadd_ps(_mm_mul_ps(rows_[2], row[2]), _mm_mul_ps(rows_[2], row[3]));
+        auto const sum1 = _mm_hadd_ps(_mm_mul_ps(rows_[2], rows[0]), _mm_mul_ps(rows_[2], rows[1]));
+        auto const sum2 = _mm_hadd_ps(_mm_mul_ps(rows_[2], rows[2]), _mm_mul_ps(rows_[2], rows[3]));
 
         rows_[2] = _mm_hadd_ps(sum1, sum2);
     }
 
     {
-        auto const sum1 = _mm_hadd_ps(_mm_mul_ps(rows_[3], row[0]), _mm_mul_ps(rows_[3], row[1]));
-        auto const sum2 = _mm_hadd_ps(_mm_mul_ps(rows_[3], row[2]), _mm_mul_ps(rows_[3], row[3]));
+        auto const sum1 = _mm_hadd_ps(_mm_mul_ps(rows_[3], rows[0]), _mm_mul_ps(rows_[3], rows[1]));
+        auto const sum2 = _mm_hadd_ps(_mm_mul_ps(rows_[3], rows[2]), _mm_mul_ps(rows_[3], rows[3]));
 
         rows_[3] = _mm_hadd_ps(sum1, sum2);
     }
