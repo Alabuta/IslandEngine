@@ -11,7 +11,7 @@
 #include <bitset>
 
 #include "engine.h"
-#include "../../contents/geometry/hydrant"
+#include "../../contents/geometry/Hebe"
 
 
 namespace cubemap {
@@ -36,6 +36,10 @@ namespace app {
 void InitBuffers(std::vector<isle::Sprite> const &spriteSheet);
 intf::Grid grid;
 
+Program hemisphere_program;
+uint32 hemisphere_vao;
+uint32 hemisphere_count;
+
 Program geom_program;
 uint32 geom_vao;
 uint32 geom_count;
@@ -46,7 +50,7 @@ uint32 quad_tid;
 uint32 quad_fbo;
 uint32 quad_depth;
 
-uint32 pos_tex, norm_tex, color_tex;
+uint32 pos_tex, norm_tex, color_tex, noise_tex;
 
 Texture quad_texture(Texture::eTEXTURE_TYPE::n2D, "sprites-cat-running");//RobotBoyWalkSprite
 
@@ -513,7 +517,7 @@ struct MovementComponent final : Component {
 
 void InitGeometry()
 {
-    using namespace hydrant;
+    using namespace Hebe;
 
     geom_count = static_cast<decltype(geom_count)>(faces.size()) + 3 * 2;
 
@@ -550,38 +554,40 @@ void InitGeometry()
         });
     }
 
+    auto constexpr height = -.0000048f;
+
     vertex_buffer.emplace_back(Vertex{
-        {-10,  -.64f, -10},
+        {-10, height, -10},
         {0, 1, 0},
         {0, 1}
     });
 
     vertex_buffer.emplace_back(Vertex{
-        {-10,  -.64f, 10},
+        {-10, height, 10},
         {0, 1, 0},
         {0, 0}
     });
 
     vertex_buffer.emplace_back(Vertex{
-        {10,  -.64f, -10},
+        {10, height, -10},
         {0, 1, 0},
         {1, 1}
     });
 
     vertex_buffer.emplace_back(Vertex{
-        {10,  -.64f, -10},
+        {10, height, -10},
         {0, 1, 0},
         {1, 1}
     });
 
     vertex_buffer.emplace_back(Vertex{
-        {-10,  -.64f, 10},
+        {-10, height, 10},
         {0, 1, 0},
         {0, 0}
     });
 
     vertex_buffer.emplace_back(Vertex{
-        {10, -.64f, 10},
+        {10, height, 10},
         {0, 1, 0},
         {1, 0}
     });
@@ -625,15 +631,76 @@ void InitFullscreenQuad()
     if (!quad_program.AssignNew({R"(Defaults/SSAO.glsl)"}))
         return;
 
+    std::uniform_real_distribution<float> floats(0.1f, 1.f);
+    std::default_random_engine generator;
+
+    // The seed.
+    std::random_device rd;
+
+    // Mersenne-Twister engine.
+    std::mt19937_64 mt(rd());
+
+    std::array<math::Vector, 64> kernel;
+    std::generate(kernel.begin(), kernel.end(), [&floats, &mt, i = 0] () mutable
+    {
+        math::Vector sample(floats(mt) * 2 - 1, floats(mt) * 2 - 1, floats(mt));
+
+        sample.Normalize();
+        sample *= floats(mt);
+
+        auto scale = static_cast<float>(i++) / 64.f;
+        scale = math::lerp(.1f, 1.f, scale * scale);
+
+        sample *= scale;
+
+        return sample;
+    });
+
+    glProgramUniform3fv(quad_program.program(), 8, static_cast<uint32>(kernel.size()), &kernel.data()->x);
+
+    if (hemisphere_program.AssignNew({R"(Defaults/Unlit-Simple.glsl)"})) {
+        Render::inst().CreateVAO(hemisphere_vao);
+
+        auto bo = 0u;
+        Render::inst().CreateBO(bo);
+
+        hemisphere_count = static_cast<decltype(hemisphere_count)>(kernel.size());
+
+        glNamedBufferStorage(bo, sizeof(math::Vector) * kernel.size(), kernel.data(), 0);
+
+        glVertexArrayAttribBinding(hemisphere_vao, Program::eIN_OUT_ID::nVERTEX, 0);
+        glVertexArrayAttribFormat(hemisphere_vao, Program::eIN_OUT_ID::nVERTEX, 3, GL_FLOAT, GL_FALSE, 0);
+        glEnableVertexArrayAttrib(hemisphere_vao, Program::eIN_OUT_ID::nVERTEX);
+
+        glVertexArrayVertexBuffer(hemisphere_vao, 0, bo, 0, sizeof(math::Vector));
+    }
+
+    {
+        std::array<Position, 16> noise;
+        std::generate(noise.begin(), noise.end(), [&floats, &mt] ()
+        {
+            return Position(floats(mt) * 2 - 1, floats(mt) * 2 - 1, floats(mt));
+        });
+
+        glBindTextureUnit(3, noise_tex);
+        Render::inst().CreateTBO(GL_TEXTURE_2D, noise_tex);
+
+        glTextureParameteri(noise_tex, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTextureParameteri(noise_tex, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTextureParameteri(noise_tex, GL_TEXTURE_MAX_LEVEL, 0);
+        glTextureParameteri(noise_tex, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTextureParameteri(noise_tex, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+        glTextureStorage2D(noise_tex, 1, GL_RGB32F, 4, 4);
+        glTextureSubImage2D(noise_tex, 0, 0, 0, 4, 4, GL_RGB, GL_FLOAT, noise.data());
+    }
+
     glCreateFramebuffers(1, &quad_fbo);
-    // glBindFramebuffer(GL_FRAMEBUFFER, quad_fbo);
 
     glCreateRenderbuffers(1, &quad_depth);
-    // glBindRenderbuffer(GL_RENDERBUFFER, quad_depth);
     glNamedRenderbufferStorage(quad_depth, GL_DEPTH24_STENCIL8, 1920, 1080);
 
     {
-        //glActiveTexture(0);
         glBindTextureUnit(0, color_tex);
         Render::inst().CreateTBO(GL_TEXTURE_2D, color_tex);
 
@@ -648,7 +715,6 @@ void InitFullscreenQuad()
     }
 
     {
-        //glActiveTexture(1);
         glBindTextureUnit(1, pos_tex);
         Render::inst().CreateTBO(GL_TEXTURE_2D, pos_tex);
 
@@ -662,7 +728,6 @@ void InitFullscreenQuad()
     }
 
     {
-        //glActiveTexture(2);
         glBindTextureUnit(2, norm_tex);
         Render::inst().CreateTBO(GL_TEXTURE_2D, norm_tex);
 
@@ -728,8 +793,8 @@ void RenderFullscreenQuad()
 void Init()
 {
     Camera::inst().Create(Camera::eCAM_BEHAVIOR::nFREE);
-    Camera::inst().SetPos(-0.75f, 1.25f, -0.25f);
-    Camera::inst().LookAt(0.f, 1.25f, 0.f);
+    Camera::inst().SetPos(-0.75f, 0.5f, 0.25f);
+    Camera::inst().LookAt(0.f, 0.25f, 0.f);
 
     grid.Update(15, 1, 5);
 
@@ -753,15 +818,28 @@ void Update()
 
 void DrawFrame()
 {
-    glBindFramebuffer(GL_FRAMEBUFFER, quad_fbo);
     glViewport(0, 0, 1920, 1080);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glEnable(GL_DEPTH_TEST);
-    // glClearNamedFramebufferfv(quad_fbo, GL_COLOR | GL_DEPTH, 0, &glm::vec4(0.0f, 0.5f, 1.0f, 1.0f)[0]);
-
     grid.Draw();
 
     cubemap::DrawCubemap();
+
+    glBindFramebuffer(GL_FRAMEBUFFER, quad_fbo);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    // glClearNamedFramebufferfv(quad_fbo, GL_COLOR | GL_DEPTH, 0, &glm::vec4(0.0f, 0.5f, 1.0f, 1.0f)[0]);
+
+    matrices[1].Translate(0, 0, 0);
+    // matrices[1].Rotate(math::Vector(1, 1, 0), 45.f);
+    // matrices[1].Translate(0.2f, 0.78f, -0.75f);
+    // matrices[1].Scale(1.f, 0.75f, 0.25f);
+    matrices[0] = Render::inst().vp_.projView() * matrices[1];
+    matrices[2] = math::Matrix::GetNormalMatrix(Render::inst().vp_.cam().view() * matrices[1]);
+    Render::inst().UpdateTransform(0, 3, matrices.data());
+
+    /*hemisphere_program.UseThis();
+
+    glBindVertexArray(hemisphere_vao);
+    glDrawArrays(GL_POINTS, 0, hemisphere_count);*/
 
     //glDrawArrays(GL_TRIANGLE_STRIP, 0, 4 * 6 + 4);
     //glDrawArraysInstancedBaseInstance(GL_TRIANGLE_STRIP, command.first, command.count, command.instanceCount, command.baseInstance);
@@ -780,15 +858,6 @@ void DrawFrame()
     glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, &index0);
     glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &index0);
 
-    matrices[1].Translate(0.2f, 0.78f, -0.75f);
-    // matrices[1].Scale(1.f, 0.75f, 0.25f);
-
-    matrices[0] = Render::inst().vp_.projView() * matrices[1];
-
-    matrices[2] = math::Matrix::GetNormalMatrix(Render::inst().vp_.cam().view() * matrices[1]);
-
-    Render::inst().UpdateTransform(0, 3, matrices.data());
-
     glBindVertexArray(geom_vao);
     glDrawArrays(GL_TRIANGLES, 0, 3 * geom_count);
 
@@ -803,9 +872,12 @@ void DrawFrame()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glDisable(GL_DEPTH_TEST);
 
+    glProgramUniformMatrix4fv(quad_program.program(), 4, 1, GL_TRUE, Render::inst().vp_.proj().m.data());
+
     glBindTextureUnit(0, color_tex);
     glBindTextureUnit(1, pos_tex);
     glBindTextureUnit(2, norm_tex);
+    glBindTextureUnit(3, noise_tex);
     RenderFullscreenQuad();
 
     /*glDepthMask(GL_FALSE);

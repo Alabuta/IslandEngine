@@ -62,8 +62,17 @@ layout(location = nFRAG_NORMAL) out vec4 FragNormal;
 layout(binding = 0) uniform sampler2D mainTexture;
 layout(binding = 1) uniform sampler2D positionTexture;
 layout(binding = 2) uniform sampler2D normalTexture;
+layout(binding = 3) uniform sampler2D noiseTexture;
 
 /* layout(location = nMAIN_COLOR) uniform */vec4 mainColor = vec4(1.0); // vec4(0, 0.74609375, 1, 1);
+
+layout(location = 4) uniform mat4 projection;
+layout(location = 8) uniform vec3 samples[64];
+
+const vec2 noiseScale = vec2(1920.0 / 4.0, 1080.0 / 4.0);
+const float radius = 0.5;
+const float bias = 0.025;
+const float kernelSize = 64;
 
 in vec4 normal;
 in vec4 position;
@@ -84,8 +93,37 @@ void renderGBuffer()
 layout(index = 1) subroutine(RenderPassType)
 void render()
 {
-    FragColor = texture(normalTexture, texCoord);
+    FragColor = texture(mainTexture, texCoord);
     FragColor.a = 1;
+    // FragColor.rgb = samples[int(round(texCoord.x * 63))];
+
+    vec3 p = texture(positionTexture, texCoord).rgb;
+    vec3 n = texture(normalTexture, texCoord).rgb;
+    vec3 rvec = texture(noiseTexture, texCoord * noiseScale).rgb;
+
+    vec3 t = normalize(rvec - n * dot(rvec, n));
+    vec3 b = cross(n, t);
+    mat3 TBN = mat3(t, b, n);
+
+    float occlusion = 0;
+
+    for (int i = 0; i < kernelSize; ++i) {
+        vec3 s = TBN * samples[i];
+        s = p + s * radius;
+
+        vec4 o = projection * vec4(s, 1);
+        o.xyz /= o.w;
+        o.xyz = o.xyz * 0.5 + 0.5;
+
+        float d = texture(positionTexture, o.xy).z;
+
+        float rangeCheck = smoothstep(0, 1, radius / abs(p.z - d));
+
+        occlusion += d < s.z + bias ? 0 : rangeCheck;
+    }
+
+    occlusion = 1 - occlusion / kernelSize;
+    FragColor.rgb *= occlusion;
 }
 
 void main()
