@@ -8,7 +8,7 @@
 ********************************************************************************************************************************/
 #pragma include("Includes/ShaderVariables.glsl")
 
-#if CRUS_VERTEX_STAGE
+#if CRUS_VERTEX_STAGE || CRUS_GEOMETRY_STAGE
 
 vec2 clippedToViewport(in vec4 position)
 {

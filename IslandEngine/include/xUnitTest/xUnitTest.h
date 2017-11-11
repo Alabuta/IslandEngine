@@ -63,13 +63,13 @@ T rand()
     if constexpr (std::is_floating_point_v<T>)
     {
         std::uniform_real_distribution<T> value(-1e6F, 1e6F);
-        return value(rd);
+        return value(mt);
     }
 
     else if constexpr (std::is_integral_v <T>)
     {
         std::uniform_int_distribution<T> value(std::numeric_limits<T>::lowest(), std::numeric_limits<T>::max());
-        return value(rd);
+        return value(mt);
     }
 
     else static_assert(false, "unsupported type.");
