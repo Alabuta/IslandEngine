@@ -12,6 +12,7 @@
 
 #include "engine.h"
 #include "../../contents/geometry/Hebe"
+#include "geometry/torus.h"
 
 
 namespace cubemap {
@@ -36,19 +37,16 @@ namespace app {
 void InitBuffers(std::vector<isle::Sprite> const &spriteSheet);
 intf::Grid grid;
 
+uint32 gen_vao, gen_count;
+
 Program hemisphere_program;
-uint32 hemisphere_vao;
-uint32 hemisphere_count;
+uint32 hemisphere_vao, hemisphere_count;
 
 Program geom_program;
-uint32 geom_vao;
-uint32 geom_count;
+uint32 geom_vao, geom_count;
 
 Program quad_program;
-uint32 quad_vao;
-uint32 quad_tid;
-uint32 quad_fbo;
-uint32 quad_depth;
+uint32 quad_vao, quad_tid, quad_fbo, quad_depth;
 
 uint32 pos_tex, norm_tex, color_tex, noise_tex;
 
@@ -790,6 +788,61 @@ void RenderFullscreenQuad()
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 8);
 }
 
+
+void InitGeometryGen()
+{
+    using namespace torus;
+    generate();
+
+    gen_count = static_cast<decltype(gen_count)>(indices.size());
+
+    struct Vertex {
+        Position pos;
+        math::Vector normal;
+        UV uv;
+    };
+
+    std::vector<Vertex> vertex_buffer(positions.size());
+
+    std::generate(vertex_buffer.begin(), vertex_buffer.end(), [&, i = 0] () mutable
+    {
+        return Vertex{ positions.at(i), normals.at(i), uvs.at(i++) };
+    });
+
+    vertex_buffer.shrink_to_fit();
+
+    Render::inst().CreateVAO(gen_vao);
+
+    {
+        auto bo = 0u;
+        Render::inst().CreateBO(bo);
+
+        glNamedBufferStorage(bo, sizeof(uint16) * indices.size(), indices.data(), 0);
+        glVertexArrayElementBuffer(gen_vao, bo);
+    }
+
+    {
+        auto bo = 0u;
+        Render::inst().CreateBO(bo);
+
+        glNamedBufferStorage(bo, sizeof(Vertex) * vertex_buffer.size(), vertex_buffer.data(), 0);
+
+        glVertexArrayAttribBinding(gen_vao, Program::eIN_OUT_ID::nVERTEX, 0);
+        glVertexArrayAttribFormat(gen_vao, Program::eIN_OUT_ID::nVERTEX, 3, GL_FLOAT, GL_FALSE, 0);
+        glEnableVertexArrayAttrib(gen_vao, Program::eIN_OUT_ID::nVERTEX);
+
+        glVertexArrayAttribBinding(gen_vao, Program::eIN_OUT_ID::nNORMAL, 0);
+        glVertexArrayAttribFormat(gen_vao, Program::eIN_OUT_ID::nNORMAL, 3, GL_FLOAT, GL_TRUE, sizeof(Position));
+        glEnableVertexArrayAttrib(gen_vao, Program::eIN_OUT_ID::nNORMAL);
+
+        glVertexArrayAttribBinding(gen_vao, Program::eIN_OUT_ID::nTEXCRD, 0);
+        glVertexArrayAttribFormat(gen_vao, Program::eIN_OUT_ID::nTEXCRD, 2, GL_FLOAT, GL_FALSE, sizeof(Position) + sizeof(math::Vector));
+        glEnableVertexArrayAttrib(gen_vao, Program::eIN_OUT_ID::nTEXCRD);
+
+        glVertexArrayVertexBuffer(gen_vao, 0, bo, 0, sizeof(Vertex));
+    }
+}
+
 void Init()
 {
     Camera::inst().Create(Camera::eCAM_BEHAVIOR::nFREE);
@@ -811,6 +864,7 @@ void Init()
         return;
 
     InitGeometry();
+    InitGeometryGen();
 }
 
 void Update()
@@ -824,9 +878,11 @@ void DrawFrame()
 
     cubemap::DrawCubemap();
 
+    glFinish();
+
     glBindFramebuffer(GL_FRAMEBUFFER, quad_fbo);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    // glClearNamedFramebufferfv(quad_fbo, GL_COLOR | GL_DEPTH, 0, &glm::vec4(0.0f, 0.5f, 1.0f, 1.0f)[0]);
+    //glClearNamedFramebufferfi(quad_fbo, GL_DEPTH_STENCIL, 0, 0.f, 0);
 
     matrices[1].Translate(0, 0, 0);
     // matrices[1].Rotate(math::Vector(1, 1, 0), 45.f);
@@ -860,6 +916,9 @@ void DrawFrame()
 
     glBindVertexArray(geom_vao);
     glDrawArrays(GL_TRIANGLES, 0, 3 * geom_count);
+
+    /*glBindVertexArray(gen_vao);
+    glDrawElements(GL_TRIANGLES, gen_count, GL_UNSIGNED_SHORT, nullptr);*/
 
     glFinish();
 
