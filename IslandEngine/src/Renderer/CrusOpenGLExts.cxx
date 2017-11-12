@@ -185,6 +185,12 @@ CRUS_INLINE void APIENTRY glClipControl(GLenum origin, GLenum depth)
     return glClipControl(origin, depth);
 }
 
+CRUS_INLINE void APIENTRY glClearNamedFramebufferfi(GLuint framebuffer, GLenum buffer, GLint drawbuffer, GLfloat depth, GLint stencil)
+{
+    GL_PROC_INIT(glClearNamedFramebufferfi);
+    return glClearNamedFramebufferfi(framebuffer, buffer, drawbuffer, depth, stencil);
+}
+
 CRUS_INLINE void APIENTRY glCompileShader(GLuint shader)
 {
     GL_PROC_INIT(glCompileShader);
