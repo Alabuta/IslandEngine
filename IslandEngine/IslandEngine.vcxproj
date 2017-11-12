@@ -186,6 +186,7 @@
     <None Include="resources\resource.aps" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="include\geometry\torus.h" />
     <ClInclude Include="..\contents\geometry\hydrant" />
     <ClInclude Include="..\contents\geometry\cube" />
     <ClInclude Include="..\contents\geometry\geosphere" />

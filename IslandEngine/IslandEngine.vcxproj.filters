@@ -309,6 +309,9 @@
     <ClInclude Include="..\contents\geometry\Hebe">
       <Filter>geometry</Filter>
     </ClInclude>
+    <ClInclude Include="include\geometry\torus.h">
+      <Filter>geometry</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="resources\resource.aps">
