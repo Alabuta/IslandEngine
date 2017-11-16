@@ -81,7 +81,6 @@ bool LoadOBJ(std::string const &path, std::vector<Position> &positions, std::vec
 
     float x, y, z;
     std::size_t inx;
-    std::regex const rex("(\d)+[/](\d)+[/](\d)+[ |\t](\d)+[/](\d)+[/](\d)+[ |\t](\d)+[/](\d)+[/](\d)+", std::regex::optimize);
 
     while (file.getline(line.data(), line.size())) {
         std::istringstream stream(line.data());
@@ -106,15 +105,24 @@ bool LoadOBJ(std::string const &path, std::vector<Position> &positions, std::vec
         else if (attribute == "f") {
             face.clear();
 
-            while (stream.getline(line.data(), line.size(), '/')) {
-                std::istringstream in(line.data());
+            std::istringstream in(&line[1]);
 
+            bool b = true;
+
+            while (b) {
                 in >> inx;
+
+                if (in.eof() || in.bad())
+                    b = false;
+
+                else if (in.fail()) {
+                    in.clear();
+                    in.ignore(std::numeric_limits<std::streamsize>::max(), '/');
+                    continue;
+                }
+
                 face.emplace_back(inx);
             }
-
-            stream >> inx;
-            face.emplace_back(inx);
 
             faces.push_back(face);
         }
@@ -582,6 +590,7 @@ struct MovementComponent final : Component {
 
 void InitGeometry()
 {
+    return;
     using namespace Hebe;
 
     geom_count = static_cast<decltype(geom_count)>(faces.size()) + 3 * 2;
@@ -912,14 +921,36 @@ void InitGeometryGen()
 
 void Init()
 {
-    {
+    Camera::inst().Create(Camera::eCAM_BEHAVIOR::nFREE);
+    Camera::inst().SetPos(-0.75f, 0.5f, 0.25f);
+    Camera::inst().LookAt(0.f, 0.25f, 0.f);
+
+    grid.Update(15, 1, 5);
+
+    // log::Debug() << measure<>::execution(InitBackground);
+
+    cubemap::InitCubemap();
+
+    /*EntityManager entities;
+    auto entity = entities.CreateEntity();*/
+
+    InitFullscreenQuad();
+
+    if (!geom_program.AssignNew({R"(Defaults/Solid-Wireframe.glsl)"}))
+        return;
+
+    //InitGeometry();
+    //InitGeometryGen();
+
+    
+    if (true) {
         std::vector<Position> positions;
         std::vector<math::Vector> normals;
         std::vector<UV> uvs;
 
         std::vector<std::vector<std::size_t>> faces;
 
-        LoadOBJ("../cube.obj", positions, normals, uvs, faces);
+        LoadOBJ("../sponza.obj", positions, normals, uvs, faces);
 
         geom_count = static_cast<decltype(geom_count)>(faces.size());
 
@@ -931,29 +962,21 @@ void Init()
 
         std::vector<Vertex> vertex_buffer;
 
+        for (auto &face : faces)
+            std::transform(face.begin(), face.end(), face.begin(), [] (auto &&a) { return a - 1; });
+
         for (auto const &face : faces) {
-            auto it_index = face.cbegin();
-
-            vertex_buffer.emplace_back(Vertex{
-                positions.at(*it_index - 1),
-                normals.at(*std::next(it_index, 3) - 1),
-                uvs.at(*std::next(it_index, 6) - 1)
-            });
-
-            vertex_buffer.emplace_back(Vertex{
-                positions.at(*++it_index - 1),
-                normals.at(*std::next(it_index, 3) - 1),
-                uvs.at(*std::next(it_index, 6) - 1)
-            });
-
-            vertex_buffer.emplace_back(Vertex{
-                positions.at(*++it_index - 1),
-                normals.at(*std::next(it_index, 3) - 1),
-                uvs.at(*std::next(it_index, 6) - 1)
-            });
+            for (auto it_index = face.cbegin(); it_index < face.cend(); std::advance(it_index, 2))
+                vertex_buffer.emplace_back(Vertex{
+                    positions.at(*it_index),
+                    normals.at(*std::next(it_index, 2)),
+                    uvs.at(*++it_index)
+                });
         }
 
         {
+            Render::inst().CreateVAO(geom_vao);
+
             auto bo = 0u;
             Render::inst().CreateBO(bo);
 
@@ -974,27 +997,6 @@ void Init()
             glVertexArrayVertexBuffer(geom_vao, 0, bo, 0, sizeof(Vertex));
         }
     }
-
-    Camera::inst().Create(Camera::eCAM_BEHAVIOR::nFREE);
-    Camera::inst().SetPos(-0.75f, 0.5f, 0.25f);
-    Camera::inst().LookAt(0.f, 0.25f, 0.f);
-
-    grid.Update(15, 1, 5);
-
-    // log::Debug() << measure<>::execution(InitBackground);
-
-    cubemap::InitCubemap();
-
-    /*EntityManager entities;
-    auto entity = entities.CreateEntity();*/
-
-    InitFullscreenQuad();
-
-    if (!geom_program.AssignNew({R"(Defaults/Diffuse-Lambert.glsl)"}))
-        return;
-
-    //InitGeometry();
-    InitGeometryGen();
 }
 
 void Update()
@@ -1004,9 +1006,9 @@ void DrawFrame()
 {
     glViewport(0, 0, 1920, 1080);
     glEnable(GL_DEPTH_TEST);
-    grid.Draw();
 
     cubemap::DrawCubemap();
+    grid.Draw();
 
     glFinish();
 
@@ -1017,7 +1019,7 @@ void DrawFrame()
     matrices[1].Translate(0, 0, 0);
     // matrices[1].Rotate(math::Vector(1, 1, 0), 45.f);
     // matrices[1].Translate(0.2f, 0.78f, -0.75f);
-    // matrices[1].Scale(1.f, 0.75f, 0.25f);
+    matrices[1].Scale(.01f, .01f, .01f);
     matrices[0] = Render::inst().vp_.projView() * matrices[1];
     matrices[2] = math::Matrix::GetNormalMatrix(Render::inst().vp_.cam().view() * matrices[1]);
     Render::inst().UpdateTransform(0, 3, matrices.data());
