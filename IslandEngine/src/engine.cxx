@@ -9,6 +9,7 @@
 #include <variant>
 #include <array>
 #include <bitset>
+#include <regex>
 
 #include "engine.h"
 #include "../../contents/geometry/Hebe"
@@ -57,6 +58,72 @@ Texture quad_texture(Texture::eTEXTURE_TYPE::n2D, "sprites-cat-running");//Robot
 Program flipbookProgram;
 uint32 flipbook_vao;
 Texture flipbookTexture(Texture::eTEXTURE_TYPE::n2D, "sprites-cat-running");//RobotBoyWalkSprite
+
+
+bool LoadOBJ(std::string const &path, std::vector<Position> &positions, std::vector<math::Vector> &normals, std::vector<UV> &uvs, std::vector<std::vector<std::size_t>> &faces)
+{
+    if (path.empty()) {
+        log::Error() << "file name is invalid.";
+        return false;
+    }
+
+    std::ifstream file(path, std::ios::in);
+
+    if (!file.is_open()) {
+        log::Error() << "can't open file: " << path;
+        return false;
+    }
+
+    std::vector<std::size_t> face;
+
+    std::array<char, 256> line;
+    std::string attribute;
+
+    float x, y, z;
+    std::size_t inx;
+    std::regex const rex("(\d)+[/](\d)+[/](\d)+[ |\t](\d)+[/](\d)+[/](\d)+[ |\t](\d)+[/](\d)+[/](\d)+", std::regex::optimize);
+
+    while (file.getline(line.data(), line.size())) {
+        std::istringstream stream(line.data());
+
+        stream >> attribute;
+
+        if (attribute == "v") {
+            stream >> x >> y >> z;
+            positions.emplace_back(x, y, z);
+        }
+
+        else if (attribute == "vn") {
+            stream >> x >> y >> z;
+            normals.emplace_back(x, y, z);
+        }
+
+        else if (attribute == "vt") {
+            stream >> x >> y;
+            uvs.emplace_back(x, y);
+        }
+
+        else if (attribute == "f") {
+            face.clear();
+
+            while (stream.getline(line.data(), line.size(), '/')) {
+                std::istringstream in(line.data());
+
+                in >> inx;
+                face.emplace_back(inx);
+            }
+
+            stream >> inx;
+            face.emplace_back(inx);
+
+            faces.push_back(face);
+        }
+    }
+
+    file.close();
+
+    return true;
+}
 
 std::array<math::Matrix, 3> matrices = {
     math::Matrix::Identity(),
@@ -677,7 +744,7 @@ void InitFullscreenQuad()
         std::array<Position, 16> noise;
         std::generate(noise.begin(), noise.end(), [&floats, &mt] ()
         {
-            return Position(floats(mt) * 2 - 1, floats(mt) * 2 - 1, floats(mt));
+            return Position(floats(mt) * 2 - 1, floats(mt) * 2 - 1, 0.f);
         });
 
         glBindTextureUnit(3, noise_tex);
@@ -702,8 +769,8 @@ void InitFullscreenQuad()
         glBindTextureUnit(0, color_tex);
         Render::inst().CreateTBO(GL_TEXTURE_2D, color_tex);
 
-        glTextureParameteri(color_tex, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTextureParameteri(color_tex, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTextureParameteri(color_tex, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTextureParameteri(color_tex, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         glTextureParameteri(color_tex, GL_TEXTURE_MAX_LEVEL, 0);
         glTextureParameteri(color_tex, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTextureParameteri(color_tex, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -845,6 +912,69 @@ void InitGeometryGen()
 
 void Init()
 {
+    {
+        std::vector<Position> positions;
+        std::vector<math::Vector> normals;
+        std::vector<UV> uvs;
+
+        std::vector<std::vector<std::size_t>> faces;
+
+        LoadOBJ("../cube.obj", positions, normals, uvs, faces);
+
+        geom_count = static_cast<decltype(geom_count)>(faces.size());
+
+        struct Vertex {
+            Position pos;
+            math::Vector normal;
+            UV uv;
+        };
+
+        std::vector<Vertex> vertex_buffer;
+
+        for (auto const &face : faces) {
+            auto it_index = face.cbegin();
+
+            vertex_buffer.emplace_back(Vertex{
+                positions.at(*it_index - 1),
+                normals.at(*std::next(it_index, 3) - 1),
+                uvs.at(*std::next(it_index, 6) - 1)
+            });
+
+            vertex_buffer.emplace_back(Vertex{
+                positions.at(*++it_index - 1),
+                normals.at(*std::next(it_index, 3) - 1),
+                uvs.at(*std::next(it_index, 6) - 1)
+            });
+
+            vertex_buffer.emplace_back(Vertex{
+                positions.at(*++it_index - 1),
+                normals.at(*std::next(it_index, 3) - 1),
+                uvs.at(*std::next(it_index, 6) - 1)
+            });
+        }
+
+        {
+            auto bo = 0u;
+            Render::inst().CreateBO(bo);
+
+            glNamedBufferStorage(bo, sizeof(Vertex) * vertex_buffer.size(), vertex_buffer.data(), 0);
+
+            glVertexArrayAttribBinding(geom_vao, Program::eIN_OUT_ID::nVERTEX, 0);
+            glVertexArrayAttribFormat(geom_vao, Program::eIN_OUT_ID::nVERTEX, 3, GL_FLOAT, GL_FALSE, 0);
+            glEnableVertexArrayAttrib(geom_vao, Program::eIN_OUT_ID::nVERTEX);
+
+            glVertexArrayAttribBinding(geom_vao, Program::eIN_OUT_ID::nNORMAL, 0);
+            glVertexArrayAttribFormat(geom_vao, Program::eIN_OUT_ID::nNORMAL, 3, GL_FLOAT, GL_TRUE, sizeof(Position));
+            glEnableVertexArrayAttrib(geom_vao, Program::eIN_OUT_ID::nNORMAL);
+
+            glVertexArrayAttribBinding(geom_vao, Program::eIN_OUT_ID::nTEXCRD, 0);
+            glVertexArrayAttribFormat(geom_vao, Program::eIN_OUT_ID::nTEXCRD, 2, GL_FLOAT, GL_FALSE, sizeof(Position) + sizeof(math::Vector));
+            glEnableVertexArrayAttrib(geom_vao, Program::eIN_OUT_ID::nTEXCRD);
+
+            glVertexArrayVertexBuffer(geom_vao, 0, bo, 0, sizeof(Vertex));
+        }
+    }
+
     Camera::inst().Create(Camera::eCAM_BEHAVIOR::nFREE);
     Camera::inst().SetPos(-0.75f, 0.5f, 0.25f);
     Camera::inst().LookAt(0.f, 0.25f, 0.f);
@@ -863,7 +993,7 @@ void Init()
     if (!geom_program.AssignNew({R"(Defaults/Diffuse-Lambert.glsl)"}))
         return;
 
-    InitGeometry();
+    //InitGeometry();
     InitGeometryGen();
 }
 
