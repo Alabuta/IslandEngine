@@ -12,7 +12,7 @@
 #pragma stage("vertex")
 
 layout(location = nVERTEX) in vec3 inVertex;
-//layout(location = nNORMAL) in vec3 inNormal;
+layout(location = nNORMAL) in vec3 inNormal;
 layout(location = nTEXCRD) in vec2 inTexCoord;
 
 out from_vs_data {
