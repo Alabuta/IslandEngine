@@ -47,9 +47,9 @@ Program geom_program;
 uint32 geom_vao, geom_count;
 
 Program quad_program;
-uint32 quad_vao, quad_tid, quad_fbo, quad_depth;
+uint32 quad_vao, quad_tid, quad_fbo, quad_depth, quad_inter, quad_blur;
 
-uint32 pos_tex, norm_tex, color_tex, noise_tex;
+uint32 pos_tex, norm_tex, color_tex, noise_tex, ssao_tex, blured_tex;
 
 Texture quad_texture(Texture::eTEXTURE_TYPE::n2D, "sprites-cat-running");//RobotBoyWalkSprite
 
@@ -675,7 +675,7 @@ void InitGeometry()
     Render::inst().CreateBO(bo);
 
     glNamedBufferStorage(bo, sizeof(indicies), indicies, 0);
-    glVertexArrayElementBuffer(geom_vao, bo);
+    glVertexArrayElementBuffer(vao, bo);
     }*/
 
     {
@@ -824,7 +824,45 @@ void InitFullscreenQuad()
     glNamedFramebufferDrawBuffers(quad_fbo, static_cast<int32>(drawBuffers.size()), drawBuffers.data());
 
     if (auto result = glCheckNamedFramebufferStatus(quad_fbo, GL_FRAMEBUFFER); result != GL_FRAMEBUFFER_COMPLETE)
-        log::Debug() << "framebuffer error:" << result;
+        log::Error() << "framebuffer error:" << result;
+
+    {
+        glCreateFramebuffers(1, &quad_inter);
+
+        glBindTextureUnit(0, ssao_tex);
+        Render::inst().CreateTBO(GL_TEXTURE_2D, ssao_tex);
+
+        glTextureParameteri(ssao_tex, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTextureParameteri(ssao_tex, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTextureParameteri(ssao_tex, GL_TEXTURE_MAX_LEVEL, 0);
+        glTextureParameteri(ssao_tex, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTextureParameteri(ssao_tex, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+        glTextureStorage2D(ssao_tex, 1, GL_RGBA8, 1920, 1080);
+
+        glNamedFramebufferTexture(quad_inter, GL_COLOR_ATTACHMENT0, ssao_tex, 0);
+
+        std::array<std::uint32_t, 1> constexpr drawBuffers1 = {GL_COLOR_ATTACHMENT0};
+        glNamedFramebufferDrawBuffers(quad_inter, static_cast<int32>(drawBuffers1.size()), drawBuffers1.data());
+
+        if (auto result = glCheckNamedFramebufferStatus(quad_inter, GL_FRAMEBUFFER); result != GL_FRAMEBUFFER_COMPLETE)
+            log::Error() << "framebuffer error:" << result;
+    }
+
+    /*{
+        glCreateFramebuffers(1, &quad_blur);
+
+        glBindTextureUnit(1, blured_tex);
+        Render::inst().CreateTBO(GL_TEXTURE_2D, blured_tex);
+
+        glTextureParameteri(blured_tex, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTextureParameteri(blured_tex, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTextureParameteri(blured_tex, GL_TEXTURE_MAX_LEVEL, 0);
+        glTextureParameteri(blured_tex, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTextureParameteri(blured_tex, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+        glTextureStorage2D(blured_tex, 1, GL_RGBA8, 1920, 1080);
+    }*/
 
     Render::inst().CreateVAO(quad_vao);
 
@@ -919,11 +957,50 @@ void InitGeometryGen()
     }
 }
 
+template<typename T>
+bool LoadModel(std::string const &path, uint32 &count, std::vector<T> &vertex_buffer)
+{
+    std::vector<Position> positions;
+    std::vector<math::Vector> normals;
+    std::vector<UV> uvs;
+
+    std::vector<std::vector<std::size_t>> faces;
+
+    if (!LoadOBJ(path, positions, normals, uvs, faces))
+        return false;
+
+    count = static_cast<std::decay_t<decltype(count)>>(faces.size());
+
+    for (auto &face : faces)
+        std::transform(face.begin(), face.end(), face.begin(), [] (auto &&a) { return a - 1; });
+
+    for (auto const &face : faces) {
+        for (auto it_index = face.cbegin(); it_index < face.cend(); std::advance(it_index, 2))
+            vertex_buffer.emplace_back(T{
+            positions.at(*it_index),
+            normals.at(*std::next(it_index, 2)),
+            uvs.at(*++it_index)
+         });
+    }
+
+    return true;
+}
+
 void Init()
 {
+    struct Vertex {
+        Position pos;
+        math::Vector normal;
+        UV uv;
+    };
+
+    std::vector<Vertex> vertex_buffer;
+
+    auto future = std::async(std::launch::async, LoadModel<Vertex>, "../sponza.obj", std::ref(geom_count), std::ref(vertex_buffer));
+
     Camera::inst().Create(Camera::eCAM_BEHAVIOR::nFREE);
-    Camera::inst().SetPos(-0.75f, 0.5f, 0.25f);
-    Camera::inst().LookAt(0.f, 0.25f, 0.f);
+    Camera::inst().SetPos(0, 4, 0);
+    Camera::inst().LookAt(0, 4, -1);
 
     grid.Update(15, 1, 5);
 
@@ -942,60 +1019,27 @@ void Init()
     //InitGeometry();
     //InitGeometryGen();
 
-    
-    if (true) {
-        std::vector<Position> positions;
-        std::vector<math::Vector> normals;
-        std::vector<UV> uvs;
+    if (future.get()) {
+        Render::inst().CreateVAO(geom_vao);
 
-        std::vector<std::vector<std::size_t>> faces;
+        auto bo = 0u;
+        Render::inst().CreateBO(bo);
 
-        LoadOBJ("../sponza.obj", positions, normals, uvs, faces);
+        glNamedBufferStorage(bo, sizeof(Vertex) * vertex_buffer.size(), vertex_buffer.data(), 0);
 
-        geom_count = static_cast<decltype(geom_count)>(faces.size());
+        glVertexArrayAttribBinding(geom_vao, Program::eIN_OUT_ID::nVERTEX, 0);
+        glVertexArrayAttribFormat(geom_vao, Program::eIN_OUT_ID::nVERTEX, 3, GL_FLOAT, GL_FALSE, 0);
+        glEnableVertexArrayAttrib(geom_vao, Program::eIN_OUT_ID::nVERTEX);
 
-        struct Vertex {
-            Position pos;
-            math::Vector normal;
-            UV uv;
-        };
+        glVertexArrayAttribBinding(geom_vao, Program::eIN_OUT_ID::nNORMAL, 0);
+        glVertexArrayAttribFormat(geom_vao, Program::eIN_OUT_ID::nNORMAL, 3, GL_FLOAT, GL_TRUE, sizeof(Position));
+        glEnableVertexArrayAttrib(geom_vao, Program::eIN_OUT_ID::nNORMAL);
 
-        std::vector<Vertex> vertex_buffer;
+        glVertexArrayAttribBinding(geom_vao, Program::eIN_OUT_ID::nTEXCRD, 0);
+        glVertexArrayAttribFormat(geom_vao, Program::eIN_OUT_ID::nTEXCRD, 2, GL_FLOAT, GL_FALSE, sizeof(Position) + sizeof(math::Vector));
+        glEnableVertexArrayAttrib(geom_vao, Program::eIN_OUT_ID::nTEXCRD);
 
-        for (auto &face : faces)
-            std::transform(face.begin(), face.end(), face.begin(), [] (auto &&a) { return a - 1; });
-
-        for (auto const &face : faces) {
-            for (auto it_index = face.cbegin(); it_index < face.cend(); std::advance(it_index, 2))
-                vertex_buffer.emplace_back(Vertex{
-                    positions.at(*it_index),
-                    normals.at(*std::next(it_index, 2)),
-                    uvs.at(*++it_index)
-                });
-        }
-
-        {
-            Render::inst().CreateVAO(geom_vao);
-
-            auto bo = 0u;
-            Render::inst().CreateBO(bo);
-
-            glNamedBufferStorage(bo, sizeof(Vertex) * vertex_buffer.size(), vertex_buffer.data(), 0);
-
-            glVertexArrayAttribBinding(geom_vao, Program::eIN_OUT_ID::nVERTEX, 0);
-            glVertexArrayAttribFormat(geom_vao, Program::eIN_OUT_ID::nVERTEX, 3, GL_FLOAT, GL_FALSE, 0);
-            glEnableVertexArrayAttrib(geom_vao, Program::eIN_OUT_ID::nVERTEX);
-
-            glVertexArrayAttribBinding(geom_vao, Program::eIN_OUT_ID::nNORMAL, 0);
-            glVertexArrayAttribFormat(geom_vao, Program::eIN_OUT_ID::nNORMAL, 3, GL_FLOAT, GL_TRUE, sizeof(Position));
-            glEnableVertexArrayAttrib(geom_vao, Program::eIN_OUT_ID::nNORMAL);
-
-            glVertexArrayAttribBinding(geom_vao, Program::eIN_OUT_ID::nTEXCRD, 0);
-            glVertexArrayAttribFormat(geom_vao, Program::eIN_OUT_ID::nTEXCRD, 2, GL_FLOAT, GL_FALSE, sizeof(Position) + sizeof(math::Vector));
-            glEnableVertexArrayAttrib(geom_vao, Program::eIN_OUT_ID::nTEXCRD);
-
-            glVertexArrayVertexBuffer(geom_vao, 0, bo, 0, sizeof(Vertex));
-        }
+        glVertexArrayVertexBuffer(geom_vao, 0, bo, 0, sizeof(Vertex));
     }
 }
 
@@ -1041,7 +1085,7 @@ void DrawFrame()
     //geom_program.UseThis();
     quad_program.UseThis();
 
-    uint32 const index0 = 0, index1 = 1;
+    uint32 const index0 = 0, index1 = 1, index2 = 2;
 
     glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, &index0);
     glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &index0);
@@ -1054,7 +1098,8 @@ void DrawFrame()
 
     glFinish();
 
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glBindFramebuffer(GL_FRAMEBUFFER, quad_inter);
+    //glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, &index1);
     glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &index1);
@@ -1069,6 +1114,16 @@ void DrawFrame()
     glBindTextureUnit(1, pos_tex);
     glBindTextureUnit(2, norm_tex);
     glBindTextureUnit(3, noise_tex);
+    RenderFullscreenQuad();
+
+    glFinish();
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    glBindTextureUnit(0, ssao_tex);
+    glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &index2);
     RenderFullscreenQuad();
 
     /*glDepthMask(GL_FALSE);
