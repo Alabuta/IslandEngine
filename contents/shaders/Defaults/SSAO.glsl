@@ -72,7 +72,7 @@ layout(location = 8) uniform vec3 samples[64];
 const vec2 noiseScale = vec2(1920.0 / 4.0, 1080.0 / 4.0);
 const float radius = 0.5;
 const float bias = 0.025;
-const float kernelSize = 64;
+const float kernelSize = 32;
 
 in vec4 normal;
 in vec4 position;
@@ -83,22 +83,28 @@ layout(index = 0) subroutine(RenderPassType)
 void renderGBuffer()
 {
     vec3 n = normalize(normal.xyz);
-    vec3 p = normalize(position.xyz);
+    vec3 p = position.xyz;
 
     FragColor = mainColor;
     FragPosition = vec4(p, 1);
-    FragNormal = vec4(n, 1);
+    FragNormal = vec4(n.xy, 0, 0);
 }
 
 layout(index = 1) subroutine(RenderPassType)
-void render()
+void ssao()
 {
     FragColor = texture(mainTexture, texCoord);
     FragColor.a = 1;
     // FragColor.rgb = samples[int(round(texCoord.x * 63))];
 
-    vec3 p = texture(positionTexture, texCoord).rgb;
-    vec3 n = texture(normalTexture, texCoord).rgb;
+    vec4 nn = texture(normalTexture, texCoord);
+
+    vec3 p = texture(positionTexture, texCoord).xyz;
+    //p.z = nn.z;
+
+    vec3 n = vec3(nn.xy, 0);// texture(normalTexture, texCoord).rgb;
+    n.z = sqrt(fma(-n.y, n.y, fma(n.x, -n.x, 1)));
+
     vec3 rvec = texture(noiseTexture, texCoord * noiseScale).rgb;
 
     vec3 t = normalize(rvec - n * dot(rvec, n));
@@ -113,7 +119,7 @@ void render()
 
         vec4 o = projection * vec4(s, 1);
         o.xyz /= o.w;
-        o.xyz = o.xyz * 0.5 + 0.5;
+        o.xyz = fma(o.xyz, vec3(0.5), vec3(0.5));
 
         float d = texture(positionTexture, o.xy).z;
 
