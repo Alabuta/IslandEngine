@@ -19,6 +19,8 @@ layout(location = 0) subroutine uniform RenderPassType RenderPass;
 
 out vec4 normal;
 out vec4 position;
+out float depth;
+out vec3 ray;
 
 out vec2 texCoord;
 
@@ -31,13 +33,16 @@ void modelProccessing()
     position = TransformFromModelToView(vec4(inVertex, 1));
 
     gl_Position = TransformFromViewToClip(position);
+    depth = gl_Position.z / gl_Position.w;
 }
 
 layout(index = 1) subroutine(RenderPassType)
 void fullQuadRender()
 {
-    gl_Position = vec4(inVertex.xy, 0.0, 1.0);
+    gl_Position = vec4(inVertex.xy, 1.0, 1.0);
     texCoord = inVertex.xy * 0.5 + 0.5;
+    
+    ray = gl_Position.xyz;
 }
 
 void main()
@@ -54,15 +59,18 @@ layout(location = 0) subroutine uniform RenderPassType RenderPass;
 
 #define nFRAG_POSITION 1
 #define nFRAG_NORMAL 2
+#define nFRAG_DEPTH 3
 
 layout(location = nFRAG_COLOR) out vec4 FragColor;
 layout(location = nFRAG_POSITION) out vec4 FragPosition;
 layout(location = nFRAG_NORMAL) out vec4 FragNormal;
+layout(location = nFRAG_DEPTH) out vec4 FragDepth;
 
 layout(binding = 0) uniform sampler2D mainTexture;
 layout(binding = 1) uniform sampler2D positionTexture;
 layout(binding = 2) uniform sampler2D normalTexture;
-layout(binding = 3) uniform sampler2D noiseTexture;
+layout(binding = 3) uniform sampler2D depthTexture;
+layout(binding = 4) uniform sampler2D noiseTexture;
 
 /* layout(location = nMAIN_COLOR) uniform */vec4 mainColor = vec4(1.0); // vec4(0, 0.74609375, 1, 1);
 
@@ -73,9 +81,14 @@ const vec2 noiseScale = vec2(1920.0 / 4.0, 1080.0 / 4.0);
 const float radius = 0.5;
 const float bias = 0.025;
 const float kernelSize = 32;
+const float epsilon = 0.00001;
+
+const float zNear = 0.01, zFar = 10.0;
 
 in vec4 normal;
 in vec4 position;
+in float depth;
+in vec3 ray;
 
 in vec2 texCoord;
 
@@ -85,22 +98,74 @@ void renderGBuffer()
     vec3 n = normalize(normal.xyz);
     vec3 p = position.xyz;
 
-    FragColor = mainColor;
-    FragPosition = vec4(p, 1);
+    //vec4 xyzw = vec4((gl_FragCoord.xy / vec2(1920, 1080)) * 2 - 1, (depth.x / depth.y) * 2 - 1, 1);
+    //vec4 xyzw = vec4((gl_FragCoord.xy / vec2(1920, 1080)) * 2 - 1, gl_FragCoord.z * 2 - 1, 1);
+
+    /*xyzw = inverse(projection) * xyzw;
+    xyzw /= xyzw.w;*/
+    //FragColor.rgb = xyzw.xyz;
+    //FragColor.rgb = position.xyz;
+    FragColor.rgb = vec3(gl_FragCoord.z);
+
+    /*if (abs(position.x - gl_FragCoord.z * gl_FragCoord.w) < 0.91) // (gl_FragCoord.z / gl_FragCoord.w) = depth
+        FragColor.rgb = vec3(0, 1, 0);
+
+    else FragColor.rgb = vec3(1, 0, 0);*/
+
+    FragColor.a = 1;
+
+    //FragColor = mainColor;
+    FragPosition = vec4(position.xyz, 0);
     FragNormal = vec4(n.xy, 0, 0);
+    FragDepth = vec4((gl_FragCoord.z / gl_FragCoord.w) * 2 - 1, 0, 0, 0);
+}
+
+vec3 getPositionFromDepth(vec2 depthTexCoord)
+{
+    vec2 xy = depthTexCoord * 2 - 1;
+    float z = texture(depthTexture, depthTexCoord).x;
+
+    vec4 projectedPosition = vec4(xy, z, 1);
+
+    vec4 vertexPosition = inverse(projection) * projectedPosition;
+
+    return vertexPosition.xyz / vertexPosition.w;
 }
 
 layout(index = 1) subroutine(RenderPassType)
 void ssao()
 {
-    FragColor = texture(mainTexture, texCoord);
-    FragColor.a = 1;
-    // FragColor.rgb = samples[int(round(texCoord.x * 63))];
+    //FragColor.rgb = getPositionFromDepth(texCoord);
+    //FragColor.rgb = vec3(texture(mainTexture, texCoord).xyz);// *0.5 + 0.5;
+    /*FragColor.rgb = vec3(texture(positionTexture, texCoord).z) * 0.5 + 0.5;
+    FragColor.rgb = vec3(texture(normalTexture, texCoord).xyz);
+    FragColor.z = sqrt(fma(-FragColor.y, FragColor.y, fma(FragColor.x, -FragColor.x, 1)));*/
 
-    vec4 nn = texture(normalTexture, texCoord);
+    float d = (2 * zNear * zFar / (zFar + zNear - (zFar - zNear) * texture(mainTexture, texCoord).z));
+    //FragColor.rgb = -vec3(texture(positionTexture, texCoord).z) / (zFar - zNear);
+    //FragColor.rgb = -vec3(texture(positionTexture, texCoord).z) / zFar;
+    FragColor.rgb = ray * d;
+    //FragColor.b = 0;
+    /*FragColor.rgb = texture(positionTexture, texCoord).xyz;
+    FragColor.b *= -1;*/
+    FragColor.rgb = FragColor.rgb * 0.5 + 0.5;
+
+    /*if (abs(FragColor.z - 4.0) < epsilon) // (gl_FragCoord.z / gl_FragCoord.w) = depth
+        FragColor.rgb = vec3(0, 1, 0);
+
+    else FragColor.rgb = vec3(1, 0, 0);*/
+
+    //FragColor.rgb *= 0.1;
+
+    //FragColor.rgb = vec3(texture(depthTexture, texCoord)); // gl_FragCoord.xy / vec2(1920, 1080)
+#if 0
+    // FragColor.rgb = samples[int(round(texCoord.x * 63))];
+    vec3 nn = texture(normalTexture, texCoord).xyz;
 
     vec3 p = texture(positionTexture, texCoord).xyz;
     //p.z = nn.z;
+    //p.xy = ;
+    //p.x = getPositionFromDepth(texCoord).xy;
 
     vec3 n = vec3(nn.xy, 0);// texture(normalTexture, texCoord).rgb;
     n.z = sqrt(fma(-n.y, n.y, fma(n.x, -n.x, 1)));
@@ -129,13 +194,17 @@ void ssao()
     }
 
     occlusion = 1 - occlusion / kernelSize;
+
     FragColor.rgb *= occlusion;
+#endif
+    FragColor.a = 1;
 }
 
 layout(index = 2) subroutine(RenderPassType)
 void render()
 {
-    vec2 texelSize = 1.0 / vec2(textureSize(mainTexture, 0));
+    FragColor.rgb = texture(mainTexture, texCoord).xyz;
+    /*vec2 texelSize = 1.0 / vec2(textureSize(mainTexture, 0));
     float result = 0;
 
     for (int x = -2; x < 2; ++x) {
@@ -145,7 +214,7 @@ void render()
         }
     }
 
-    FragColor.rgb = vec3(result / (4.0 * 4.0));
+    FragColor.rgb = vec3(result / (4.0 * 4.0));*/
     FragColor.a = 1;
 }
 
