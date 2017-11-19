@@ -41,8 +41,8 @@ void Render::Init()
 
     glEnable(GL_DEPTH_CLAMP);
 
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glEnablei(GL_BLEND, 0);
+    glBlendFunci(0, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     glDepthRangef(0.f, 1.f);
     glClipControl(GL_LOWER_LEFT, GL_ZERO_TO_ONE);
