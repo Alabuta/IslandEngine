@@ -136,6 +136,12 @@ CRUS_INLINE void APIENTRY glBlendEquationSeparate(GLenum modeRGB, GLenum modeAlp
     return glBlendEquationSeparate(modeRGB, modeAlpha);
 }
 
+CRUS_INLINE void APIENTRY glBlendFunci(GLuint buf, GLenum src, GLenum dst)
+{
+    GL_PROC_INIT(glBlendFunci);
+    return glBlendFunci(buf, src, dst);
+}
+
 CRUS_INLINE void APIENTRY glBlendFuncSeparate(GLenum sfactorRGB, GLenum dfactorRGB, GLenum sfactorAlpha, GLenum dfactorAlpha)
 {
     GL_PROC_INIT(glBlendFuncSeparate);
@@ -372,6 +378,12 @@ CRUS_INLINE void APIENTRY glDetachShader(GLuint program, GLuint shader)
     return glDetachShader(program, shader);
 }
 
+CRUS_INLINE void APIENTRY glDisablei(GLenum target, GLuint index)
+{
+    GL_PROC_INIT(glDisablei);
+    return glDisablei(target, index);
+}
+
 CRUS_INLINE void APIENTRY glDisableVertexAttribArray(GLuint index)
 {
     GL_PROC_INIT(glDisableVertexAttribArray);
@@ -433,6 +445,12 @@ CRUS_INLINE void APIENTRY glDrawRangeElementsBaseVertex(GLenum mode, GLuint star
 }
 
 // glE ---------------------------------------------------------------------------------
+CRUS_INLINE void APIENTRY glEnablei(GLenum target, GLuint index)
+{
+    GL_PROC_INIT(glEnablei);
+    return glEnablei(target, index);
+}
+
 CRUS_INLINE void APIENTRY glEnableVertexArrayAttrib(GLuint vaobj, GLuint index)
 {
     GL_PROC_INIT(glEnableVertexArrayAttrib);
