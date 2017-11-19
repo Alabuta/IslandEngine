@@ -49,7 +49,7 @@ uint32 geom_vao, geom_count;
 Program quad_program;
 uint32 quad_vao, quad_tid, quad_fbo, quad_depth, quad_inter, quad_blur;
 
-uint32 pos_tex, norm_tex, color_tex, noise_tex, ssao_tex, blured_tex;
+uint32 pos_tex, norm_tex, depth_tex, color_tex, noise_tex, ssao_tex, blured_tex;
 
 Texture quad_texture(Texture::eTEXTURE_TYPE::n2D, "sprites-cat-running");//RobotBoyWalkSprite
 
@@ -715,14 +715,14 @@ void InitFullscreenQuad()
     std::mt19937_64 mt(rd());
 
     std::array<math::Vector, 64> kernel;
-    std::generate(kernel.begin(), kernel.end(), [&floats, &mt, i = 0] () mutable
+    std::generate(kernel.begin(), kernel.end(), [&floats, &mt, size = kernel.size(), i = 0] () mutable
     {
         math::Vector sample(floats(mt) * 2 - 1, floats(mt) * 2 - 1, floats(mt));
 
         sample.Normalize();
         sample *= floats(mt);
 
-        auto scale = static_cast<float>(i++) / 64.f;
+        auto scale = static_cast<float>(i++) / static_cast<float>(size);
         scale = math::lerp(.1f, 1.f, scale * scale);
 
         sample *= scale;
@@ -750,13 +750,13 @@ void InitFullscreenQuad()
     }
 
     {
-        std::array<Position, 16> noise;
+        std::array<math::Vector, 16> noise;
         std::generate(noise.begin(), noise.end(), [&floats, &mt] ()
         {
-            return Position(floats(mt) * 2 - 1, floats(mt) * 2 - 1, 0.f);
+            return math::Vector(floats(mt) * 2 - 1, floats(mt) * 2 - 1, 0.f).Normalize();
         });
 
-        glBindTextureUnit(3, noise_tex);
+        glBindTextureUnit(4, noise_tex);
         Render::inst().CreateTBO(GL_TEXTURE_2D, noise_tex);
 
         glTextureParameteri(noise_tex, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -784,7 +784,7 @@ void InitFullscreenQuad()
         glTextureParameteri(color_tex, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTextureParameteri(color_tex, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-        glTextureStorage2D(color_tex, 1, GL_RGBA8, 1920, 1080);
+        glTextureStorage2D(color_tex, 1, GL_RGBA32F, 1920, 1080);
         //glTextureSubImage2D(quad_tid, 0, 0, 0, 1920, 1080, GL_RGBA, GL_RGBA8, nullptr);
     }
 
@@ -814,14 +814,36 @@ void InitFullscreenQuad()
         glTextureStorage2D(norm_tex, 1, GL_RGBA32F, 1920, 1080);
     }
 
+    {
+        glBindTextureUnit(3, depth_tex);
+        Render::inst().CreateTBO(GL_TEXTURE_2D, depth_tex);
+
+        glTextureParameteri(depth_tex, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTextureParameteri(depth_tex, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTextureParameteri(depth_tex, GL_TEXTURE_MAX_LEVEL, 0);
+        glTextureParameteri(depth_tex, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTextureParameteri(depth_tex, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+        glTextureStorage2D(depth_tex, 1, GL_RGBA32F, 1920, 1080);
+    }
+
     glNamedFramebufferTexture(quad_fbo, GL_COLOR_ATTACHMENT0, color_tex, 0);
     glNamedFramebufferTexture(quad_fbo, GL_COLOR_ATTACHMENT1, pos_tex, 0);
     glNamedFramebufferTexture(quad_fbo, GL_COLOR_ATTACHMENT2, norm_tex, 0);
+    glNamedFramebufferTexture(quad_fbo, GL_COLOR_ATTACHMENT3, depth_tex, 0);
 
     glNamedFramebufferRenderbuffer(quad_fbo, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, quad_depth);
 
-    std::array<std::uint32_t, 3> constexpr drawBuffers = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1,  GL_COLOR_ATTACHMENT2 };
+    std::array<std::uint32_t, 4> constexpr drawBuffers = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1,  GL_COLOR_ATTACHMENT2,  GL_COLOR_ATTACHMENT3 };
     glNamedFramebufferDrawBuffers(quad_fbo, static_cast<int32>(drawBuffers.size()), drawBuffers.data());
+
+    glDisablei(GL_BLEND, 1);
+    glDisablei(GL_BLEND, 2);
+    glDisablei(GL_BLEND, 3);
+
+    glBlendFunci(1, GL_ONE, GL_ONE);
+    glBlendFunci(2, GL_ONE, GL_ONE);
+    glBlendFunci(3, GL_ONE, GL_ONE);
 
     if (auto result = glCheckNamedFramebufferStatus(quad_fbo, GL_FRAMEBUFFER); result != GL_FRAMEBUFFER_COMPLETE)
         log::Error() << "framebuffer error:" << result;
@@ -838,7 +860,7 @@ void InitFullscreenQuad()
         glTextureParameteri(ssao_tex, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTextureParameteri(ssao_tex, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-        glTextureStorage2D(ssao_tex, 1, GL_RGBA8, 1920, 1080);
+        glTextureStorage2D(ssao_tex, 1, GL_RGB8, 1920, 1080);
 
         glNamedFramebufferTexture(quad_inter, GL_COLOR_ATTACHMENT0, ssao_tex, 0);
 
@@ -996,11 +1018,11 @@ void Init()
 
     std::vector<Vertex> vertex_buffer;
 
-    auto future = std::async(std::launch::async, LoadModel<Vertex>, "../sponza.obj", std::ref(geom_count), std::ref(vertex_buffer));
+    auto future = std::async(std::launch::async, LoadModel<Vertex>, "../objects.obj", std::ref(geom_count), std::ref(vertex_buffer));
 
     Camera::inst().Create(Camera::eCAM_BEHAVIOR::nFREE);
-    Camera::inst().SetPos(0, 4, 0);
-    Camera::inst().LookAt(0, 4, -1);
+    Camera::inst().SetPos(0, 0, 2);
+    Camera::inst().LookAt(0, 0, 0);
 
     grid.Update(15, 1, 5);
 
@@ -1113,7 +1135,8 @@ void DrawFrame()
     glBindTextureUnit(0, color_tex);
     glBindTextureUnit(1, pos_tex);
     glBindTextureUnit(2, norm_tex);
-    glBindTextureUnit(3, noise_tex);
+    glBindTextureUnit(3, depth_tex);
+    glBindTextureUnit(4, noise_tex);
     RenderFullscreenQuad();
 
     glFinish();
