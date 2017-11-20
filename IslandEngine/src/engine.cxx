@@ -771,8 +771,8 @@ void InitFullscreenQuad()
 
     glCreateFramebuffers(1, &quad_fbo);
 
-    glCreateRenderbuffers(1, &quad_depth);
-    glNamedRenderbufferStorage(quad_depth, GL_DEPTH24_STENCIL8, 1920, 1080);
+    //glCreateRenderbuffers(1, &quad_depth);
+    //glNamedRenderbufferStorage(quad_depth, GL_DEPTH24_STENCIL8, 1920, 1080);
 
     {
         glBindTextureUnit(0, color_tex);
@@ -784,7 +784,7 @@ void InitFullscreenQuad()
         glTextureParameteri(color_tex, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTextureParameteri(color_tex, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-        glTextureStorage2D(color_tex, 1, GL_RGBA32F, 1920, 1080);
+        glTextureStorage2D(color_tex, 1, GL_RGBA8, 1920, 1080);
         //glTextureSubImage2D(quad_tid, 0, 0, 0, 1920, 1080, GL_RGBA, GL_RGBA8, nullptr);
     }
 
@@ -798,7 +798,7 @@ void InitFullscreenQuad()
         glTextureParameteri(pos_tex, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTextureParameteri(pos_tex, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-        glTextureStorage2D(pos_tex, 1, GL_RGBA32F, 1920, 1080);
+        glTextureStorage2D(pos_tex, 1, GL_R32F, 1920, 1080);
     }
 
     {
@@ -811,7 +811,7 @@ void InitFullscreenQuad()
         glTextureParameteri(norm_tex, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTextureParameteri(norm_tex, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-        glTextureStorage2D(norm_tex, 1, GL_RGBA32F, 1920, 1080);
+        glTextureStorage2D(norm_tex, 1, GL_RG16F, 1920, 1080);
     }
 
     {
@@ -824,17 +824,17 @@ void InitFullscreenQuad()
         glTextureParameteri(depth_tex, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTextureParameteri(depth_tex, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-        glTextureStorage2D(depth_tex, 1, GL_RGBA32F, 1920, 1080);
+        glTextureStorage2D(depth_tex, 1, GL_DEPTH24_STENCIL8, 1920, 1080);
     }
 
     glNamedFramebufferTexture(quad_fbo, GL_COLOR_ATTACHMENT0, color_tex, 0);
     glNamedFramebufferTexture(quad_fbo, GL_COLOR_ATTACHMENT1, pos_tex, 0);
     glNamedFramebufferTexture(quad_fbo, GL_COLOR_ATTACHMENT2, norm_tex, 0);
-    glNamedFramebufferTexture(quad_fbo, GL_COLOR_ATTACHMENT3, depth_tex, 0);
+    glNamedFramebufferTexture(quad_fbo, GL_DEPTH_STENCIL_ATTACHMENT, depth_tex, 0);
 
-    glNamedFramebufferRenderbuffer(quad_fbo, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, quad_depth);
+    //glNamedFramebufferRenderbuffer(quad_fbo, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, quad_depth);
 
-    std::array<std::uint32_t, 4> constexpr drawBuffers = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1,  GL_COLOR_ATTACHMENT2,  GL_COLOR_ATTACHMENT3 };
+    std::array<std::uint32_t, 3> constexpr drawBuffers = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1,  GL_COLOR_ATTACHMENT2 };
     glNamedFramebufferDrawBuffers(quad_fbo, static_cast<int32>(drawBuffers.size()), drawBuffers.data());
 
     glDisablei(GL_BLEND, 1);
