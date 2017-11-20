@@ -23,6 +23,7 @@
 #define CRUS_USE_GL_EXTENSIONS 0
 
 #include <GL\GLcoreARB.h>
+#include <GL\GLext.h>
 #include <GL\wGLext.h>
 
 #endif // CRUS_CRUSOPENGLEXTS_H

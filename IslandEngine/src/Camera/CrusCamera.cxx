@@ -175,6 +175,11 @@ void Camera::UpdateView()
     pos_.x += math::Vector{xAxis.x, yAxis.x, zAxis.x} * math::Vector{x, y, z};
     pos_.y += math::Vector{xAxis.y, yAxis.y, zAxis.y} * math::Vector{x, y, z};
     pos_.z += math::Vector{xAxis.z, yAxis.z, zAxis.z} * math::Vector{x, y, z};
+    auto const direction = math::Vector{x, y, z} * 10;// *delta * 256.f;
+
+    pos_.x += math::Vector{xAxis.x, yAxis.x, zAxis.x} * direction;
+    pos_.y += math::Vector{xAxis.y, yAxis.y, zAxis.y} * direction;
+    pos_.z += math::Vector{xAxis.z, yAxis.z, zAxis.z} * direction;
 
     view_.x = -xAxis * pos_;
     view_.y = -yAxis * pos_;

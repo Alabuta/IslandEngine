@@ -28,7 +28,7 @@ void Render::Init()
 {
     InitBufferObjects();
 
-    wglSwapIntervalEXT(0);
+    wglSwapIntervalEXT(-1);
 
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
