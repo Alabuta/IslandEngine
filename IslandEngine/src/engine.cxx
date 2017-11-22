@@ -15,6 +15,11 @@
 #include "../../contents/geometry/Hebe"
 #include "geometry/torus.h"
 
+auto constexpr width = 1920;
+auto constexpr height = 1080;
+
+uint32 main_fbo, main_rt_0, main_rt_depth;
+
 
 namespace cubemap {
 bool InitCubemap();
@@ -772,7 +777,7 @@ void InitFullscreenQuad()
     glCreateFramebuffers(1, &quad_fbo);
 
     //glCreateRenderbuffers(1, &quad_depth);
-    //glNamedRenderbufferStorage(quad_depth, GL_DEPTH24_STENCIL8, 1920, 1080);
+    //glNamedRenderbufferStorage(quad_depth, GL_DEPTH24_STENCIL8, width, height);
 
     {
         glBindTextureUnit(0, color_tex);
@@ -784,8 +789,8 @@ void InitFullscreenQuad()
         glTextureParameteri(color_tex, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTextureParameteri(color_tex, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-        glTextureStorage2D(color_tex, 1, GL_RGBA8, 1920, 1080);
-        //glTextureSubImage2D(quad_tid, 0, 0, 0, 1920, 1080, GL_RGBA, GL_RGBA8, nullptr);
+        glTextureStorage2D(color_tex, 1, GL_RGBA8, width, height);
+        //glTextureSubImage2D(quad_tid, 0, 0, 0, width, height, GL_RGBA, GL_RGBA8, nullptr);
     }
 
     {
@@ -798,7 +803,7 @@ void InitFullscreenQuad()
         glTextureParameteri(pos_tex, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTextureParameteri(pos_tex, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-        glTextureStorage2D(pos_tex, 1, GL_R32F, 1920, 1080);
+        glTextureStorage2D(pos_tex, 1, GL_R32F, width, height);
     }
 
     {
@@ -811,7 +816,7 @@ void InitFullscreenQuad()
         glTextureParameteri(norm_tex, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTextureParameteri(norm_tex, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-        glTextureStorage2D(norm_tex, 1, GL_RG16F, 1920, 1080);
+        glTextureStorage2D(norm_tex, 1, GL_RG16F, width, height);
     }
 
     {
@@ -824,7 +829,7 @@ void InitFullscreenQuad()
         glTextureParameteri(depth_tex, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTextureParameteri(depth_tex, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-        glTextureStorage2D(depth_tex, 1, GL_DEPTH24_STENCIL8, 1920, 1080);
+        glTextureStorage2D(depth_tex, 1, GL_DEPTH24_STENCIL8, width, height);
     }
 
     glNamedFramebufferTexture(quad_fbo, GL_COLOR_ATTACHMENT0, color_tex, 0);
@@ -860,7 +865,7 @@ void InitFullscreenQuad()
         glTextureParameteri(ssao_tex, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTextureParameteri(ssao_tex, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-        glTextureStorage2D(ssao_tex, 1, GL_RGB8, 1920, 1080);
+        glTextureStorage2D(ssao_tex, 1, GL_RGB8, width, height);
 
         glNamedFramebufferTexture(quad_inter, GL_COLOR_ATTACHMENT0, ssao_tex, 0);
 
@@ -883,7 +888,7 @@ void InitFullscreenQuad()
         glTextureParameteri(blured_tex, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTextureParameteri(blured_tex, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-        glTextureStorage2D(blured_tex, 1, GL_RGBA8, 1920, 1080);
+        glTextureStorage2D(blured_tex, 1, GL_RGBA8, width, height);
     }*/
 
     Render::inst().CreateVAO(quad_vao);
@@ -1008,6 +1013,52 @@ bool LoadModel(std::string const &path, uint32 &count, std::vector<T> &vertex_bu
     return true;
 }
 
+
+void InitFramebuffer()
+{
+    glCreateFramebuffers(1, &main_fbo);
+
+    glCreateRenderbuffers(1, &quad_depth);
+    glNamedRenderbufferStorage(quad_depth, GL_DEPTH_COMPONENT32F, width, height);
+
+    Render::inst().CreateTBO(GL_TEXTURE_2D, main_rt_0);
+    glBindTextureUnit(0, main_rt_0);
+
+    glTextureParameteri(main_rt_0, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTextureParameteri(main_rt_0, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTextureParameteri(main_rt_0, GL_TEXTURE_MAX_LEVEL, 0);
+    glTextureParameteri(main_rt_0, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTextureParameteri(main_rt_0, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+    glTextureStorage2D(main_rt_0, 1, GL_RGBA8, width, height);
+    //glTextureSubImage2D(quad_tid, 0, 0, 0, width, height, GL_RGBA, GL_RGBA8, nullptr);
+
+    /*Render::inst().CreateTBO(GL_TEXTURE_2D, main_rt_depth);
+    glBindTextureUnit(1, main_rt_depth);
+
+    glTextureParameteri(main_rt_depth, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTextureParameteri(main_rt_depth, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTextureParameteri(main_rt_depth, GL_TEXTURE_MAX_LEVEL, 0);
+    glTextureParameteri(main_rt_depth, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTextureParameteri(main_rt_depth, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+    glTextureStorage2D(main_rt_depth, 1, GL_DEPTH_COMPONENT32F, width, height);*/
+
+    glNamedFramebufferTexture(main_fbo, GL_COLOR_ATTACHMENT0, main_rt_0, 0);
+    //glNamedFramebufferTexture(main_fbo, GL_DEPTH_ATTACHMENT, main_rt_depth, 0);
+
+    std::uint32_t constexpr drawBuffers[] = {GL_COLOR_ATTACHMENT0};
+    glNamedFramebufferDrawBuffers(main_fbo, 1, drawBuffers);
+
+    glNamedFramebufferRenderbuffer(main_fbo, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, quad_depth);
+
+    /*glDisablei(GL_BLEND, 1);
+    glBlendFunci(1, GL_ONE, GL_ONE);*/
+
+    if (auto result = glCheckNamedFramebufferStatus(main_fbo, GL_FRAMEBUFFER); result != GL_FRAMEBUFFER_COMPLETE)
+        log::Fatal() << "framebuffer error:" << result;
+}
+
 void Init()
 {
     struct Vertex {
@@ -1033,9 +1084,11 @@ void Init()
     /*EntityManager entities;
     auto entity = entities.CreateEntity();*/
 
-    InitFullscreenQuad();
+    //InitFullscreenQuad();
 
-    if (!geom_program.AssignNew({R"(Defaults/Solid-Wireframe.glsl)"}))
+    InitFramebuffer();
+
+    if (!geom_program.AssignNew({R"(Defaults/Diffuse-Lambert.glsl)"}))
         return;
 
     //InitGeometry();
@@ -1070,16 +1123,16 @@ void Update()
 
 void DrawFrame()
 {
-    glViewport(0, 0, 1920, 1080);
-    glEnable(GL_DEPTH_TEST);
+    /*glViewport(0, 0, width, height);
+    glEnable(GL_DEPTH_TEST);*/
 
     cubemap::DrawCubemap();
     grid.Draw();
 
-    glFinish();
+    /*glFinish();
 
     glBindFramebuffer(GL_FRAMEBUFFER, quad_fbo);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);*/
     //glClearNamedFramebufferfi(quad_fbo, GL_DEPTH_STENCIL, 0, 0.f, 0);
 
     matrices[1].Translate(0, 0, 0);
@@ -1104,7 +1157,12 @@ void DrawFrame()
     //flipbookTexture.Bind();
     //flipbookProgram.UseThis();
 
-    //geom_program.UseThis();
+#if 1
+    geom_program.UseThis();
+
+    glBindVertexArray(geom_vao);
+    glDrawArrays(GL_TRIANGLES, 0, 3 * geom_count);
+#else
     quad_program.UseThis();
 
     uint32 const index0 = 0, index1 = 1, index2 = 2;
@@ -1126,7 +1184,7 @@ void DrawFrame()
     glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, &index1);
     glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &index1);
 
-    glViewport(0, 0, 1920, 1080);
+    glViewport(0, 0, width, height);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glDisable(GL_DEPTH_TEST);
 
@@ -1148,6 +1206,7 @@ void DrawFrame()
     glBindTextureUnit(0, ssao_tex);
     glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &index2);
     RenderFullscreenQuad();
+#endif
 
     /*glDepthMask(GL_FALSE);
     DrawSprite();
@@ -1159,7 +1218,7 @@ void DrawFrame()
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int)
 {
-    isle::Window window(crus::names::kMAIN_WINDOW_NAME, hInstance, 1920, 1080);
+    isle::Window window(crus::names::kMAIN_WINDOW_NAME, hInstance, width, height);
 
     return isle::System::Loop();
 }
