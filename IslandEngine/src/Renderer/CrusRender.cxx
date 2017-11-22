@@ -39,13 +39,13 @@ void Render::Init()
     glEnable(GL_CULL_FACE);
     //glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-    glEnable(GL_DEPTH_CLAMP);
+    //glEnable(GL_DEPTH_CLAMP);
 
     glEnablei(GL_BLEND, 0);
     glBlendFunci(0, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    glDepthRangef(0.f, 1.f);
-    glClipControl(GL_LOWER_LEFT, GL_ZERO_TO_ONE);
+    /*glDepthRangef(0.f, 1.f);
+    glClipControl(GL_LOWER_LEFT, GL_ZERO_TO_ONE);*/
 
     auto maxAttribs = -1;
     glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &maxAttribs);
