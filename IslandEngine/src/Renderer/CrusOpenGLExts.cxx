@@ -203,6 +203,12 @@ CRUS_INLINE void APIENTRY glClearNamedFramebufferfi(GLuint framebuffer, GLenum b
     return glClearNamedFramebufferfi(framebuffer, buffer, drawbuffer, depth, stencil);
 }
 
+CRUS_INLINE void APIENTRY glClearNamedFramebufferfv(GLuint framebuffer, GLenum buffer, GLint drawbuffer, const GLfloat *value)
+{
+    GL_PROC_INIT(glClearNamedFramebufferfv);
+    return glClearNamedFramebufferfv(framebuffer, buffer, drawbuffer, value);
+}
+
 CRUS_INLINE void APIENTRY glCompileShader(GLuint shader)
 {
     GL_PROC_INIT(glCompileShader);
