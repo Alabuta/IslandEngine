@@ -110,8 +110,8 @@ void OpenGLContext::SetupContext()
         WGL_ACCELERATION_ARB,   WGL_FULL_ACCELERATION_ARB,
         WGL_COLOR_BITS_ARB,     24,
         WGL_ALPHA_BITS_ARB,     8,
-        WGL_DEPTH_BITS_ARB,     24,
-        WGL_STENCIL_BITS_ARB,   8,
+        WGL_DEPTH_BITS_ARB,     0,
+        WGL_STENCIL_BITS_ARB,   0,
         0
     };
 
@@ -129,7 +129,7 @@ void OpenGLContext::SetupContext()
 
     int32 constexpr attrlist[] = {
         WGL_CONTEXT_MAJOR_VERSION_ARB,  4,
-        WGL_CONTEXT_MINOR_VERSION_ARB,  6,
+        WGL_CONTEXT_MINOR_VERSION_ARB,  5,
         WGL_CONTEXT_FLAGS_ARB,          WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB,
         WGL_CONTEXT_PROFILE_MASK_ARB,   WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
         0
