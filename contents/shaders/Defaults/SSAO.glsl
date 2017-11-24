@@ -224,7 +224,6 @@ void ssao()
 layout(index = 2) subroutine(RenderPassType)
 void render()
 {
-    FragColor.rgb = texture(colorSampler, texCoord).xyz;
     /*vec2 texelSize = 1.0 / vec2(textureSize(colorSampler, 0));
     float result = 0;
 
@@ -236,6 +235,7 @@ void render()
     }
 
     FragColor.rgb = vec3(result / (4.0 * 4.0));*/
+    FragColor.rgb = vec3(1 - pow(1 - texture(colorSampler, texCoord).r, 256));
     FragColor.a = 1;
 }
 
