@@ -27,6 +27,9 @@ namespace isle {
 class Render {
 public:
 
+    static auto constexpr kREVERSED_DEPTH = true;
+    static auto constexpr kDEPTH_CLIPPED_FROM_ZERO_TO_ONE = true;
+
     intf::Viewport vp_;
 
     void Init();

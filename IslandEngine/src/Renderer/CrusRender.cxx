@@ -31,21 +31,27 @@ void Render::Init()
     wglSwapIntervalEXT(-1);
 
     glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_LESS);
 
-    glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+    glEnable(GL_DEPTH_CLAMP);
 
-    // Application intialization function.
+    if constexpr (Render::kREVERSED_DEPTH)
+        glDepthFunc(GL_GREATER);
+
+    else glDepthFunc(GL_LESS);
+
+    //glDepthRangef(0.f, 1.f);
+    if constexpr (Render::kDEPTH_CLIPPED_FROM_ZERO_TO_ONE)
+        glClipControl(GL_LOWER_LEFT, GL_ZERO_TO_ONE);
+
+    else glClipControl(GL_LOWER_LEFT, GL_NEGATIVE_ONE_TO_ONE);
+
     glEnable(GL_CULL_FACE);
     //glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-
-    //glEnable(GL_DEPTH_CLAMP);
 
     glEnablei(GL_BLEND, 0);
     glBlendFunci(0, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    //glDepthRangef(0.f, 1.f);
-    glClipControl(GL_LOWER_LEFT, GL_ZERO_TO_ONE);
+    glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
     auto maxAttribs = -1;
     glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &maxAttribs);
