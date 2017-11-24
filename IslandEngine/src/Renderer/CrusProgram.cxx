@@ -235,6 +235,7 @@ uint32 Program::CreateShaderObject(std::vector<std::string> const &_includes, st
                     << "\n#define nVIEWPORT      " << nVIEWPORT
                     << "\n#define nTRANSFORM     " << nTRANSFORM
                     << "\n#define nVIEWPORT_RECT " << nVIEWPORT_RECT
+                    << "\n#define nNEAR_FAR      " << nNEAR_FAR
                     << '\n';
                 break;
 
@@ -246,6 +247,7 @@ uint32 Program::CreateShaderObject(std::vector<std::string> const &_includes, st
                     << "\n#define nVIEWPORT      " << nVIEWPORT
                     << "\n#define nTRANSFORM     " << nTRANSFORM
                     << "\n#define nVIEWPORT_RECT " << nVIEWPORT_RECT
+                    << "\n#define nNEAR_FAR      " << nNEAR_FAR
                     << '\n';
                 break;
 
@@ -254,8 +256,10 @@ uint32 Program::CreateShaderObject(std::vector<std::string> const &_includes, st
                     << '\n'
                     << kGLSL_VERSION
                     << "\n#define CRUS_FRAGMENT_STAGE 1\n"
-                    << "\n#define nFRAG_COLOR   " << nFRAG_COLOR
-                    << "\n#define nMAIN_COLOR   " << nMAIN_COLOR
+                    << "\n#define nFRAG_COLOR    " << nFRAG_COLOR
+                    << "\n#define nMAIN_COLOR    " << nMAIN_COLOR
+                    << "\n#define nVIEWPORT_RECT " << nVIEWPORT_RECT
+                    << "\n#define nNEAR_FAR      " << nNEAR_FAR
                     << '\n';
                 break;
 
@@ -267,6 +271,8 @@ uint32 Program::CreateShaderObject(std::vector<std::string> const &_includes, st
                     << '\n';
                 break;
         }
+        
+        preprocessor_directives << "\n#define CRUS_REVERSED_DEPTH " << static_cast<int32>(Render::kREVERSED_DEPTH) << std::endl;
 
         using namespace std::string_literals;
         return preprocessor_directives.good() ? preprocessor_directives.str() : ""s;

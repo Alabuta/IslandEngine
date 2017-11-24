@@ -11,6 +11,7 @@
 #if CRUS_VERTEX_STAGE || CRUS_GEOMETRY_STAGE
 
 layout(location = nVIEWPORT_RECT) uniform vec4 viewport = vec4(0, 0, 1920, 1080);
+layout(location = nNEAR_FAR) uniform vec2 near_far = vec2(0.01, 100.0);
 
 layout(binding = nVIEWPORT, std140) uniform VIEWPORT
 {
