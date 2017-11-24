@@ -1180,28 +1180,34 @@ void DrawFrame()
     glBindVertexArray(geom_vao);
     glDrawArrays(GL_TRIANGLES, 0, 3 * geom_count);
 
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glFinish();
 
-    glBindFramebuffer(GL_FRAMEBUFFER, out_fbo);
+    glBlitNamedFramebuffer(main_fbo, 0, 0, 0, width, height, 0, 0, width, height, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+
+    /*glBindFramebuffer(GL_FRAMEBUFFER, out_fbo);
 
     glViewport(0, 0, width, height);
 
-    glClearNamedFramebufferfv(out_fbo, GL_COLOR, 0, &clear_colors[0]);
-    glClearNamedFramebufferfv(out_fbo, GL_DEPTH, 0, &clear_colors[4]);
+    glDisablei(GL_DEPTH_TEST, 0);
 
-    quad_program.UseThis();
+    glClearNamedFramebufferfv(out_fbo, GL_COLOR, 0, &clear_colors[0]);
+    glClearNamedFramebufferfv(out_fbo, GL_DEPTH, 0, &clear_colors[4]);*/
+
+    /*quad_program.UseThis();
 
     glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, &index1);
     glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &index2);
 
-    glBindTextureUnit(0, out_rt);
-    RenderFullscreenQuad();
+    glBindTextureUnit(0, main_rt_0);
+    //glBindTextureUnit(0, main_rt_depth);
+    RenderFullscreenQuad();*/
 
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    /*glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     glFinish();
 
-    glBlitNamedFramebuffer(out_fbo, 0, 0, 0, width, height, 0, 0, width, height, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+    glBlitNamedFramebuffer(out_fbo, 0, 0, 0, width, height, 0, 0, width, height, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST);*/
 
     /*hemisphere_program.UseThis();
 
