@@ -13,14 +13,18 @@
 
 layout(location = nVERTEX) in vec3 inVertex;
 layout(location = nNORMAL) in vec3 inNormal;
+layout(location = nTEXCRD) in vec2 inTexCoord;
 
 /*layout(location = 0)*/ uniform vec4 lightPosition = vec4(10, 10, 10, 0);
 
 out vec4 light;
 out vec4 normal;
+out vec2 texCoord;
 
 void main()
 {
+    texCoord = inTexCoord;
+
     normal = normalize(mNormal * vec4(inNormal, 0));
 
     vec4 position = TransformFromModelToView(vec4(inVertex, 1));
@@ -41,8 +45,11 @@ layout(location = nFRAG_COLOR) out vec4 FragColor;
 
 layout(location = nMAIN_COLOR) uniform vec4 mainColor = vec4(1.0); // vec4(0, 0.74609375, 1, 1);
 
+layout(binding = 0) uniform sampler2D mainTexture;
+
 in vec4 light;
 in vec4 normal;
+in vec2 texCoord;
 
 #define HALF_LAMBERT 1
 #define WRAPPED_AROUND_LAMBERT 0
@@ -61,5 +68,6 @@ void main()
     float diffuse = dot(n, l);
 #endif
 
-    FragColor = vec4(mainColor.xyz * diffuse, mainColor.a);
+    vec3 color = mainColor.rgb;// texture(mainTexture, texCoord).xyz;
+    FragColor = vec4(color * diffuse, mainColor.a);//
 }
