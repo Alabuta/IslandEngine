@@ -10,17 +10,19 @@
 
 #if CRUS_VERTEX_STAGE || CRUS_GEOMETRY_STAGE
 
-layout(location = nVIEWPORT_RECT) uniform vec4 viewport = vec4(0, 0, 1920, 1080);
-layout(location = nNEAR_FAR) uniform vec2 near_far = vec2(0.01, 100.0);
+//layout(location = nVIEWPORT_RECT) uniform vec4 viewport = vec4(0, 0, 1920, 1080);
+//layout(location = nNEAR_FAR) uniform vec2 near_far = vec2(0.01, 100.0);
 
 layout(binding = nVIEWPORT, std140) uniform VIEWPORT
 {
-    layout(row_major) mat4 mProjView;
+    layout(row_major) mat4 projView;
 
-    layout(row_major) mat4 mProj;
-    layout(row_major) mat4 mView;
-    layout(row_major) mat4 mViewport;
-};
+    layout(row_major) mat4 proj;
+    layout(row_major) mat4 view;
+
+    vec4 rect;
+    vec2 clipPlanes;
+} viewport;
 
 layout(binding = nTRANSFORM, std430) readonly buffer TRANSFORM
 {

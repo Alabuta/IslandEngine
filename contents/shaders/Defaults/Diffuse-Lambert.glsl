@@ -30,9 +30,9 @@ void main()
     vec4 position = TransformFromModelToView(vec4(inVertex, 1));
 
     if (lightPosition.w == 0)
-        light = normalize(mView * lightPosition);
+        light.xyz = normalize(TransformFromWorldToView(lightPosition).xyz);
 
-    else light = normalize(mView * lightPosition - position);
+    else light.xyz = normalize(TransformFromWorldToView(lightPosition).xyz - position.xyz);
 
     gl_Position = TransformFromViewToClip(position);
 }
@@ -41,7 +41,7 @@ void main()
 
 layout(early_fragment_tests) in;
 
-layout(location = nFRAG_COLOR) out vec4 FragColor;
+layout(location = nBASE_COLOR) out vec4 FragColor;
 
 layout(location = nMAIN_COLOR) uniform vec4 mainColor = vec4(1.0); // vec4(0, 0.74609375, 1, 1);
 

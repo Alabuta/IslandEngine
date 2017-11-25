@@ -192,7 +192,7 @@ void Render::InitBufferObjects()
         auto index = glGetUniformBlockIndex(ubo.program(), "VIEWPORT");
 
         auto size = -1;
-        glGetActiveUniformBlockiv(ubo.program(), Program::nVIEWPORT, GL_UNIFORM_BLOCK_DATA_SIZE, &size);
+        glGetActiveUniformBlockiv(ubo.program(), Render::nVIEWPORT, GL_UNIFORM_BLOCK_DATA_SIZE, &size);
 
         if (index == GL_INVALID_INDEX || size < 1)
             log::Fatal() << "can't init the UBO: invalid index param: " << "VIEWPORT";
@@ -200,8 +200,8 @@ void Render::InitBufferObjects()
         CreateBO(VIEWPORT_);
         glNamedBufferStorage(VIEWPORT_, size, nullptr, GL_DYNAMIC_STORAGE_BIT);
 
-        glBindBufferBase(GL_UNIFORM_BUFFER, Program::nVIEWPORT, VIEWPORT_);
-        glUniformBlockBinding(ubo.program(), index, Program::nVIEWPORT);
+        glBindBufferBase(GL_UNIFORM_BUFFER, Render::nVIEWPORT, VIEWPORT_);
+        glUniformBlockBinding(ubo.program(), index, Render::nVIEWPORT);
     }
 
 #if _CRUS_TEMP_DISABLED
@@ -214,8 +214,8 @@ void Render::InitBufferObjects()
         CreateBO(VIEWPORT_);
         glNamedBufferStorage(VIEWPORT_, sizeof(math::Matrix) * 3, nullptr, GL_DYNAMIC_STORAGE_BIT);
 
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, Program::nVIEWPORT, VIEWPORT_);
-        glShaderStorageBlockBinding(ubo.program(), index, Program::nVIEWPORT);
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, Render::nVIEWPORT, VIEWPORT_);
+        glShaderStorageBlockBinding(ubo.program(), index, Render::nVIEWPORT);
     }
 #endif
 
@@ -228,8 +228,8 @@ void Render::InitBufferObjects()
         CreateBO(TRANSFORM_);
         glNamedBufferStorage(TRANSFORM_, sizeof(math::Matrix) * 4, nullptr, GL_DYNAMIC_STORAGE_BIT);
 
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, Program::nTRANSFORM, TRANSFORM_);
-        glShaderStorageBlockBinding(ubo.program(), index, Program::nTRANSFORM);
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, Render::nTRANSFORM, TRANSFORM_);
+        glShaderStorageBlockBinding(ubo.program(), index, Render::nTRANSFORM);
     }
 }
 

@@ -31,14 +31,14 @@ layout(index = 0) subroutine (RenderPassType)
 void modelProccessing()
 {
     normal = normalize(mNormal * vec4(inNormal, 0));
-    // normal.xyz = normalize(transpose(inverse(mat3(mView * mModel))) * inNormal);
+    // normal.xyz = normalize(transpose(inverse(mat3(viewport.view * mModel))) * inNormal);
 
     position = TransformFromModelToView(vec4(inVertex, 1));
 
     if (lightPosition.w == 0)
-        light = normalize(mView * lightPosition);
+        light = normalize(viewport.view * lightPosition);
 
-    else light = normalize(mView * lightPosition - position);
+    else light = normalize(viewport.view * lightPosition - position);
 
     gl_Position = TransformFromViewToClip(position);
     depth = gl_Position.z / gl_Position.w;
@@ -69,7 +69,7 @@ layout(location = 0) subroutine uniform RenderPassType RenderPass;
 #define nFRAG_NORMAL 2
 #define nFRAG_DEPTH 3
 
-layout(location = nFRAG_COLOR) out vec4 FragColor;
+layout(location = nBASE_COLOR) out vec4 FragColor;
 layout(location = nFRAG_POSITION) out float FragPosition;
 layout(location = nFRAG_NORMAL) out vec2 FragNormal;
 //layout(location = nFRAG_DEPTH) out float FragDepth;

@@ -77,11 +77,11 @@ bool InitCubemap()
 
         glNamedBufferStorage(bo, sizeof(vertices), vertices.data(), GL_DYNAMIC_STORAGE_BIT);
 
-        glVertexArrayAttribBinding(cubemapVAO, Program::eIN_OUT_ID::nVERTEX, 0);
-        glVertexArrayAttribFormat(cubemapVAO, Program::eIN_OUT_ID::nVERTEX, 3, GL_FLOAT, GL_FALSE, 0);
+        glVertexArrayAttribBinding(cubemapVAO, Render::eVERTEX_IN::nPOSITION, 0);
+        glVertexArrayAttribFormat(cubemapVAO, Render::eVERTEX_IN::nPOSITION, 3, GL_FLOAT, GL_FALSE, 0);
         glVertexArrayVertexBuffer(cubemapVAO, 0, bo, 0, sizeof(Position));
 
-        glEnableVertexArrayAttrib(cubemapVAO, Program::eIN_OUT_ID::nVERTEX);
+        glEnableVertexArrayAttrib(cubemapVAO, Render::eVERTEX_IN::nPOSITION);
     }
 
     return true;

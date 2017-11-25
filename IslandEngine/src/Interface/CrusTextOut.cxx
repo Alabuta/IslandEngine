@@ -62,11 +62,11 @@ bool Textout::Init(Texture const *const _texture, float _zoom, uint16 _x, uint16
 
     glBufferData(GL_ARRAY_BUFFER, sizeof(quad_plane), quad_plane, GL_STATIC_DRAW);
 
-    glVertexAttribPointer(isle::Program::nVERTEX, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 5, nullptr);
-    glEnableVertexAttribArray(isle::Program::nVERTEX);
+    glVertexAttribPointer(isle::Render::nVERTEX, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 5, nullptr);
+    glEnableVertexAttribArray(isle::Render::nVERTEX);
 
-    glVertexAttribPointer(isle::Program::nTEXCRD, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 5, reinterpret_cast<void const *>(sizeof(float) * 3));
-    glEnableVertexAttribArray(isle::Program::nTEXCRD);
+    glVertexAttribPointer(isle::Render::nTEXCRD, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 5, reinterpret_cast<void const *>(sizeof(float) * 3));
+    glEnableVertexAttribArray(isle::Render::nTEXCRD);
 
     glBindVertexArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);

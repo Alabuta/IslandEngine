@@ -24,8 +24,8 @@ layout(binding = nVIEWPORT, row_major) uniform VIEWPORT
 
     mat4 mViewProj;
 
-    mat4 mView;
-    mat4 mProj;
+    mat4 viewport.view;
+    mat4 viewport.proj;
 };
 
 void main()
@@ -47,7 +47,7 @@ layout(binding = nMATERIAL, shared) uniform CMTS
     vec4 Clr3;
 };
 
-layout(location = nFRAG_COLOR/*, index = 0*/) out vec4 FragColor;
+layout(location = nBASE_COLOR/*, index = 0*/) out vec4 FragColor;
 //layout(depth_less) out float gl_FragDepth;
 
 //in float logz;

@@ -228,14 +228,14 @@ uint32 Program::CreateShaderObject(std::vector<std::string> const &_includes, st
                     << '\n'
                     << kGLSL_VERSION
                     << "\n#define CRUS_VERTEX_STAGE 1\n"
-                    << "\n#define nVERTEX        " << nVERTEX
-                    << "\n#define nNORMAL        " << nNORMAL
-                    << "\n#define nTEXCRD        " << nTEXCRD
-                    << "\n#define nCOLOR         " << nCOLOR
-                    << "\n#define nVIEWPORT      " << nVIEWPORT
-                    << "\n#define nTRANSFORM     " << nTRANSFORM
-                    << "\n#define nVIEWPORT_RECT " << nVIEWPORT_RECT
-                    << "\n#define nNEAR_FAR      " << nNEAR_FAR
+                    << "\n#define nVERTEX        " << Render::nPOSITION
+                    << "\n#define nNORMAL        " << Render::nNORMAL
+                    << "\n#define nTEXCRD        " << Render::nTEX_COORD
+                    << "\n#define nCOLOR         " << Render::nCOLOR
+                    << "\n#define nVIEWPORT      " << Render::nVIEWPORT
+                    << "\n#define nTRANSFORM     " << Render::nTRANSFORM
+                    /*<< "\n#define nVIEWPORT_RECT " << nVIEWPORT_RECT
+                    << "\n#define nNEAR_FAR      " << nNEAR_FAR*/
                     << '\n';
                 break;
 
@@ -244,10 +244,10 @@ uint32 Program::CreateShaderObject(std::vector<std::string> const &_includes, st
                     << '\n'
                     << kGLSL_VERSION
                     << "\n#define CRUS_GEOMETRY_STAGE 1\n"
-                    << "\n#define nVIEWPORT      " << nVIEWPORT
-                    << "\n#define nTRANSFORM     " << nTRANSFORM
-                    << "\n#define nVIEWPORT_RECT " << nVIEWPORT_RECT
-                    << "\n#define nNEAR_FAR      " << nNEAR_FAR
+                    << "\n#define nVIEWPORT      " << Render::nVIEWPORT
+                    << "\n#define nTRANSFORM     " << Render::nTRANSFORM
+                    /*<< "\n#define nVIEWPORT_RECT " << nVIEWPORT_RECT
+                    << "\n#define nNEAR_FAR      " << nNEAR_FAR*/
                     << '\n';
                 break;
 
@@ -256,10 +256,10 @@ uint32 Program::CreateShaderObject(std::vector<std::string> const &_includes, st
                     << '\n'
                     << kGLSL_VERSION
                     << "\n#define CRUS_FRAGMENT_STAGE 1\n"
-                    << "\n#define nFRAG_COLOR    " << nFRAG_COLOR
-                    << "\n#define nMAIN_COLOR    " << nMAIN_COLOR
-                    << "\n#define nVIEWPORT_RECT " << nVIEWPORT_RECT
-                    << "\n#define nNEAR_FAR      " << nNEAR_FAR
+                    << "\n#define nBASE_COLOR    " << Render::nBASE_COLOR
+                    << "\n#define nMAIN_COLOR    " << Render::nMAIN_COLOR
+                    /*<< "\n#define nVIEWPORT_RECT " << nVIEWPORT_RECT
+                    << "\n#define nNEAR_FAR      " << nNEAR_FAR*/
                     << '\n';
                 break;
 

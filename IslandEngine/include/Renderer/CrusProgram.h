@@ -22,20 +22,6 @@ namespace isle {
 class Program {
 public:
 
-    enum eIN_OUT_ID {
-        nVERTEX = 0, nNORMAL, nTEXCRD, nCOLOR,
-        nFRAG_COLOR = 0
-    };
-
-    enum eUNIFORM_ID {
-        nVIEWPORT = 0, nVIEWPORT_RECT, nNEAR_FAR,
-        nMAIN_COLOR = 0
-    };
-
-    enum eBUFFER_ID {
-        nTRANSFORM = 0,
-    };
-
     bool AssignNew(std::initializer_list<std::string> &&names);
     void Destroy();
 

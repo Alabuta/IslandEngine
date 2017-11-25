@@ -108,13 +108,13 @@ void Grid::Update(float _side, float _step, uint16 _subdivs)
         Render::inst().CreateBO(bo);
         glNamedBufferStorage(bo, sizeof(data[0]) * data.size(), data.data(), GL_DYNAMIC_STORAGE_BIT);
 
-        glVertexArrayAttribBinding(vao_, Program::eIN_OUT_ID::nVERTEX, 0);
-        glVertexArrayAttribFormat(vao_, Program::eIN_OUT_ID::nVERTEX, 3, GL_FLOAT, GL_FALSE, 0);
-        glEnableVertexArrayAttrib(vao_, Program::eIN_OUT_ID::nVERTEX);
+        glVertexArrayAttribBinding(vao_, Render::eVERTEX_IN::nPOSITION, 0);
+        glVertexArrayAttribFormat(vao_, Render::eVERTEX_IN::nPOSITION, 3, GL_FLOAT, GL_FALSE, 0);
+        glEnableVertexArrayAttrib(vao_, Render::eVERTEX_IN::nPOSITION);
 
-        glVertexArrayAttribBinding(vao_, Program::eIN_OUT_ID::nCOLOR, 0);
-        glVertexArrayAttribFormat(vao_, Program::eIN_OUT_ID::nCOLOR, 3, GL_FLOAT, GL_FALSE, sizeof(data[0].first));
-        glEnableVertexArrayAttrib(vao_, Program::eIN_OUT_ID::nCOLOR);
+        glVertexArrayAttribBinding(vao_, Render::eVERTEX_IN::nCOLOR, 0);
+        glVertexArrayAttribFormat(vao_, Render::eVERTEX_IN::nCOLOR, 3, GL_FLOAT, GL_FALSE, sizeof(data[0].first));
+        glEnableVertexArrayAttrib(vao_, Render::eVERTEX_IN::nCOLOR);
 
         glVertexArrayVertexBuffer(vao_, 0, bo, 0, sizeof(data[0]));
     }

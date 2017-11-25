@@ -30,7 +30,7 @@ void main()
 
 layout(early_fragment_tests) in;
 
-layout(location = nFRAG_COLOR) out vec4 FragColor;
+layout(location = nBASE_COLOR) out vec4 FragColor;
 
 layout(binding = 0) uniform sampler2D mainTexture;
 

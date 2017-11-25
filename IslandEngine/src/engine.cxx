@@ -233,7 +233,7 @@ void InitBackground()
         Render::inst().CreateBO(INSTANCING);
         glNamedBufferStorage(INSTANCING, sizeof(math::Matrix) * 2, nullptr, GL_DYNAMIC_STORAGE_BIT);
 
-        glShaderStorageBlockBinding(program.program(), index, Program::nINSTANCING);*/
+        glShaderStorageBlockBinding(program.program(), index, Render::nINSTANCING);*/
 
         return true;
     }));
@@ -325,7 +325,7 @@ void InitBackground()
         return;
     }
 
-    //else glBindBufferBase(GL_SHADER_STORAGE_BUFFER, Program::nINSTANCING, INSTANCING);
+    //else glBindBufferBase(GL_SHADER_STORAGE_BUFFER, Render::nINSTANCING, INSTANCING);
 }
 
 void InitBuffers(std::vector<isle::Sprite> const &_spriteSheet)
@@ -380,17 +380,17 @@ void InitBuffers(std::vector<isle::Sprite> const &_spriteSheet)
 
         glNamedBufferStorage(bo, sizeof(Vertex) * vertex_buffer.size(), vertex_buffer.data(), 0);
 
-        glVertexArrayAttribBinding(flipbook_vao, Program::eIN_OUT_ID::nVERTEX, 0);
-        glVertexArrayAttribFormat(flipbook_vao, Program::eIN_OUT_ID::nVERTEX, 3, GL_FLOAT, GL_FALSE, 0);
-        glEnableVertexArrayAttrib(flipbook_vao, Program::eIN_OUT_ID::nVERTEX);
+        glVertexArrayAttribBinding(flipbook_vao, Render::eVERTEX_IN::nPOSITION, 0);
+        glVertexArrayAttribFormat(flipbook_vao, Render::eVERTEX_IN::nPOSITION, 3, GL_FLOAT, GL_FALSE, 0);
+        glEnableVertexArrayAttrib(flipbook_vao, Render::eVERTEX_IN::nPOSITION);
 
-        glVertexArrayAttribBinding(flipbook_vao, Program::eIN_OUT_ID::nNORMAL, 0);
-        glVertexArrayAttribFormat(flipbook_vao, Program::eIN_OUT_ID::nNORMAL, 3, GL_FLOAT, GL_FALSE, sizeof(Position));
-        glEnableVertexArrayAttrib(flipbook_vao, Program::eIN_OUT_ID::nNORMAL);
+        glVertexArrayAttribBinding(flipbook_vao, Render::eVERTEX_IN::nNORMAL, 0);
+        glVertexArrayAttribFormat(flipbook_vao, Render::eVERTEX_IN::nNORMAL, 3, GL_FLOAT, GL_FALSE, sizeof(Position));
+        glEnableVertexArrayAttrib(flipbook_vao, Render::eVERTEX_IN::nNORMAL);
 
-        glVertexArrayAttribBinding(flipbook_vao, Program::eIN_OUT_ID::nTEXCRD, 0);
-        glVertexArrayAttribFormat(flipbook_vao, Program::eIN_OUT_ID::nTEXCRD, 2, GL_FLOAT, GL_FALSE, sizeof(Position) + sizeof(math::Vector));
-        glEnableVertexArrayAttrib(flipbook_vao, Program::eIN_OUT_ID::nTEXCRD);
+        glVertexArrayAttribBinding(flipbook_vao, Render::eVERTEX_IN::nTEX_COORD, 0);
+        glVertexArrayAttribFormat(flipbook_vao, Render::eVERTEX_IN::nTEX_COORD, 2, GL_FLOAT, GL_FALSE, sizeof(Position) + sizeof(math::Vector));
+        glEnableVertexArrayAttrib(flipbook_vao, Render::eVERTEX_IN::nTEX_COORD);
 
         glVertexArrayVertexBuffer(flipbook_vao, 0, bo, 0, sizeof(Vertex));
     }
@@ -694,17 +694,17 @@ void InitGeometry()
 
         glNamedBufferStorage(bo, sizeof(Vertex) * vertex_buffer.size(), vertex_buffer.data(), 0);
 
-        glVertexArrayAttribBinding(geom_vao, Program::eIN_OUT_ID::nVERTEX, 0);
-        glVertexArrayAttribFormat(geom_vao, Program::eIN_OUT_ID::nVERTEX, 3, GL_FLOAT, GL_FALSE, 0);
-        glEnableVertexArrayAttrib(geom_vao, Program::eIN_OUT_ID::nVERTEX);
+        glVertexArrayAttribBinding(geom_vao, Render::eVERTEX_IN::nPOSITION, 0);
+        glVertexArrayAttribFormat(geom_vao, Render::eVERTEX_IN::nPOSITION, 3, GL_FLOAT, GL_FALSE, 0);
+        glEnableVertexArrayAttrib(geom_vao, Render::eVERTEX_IN::nPOSITION);
 
-        glVertexArrayAttribBinding(geom_vao, Program::eIN_OUT_ID::nNORMAL, 0);
-        glVertexArrayAttribFormat(geom_vao, Program::eIN_OUT_ID::nNORMAL, 3, GL_FLOAT, GL_TRUE, sizeof(Position));
-        glEnableVertexArrayAttrib(geom_vao, Program::eIN_OUT_ID::nNORMAL);
+        glVertexArrayAttribBinding(geom_vao, Render::eVERTEX_IN::nNORMAL, 0);
+        glVertexArrayAttribFormat(geom_vao, Render::eVERTEX_IN::nNORMAL, 3, GL_FLOAT, GL_TRUE, sizeof(Position));
+        glEnableVertexArrayAttrib(geom_vao, Render::eVERTEX_IN::nNORMAL);
 
-        glVertexArrayAttribBinding(geom_vao, Program::eIN_OUT_ID::nTEXCRD, 0);
-        glVertexArrayAttribFormat(geom_vao, Program::eIN_OUT_ID::nTEXCRD, 2, GL_FLOAT, GL_FALSE, sizeof(Position) + sizeof(math::Vector));
-        glEnableVertexArrayAttrib(geom_vao, Program::eIN_OUT_ID::nTEXCRD);
+        glVertexArrayAttribBinding(geom_vao, Render::eVERTEX_IN::nTEX_COORD, 0);
+        glVertexArrayAttribFormat(geom_vao, Render::eVERTEX_IN::nTEX_COORD, 2, GL_FLOAT, GL_FALSE, sizeof(Position) + sizeof(math::Vector));
+        glEnableVertexArrayAttrib(geom_vao, Render::eVERTEX_IN::nTEX_COORD);
 
         glVertexArrayVertexBuffer(geom_vao, 0, bo, 0, sizeof(Vertex));
     }
@@ -752,9 +752,9 @@ void InitFullscreenQuad()
 
         glNamedBufferStorage(bo, sizeof(math::Vector) * kernel.size(), kernel.data(), 0);
 
-        glVertexArrayAttribBinding(hemisphere_vao, Program::eIN_OUT_ID::nVERTEX, 0);
-        glVertexArrayAttribFormat(hemisphere_vao, Program::eIN_OUT_ID::nVERTEX, 3, GL_FLOAT, GL_FALSE, 0);
-        glEnableVertexArrayAttrib(hemisphere_vao, Program::eIN_OUT_ID::nVERTEX);
+        glVertexArrayAttribBinding(hemisphere_vao, Render::eVERTEX_IN::nPOSITION, 0);
+        glVertexArrayAttribFormat(hemisphere_vao, Render::eVERTEX_IN::nPOSITION, 3, GL_FLOAT, GL_FALSE, 0);
+        glEnableVertexArrayAttrib(hemisphere_vao, Render::eVERTEX_IN::nPOSITION);
 
         glVertexArrayVertexBuffer(hemisphere_vao, 0, bo, 0, sizeof(math::Vector));
     }
@@ -915,13 +915,13 @@ void InitFullscreenQuad()
 
     glNamedBufferStorage(bo, sizeof(Vertex) * vertices.size(), vertices.data(), 0);
 
-    glVertexArrayAttribBinding(quad_vao, Program::eIN_OUT_ID::nVERTEX, 0);
-    glVertexArrayAttribFormat(quad_vao, Program::eIN_OUT_ID::nVERTEX, 3, GL_FLOAT, GL_FALSE, 0);
-    glEnableVertexArrayAttrib(quad_vao, Program::eIN_OUT_ID::nVERTEX);
+    glVertexArrayAttribBinding(quad_vao, Render::eVERTEX_IN::nPOSITION, 0);
+    glVertexArrayAttribFormat(quad_vao, Render::eVERTEX_IN::nPOSITION, 3, GL_FLOAT, GL_FALSE, 0);
+    glEnableVertexArrayAttrib(quad_vao, Render::eVERTEX_IN::nPOSITION);
 
-    glVertexArrayAttribBinding(quad_vao, Program::eIN_OUT_ID::nNORMAL, 0);
-    glVertexArrayAttribFormat(quad_vao, Program::eIN_OUT_ID::nNORMAL, 3, GL_FLOAT, GL_TRUE, sizeof(Position));
-    glEnableVertexArrayAttrib(quad_vao, Program::eIN_OUT_ID::nNORMAL);
+    glVertexArrayAttribBinding(quad_vao, Render::eVERTEX_IN::nNORMAL, 0);
+    glVertexArrayAttribFormat(quad_vao, Render::eVERTEX_IN::nNORMAL, 3, GL_FLOAT, GL_TRUE, sizeof(Position));
+    glEnableVertexArrayAttrib(quad_vao, Render::eVERTEX_IN::nNORMAL);
 
     glVertexArrayVertexBuffer(quad_vao, 0, bo, 0, sizeof(Vertex));
 }
@@ -973,17 +973,17 @@ void InitGeometryGen()
 
         glNamedBufferStorage(bo, sizeof(Vertex) * vertex_buffer.size(), vertex_buffer.data(), 0);
 
-        glVertexArrayAttribBinding(gen_vao, Program::eIN_OUT_ID::nVERTEX, 0);
-        glVertexArrayAttribFormat(gen_vao, Program::eIN_OUT_ID::nVERTEX, 3, GL_FLOAT, GL_FALSE, 0);
-        glEnableVertexArrayAttrib(gen_vao, Program::eIN_OUT_ID::nVERTEX);
+        glVertexArrayAttribBinding(gen_vao, Render::eVERTEX_IN::nPOSITION, 0);
+        glVertexArrayAttribFormat(gen_vao, Render::eVERTEX_IN::nPOSITION, 3, GL_FLOAT, GL_FALSE, 0);
+        glEnableVertexArrayAttrib(gen_vao, Render::eVERTEX_IN::nPOSITION);
 
-        glVertexArrayAttribBinding(gen_vao, Program::eIN_OUT_ID::nNORMAL, 0);
-        glVertexArrayAttribFormat(gen_vao, Program::eIN_OUT_ID::nNORMAL, 3, GL_FLOAT, GL_TRUE, sizeof(Position));
-        glEnableVertexArrayAttrib(gen_vao, Program::eIN_OUT_ID::nNORMAL);
+        glVertexArrayAttribBinding(gen_vao, Render::eVERTEX_IN::nNORMAL, 0);
+        glVertexArrayAttribFormat(gen_vao, Render::eVERTEX_IN::nNORMAL, 3, GL_FLOAT, GL_TRUE, sizeof(Position));
+        glEnableVertexArrayAttrib(gen_vao, Render::eVERTEX_IN::nNORMAL);
 
-        glVertexArrayAttribBinding(gen_vao, Program::eIN_OUT_ID::nTEXCRD, 0);
-        glVertexArrayAttribFormat(gen_vao, Program::eIN_OUT_ID::nTEXCRD, 2, GL_FLOAT, GL_FALSE, sizeof(Position) + sizeof(math::Vector));
-        glEnableVertexArrayAttrib(gen_vao, Program::eIN_OUT_ID::nTEXCRD);
+        glVertexArrayAttribBinding(gen_vao, Render::eVERTEX_IN::nTEX_COORD, 0);
+        glVertexArrayAttribFormat(gen_vao, Render::eVERTEX_IN::nTEX_COORD, 2, GL_FLOAT, GL_FALSE, sizeof(Position) + sizeof(math::Vector));
+        glEnableVertexArrayAttrib(gen_vao, Render::eVERTEX_IN::nTEX_COORD);
 
         glVertexArrayVertexBuffer(gen_vao, 0, bo, 0, sizeof(Vertex));
     }
@@ -1134,17 +1134,17 @@ void Init()
 
         glNamedBufferStorage(bo, sizeof(Vertex) * vertex_buffer.size(), vertex_buffer.data(), 0);
 
-        glVertexArrayAttribBinding(geom_vao, Program::eIN_OUT_ID::nVERTEX, 0);
-        glVertexArrayAttribFormat(geom_vao, Program::eIN_OUT_ID::nVERTEX, 3, GL_FLOAT, GL_FALSE, 0);
-        glEnableVertexArrayAttrib(geom_vao, Program::eIN_OUT_ID::nVERTEX);
+        glVertexArrayAttribBinding(geom_vao, Render::eVERTEX_IN::nPOSITION, 0);
+        glVertexArrayAttribFormat(geom_vao, Render::eVERTEX_IN::nPOSITION, 3, GL_FLOAT, GL_FALSE, 0);
+        glEnableVertexArrayAttrib(geom_vao, Render::eVERTEX_IN::nPOSITION);
 
-        glVertexArrayAttribBinding(geom_vao, Program::eIN_OUT_ID::nNORMAL, 0);
-        glVertexArrayAttribFormat(geom_vao, Program::eIN_OUT_ID::nNORMAL, 3, GL_FLOAT, GL_TRUE, sizeof(Position));
-        glEnableVertexArrayAttrib(geom_vao, Program::eIN_OUT_ID::nNORMAL);
+        glVertexArrayAttribBinding(geom_vao, Render::eVERTEX_IN::nNORMAL, 0);
+        glVertexArrayAttribFormat(geom_vao, Render::eVERTEX_IN::nNORMAL, 3, GL_FLOAT, GL_TRUE, sizeof(Position));
+        glEnableVertexArrayAttrib(geom_vao, Render::eVERTEX_IN::nNORMAL);
 
-        glVertexArrayAttribBinding(geom_vao, Program::eIN_OUT_ID::nTEXCRD, 0);
-        glVertexArrayAttribFormat(geom_vao, Program::eIN_OUT_ID::nTEXCRD, 2, GL_FLOAT, GL_FALSE, sizeof(Position) + sizeof(math::Vector));
-        glEnableVertexArrayAttrib(geom_vao, Program::eIN_OUT_ID::nTEXCRD);
+        glVertexArrayAttribBinding(geom_vao, Render::eVERTEX_IN::nTEX_COORD, 0);
+        glVertexArrayAttribFormat(geom_vao, Render::eVERTEX_IN::nTEX_COORD, 2, GL_FLOAT, GL_FALSE, sizeof(Position) + sizeof(math::Vector));
+        glEnableVertexArrayAttrib(geom_vao, Render::eVERTEX_IN::nTEX_COORD);
 
         glVertexArrayVertexBuffer(geom_vao, 0, bo, 0, sizeof(Vertex));
     }
@@ -1180,6 +1180,10 @@ void DrawFrame()
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glFinish();
+
+    glBlitNamedFramebuffer(main_fbo, 0, 0, 0, width, height, 0, 0, width, height, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST); //
+
+#if 0
 
     glBindFramebuffer(GL_FRAMEBUFFER, out_fbo);
 

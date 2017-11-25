@@ -30,6 +30,26 @@ public:
     static auto constexpr kREVERSED_DEPTH = true;
     static auto constexpr kDEPTH_CLIPPED_FROM_ZERO_TO_ONE = true;
 
+    enum eVERTEX_IN {
+        nPOSITION = 0, nNORMAL, nTEX_COORD, nCOLOR, nTANGENT
+    };
+
+    enum eFRAGMENT_OUT {
+        nBASE_COLOR = 0
+    };
+
+    enum eUNIFORMS_BINDING {
+        nMAIN_COLOR = 0
+    };
+
+    enum eBUFFERS_BINDING {
+        nVIEWPORT = 0, nTRANSFORM
+    };
+
+    enum eSAMPLERS_BINDING {
+        nDEPTH = 0, nALBEDO, nNORMAL_MAP
+    };
+
     intf::Viewport vp_;
 
     void Init();
