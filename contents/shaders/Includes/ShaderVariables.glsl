@@ -8,7 +8,6 @@
 ********************************************************************************************************************************/
 
 
-#if CRUS_VERTEX_STAGE || CRUS_GEOMETRY_STAGE
 
 //layout(location = nVIEWPORT_RECT) uniform vec4 viewport = vec4(0, 0, 1920, 1080);
 //layout(location = nNEAR_FAR) uniform vec2 near_far = vec2(0.01, 100.0);
@@ -32,6 +31,3 @@ layout(binding = nTRANSFORM, std430) readonly buffer TRANSFORM
     layout(row_major) readonly mat4 mNormal; // It's the transpose of the inverse of the upper left 3x3 sub-matrix of model(world)-view matrix.
 };
 
-#elif CRUS_FRAGMENT_STAGE
-
-#endif // CRUS_VERTEX_STAGE & CRUS_FRAGMENT_STAGE

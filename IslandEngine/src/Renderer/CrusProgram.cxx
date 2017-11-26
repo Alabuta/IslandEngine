@@ -257,7 +257,11 @@ uint32 Program::CreateShaderObject(std::vector<std::string> const &_includes, st
                     << '\n'
                     << kGLSL_VERSION
                     << "\n#define CRUS_FRAGMENT_STAGE 1\n"
+                    << "\n#define nVIEWPORT      " << Render::nVIEWPORT
+                    << "\n#define nTRANSFORM     " << Render::nTRANSFORM
+
                     << "\n#define nBASE_COLOR    " << Render::nBASE_COLOR
+                    << "\n#define nNORMALS       " << Render::nNORMALS
                     << "\n#define nMAIN_COLOR    " << Render::nMAIN_COLOR
                     /*<< "\n#define nVIEWPORT_RECT " << nVIEWPORT_RECT
                     << "\n#define nNEAR_FAR      " << nNEAR_FAR*/

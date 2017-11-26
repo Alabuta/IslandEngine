@@ -8,7 +8,6 @@
 ********************************************************************************************************************************/
 #pragma include("Includes/ShaderVariables.glsl")
 
-#if CRUS_VERTEX_STAGE || CRUS_GEOMETRY_STAGE
 
 /*vec2 clippedToViewport(in vec4 position)
 {
@@ -52,6 +51,3 @@ vec4 TransformFromModelToWorld(vec4 position)
     return mModel * position;
 }
 
-#elif CRUS_FRAGMENT_STAGE
-
-#endif // CRUS_VERTEX_STAGE & CRUS_FRAGMENT_STAGE
