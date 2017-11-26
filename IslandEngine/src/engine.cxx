@@ -25,6 +25,7 @@ uint32 out_fbo, out_rt, out_depth;
 
 uint32 constexpr index0 = 0, index1 = 1, index2 = 2;
 
+isle::Program ssao_program;
 
 namespace cubemap {
 bool InitCubemap();
@@ -400,6 +401,16 @@ void InitFramebuffer()
 {
     glCreateFramebuffers(1, &main_fbo);
 
+    Render::inst().CreateTBO(GL_TEXTURE_2D, rt_depth);
+
+    glTextureParameteri(rt_depth, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTextureParameteri(rt_depth, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTextureParameteri(rt_depth, GL_TEXTURE_MAX_LEVEL, 0);
+    glTextureParameteri(rt_depth, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTextureParameteri(rt_depth, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+    glTextureStorage2D(rt_depth, 1, GL_DEPTH_COMPONENT32F, width, height);
+
     Render::inst().CreateTBO(GL_TEXTURE_2D, rt_0);
 
     glTextureParameteri(rt_0, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -411,26 +422,30 @@ void InitFramebuffer()
     glTextureStorage2D(rt_0, 1, GL_RGBA8, width, height);
     //glTextureSubImage2D(quad_tid, 0, 0, 0, width, height, GL_RGBA, GL_RGBA8, nullptr);
 
-    Render::inst().CreateTBO(GL_TEXTURE_2D, rt_depth);
+    Render::inst().CreateTBO(GL_TEXTURE_2D, rt_1);
 
-    glTextureParameteri(rt_depth, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTextureParameteri(rt_depth, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTextureParameteri(rt_depth, GL_TEXTURE_MAX_LEVEL, 0);
-    glTextureParameteri(rt_depth, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTextureParameteri(rt_depth, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTextureParameteri(rt_1, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTextureParameteri(rt_1, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTextureParameteri(rt_1, GL_TEXTURE_MAX_LEVEL, 0);
+    glTextureParameteri(rt_1, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTextureParameteri(rt_1, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-    glTextureStorage2D(rt_depth, 1, GL_DEPTH_COMPONENT32F, width, height);
+    glTextureStorage2D(rt_1, 1, GL_RG16F, width, height);
 
-    glNamedFramebufferTexture(main_fbo, GL_COLOR_ATTACHMENT0, rt_0, 0);
     glNamedFramebufferTexture(main_fbo, GL_DEPTH_ATTACHMENT, rt_depth, 0);
+    glNamedFramebufferTexture(main_fbo, GL_COLOR_ATTACHMENT0, rt_0, 0);
+    glNamedFramebufferTexture(main_fbo, GL_COLOR_ATTACHMENT1, rt_1, 0);
 
     {
-        std::uint32_t constexpr drawBuffers[] = {GL_COLOR_ATTACHMENT0};
-        glNamedFramebufferDrawBuffers(main_fbo, 1, drawBuffers);
+        std::uint32_t constexpr drawBuffers[] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
+        glNamedFramebufferDrawBuffers(main_fbo, 2, drawBuffers);
     }
 
     glDisablei(GL_BLEND, 0);
     glBlendFunci(0, GL_ONE, GL_ONE);
+
+    glDisablei(GL_BLEND, 1);
+    glBlendFunci(1, GL_ONE, GL_ONE);
 
     if (auto result = glCheckNamedFramebufferStatus(main_fbo, GL_FRAMEBUFFER); result != GL_FRAMEBUFFER_COMPLETE)
         log::Fatal() << "framebuffer error:" << result;
@@ -500,6 +515,9 @@ void Init()
     if (!geom_program.AssignNew({R"(Defaults/Diffuse-Lambert.glsl)"}))
         return;
 
+    if (!ssao_program.AssignNew({R"(Defaults/SSAO1.glsl)"}))
+        return;
+
     //InitGeometry();
     //InitGeometryGen();
 
@@ -541,46 +559,59 @@ void DrawFrame()
     Render::inst().UpdateTransform(0, 3, matrices.data());
 
     glBindFramebuffer(GL_FRAMEBUFFER, main_fbo);
-
     glViewport(0, 0, width, height);
 
     glClearNamedFramebufferfv(main_fbo, GL_COLOR, 0, &clear_colors[0]);
     glClearNamedFramebufferfv(main_fbo, GL_DEPTH, 0, &clear_colors[0]);
 
-    cubemap::DrawCubemap();
-    grid.Draw();
+    //cubemap::DrawCubemap();
+    //grid.Draw();
 
-    geom_program.UseThis();
+    //geom_program.UseThis();
+
+    ssao_program.UseThis();
+
+    glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, &index0);
+    glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &index0);
 
     glBindVertexArray(geom_vao);
     glDrawArrays(GL_TRIANGLES, 0, 3 * geom_count);
 
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glFinish();
+
+    glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, &index1);
+    glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &index2);
+
+    glBindTextureUnit(0, rt_0);
+    glBindTextureUnit(1, rt_1);
+    glBindTextureUnit(2, rt_depth);
+
+    glBindVertexArray(quad_vao);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 8);
+
     glFinish();
 
     glBlitNamedFramebuffer(main_fbo, 0, 0, 0, width, height, 0, 0, width, height, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST); //
 
 #if 0
 
-    glBindFramebuffer(GL_FRAMEBUFFER, out_fbo);
+    glFinish();
 
-    glViewport(0, 0, width, height);
-
-    quad_program.UseThis();
-    glClearNamedFramebufferfv(out_fbo, GL_COLOR, 0, &clear_colors[0]);
-    glClearNamedFramebufferfv(out_fbo, GL_DEPTH, 0, &clear_colors[0]);
+    glClearNamedFramebufferfv(main_fbo, GL_COLOR, 0, &clear_colors[0]);
+    glClearNamedFramebufferfv(main_fbo, GL_DEPTH, 0, &clear_colors[0]);
 
     glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, &index1);
     glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &index2);
 
-    glBindTextureUnit(0, rt_0);
-    //glBindTextureUnit(0, rt_depth);
+    glBindTextureUnit(0, rt_depth);
+    glBindTextureUnit(1, rt_0);
+    glBindTextureUnit(2, rt_1);
     RenderFullscreenQuad();
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glFinish();
 
-    glBlitNamedFramebuffer(out_fbo, 0, 0, 0, width, height, 0, 0, width, height, GL_COLOR_BUFFER_BIT, GL_NEAREST); //  | GL_DEPTH_BUFFER_BIT
+    glBlitNamedFramebuffer(main_fbo, 0, 0, 0, width, height, 0, 0, width, height, GL_COLOR_BUFFER_BIT, GL_NEAREST); //  | GL_DEPTH_BUFFER_BIT
 #endif
 
     /*glBindFramebuffer(GL_FRAMEBUFFER, out_fbo);
