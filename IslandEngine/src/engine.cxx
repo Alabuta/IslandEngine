@@ -449,8 +449,8 @@ void InitFramebuffer()
     glNamedFramebufferTexture(main_fbo, GL_COLOR_ATTACHMENT1, rt_1, 0);
 
     {
-        std::uint32_t constexpr drawBuffers[] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
-        glNamedFramebufferDrawBuffers(main_fbo, 2, drawBuffers);
+        std::uint32_t constexpr drawBuffers[] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1}; // GL_COLOR_ATTACHMENT2
+        glNamedFramebufferDrawBuffers(main_fbo, static_cast<int32>(std::size(drawBuffers)), drawBuffers);
     }
 
     glDisablei(GL_BLEND, 0);
@@ -488,7 +488,7 @@ void InitFramebuffer()
 
     {
         std::uint32_t constexpr drawBuffers[] = {GL_COLOR_ATTACHMENT0};
-        glNamedFramebufferDrawBuffers(out_fbo, 1, drawBuffers);
+        glNamedFramebufferDrawBuffers(out_fbo, static_cast<int32>(std::size(drawBuffers)), drawBuffers);
     }
 
     if (auto result = glCheckNamedFramebufferStatus(out_fbo, GL_FRAMEBUFFER); result != GL_FRAMEBUFFER_COMPLETE)

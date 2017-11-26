@@ -107,8 +107,8 @@ void blur()
 
     //fragColor.rgb = vec3(1 - pow(1 - texture(depthSampler, texCoord).r, 256));
 
-    /*fragColor.xyz = vec3(texture(normalSampler, texCoord).xy, 0);
-    fragColor.z = sqrt(fma(-fragColor.y, fragColor.y, fma(fragColor.x, -fragColor.x, 1)));*/
+    vec3 n = vec3(texture(normalSampler, texCoord).xy, 0);
+    n.z = sqrt(fma(-n.y, n.y, fma(n.x, -n.x, 1)));
 
     fragColor.a = 1;
 }

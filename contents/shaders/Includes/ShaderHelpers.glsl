@@ -8,6 +8,7 @@
 ********************************************************************************************************************************/
 #pragma include("Includes/ShaderVariables.glsl")
 
+const float zNear = 0.01, zFar = 100.0;
 
 /*vec2 clippedToViewport(in vec4 position)
 {
@@ -20,6 +21,11 @@ vec2 normalizedToViewport(in vec2 position)
     return vec2(viewport.rect.z * 0.5 * (position.x + 1.0) + viewport.rect.x,
                 viewport.rect.w * 0.5 * (position.y + 1.0) + viewport.rect.y);
 }*/
+
+float HyperbolicDepthToLinear(float hyperbolicDepth)
+{
+    return zNear * zFar / (hyperbolicDepth * (zNear - zFar) - zNear);
+}
 
 vec4 TransformFromModelToClip(vec4 position)
 {
