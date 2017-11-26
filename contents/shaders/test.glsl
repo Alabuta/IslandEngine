@@ -12,8 +12,8 @@
 
 #if CRUS_VERTEX_STAGE
 
-layout(location = nVERTEX) in vec3 inVertex;
-layout(location = nTEXCRD) in vec2 inTexCoord;
+layout(location = nPOSITION) in vec3 inVertex;
+layout(location = nTEX_COORD) in vec2 inTexCoord;
 
 out vec2 texCoord;
 
@@ -47,7 +47,7 @@ layout(binding = nMATERIAL, shared) uniform CMTS
     vec4 Clr3;
 };
 
-layout(location = nBASE_COLOR/*, index = 0*/) out vec4 FragColor;
+layout(location = nBASE_COLOR/*, index = 0*/) out vec4 fragColor;
 //layout(depth_less) out float gl_FragDepth;
 
 //in float logz;
@@ -57,11 +57,11 @@ in vec2 texCoord;
 
 void main()
 {
-    //FragColor = vec4(pow(Clr0.rgb, vec3(1.0 / 2.2)), Clr0.a);
-    //FragColor = vec4(sqrt(Clr0.rgb), Clr0.a);
-    //FragColor = Clr0;
-    FragColor = texture2D(albedoTexture, texCoord);
-    //FragColor = vec4(vec3(1, 0, 0), 1.0);
+    //fragColor = vec4(pow(Clr0.rgb, vec3(1.0 / 2.2)), Clr0.a);
+    //fragColor = vec4(sqrt(Clr0.rgb), Clr0.a);
+    //fragColor = Clr0;
+    fragColor = texture2D(albedoTexture, texCoord);
+    //fragColor = vec4(vec3(1, 0, 0), 1.0);
 
     //gl_FragDepth = log2(logz) * 0.5 * Fcoef;
 }

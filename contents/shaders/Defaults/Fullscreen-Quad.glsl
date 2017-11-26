@@ -9,7 +9,7 @@
 
 #pragma stage("vertex")
 
-layout(location = nVERTEX) in vec2 inVertex;
+layout(location = nPOSITION) in vec2 inVertex;
 
 out vec2 texCoord;
 
@@ -30,7 +30,7 @@ void main()
 
 layout(early_fragment_tests) in;
 
-layout(location = nBASE_COLOR) out vec4 FragColor;
+layout(location = nBASE_COLOR) out vec4 fragColor;
 
 layout(binding = 0) uniform sampler2D mainTexture;
 
@@ -38,6 +38,6 @@ in vec2 texCoord;
 
 void main()
 {
-    FragColor = texture(mainTexture, texCoord);
-    FragColor.a = 1;
+    fragColor = texture(mainTexture, texCoord);
+    fragColor.a = 1;
 }

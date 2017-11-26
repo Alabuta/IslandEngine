@@ -11,9 +11,9 @@
 
 #pragma stage("vertex")
 
-layout(location = nVERTEX) in vec3 inVertex;
+layout(location = nPOSITION) in vec3 inVertex;
 layout(location = nNORMAL) in vec3 inNormal;
-layout(location = nTEXCRD) in vec2 inTexCoord;
+layout(location = nTEX_COORD) in vec2 inTexCoord;
 
 out vec2 texCoord;
 
@@ -28,7 +28,7 @@ void main()
 
 layout(early_fragment_tests) in;
 
-layout(location = nBASE_COLOR/*, index = 0*/) out vec4 FragColor;
+layout(location = nBASE_COLOR/*, index = 0*/) out vec4 fragColor;
 layout(location = nMAIN_COLOR) uniform vec4 mainColor = vec4(1.0);
 
 layout(binding = 0) uniform sampler2D mainTexture;
@@ -39,5 +39,5 @@ noperspective in vec3 edge_distance;
 
 void main()
 {
-    FragColor = texture(mainTexture, texCoord) * mainColor;
+    fragColor = texture(mainTexture, texCoord) * mainColor;
 }

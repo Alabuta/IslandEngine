@@ -10,7 +10,7 @@
 
 #pragma stage("vertex")
 
-layout(location = nVERTEX) in vec3 inVertex;
+layout(location = nPOSITION) in vec3 inVertex;
 
 out vec3 texCoord;
 
@@ -34,7 +34,7 @@ void main()
 
 layout(early_fragment_tests) in;
 
-layout(location = nBASE_COLOR/*, index = 0*/) out vec4 FragColor;
+layout(location = nBASE_COLOR/*, index = 0*/) out vec4 fragColor;
 layout(location = nMAIN_COLOR) uniform vec4 mainColor = vec4(1.0);
 
 layout(binding = 0) uniform samplerCube skybox;
@@ -43,5 +43,5 @@ in vec3 texCoord;
 
 void main()
 {
-    FragColor = texture(skybox, texCoord) * mainColor;
+    fragColor = texture(skybox, texCoord) * mainColor;
 }

@@ -11,7 +11,7 @@
 
 #pragma stage("vertex")
 
-layout(location = nVERTEX) in vec3 inVertex;
+layout(location = nPOSITION) in vec3 inVertex;
 
 void main()
 {
@@ -22,9 +22,9 @@ void main()
 
 layout(early_fragment_tests) in;
 
-layout(location = nBASE_COLOR) out vec4 FragColor;
+layout(location = nBASE_COLOR) out vec4 fragColor;
 
 void main()
 {
-    FragColor = vec4(1);
+    fragColor = vec4(1);
 }

@@ -228,10 +228,11 @@ uint32 Program::CreateShaderObject(std::vector<std::string> const &_includes, st
                     << '\n'
                     << kGLSL_VERSION
                     << "\n#define CRUS_VERTEX_STAGE 1\n"
-                    << "\n#define nVERTEX        " << Render::nPOSITION
+                    << "\n#define nPOSITION      " << Render::nPOSITION
                     << "\n#define nNORMAL        " << Render::nNORMAL
-                    << "\n#define nTEXCRD        " << Render::nTEX_COORD
+                    << "\n#define nTEX_COORD     " << Render::nTEX_COORD
                     << "\n#define nCOLOR         " << Render::nCOLOR
+
                     << "\n#define nVIEWPORT      " << Render::nVIEWPORT
                     << "\n#define nTRANSFORM     " << Render::nTRANSFORM
                     /*<< "\n#define nVIEWPORT_RECT " << nVIEWPORT_RECT

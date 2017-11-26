@@ -11,7 +11,7 @@
 
 #pragma stage("vertex")
 
-layout(location = nVERTEX) in vec3 inVertex;
+layout(location = nPOSITION) in vec3 inVertex;
 layout(location = nNORMAL) in vec3 inNormal;
 
 /*layout(location = 0)*/ uniform vec4 lightPosition = vec4(10, 10, 10, 0);
@@ -69,7 +69,7 @@ layout(location = 0) subroutine uniform RenderPassType RenderPass;
 #define nFRAG_NORMAL 2
 #define nFRAG_DEPTH 3
 
-layout(location = nBASE_COLOR) out vec4 FragColor;
+layout(location = nBASE_COLOR) out vec4 fragColor;
 layout(location = nFRAG_POSITION) out float FragPosition;
 layout(location = nFRAG_NORMAL) out vec2 FragNormal;
 //layout(location = nFRAG_DEPTH) out float FragDepth;

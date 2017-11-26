@@ -35,7 +35,7 @@ public:
     };
 
     enum eFRAGMENT_OUT {
-        nBASE_COLOR = 0
+        nBASE_COLOR = 0, nNORMALS
     };
 
     enum eUNIFORMS_BINDING {
@@ -47,7 +47,7 @@ public:
     };
 
     enum eSAMPLERS_BINDING {
-        nDEPTH = 0, nALBEDO, nNORMAL_MAP
+        nALBEDO = 0, nNORMAL_MAP, nDEPTH
     };
 
     intf::Viewport vp_;

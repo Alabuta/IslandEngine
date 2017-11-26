@@ -11,9 +11,9 @@
 
 #pragma stage("vertex")
 
-layout(location = nVERTEX) in vec3 inVertex;
+layout(location = nPOSITION) in vec3 inVertex;
 layout(location = nNORMAL) in vec3 inNormal;
-layout(location = nTEXCRD) in vec2 inTexCoord;
+layout(location = nTEX_COORD) in vec2 inTexCoord;
 
 out from_vs_data {
     vec2 position;
@@ -126,7 +126,7 @@ void main()
 
 layout(early_fragment_tests) in;
 
-layout(location = nBASE_COLOR/*, index = 0*/) out vec4 FragColor;
+layout(location = nBASE_COLOR/*, index = 0*/) out vec4 fragColor;
 layout(location = nMAIN_COLOR) uniform vec4 mainColor = vec4(0.8, 0.8, 0.8, 1.0);
 
 layout(binding = 0) uniform sampler2D mainTexture;
@@ -187,5 +187,5 @@ void main()
 
     const float mix_val = clamp(smoothstep(width - 1, width + 1, dist) + fading, 0, 1);
 
-    FragColor = mix(wireColor, mainColor, mix_val);
+    fragColor = mix(wireColor, mainColor, mix_val);
 }

@@ -11,9 +11,9 @@
 
 #pragma stage("vertex")
 
-layout(location = nVERTEX) in vec3 inVertex;
+layout(location = nPOSITION) in vec3 inVertex;
 layout(location = nNORMAL) in vec3 inNormal;
-layout(location = nTEXCRD) in vec2 inTexCoord;
+layout(location = nTEX_COORD) in vec2 inTexCoord;
 
 /*layout(location = 0)*/ uniform vec4 lightPosition = vec4(10, 10, 10, 0);
 
@@ -41,7 +41,8 @@ void main()
 
 layout(early_fragment_tests) in;
 
-layout(location = nBASE_COLOR) out vec4 FragColor;
+layout(location = nBASE_COLOR) out vec4 fragColor;
+layout(location = nNORMALS) out vec2 fragNormal;
 
 layout(location = nMAIN_COLOR) uniform vec4 mainColor = vec4(1.0); // vec4(0, 0.74609375, 1, 1);
 
@@ -68,6 +69,6 @@ void main()
     float diffuse = dot(n, l);
 #endif
 
-    vec3 color = mainColor.rgb;// texture(mainTexture, texCoord).xyz;
-    FragColor = vec4(color * diffuse, mainColor.a);//
+    fragColor = vec4(mainColor.rgb * diffuse, mainColor.a);
+    fragNormal = n.xy;
 }
