@@ -63,9 +63,9 @@ layout(location = 0) subroutine uniform RenderPassType RenderPass;
 layout(location = nBASE_COLOR) out vec4 fragColor;
 layout(location = nNORMALS) out vec2 fragNormal;
 
-layout(binding = 0) uniform sampler2D colorSampler;
-layout(binding = 1) uniform sampler2D normalSampler;
-layout(binding = 2) uniform sampler2D depthSampler;
+layout(binding = nALBEDO) uniform sampler2D colorSampler;
+layout(binding = nNORMAL_MAP) uniform sampler2D normalSampler;
+layout(binding = nDEPTH) uniform sampler2D depthSampler;
 
 in vec4 light;
 in vec4 normal;

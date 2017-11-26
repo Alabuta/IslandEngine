@@ -16,7 +16,7 @@
 auto constexpr width = 1920;
 auto constexpr height = 1080;
 
-std::array<float, 5> constexpr clear_colors = { 0.f, 0.f, 0.f, 0.f, 1.f };
+std::array<float, 2> constexpr clear_colors = { 0.f, 1.f };
 
 uint32 main_fbo, rt_0, rt_1, rt_depth;
 uint32 out_fbo, out_rt, out_depth;
@@ -371,37 +371,7 @@ void InitFullscreenQuad()
 
         glTextureStorage2D(blured_tex, 1, GL_RGBA8, width, height);
     }*/
-
-    Render::inst().CreateVAO(quad_vao);
-
-    struct Vertex {
-        Position pos;
-        math::Vector normal;
-    };
-
-    std::array<Vertex, 4> vertices = {{
-        {{-1.f, +1.f, 0.f}, {}},
-        {{-1.f, -1.f, 0.f}, {}},
-        {{+1.f, +1.f, 0.f}, {}},
-        {{+1.f, -1.f, 0.f}, {}}
-    }};
-
-    auto bo = 0u;
-    Render::inst().CreateBO(bo);
-
-    glNamedBufferStorage(bo, sizeof(Vertex) * vertices.size(), vertices.data(), 0);
-
-    glVertexArrayAttribBinding(quad_vao, Render::eVERTEX_IN::nPOSITION, 0);
-    glVertexArrayAttribFormat(quad_vao, Render::eVERTEX_IN::nPOSITION, 3, GL_FLOAT, GL_FALSE, 0);
-    glEnableVertexArrayAttrib(quad_vao, Render::eVERTEX_IN::nPOSITION);
-
-    glVertexArrayAttribBinding(quad_vao, Render::eVERTEX_IN::nNORMAL, 0);
-    glVertexArrayAttribFormat(quad_vao, Render::eVERTEX_IN::nNORMAL, 3, GL_FLOAT, GL_TRUE, sizeof(Position));
-    glEnableVertexArrayAttrib(quad_vao, Render::eVERTEX_IN::nNORMAL);
-
-    glVertexArrayVertexBuffer(quad_vao, 0, bo, 0, sizeof(Vertex));
-}
-
+#endif
 }
 
 template<typename T>
@@ -549,6 +519,28 @@ void Init()
     if (!ssao_program.AssignNew({R"(Defaults/SSAO1.glsl)"}))
         return;
 
+    Render::inst().CreateVAO(quad_vao);
+
+    {
+        std::array<Position, 4> vertices = {{
+            {-1.f, +1.f, 0.f},
+            {-1.f, -1.f, 0.f},
+            {+1.f, +1.f, 0.f},
+            {+1.f, -1.f, 0.f}
+        }};
+
+        auto bo = 0u;
+        Render::inst().CreateBO(bo);
+
+        glNamedBufferStorage(bo, sizeof(vertices), vertices.data(), 0);
+
+        glVertexArrayAttribBinding(quad_vao, Render::eVERTEX_IN::nPOSITION, 0);
+        glVertexArrayAttribFormat(quad_vao, Render::eVERTEX_IN::nPOSITION, 3, GL_FLOAT, GL_FALSE, 0);
+        glEnableVertexArrayAttrib(quad_vao, Render::eVERTEX_IN::nPOSITION);
+
+        glVertexArrayVertexBuffer(quad_vao, 0, bo, 0, sizeof(Position));
+
+    }
 
     if (future.get()) {
         Render::inst().CreateVAO(geom_vao);
@@ -590,7 +582,7 @@ void DrawFrame()
     glBindFramebuffer(GL_FRAMEBUFFER, main_fbo);
     glViewport(0, 0, width, height);
 
-    glClearNamedFramebufferfv(main_fbo, GL_COLOR, 0, &clear_colors[0]);
+    glClearNamedFramebufferfv(main_fbo, GL_COLOR, 0, colors::kPOWDERBLUE.rgba.data());
     glClearNamedFramebufferfv(main_fbo, GL_DEPTH, 0, &clear_colors[0]);
 
     //cubemap::DrawCubemap();
@@ -611,9 +603,10 @@ void DrawFrame()
     glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, &index1);
     glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &index2);
 
-    glBindTextureUnit(0, rt_0);
-    glBindTextureUnit(1, rt_1);
-    glBindTextureUnit(2, rt_depth);
+    glBindTextureUnit(Render::nALBEDO, rt_0);
+    glBindTextureUnit(Render::nNORMAL_MAP, rt_1);
+    glBindTextureUnit(2, rt_2);
+    glBindTextureUnit(Render::nDEPTH, rt_depth);
 
     glBindVertexArray(quad_vao);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 8);

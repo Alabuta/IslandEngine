@@ -235,6 +235,10 @@ uint32 Program::CreateShaderObject(std::vector<std::string> const &_includes, st
 
                     << "\n#define nVIEWPORT      " << Render::nVIEWPORT
                     << "\n#define nTRANSFORM     " << Render::nTRANSFORM
+
+                    << "\n#define nALBEDO        " << Render::nALBEDO
+                    << "\n#define nNORMAL_MAP    " << Render::nNORMAL_MAP
+                    << "\n#define nDEPTH         " << Render::nDEPTH
                     /*<< "\n#define nVIEWPORT_RECT " << nVIEWPORT_RECT
                     << "\n#define nNEAR_FAR      " << nNEAR_FAR*/
                     << '\n';
@@ -247,6 +251,10 @@ uint32 Program::CreateShaderObject(std::vector<std::string> const &_includes, st
                     << "\n#define CRUS_GEOMETRY_STAGE 1\n"
                     << "\n#define nVIEWPORT      " << Render::nVIEWPORT
                     << "\n#define nTRANSFORM     " << Render::nTRANSFORM
+
+                    << "\n#define nALBEDO        " << Render::nALBEDO
+                    << "\n#define nNORMAL_MAP    " << Render::nNORMAL_MAP
+                    << "\n#define nDEPTH         " << Render::nDEPTH
                     /*<< "\n#define nVIEWPORT_RECT " << nVIEWPORT_RECT
                     << "\n#define nNEAR_FAR      " << nNEAR_FAR*/
                     << '\n';
@@ -263,6 +271,10 @@ uint32 Program::CreateShaderObject(std::vector<std::string> const &_includes, st
                     << "\n#define nBASE_COLOR    " << Render::nBASE_COLOR
                     << "\n#define nNORMALS       " << Render::nNORMALS
                     << "\n#define nMAIN_COLOR    " << Render::nMAIN_COLOR
+
+                    << "\n#define nALBEDO        " << Render::nALBEDO
+                    << "\n#define nNORMAL_MAP    " << Render::nNORMAL_MAP
+                    << "\n#define nDEPTH         " << Render::nDEPTH
                     /*<< "\n#define nVIEWPORT_RECT " << nVIEWPORT_RECT
                     << "\n#define nNEAR_FAR      " << nNEAR_FAR*/
                     << '\n';

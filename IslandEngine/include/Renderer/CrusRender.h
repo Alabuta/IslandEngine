@@ -47,7 +47,7 @@ public:
     };
 
     enum eSAMPLERS_BINDING {
-        nALBEDO = 0, nNORMAL_MAP, nDEPTH
+        nALBEDO = 0, nNORMAL_MAP, nTEMP, nDEPTH
     };
 
     intf::Viewport vp_;
