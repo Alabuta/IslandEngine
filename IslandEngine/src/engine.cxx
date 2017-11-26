@@ -12,8 +12,6 @@
 #include <regex>
 
 #include "engine.h"
-#include "../../contents/geometry/Hebe"
-#include "geometry/torus.h"
 
 auto constexpr width = 1920;
 auto constexpr height = 1080;
@@ -32,24 +30,9 @@ bool InitCubemap();
 void DrawCubemap();
 }
 
-namespace instanced {
-bool Init();
-void Draw();
-}
-
-auto index = 0u;
-auto spritesNumber = 0u;
-auto samples = 0u;
-
-auto spriteIndirectBO = 0u;
-
-uint32 INSTANCING = 0;
-
 namespace app {
-void InitBuffers(std::vector<isle::Sprite> const &spriteSheet);
 intf::Grid grid;
 
-uint32 gen_vao, gen_count;
 
 Program hemisphere_program;
 uint32 hemisphere_vao, hemisphere_count;
@@ -359,12 +342,6 @@ void InitFullscreenQuad()
     glVertexArrayVertexBuffer(quad_vao, 0, bo, 0, sizeof(Vertex));
 }
 
-void RenderFullscreenQuad()
-{
-    //quad_texture.Bind();
-    //quad_program.UseThis();
-    glBindVertexArray(quad_vao);
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, 8);
 }
 
 template<typename T>
@@ -485,12 +462,6 @@ void InitFramebuffer()
 
 void Init()
 {
-    struct Vertex {
-        Position pos;
-        math::Vector normal;
-        UV uv;
-    };
-
     std::vector<Vertex> vertex_buffer;
 
     auto future = std::async(std::launch::async, LoadModel<Vertex>, "../objects.obj", std::ref(geom_count), std::ref(vertex_buffer));
@@ -501,12 +472,7 @@ void Init()
 
     grid.Update(15, 1, 5);
 
-    // log::Debug() << measure<>::execution(InitBackground);
-
     cubemap::InitCubemap();
-
-    /*EntityManager entities;
-    auto entity = entities.CreateEntity();*/
 
     InitFullscreenQuad();
 
@@ -518,8 +484,6 @@ void Init()
     if (!ssao_program.AssignNew({R"(Defaults/SSAO1.glsl)"}))
         return;
 
-    //InitGeometry();
-    //InitGeometryGen();
 
     if (future.get()) {
         Render::inst().CreateVAO(geom_vao);
@@ -591,7 +555,7 @@ void DrawFrame()
 
     glFinish();
 
-    glBlitNamedFramebuffer(main_fbo, 0, 0, 0, width, height, 0, 0, width, height, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST); //
+    glBlitNamedFramebuffer(main_fbo, 0, 0, 0, width, height, 0, 0, width, height, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST);
 
 #if 0
 
@@ -614,35 +578,13 @@ void DrawFrame()
     glBlitNamedFramebuffer(main_fbo, 0, 0, 0, width, height, 0, 0, width, height, GL_COLOR_BUFFER_BIT, GL_NEAREST); //  | GL_DEPTH_BUFFER_BIT
 #endif
 
-    /*glBindFramebuffer(GL_FRAMEBUFFER, out_fbo);
-
-    glViewport(0, 0, width, height);
-
-    glDisablei(GL_DEPTH_TEST, 0);
-
-    glClearNamedFramebufferfv(out_fbo, GL_COLOR, 0, &clear_colors[0]);
-    glClearNamedFramebufferfv(out_fbo, GL_DEPTH, 0, &clear_colors[4]);*/
-
-    /*glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-    glFinish();
-
-    glBlitNamedFramebuffer(out_fbo, 0, 0, 0, width, height, 0, 0, width, height, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST);*/
 
     /*hemisphere_program.UseThis();
 
     glBindVertexArray(hemisphere_vao);
     glDrawArrays(GL_POINTS, 0, hemisphere_count);*/
 
-    //glDrawArrays(GL_TRIANGLE_STRIP, 0, 4 * 6 + 4);
-    //glDrawArraysInstancedBaseInstance(GL_TRIANGLE_STRIP, command.first, command.count, command.instanceCount, command.baseInstance);
-    //glMultiDrawArrays(GL_TRIANGLE_FAN, first, count, 6);
-    //glMultiDrawElements(GL_TRIANGLE_FAN, count, GL_UNSIGNED_BYTE, reinterpret_cast<void const *const *>(indicies), 6);
-    //glDrawElements(GL_TRIANGLE_FAN, count[5], GL_UNSIGNED_BYTE, reinterpret_cast<void const *>(sizeof(uint8) * 4));
     
-    //flipbookTexture.Bind();
-    //flipbookProgram.UseThis();
-
 #if 1
     /*geom_program.UseThis();
     glBindTextureUnit(0, rt_0);
@@ -700,22 +642,6 @@ void DrawFrame()
     glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &index2);
     RenderFullscreenQuad();
 #endif
-
-    /*glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-    glFinish();
-
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    quad_program.UseThis();
-
-    uint32 const index0 = 0, index1 = 1, index2 = 2;
-
-    glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, &index1);
-    glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &index2);
-
-    glBindTextureUnit(0, rt_0);
-    RenderFullscreenQuad();*/
 
 }
 };
