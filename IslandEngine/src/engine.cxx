@@ -46,6 +46,22 @@ uint32 quad_vao, quad_tid, quad_fbo, quad_depth, quad_inter, quad_blur;
 uint32 pos_tex, norm_tex, depth_tex, color_tex, noise_tex, ssao_tex, blured_tex;
 
 
+std::array<math::Matrix, 3> matrices = {
+    math::Matrix::Identity(),
+    math::Matrix::Identity(),
+    math::Matrix::Identity()
+};
+struct Vertex {
+    Position pos;
+    math::Vector normal;
+    UV uv;
+};
+
+std::ostream &operator<< (std::ostream &_stream, Vertex const &v)
+{
+    return _stream << v.pos << " " << v.normal << " " << v.uv;
+}
+
 bool LoadOBJ(std::string const &path, std::vector<Position> &positions, std::vector<math::Vector> &normals, std::vector<UV> &uvs, std::vector<std::vector<std::size_t>> &faces)
 {
     if (path.empty()) {
@@ -119,15 +135,59 @@ bool LoadOBJ(std::string const &path, std::vector<Position> &positions, std::vec
     return true;
 }
 
-std::array<math::Matrix, 3> matrices = {
-    math::Matrix::Identity(),
-    math::Matrix::Identity(),
-    math::Matrix::Identity()
-};
+template<typename T>
+bool SaveBinaryModel(std::string const &path, std::vector<T> const &vertex_buffer)
+{
+    if (path.empty()) {
+        log::Error() << "file name is invalid.";
+        return false;
+    }
 
+    std::ofstream file(path + ".bin", std::ios::out | std::ios::trunc | std::ios::binary);
+
+    if (!file.is_open()) {
+        log::Error() << "can't open file: " << path;
+        return false;
+    }
+
+    auto count = static_cast<std::size_t>(vertex_buffer.size());
+    file.write(reinterpret_cast<char const *>(&count), sizeof(count));
+
+    file.write(reinterpret_cast<char const *>(vertex_buffer.data()), vertex_buffer.size() * sizeof(std::decay_t<T>));
+
+    return true;
+}
+
+template<typename T>
+bool LoadBinaryModel(std::string const &path, std::vector<T> &vertex_buffer)
+{
+    if (path.empty()) {
+        log::Error() << "file name is invalid.";
+        return false;
+    }
+
+    std::ifstream file(path + ".bin", std::ios::in | std::ios::binary);
+
+    if (!file.is_open()) {
+        log::Error() << "can't open file: " << path;
+        return false;
+    }
+
+    std::size_t count = 18348;
+    file.read(reinterpret_cast<char *>(&count), sizeof(count));
+
+    if (count < 1 || count % 3 != 0)
+        return false;
+
+    vertex_buffer.resize(count);
+    file.read(reinterpret_cast<char *>(vertex_buffer.data()), vertex_buffer.size() * sizeof(T));
+
+    return true;
+}
 
 void InitFullscreenQuad()
 {
+#if 0
     if (!quad_program.AssignNew({R"(Defaults/SSAO.glsl)"}))
         return;
 
@@ -353,22 +413,27 @@ bool LoadModel(std::string const &path, uint32 &count, std::vector<T> &vertex_bu
 
     std::vector<std::vector<std::size_t>> faces;
 
-    if (!LoadOBJ(path, positions, normals, uvs, faces))
-        return false;
+    if (!LoadBinaryModel(path, vertex_buffer)) {
+        if (LoadOBJ(path, positions, normals, uvs, faces)) {
+            for (auto &face : faces)
+                std::transform(face.begin(), face.end(), face.begin(), [] (auto &&a) { return a - 1; });
 
-    count = static_cast<std::decay_t<decltype(count)>>(faces.size());
+            for (auto const &face : faces) {
+                for (auto it_index = face.cbegin(); it_index < face.cend(); std::advance(it_index, 2))
+                    vertex_buffer.emplace_back(T{
+                    positions.at(*it_index),
+                    normals.at(*std::next(it_index, 2)),
+                    uvs.at(*++it_index)
+                });
+            }
 
-    for (auto &face : faces)
-        std::transform(face.begin(), face.end(), face.begin(), [] (auto &&a) { return a - 1; });
+            SaveBinaryModel(path, vertex_buffer);
+        }
 
-    for (auto const &face : faces) {
-        for (auto it_index = face.cbegin(); it_index < face.cend(); std::advance(it_index, 2))
-            vertex_buffer.emplace_back(T{
-            positions.at(*it_index),
-            normals.at(*std::next(it_index, 2)),
-            uvs.at(*++it_index)
-         });
+        else return false;
     }
+
+    count = static_cast<std::decay_t<decltype(count)>>(vertex_buffer.size() / 3);
 
     return true;
 }
