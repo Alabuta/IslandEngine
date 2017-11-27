@@ -24,6 +24,9 @@ out vec4 light;
 out vec4 normal;
 out vec2 texCoord;
 
+out vec3 pos;
+out vec3 ray;
+
 layout(index = 0) subroutine (RenderPassType)
 void modelProccessing()
 {
@@ -39,6 +42,8 @@ void modelProccessing()
     else light.xyz = normalize(TransformFromWorldToView(lightPosition).xyz - position.xyz);
 
     gl_Position = TransformFromViewToClip(position);
+
+    pos = position.xyz;
 }
 
 layout(index = 1) subroutine(RenderPassType)
@@ -46,6 +51,8 @@ void fullQuadRender()
 {
     gl_Position = vec4(inVertex.xy, 1.0, 1.0);
     texCoord = inVertex.xy * 0.5 + 0.5;
+
+    ray = (inverse(viewport.proj) * gl_Position).xyz;
 }
 
 void main()
@@ -62,14 +69,19 @@ layout(location = 0) subroutine uniform RenderPassType RenderPass;
 
 layout(location = nBASE_COLOR) out vec4 fragColor;
 layout(location = nNORMALS) out vec2 fragNormal;
+layout(location = 2) out float fragTemp;
 
 layout(binding = nALBEDO) uniform sampler2D colorSampler;
 layout(binding = nNORMAL_MAP) uniform sampler2D normalSampler;
 layout(binding = nDEPTH) uniform sampler2D depthSampler;
+layout(binding = 2) uniform sampler2D tempSampler;
 
 in vec4 light;
 in vec4 normal;
 in vec2 texCoord;
+
+in vec3 pos;
+in vec3 ray;
 
 #define HALF_LAMBERT 1
 #define WRAPPED_AROUND_LAMBERT 0
@@ -91,6 +103,14 @@ void renderGBuffer()
 
     fragColor = vec4(vec3(diffuse), 1.0);
     fragNormal = n.xy;
+
+#if 0
+    fragTemp = length(pos);
+#else
+    fragTemp = -pos.z / 1;
+#endif
+    //fragNormal = pos.xy;
+    //fragTemp = pos.z;
 }
 
 layout(index = 1) subroutine(RenderPassType)
@@ -103,12 +123,37 @@ void ssao()
 layout(index = 2) subroutine(RenderPassType)
 void blur()
 {
+#if 0
+    vec3 r = normalize(ray);
+    float d = texture(tempSampler, texCoord).x;
+
+    vec3 POS = r * d;
+    POS.z *= -1;
+#else
+    float d = texture(tempSampler, texCoord).x;
+
+    d = texture(depthSampler, texCoord).r;
+    d = zNear / d;
+    //d = zNear * zFar / (d * (zNear - zFar) - zNear);
+
+    vec3 POS = ray * d;
+    POS.z *= -1;
+#endif
+
     fragColor.rgb = texture(colorSampler, texCoord).rgb;
 
-    //fragColor.rgb = vec3(1 - pow(1 - texture(depthSampler, texCoord).r, 256));
+    float depth = texture(depthSampler, texCoord).r;
+    fragColor.rgb = vec3((pow(1 - depth, 256)));// vec3(1 - pow(1 - depth, 256));
 
+#if 0
     vec3 n = vec3(texture(normalSampler, texCoord).xy, 0);
     n.z = sqrt(fma(-n.y, n.y, fma(n.x, -n.x, 1)));
+#endif
+
+    /*POS.xy = texture(normalSampler, texCoord).xy;
+    POS.z = -texture(tempSampler, texCoord).x;*/
+
+    fragColor.rgb = POS * 0.5 + 0.5;
 
     fragColor.a = 1;
 }

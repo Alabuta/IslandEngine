@@ -18,7 +18,7 @@ auto constexpr height = 1080;
 
 std::array<float, 2> constexpr clear_colors = { 0.f, 1.f };
 
-uint32 main_fbo, rt_0, rt_1, rt_depth;
+uint32 main_fbo, rt_0, rt_1, rt_2, rt_depth;
 uint32 out_fbo, out_rt, out_depth;
 
 uint32 constexpr index0 = 0, index1 = 1, index2 = 2;
@@ -444,12 +444,23 @@ void InitFramebuffer()
 
     glTextureStorage2D(rt_1, 1, GL_RG16F, width, height);
 
+    Render::inst().CreateTBO(GL_TEXTURE_2D, rt_2);
+
+    glTextureParameteri(rt_2, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTextureParameteri(rt_2, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTextureParameteri(rt_2, GL_TEXTURE_MAX_LEVEL, 0);
+    glTextureParameteri(rt_2, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTextureParameteri(rt_2, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+    glTextureStorage2D(rt_2, 1, GL_R32F, width, height);
+
     glNamedFramebufferTexture(main_fbo, GL_DEPTH_ATTACHMENT, rt_depth, 0);
     glNamedFramebufferTexture(main_fbo, GL_COLOR_ATTACHMENT0, rt_0, 0);
     glNamedFramebufferTexture(main_fbo, GL_COLOR_ATTACHMENT1, rt_1, 0);
+    glNamedFramebufferTexture(main_fbo, GL_COLOR_ATTACHMENT2, rt_2, 0);
 
     {
-        std::uint32_t constexpr drawBuffers[] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1}; // GL_COLOR_ATTACHMENT2
+        std::uint32_t constexpr drawBuffers[] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2}; // GL_COLOR_ATTACHMENT2
         glNamedFramebufferDrawBuffers(main_fbo, static_cast<int32>(std::size(drawBuffers)), drawBuffers);
     }
 
@@ -458,6 +469,9 @@ void InitFramebuffer()
 
     glDisablei(GL_BLEND, 1);
     glBlendFunci(1, GL_ONE, GL_ONE);
+
+    glDisablei(GL_BLEND, 2);
+    glBlendFunci(2, GL_ONE, GL_ONE);
 
     if (auto result = glCheckNamedFramebufferStatus(main_fbo, GL_FRAMEBUFFER); result != GL_FRAMEBUFFER_COMPLETE)
         log::Fatal() << "framebuffer error:" << result;
@@ -600,6 +614,12 @@ void DrawFrame()
 
     glFinish();
 
+    glBindFramebuffer(GL_FRAMEBUFFER, out_fbo);
+    glViewport(0, 0, width, height);
+
+    glClearNamedFramebufferfv(out_fbo, GL_COLOR, 0, colors::kPOWDERBLUE.rgba.data());
+    glClearNamedFramebufferfv(out_fbo, GL_DEPTH, 0, &clear_colors[0]);
+
     glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, &index1);
     glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &index2);
 
@@ -613,7 +633,7 @@ void DrawFrame()
 
     glFinish();
 
-    glBlitNamedFramebuffer(main_fbo, 0, 0, 0, width, height, 0, 0, width, height, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+    glBlitNamedFramebuffer(out_fbo, 0, 0, 0, width, height, 0, 0, width, height, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST);
 
 #if 0
 
