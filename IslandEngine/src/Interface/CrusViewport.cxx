@@ -38,8 +38,10 @@ void Viewport::SetViewport(int16 _x, int16 _y, int16 _w, int16 _h)
     // Depth value mapped from 0 to 1. See 'D3DXMatrixPerspectiveFovRH'.
     if constexpr (Render::kDEPTH_CLIPPED_FROM_ZERO_TO_ONE) {
         if constexpr (Render::kREVERSED_DEPTH) {
-            kA = zNear / (zNear - zFar);
-            kB = -zNear * zFar / (zNear - zFar);
+            /*kA = zNear / (zNear - zFar);
+            kB = -zNear * zFar / (zNear - zFar);*/
+            kA = 0;
+            kB = zNear;
         }
 
         else {

@@ -28,6 +28,7 @@ class Render {
 public:
 
     static auto constexpr kREVERSED_DEPTH = true;
+    static auto constexpr kINFINITE_FAR_PLANE = true;
     static auto constexpr kDEPTH_CLIPPED_FROM_ZERO_TO_ONE = true;
 
     enum eVERTEX_IN {
