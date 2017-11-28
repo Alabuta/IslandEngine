@@ -130,11 +130,10 @@ void blur()
     vec3 POS = r * d;
     POS.z *= -1;
 #else
-    float d = texture(tempSampler, texCoord).x;
+    //float d = texture(tempSampler, texCoord).x;
 
-    d = texture(depthSampler, texCoord).r;
-    d = zNear / d;
-    //d = zNear * zFar / (d * (zNear - zFar) - zNear);
+    float d = texture(depthSampler, texCoord).x;
+    d = HyperbolicDepthToLinear(d);
 
     vec3 POS = ray * d;
     POS.z *= -1;
@@ -142,8 +141,8 @@ void blur()
 
     fragColor.rgb = texture(colorSampler, texCoord).rgb;
 
-    float depth = texture(depthSampler, texCoord).r;
-    fragColor.rgb = vec3((pow(1 - depth, 256)));// vec3(1 - pow(1 - depth, 256));
+    /*float depth = texture(depthSampler, texCoord).r;
+    fragColor.rgb = vec3((pow(1 - depth, 256)));// vec3(1 - pow(1 - depth, 256));*/
 
 #if 0
     vec3 n = vec3(texture(normalSampler, texCoord).xy, 0);
