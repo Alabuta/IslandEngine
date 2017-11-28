@@ -597,6 +597,9 @@ void DrawFrame()
     glViewport(0, 0, width, height);
 
     glClearNamedFramebufferfv(main_fbo, GL_COLOR, 0, colors::kPOWDERBLUE.rgba.data());
+    glClearNamedFramebufferfv(main_fbo, GL_COLOR, 1, colors::kBLACK.rgba.data());
+    glClearNamedFramebufferfv(main_fbo, GL_COLOR, 2, colors::kBLACK.rgba.data());
+    glClearNamedFramebufferfv(main_fbo, GL_COLOR, 3, colors::kBLACK.rgba.data());
     glClearNamedFramebufferfv(main_fbo, GL_DEPTH, 0, &clear_colors[0]);
 
     //cubemap::DrawCubemap();
