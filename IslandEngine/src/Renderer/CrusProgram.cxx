@@ -290,6 +290,8 @@ uint32 Program::CreateShaderObject(std::vector<std::string> const &_includes, st
         }
         
         preprocessor_directives << "\n#define CRUS_REVERSED_DEPTH " << static_cast<int32>(Render::kREVERSED_DEPTH) << std::endl;
+        preprocessor_directives << "\n#define CRUS_INFINITE_FAR_PLANE " << static_cast<int32>(Render::kINFINITE_FAR_PLANE) << std::endl;
+        preprocessor_directives << "\n#define CRUS_DEPTH_CLIPPED_FROM_ZERO_TO_ONE " << static_cast<int32>(Render::kDEPTH_CLIPPED_FROM_ZERO_TO_ONE) << std::endl;
 
         using namespace std::string_literals;
         return preprocessor_directives.good() ? preprocessor_directives.str() : ""s;
