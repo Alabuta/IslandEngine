@@ -103,14 +103,6 @@ void renderGBuffer()
 
     fragColor = vec4(vec3(diffuse), 1.0);
     fragNormal = n.xy;
-
-#if 0
-    fragTemp = length(pos);
-#else
-    fragTemp = -pos.z / 1;
-#endif
-    //fragNormal = pos.xy;
-    //fragTemp = pos.z;
 }
 
 layout(index = 1) subroutine(RenderPassType)
@@ -123,34 +115,16 @@ void ssao()
 layout(index = 2) subroutine(RenderPassType)
 void blur()
 {
-#if 0
-    vec3 r = normalize(ray);
-    float d = texture(tempSampler, texCoord).x;
+    fragColor.rgb = texture(colorSampler, texCoord).rgb;
 
-    vec3 POS = r * d;
-    POS.z *= -1;
-#else
-    //float d = texture(tempSampler, texCoord).x;
+    vec3 n = vec3(texture(normalSampler, texCoord).xy, 0);
+    n.z = sqrt(fma(-n.y, n.y, fma(n.x, -n.x, 1)));
 
     float d = texture(depthSampler, texCoord).x;
     d = HyperbolicDepthToLinear(d);
 
     vec3 POS = ray * d;
     POS.z *= -1;
-#endif
-
-    fragColor.rgb = texture(colorSampler, texCoord).rgb;
-
-    /*float depth = texture(depthSampler, texCoord).r;
-    fragColor.rgb = vec3((pow(1 - depth, 256)));// vec3(1 - pow(1 - depth, 256));*/
-
-#if 0
-    vec3 n = vec3(texture(normalSampler, texCoord).xy, 0);
-    n.z = sqrt(fma(-n.y, n.y, fma(n.x, -n.x, 1)));
-#endif
-
-    /*POS.xy = texture(normalSampler, texCoord).xy;
-    POS.z = -texture(tempSampler, texCoord).x;*/
 
     fragColor.rgb = POS * 0.5 + 0.5;
 

@@ -444,7 +444,7 @@ void InitFramebuffer()
 
     glTextureStorage2D(rt_1, 1, GL_RG16F, width, height);
 
-    Render::inst().CreateTBO(GL_TEXTURE_2D, rt_2);
+    /*Render::inst().CreateTBO(GL_TEXTURE_2D, rt_2);
 
     glTextureParameteri(rt_2, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTextureParameteri(rt_2, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -452,15 +452,15 @@ void InitFramebuffer()
     glTextureParameteri(rt_2, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTextureParameteri(rt_2, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-    glTextureStorage2D(rt_2, 1, GL_R32F, width, height);
+    glTextureStorage2D(rt_2, 1, GL_R32F, width, height);*/
 
     glNamedFramebufferTexture(main_fbo, GL_DEPTH_ATTACHMENT, rt_depth, 0);
     glNamedFramebufferTexture(main_fbo, GL_COLOR_ATTACHMENT0, rt_0, 0);
     glNamedFramebufferTexture(main_fbo, GL_COLOR_ATTACHMENT1, rt_1, 0);
-    glNamedFramebufferTexture(main_fbo, GL_COLOR_ATTACHMENT2, rt_2, 0);
+    //glNamedFramebufferTexture(main_fbo, GL_COLOR_ATTACHMENT2, rt_2, 0);
 
     {
-        std::uint32_t constexpr drawBuffers[] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2}; // GL_COLOR_ATTACHMENT2
+        std::uint32_t constexpr drawBuffers[] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1}; // GL_COLOR_ATTACHMENT2
         glNamedFramebufferDrawBuffers(main_fbo, static_cast<int32>(std::size(drawBuffers)), drawBuffers);
     }
 
@@ -598,8 +598,7 @@ void DrawFrame()
 
     glClearNamedFramebufferfv(main_fbo, GL_COLOR, 0, colors::kPOWDERBLUE.rgba.data());
     glClearNamedFramebufferfv(main_fbo, GL_COLOR, 1, colors::kBLACK.rgba.data());
-    glClearNamedFramebufferfv(main_fbo, GL_COLOR, 2, colors::kBLACK.rgba.data());
-    glClearNamedFramebufferfv(main_fbo, GL_COLOR, 3, colors::kBLACK.rgba.data());
+    //glClearNamedFramebufferfv(main_fbo, GL_COLOR, 2, colors::kBLACK.rgba.data());
     glClearNamedFramebufferfv(main_fbo, GL_DEPTH, 0, &clear_colors[0]);
 
     //cubemap::DrawCubemap();
