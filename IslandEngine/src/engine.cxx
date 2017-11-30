@@ -444,23 +444,12 @@ void InitFramebuffer()
 
     glTextureStorage2D(rt_1, 1, GL_RG16F, width, height);
 
-    /*Render::inst().CreateTBO(GL_TEXTURE_2D, rt_2);
-
-    glTextureParameteri(rt_2, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTextureParameteri(rt_2, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTextureParameteri(rt_2, GL_TEXTURE_MAX_LEVEL, 0);
-    glTextureParameteri(rt_2, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTextureParameteri(rt_2, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-    glTextureStorage2D(rt_2, 1, GL_R32F, width, height);*/
-
     glNamedFramebufferTexture(main_fbo, GL_DEPTH_ATTACHMENT, rt_depth, 0);
     glNamedFramebufferTexture(main_fbo, GL_COLOR_ATTACHMENT0, rt_0, 0);
     glNamedFramebufferTexture(main_fbo, GL_COLOR_ATTACHMENT1, rt_1, 0);
-    //glNamedFramebufferTexture(main_fbo, GL_COLOR_ATTACHMENT2, rt_2, 0);
 
     {
-        std::uint32_t constexpr drawBuffers[] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1}; // GL_COLOR_ATTACHMENT2
+        std::uint32_t constexpr drawBuffers[] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
         glNamedFramebufferDrawBuffers(main_fbo, static_cast<int32>(std::size(drawBuffers)), drawBuffers);
     }
 
@@ -477,10 +466,6 @@ void InitFramebuffer()
         log::Fatal() << "framebuffer error:" << result;
 
     glCreateFramebuffers(1, &out_fbo);
-
-    /*glCreateRenderbuffers(1, &out_rt);
-    glNamedRenderbufferStorage(out_rt, GL_DEPTH24_STENCIL8, width, height);
-    glNamedFramebufferRenderbuffer(quad_fbo, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, out_rt);*/
 
     Render::inst().CreateTBO(GL_TEXTURE_2D, out_rt);
     glBindTextureUnit(0, out_rt);
@@ -637,92 +622,10 @@ void DrawFrame()
 
     glBlitNamedFramebuffer(out_fbo, 0, 0, 0, width, height, 0, 0, width, height, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST);
 
-#if 0
-
-    glFinish();
-
-    glClearNamedFramebufferfv(main_fbo, GL_COLOR, 0, &clear_colors[0]);
-    glClearNamedFramebufferfv(main_fbo, GL_DEPTH, 0, &clear_colors[0]);
-
-    glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, &index1);
-    glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &index2);
-
-    glBindTextureUnit(0, rt_depth);
-    glBindTextureUnit(1, rt_0);
-    glBindTextureUnit(2, rt_1);
-    RenderFullscreenQuad();
-
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    glFinish();
-
-    glBlitNamedFramebuffer(main_fbo, 0, 0, 0, width, height, 0, 0, width, height, GL_COLOR_BUFFER_BIT, GL_NEAREST); //  | GL_DEPTH_BUFFER_BIT
-#endif
-
-
     /*hemisphere_program.UseThis();
 
     glBindVertexArray(hemisphere_vao);
     glDrawArrays(GL_POINTS, 0, hemisphere_count);*/
-
-    
-#if 1
-    /*geom_program.UseThis();
-    glBindTextureUnit(0, rt_0);
-
-    glBindVertexArray(geom_vao);
-    glDrawArrays(GL_TRIANGLES, 0, 3 * geom_count);*/
-#else
-    glFinish();
-
-    glBindFramebuffer(GL_FRAMEBUFFER, quad_fbo);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    //glClearNamedFramebufferfi(quad_fbo, GL_DEPTH_STENCIL, 0, 0.f, 0);
-
-    quad_program.UseThis();
-
-    uint32 const index0 = 0, index1 = 1, index2 = 2;
-
-    glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, &index0);
-    glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &index0);
-
-    glBindVertexArray(geom_vao);
-    glDrawArrays(GL_TRIANGLES, 0, 3 * geom_count);
-
-    /*glBindVertexArray(gen_vao);
-    glDrawElements(GL_TRIANGLES, gen_count, GL_UNSIGNED_SHORT, nullptr);*/
-
-    glFinish();
-
-    glBindFramebuffer(GL_FRAMEBUFFER, quad_inter);
-    //glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-    glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, &index1);
-    glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &index1);
-
-    glViewport(0, 0, width, height);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glDisable(GL_DEPTH_TEST);
-
-    glProgramUniformMatrix4fv(quad_program.program(), 4, 1, GL_TRUE, Render::inst().vp_.proj().m.data());
-
-    glBindTextureUnit(0, color_tex);
-    glBindTextureUnit(1, pos_tex);
-    glBindTextureUnit(2, norm_tex);
-    glBindTextureUnit(3, depth_tex);
-    glBindTextureUnit(4, noise_tex);
-    RenderFullscreenQuad();
-
-    glFinish();
-
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    glBindTextureUnit(0, ssao_tex);
-    glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &index2);
-    RenderFullscreenQuad();
-#endif
-
 }
 };
 
