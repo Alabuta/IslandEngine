@@ -126,7 +126,7 @@ void blur()
     vec3 POS = ray * d;
     POS.z *= -1;
 
-    fragColor.rgb = POS * 0.5 + 0.5;
+    //fragColor.rgb = POS * 0.5 + 0.5;
 
     fragColor.a = 1;
 }
