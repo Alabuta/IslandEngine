@@ -76,6 +76,8 @@ layout(binding = nNORMAL_MAP) uniform sampler2D normalSampler;
 layout(binding = nDEPTH) uniform sampler2D depthSampler;
 layout(binding = 2) uniform sampler2D tempSampler;
 
+layout(location = 8) uniform vec3 samples[64];
+
 in vec4 light;
 in vec4 normal;
 in vec2 texCoord;

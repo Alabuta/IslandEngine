@@ -40,7 +40,7 @@ uint32 hemisphere_vao, hemisphere_count;
 Program geom_program;
 uint32 geom_vao, geom_count;
 
-Program quad_program;
+Program ssao_program;
 uint32 quad_vao, quad_tid, quad_fbo, quad_depth, quad_inter, quad_blur;
 
 uint32 pos_tex, norm_tex, depth_tex, color_tex, noise_tex, ssao_tex, blured_tex;
@@ -196,7 +196,9 @@ void InitSSAO()
     // Mersenne-Twister engine.
     std::mt19937_64 mt(rd());
 
-    std::array<math::Vector, 64> kernel;
+    auto constexpr kernel_size = 64u;
+
+    std::array<math::Vector, kernel_size> kernel;
     std::generate(kernel.begin(), kernel.end(), [&floats, &mt, size = kernel.size(), i = 0] () mutable
     {
         math::Vector sample(floats(mt) * 2 - 1, floats(mt) * 2 - 1, floats(mt));
@@ -212,7 +214,7 @@ void InitSSAO()
         return sample;
     });
 
-    glProgramUniform3fv(quad_program.program(), 8, static_cast<uint32>(kernel.size()), &kernel.data()->x);
+    glProgramUniform3fv(ssao_program.program(), 8, kernel_size, &kernel.data()->x);
 
     if (hemisphere_program.AssignNew({R"(Defaults/Unlit-Simple.glsl)"})) {
         Render::inst().CreateVAO(hemisphere_vao);
@@ -368,6 +370,9 @@ void InitFramebuffer()
 
     if (auto result = glCheckNamedFramebufferStatus(out_fbo, GL_FRAMEBUFFER); result != GL_FRAMEBUFFER_COMPLETE)
         log::Fatal() << "framebuffer error:" << result;
+
+    if (auto const code = glGetError(); code != GL_NO_ERROR)
+        log::Error() << __FUNCTION__ << ": " << code;
 }
 
 void Init()
@@ -498,10 +503,17 @@ void DrawFrame()
 
     glBlitNamedFramebuffer(out_fbo, 0, 0, 0, width, height, 0, 0, width, height, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST);
 
-    /*hemisphere_program.UseThis();
+#if 0
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    hemisphere_program.UseThis();
+    matrices[1].Scale(1, 1, 1);
+    matrices[0] = Render::inst().vp_.projView() * matrices[1];
+    Render::inst().UpdateTransform(0, 2, matrices.data());
 
     glBindVertexArray(hemisphere_vao);
-    glDrawArrays(GL_POINTS, 0, hemisphere_count);*/
+    glDrawArrays(GL_POINTS, 0, hemisphere_count);
+#endif
 }
 };
 
