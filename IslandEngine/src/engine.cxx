@@ -185,12 +185,8 @@ bool LoadBinaryModel(std::string const &path, std::vector<T> &vertex_buffer)
     return true;
 }
 
-void InitFullscreenQuad()
+void InitSSAO()
 {
-#if 0
-    if (!quad_program.AssignNew({R"(Defaults/SSAO.glsl)"}))
-        return;
-
     std::uniform_real_distribution<float> floats(0.1f, 1.f);
     std::default_random_engine generator;
 
@@ -242,7 +238,6 @@ void InitFullscreenQuad()
             return math::Vector(floats(mt) * 2 - 1, floats(mt) * 2 - 1, 0.f).Normalize();
         });
 
-        glBindTextureUnit(4, noise_tex);
         Render::inst().CreateTBO(GL_TEXTURE_2D, noise_tex);
 
         glTextureParameteri(noise_tex, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -254,124 +249,6 @@ void InitFullscreenQuad()
         glTextureStorage2D(noise_tex, 1, GL_RGB32F, 4, 4);
         glTextureSubImage2D(noise_tex, 0, 0, 0, 4, 4, GL_RGB, GL_FLOAT, noise.data());
     }
-
-    glCreateFramebuffers(1, &quad_fbo);
-
-    //glCreateRenderbuffers(1, &quad_depth);
-    //glNamedRenderbufferStorage(quad_depth, GL_DEPTH24_STENCIL8, width, height);
-
-    {
-        glBindTextureUnit(0, color_tex);
-        Render::inst().CreateTBO(GL_TEXTURE_2D, color_tex);
-
-        glTextureParameteri(color_tex, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTextureParameteri(color_tex, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glTextureParameteri(color_tex, GL_TEXTURE_MAX_LEVEL, 0);
-        glTextureParameteri(color_tex, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTextureParameteri(color_tex, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-        glTextureStorage2D(color_tex, 1, GL_RGBA8, width, height);
-        //glTextureSubImage2D(quad_tid, 0, 0, 0, width, height, GL_RGBA, GL_RGBA8, nullptr);
-    }
-
-    {
-        glBindTextureUnit(1, pos_tex);
-        Render::inst().CreateTBO(GL_TEXTURE_2D, pos_tex);
-
-        glTextureParameteri(pos_tex, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTextureParameteri(pos_tex, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glTextureParameteri(pos_tex, GL_TEXTURE_MAX_LEVEL, 0);
-        glTextureParameteri(pos_tex, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTextureParameteri(pos_tex, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-        glTextureStorage2D(pos_tex, 1, GL_R32F, width, height);
-    }
-
-    {
-        glBindTextureUnit(2, norm_tex);
-        Render::inst().CreateTBO(GL_TEXTURE_2D, norm_tex);
-
-        glTextureParameteri(norm_tex, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTextureParameteri(norm_tex, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glTextureParameteri(norm_tex, GL_TEXTURE_MAX_LEVEL, 0);
-        glTextureParameteri(norm_tex, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTextureParameteri(norm_tex, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-        glTextureStorage2D(norm_tex, 1, GL_RG16F, width, height);
-    }
-
-    {
-        glBindTextureUnit(3, depth_tex);
-        Render::inst().CreateTBO(GL_TEXTURE_2D, depth_tex);
-
-        glTextureParameteri(depth_tex, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTextureParameteri(depth_tex, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glTextureParameteri(depth_tex, GL_TEXTURE_MAX_LEVEL, 0);
-        glTextureParameteri(depth_tex, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTextureParameteri(depth_tex, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-        glTextureStorage2D(depth_tex, 1, GL_DEPTH24_STENCIL8, width, height);
-    }
-
-    glNamedFramebufferTexture(quad_fbo, GL_COLOR_ATTACHMENT0, color_tex, 0);
-    glNamedFramebufferTexture(quad_fbo, GL_COLOR_ATTACHMENT1, pos_tex, 0);
-    glNamedFramebufferTexture(quad_fbo, GL_COLOR_ATTACHMENT2, norm_tex, 0);
-    glNamedFramebufferTexture(quad_fbo, GL_DEPTH_STENCIL_ATTACHMENT, depth_tex, 0);
-
-    //glNamedFramebufferRenderbuffer(quad_fbo, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, quad_depth);
-
-    std::array<std::uint32_t, 3> constexpr drawBuffers = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1,  GL_COLOR_ATTACHMENT2 };
-    glNamedFramebufferDrawBuffers(quad_fbo, static_cast<int32>(drawBuffers.size()), drawBuffers.data());
-
-    glDisablei(GL_BLEND, 1);
-    glDisablei(GL_BLEND, 2);
-    glDisablei(GL_BLEND, 3);
-
-    glBlendFunci(1, GL_ONE, GL_ONE);
-    glBlendFunci(2, GL_ONE, GL_ONE);
-    glBlendFunci(3, GL_ONE, GL_ONE);
-
-    if (auto result = glCheckNamedFramebufferStatus(quad_fbo, GL_FRAMEBUFFER); result != GL_FRAMEBUFFER_COMPLETE)
-        log::Error() << "framebuffer error:" << result;
-
-    {
-        glCreateFramebuffers(1, &quad_inter);
-
-        glBindTextureUnit(0, ssao_tex);
-        Render::inst().CreateTBO(GL_TEXTURE_2D, ssao_tex);
-
-        glTextureParameteri(ssao_tex, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTextureParameteri(ssao_tex, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glTextureParameteri(ssao_tex, GL_TEXTURE_MAX_LEVEL, 0);
-        glTextureParameteri(ssao_tex, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTextureParameteri(ssao_tex, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-        glTextureStorage2D(ssao_tex, 1, GL_RGB8, width, height);
-
-        glNamedFramebufferTexture(quad_inter, GL_COLOR_ATTACHMENT0, ssao_tex, 0);
-
-        std::array<std::uint32_t, 1> constexpr drawBuffers1 = {GL_COLOR_ATTACHMENT0};
-        glNamedFramebufferDrawBuffers(quad_inter, static_cast<int32>(drawBuffers1.size()), drawBuffers1.data());
-
-        if (auto result = glCheckNamedFramebufferStatus(quad_inter, GL_FRAMEBUFFER); result != GL_FRAMEBUFFER_COMPLETE)
-            log::Error() << "framebuffer error:" << result;
-    }
-
-    /*{
-        glCreateFramebuffers(1, &quad_blur);
-
-        glBindTextureUnit(1, blured_tex);
-        Render::inst().CreateTBO(GL_TEXTURE_2D, blured_tex);
-
-        glTextureParameteri(blured_tex, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTextureParameteri(blured_tex, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glTextureParameteri(blured_tex, GL_TEXTURE_MAX_LEVEL, 0);
-        glTextureParameteri(blured_tex, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTextureParameteri(blured_tex, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-        glTextureStorage2D(blured_tex, 1, GL_RGBA8, width, height);
-    }*/
-#endif
 }
 
 template<typename T>
@@ -477,7 +354,6 @@ void InitFramebuffer()
     glTextureParameteri(out_rt, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
     glTextureStorage2D(out_rt, 1, GL_RGBA8, width, height);
-    //glTextureSubImage2D(quad_tid, 0, 0, 0, width, height, GL_RGBA, GL_RGBA8, nullptr);
 
     glNamedFramebufferTexture(out_fbo, GL_COLOR_ATTACHMENT0, out_rt, 0);
 
@@ -508,8 +384,6 @@ void Init()
 
     cubemap::InitCubemap();
 
-    InitFullscreenQuad();
-
     InitFramebuffer();
 
     if (!geom_program.AssignNew({R"(Defaults/Diffuse-Lambert.glsl)"}))
@@ -517,6 +391,8 @@ void Init()
 
     if (!ssao_program.AssignNew({R"(Defaults/SSAO1.glsl)"}))
         return;
+
+    InitSSAO();
 
     Render::inst().CreateVAO(quad_vao);
 
