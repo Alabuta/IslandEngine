@@ -109,7 +109,7 @@ void renderGBuffer()
 #endif
 
     fragColor = vec4(vec3(diffuse), 1.0);
-    fragNormal = n.xy;
+    fragNormal = EncodeNormal(n);
 }
 
 layout(index = 1) subroutine(RenderPassType)
@@ -123,12 +123,13 @@ void ssao()
     vec3 p = ray * depth;
     //p.z *= -1;
 
-    vec3 n = vec3(texture(normalSampler, texCoord).xy, 0);
-    n.z = sqrt(fma(-n.y, n.y, fma(n.x, -n.x, 1)));
+    vec3 n = DecodeNormal(texture(normalSampler, texCoord).xy);
 
     vec3 t = normalize(rvec - n * dot(rvec, n));
     vec3 b = cross(n, t);
     mat3 TBN = mat3(t, b, n);
+
+    fragColor.rgb = vec3(1);// texture(colorSampler, texCoord).rgb;
 
     float occlusion = 0;
 
@@ -150,7 +151,6 @@ void ssao()
 
     occlusion = 1 - occlusion / kernelSize;
 
-    fragColor.rgb = texture(colorSampler, texCoord).rgb;
     fragColor.rgb *= occlusion;
     fragColor.a = 1;
 }
