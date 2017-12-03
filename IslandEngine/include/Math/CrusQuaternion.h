@@ -95,6 +95,9 @@ public:
 
     void ToAxisAngle(float *const axis, float &angle);
 
+    template<class T, typename std::enable_if_t<is_quaternion_t<T>>...>
+    Quaternion &slerp(T &&v, float alpha);
+
 private:
     union {
         struct {

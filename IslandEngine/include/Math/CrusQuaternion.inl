@@ -463,4 +463,36 @@ inline void Quaternion::ToAxisAngle(float *const _axis, float &_angle)
         _axis[2] = z_ * sinHalfAngle;
     }
 }
+
+template<class T, typename std::enable_if_t<is_quaternion_t<T>>...>
+inline Quaternion &isle::math::Quaternion::slerp(T &&b, float alpha)
+{
+    auto &a = *this;
+    auto c = std::forward<Quaternion>(b);
+
+    auto cosTheta = *this * b;
+
+    if (cosTheta < 0.f) {
+        c = -q;
+        cosTheta = -cosTheta;
+    }
+
+    if (cosTheta > 1.f - kEPSILON) {
+        *this = Quaternion{
+            lerp(a.x_, c.x_, alpha),
+            lerp(a.y_, c.y_, alpha),
+            lerp(a.z_, c.z_, alpha),
+            lerp(a.w_, c.w_, alpha)
+        };
+    }
+
+    else {
+        auto angle = std::acos(cosTheta);
+        auto q1 = a * std::sin((1.f - alpha) * angle);
+        auto q2 = c * std::sin(alpha * angle);
+        *this = (q1 + q2) / std::sin(angle);
+    }
+
+    return *this;
+}
 };

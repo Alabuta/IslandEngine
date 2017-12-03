@@ -82,6 +82,15 @@ struct is_vector<T, std::enable_if_t<std::is_same_v<std::decay_t<T>, isle::math:
 template<class T>
 constexpr bool is_vector_t = std::is_base_of_v<std::true_type, is_vector<T>>;
 
+template<class T, class = void>
+struct is_quaternion : std::false_type { };
+
+template<class T>
+struct is_quaternion<T, std::enable_if_t<std::is_same_v<std::decay_t<T>, isle::math::Quaternion>>> : std::true_type { };
+
+template<class T>
+constexpr bool is_quaternion_t = std::is_base_of_v<std::true_type, is_quaternion<T>>;
+
 //inline std::ostream &operator<< (std::ostream &stream, Vector const &vector);
 
 inline float DegToRad(float degree)

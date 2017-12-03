@@ -78,6 +78,9 @@ public:
 
     Vector const &Normalize();
 
+    template<class T, typename std::enable_if_t<is_vector_t<T>>...>
+    Vector &LerpStable(T &&v, float alpha);
+
     /*Vector &LerpStable();
     Vector LerpStable() const;
 

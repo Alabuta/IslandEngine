@@ -208,6 +208,12 @@ template<class T, typename std::enable_if_t<is_vector_t<T>>...>
     return Vector(_x, _y, _z).Normalize();
 }
 
+template<class T, typename std::enable_if_t<is_vector_t<T>>...>
+inline Vector &isle::math::Vector::LerpStable(T &&v, float alpha)
+{
+    return *this = *this * (1.f - alpha) + v * alpha;
+}
+
 /*static*/ inline constexpr Vector Vector::One()
 {
     return Vector(1, 1, 1);
