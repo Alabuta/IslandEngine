@@ -156,30 +156,30 @@ void Camera::UpdateView()
     auto const keyA = GetKeyState('A');
     auto const keyD = GetKeyState('D');
 
-    float x = (((keyD >> 0xF) ? 1 : 0) - ((keyA >> 0xF) ? 1 : 0)) * 0.02f;
+    float x = (((keyD >> 0xF) ? 1.f : 0) - ((keyA >> 0xF) ? 1.f : 0));
 
     auto const keyE = GetKeyState('E');
     auto const keyQ = GetKeyState('Q');
 
-    float y = (((keyE >> 0xF) ? 1 : 0) - ((keyQ >> 0xF) ? 1 : 0)) * 0.02f;
+    float y = (((keyE >> 0xF) ? 1.f : 0) - ((keyQ >> 0xF) ? 1.f : 0));
 
     auto const keyW = GetKeyState('W');
     auto const keyS = GetKeyState('S');
 
-    float z = (((keyS >> 0xF) ? 1 : 0) - ((keyW >> 0xF) ? 1 : 0)) * 0.02f;
+    float z = (((keyS >> 0xF) ? 1.f : 0) - ((keyW >> 0xF) ? 1.f : 0));
 
     auto const xAxis = math::Vector::GetNormalized(view_.xAxis);
     auto const yAxis = math::Vector::GetNormalized(view_.yAxis);
     auto const zAxis = math::Vector::GetNormalized(view_.zAxis);
 
-    pos_.x += math::Vector{xAxis.x, yAxis.x, zAxis.x} * math::Vector{x, y, z};
-    pos_.y += math::Vector{xAxis.y, yAxis.y, zAxis.y} * math::Vector{x, y, z};
-    pos_.z += math::Vector{xAxis.z, yAxis.z, zAxis.z} * math::Vector{x, y, z};
-    auto const direction = math::Vector{x, y, z} * 10;// *delta * 256.f;
+    auto const direction = math::Vector{x, y, z} * 4.f;
+    auto pos = pos_;
 
-    pos_.x += math::Vector{xAxis.x, yAxis.x, zAxis.x} * direction;
-    pos_.y += math::Vector{xAxis.y, yAxis.y, zAxis.y} * direction;
-    pos_.z += math::Vector{xAxis.z, yAxis.z, zAxis.z} * direction;
+    pos.x += math::Vector{xAxis.x, yAxis.x, zAxis.x} * direction;
+    pos.y += math::Vector{xAxis.y, yAxis.y, zAxis.y} * direction;
+    pos.z += math::Vector{xAxis.z, yAxis.z, zAxis.z} * direction;
+
+    pos_.LerpStable(pos, System::time.delta());
 
     view_.x = -xAxis * pos_;
     view_.y = -yAxis * pos_;
