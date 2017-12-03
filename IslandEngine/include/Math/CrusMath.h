@@ -99,9 +99,13 @@ inline float RadToDeg(float radian)
     return deg*3.141592 / 180;
 }*/
 
-inline float lerp(float a, float b, float f)
+inline float lerp(float a, float b, float alpha)
 {
-    return a + f * (b - a);
+    // Stable version.
+#if _CRUS_OBSOLETE
+    return a * (1.f - alpha) + b * alpha;
+#endif
+    return std::fma(a, (1.f - alpha), b * alpha);
 }
 
 inline float clamp(float x, float min, float max)
