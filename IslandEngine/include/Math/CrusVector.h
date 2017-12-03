@@ -25,19 +25,20 @@ public:
     constexpr Vector(Vector const &vector) = default;
     constexpr Vector(Vector &&vector) = default;
 
-    /*template<class T, typename std::enable_if_t<std::is_same_v<std::decay_t<T>, Vector>>...>
-    constexpr Vector(T &&vector) : uv(std::forward<typename T::uv>(vector.uv)) { };*/
-
     template<class T, typename std::enable_if_t<std::is_same_v<std::decay_t<T>, std::array<float, 3>>>...>
     constexpr Vector(T &&array) : xyz(std::forward<T>(array)) { };
 
     constexpr Vector(float x, float y, float z) : xyz({ x, y, z }) { };
 
-    Vector operator+ (Vector const &v) const;
-    Vector operator- (Vector const &v) const;
-    Vector operator^ (Vector const &v) const;       // Cross product.
+    template<class T, typename std::enable_if_t<is_vector_t<T>>...>
+    Vector operator+ (T &&v) const;
+    template<class T, typename std::enable_if_t<is_vector_t<T>>...>
+    Vector operator- (T &&v) const;
+    template<class T, typename std::enable_if_t<is_vector_t<T>>...>
+    Vector operator^ (T &&v) const;       // Cross product.
 
-    float operator* (Vector const &v) const;        // Dot product.
+    template<class T, typename std::enable_if_t<is_vector_t<T>>...>
+    float operator* (T &&v) const;        // Dot product.
 
     Vector operator+ (float s) const;
     Vector operator- (float s) const;
@@ -46,44 +47,48 @@ public:
 
     Vector const &operator= (float s);
 
-    Vector const &operator= (Vector const &v);
-    Vector const &operator= (Vector &&v);
+    Vector &operator= (Vector const &v);
+    Vector &operator= (Vector &&v);
 
-    bool operator== (Vector const &v) const;
-    bool operator!= (Vector const &v) const;
+    template<class T, typename std::enable_if_t<is_vector_t<T>>...>
+    bool operator== (T &&v) const;
+    template<class T, typename std::enable_if_t<is_vector_t<T>>...>
+    bool operator!= (T &&v) const;
 
-    Vector const &operator+= (Vector const &v);
-    Vector const &operator-= (Vector const &v);
-    Vector const &operator^= (Vector const &v);
+    template<class T, typename std::enable_if_t<is_vector_t<T>>...>
+    Vector const &operator+= (T &&v);
+    template<class T, typename std::enable_if_t<is_vector_t<T>>...>
+    Vector const &operator-= (T &&v);
+    template<class T, typename std::enable_if_t<is_vector_t<T>>...>
+    Vector const &operator^= (T &&v);
 
     Vector const &operator+= (float s);
     Vector const &operator-= (float s);
     Vector const &operator*= (float s);
     Vector const &operator/= (float s);
 
-    Vector const &operator+ () const;
+    Vector &operator+ ();
     Vector operator- () const;
 
-    Vector const &operator++ ();
-    Vector const &operator-- ();
+    Vector &operator++ ();
+    Vector &operator-- ();
 
     float GetNorm() const;
     float GetLenght() const;
 
     Vector const &Normalize();
 
-    template<class T, typename std::enable_if_t<std::is_same_v<std::decay_t<T>, Vector>>...>
-    static Vector GetNormalized(T &&v)
-    {
-        if constexpr (std::is_rvalue_reference_v<T>)
-            return std::move(v.Normalize());
+    /*Vector &LerpStable();
+    Vector LerpStable() const;
 
-        else return Vector(v).Normalize();
-    }
+    static Vector LerpStable();*/
+
+    template<class T, typename std::enable_if_t<is_vector_t<T>>...>
+    static Vector GetNormalized(T &&v);
 
     static Vector GetNormalized(float x, float y, float z);
 
-    static Vector One();
+    constexpr static Vector One();
 
     friend std::ostream &operator<< (std::ostream &stream, Vector const &vector);
 

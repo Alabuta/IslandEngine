@@ -11,17 +11,20 @@
 
 namespace isle::math {
 
-inline Vector Vector::operator+ (Vector const &_v) const
+template<class T, typename std::enable_if_t<is_vector_t<T>>...>
+inline Vector Vector::operator+ (T &&_v) const
 {
     return Vector(x + _v.x, y + _v.y, z + _v.z);
 }
 
-inline Vector Vector::operator- (Vector const &_v) const
+template<class T, typename std::enable_if_t<is_vector_t<T>>...>
+inline Vector Vector::operator- (T &&_v) const
 {
     return Vector(x - _v.x, y - _v.y, z - _v.z);
 }
 
-inline Vector Vector::operator^ (Vector const &_v) const
+template<class T, typename std::enable_if_t<is_vector_t<T>>...>
+inline Vector Vector::operator^ (T &&_v) const
 {
     return Vector
     (
@@ -31,7 +34,8 @@ inline Vector Vector::operator^ (Vector const &_v) const
     );
 }
 
-inline float Vector::operator* (Vector const &_v) const
+template<class T, typename std::enable_if_t<is_vector_t<T>>...>
+inline float Vector::operator* (T &&_v) const
 {
     return x * _v.x + y * _v.y + z * _v.z;
 }
@@ -63,7 +67,7 @@ inline Vector const &Vector::operator= (float _s)
     return *this;
 }
 
-inline Vector const &Vector::operator= (Vector const &_v)
+inline Vector &Vector::operator= (Vector const &_v)
 {
     if (this != &_v)
         xyz = _v.xyz;
@@ -71,37 +75,42 @@ inline Vector const &Vector::operator= (Vector const &_v)
     return *this;
 }
 
-inline Vector const &Vector::operator= (Vector &&_v)
+inline Vector &Vector::operator= (Vector &&_v)
 {
     xyz = std::move(_v.xyz);
     return *this;
 }
 
-inline bool Vector::operator== (Vector const &_v) const
+template<class T, typename std::enable_if_t<is_vector_t<T>>...>
+inline bool Vector::operator== (T &&_v) const
 {
     return CloseEnough(x, _v.x)
         && CloseEnough(y, _v.y)
         && CloseEnough(z, _v.z);
 }
 
-inline bool Vector::operator!= (Vector const &_v) const
+template<class T, typename std::enable_if_t<is_vector_t<T>>...>
+inline bool Vector::operator!= (T &&_v) const
 {
     return !(*this == _v);
 }
 
-inline Vector const &Vector::operator+= (Vector const &_v)
+template<class T, typename std::enable_if_t<is_vector_t<T>>...>
+inline Vector const &Vector::operator+= (T &&_v)
 {
     x += _v.x;    y += _v.y;    z += _v.z;
     return *this;
 }
 
-inline Vector const &Vector::operator-= (Vector const &_v)
+template<class T, typename std::enable_if_t<is_vector_t<T>>...>
+inline Vector const &Vector::operator-= (T &&_v)
 {
     x -= _v.x;    y -= _v.y;    z -= _v.z;
     return *this;
 }
 
-inline Vector const &Vector::operator^= (Vector const &_v)
+template<class T, typename std::enable_if_t<is_vector_t<T>>...>
+inline Vector const &Vector::operator^= (T &&_v)
 {
     return *this = Vector(y * _v.z - z * _v.y,
                           z * _v.x - x * _v.z,
@@ -134,7 +143,7 @@ inline Vector const &Vector::operator/= (float _s)
     return *this;
 }
 
-inline Vector const &Vector::operator+ () const
+inline Vector &Vector::operator+ ()
 {
     return *this;
 }
@@ -144,13 +153,13 @@ inline Vector Vector::operator- () const
     return Vector(-x, -y, -z);
 }
 
-inline Vector const &Vector::operator++ ()
+inline Vector &Vector::operator++ ()
 {
     ++x;    ++y;    ++z;
     return *this;
 }
 
-inline Vector const &Vector::operator-- ()
+inline Vector &Vector::operator-- ()
 {
     --x;    --y;    --z;
     return *this;
@@ -177,7 +186,7 @@ inline float Vector::GetNorm() const
 
 inline float Vector::GetLenght() const
 {
-    return sqrtf(GetNorm());
+    return std::sqrt(GetNorm());
 }
 
 inline Vector const &Vector::Normalize()
@@ -185,12 +194,21 @@ inline Vector const &Vector::Normalize()
     return *this /= GetLenght();
 }
 
+template<class T, typename std::enable_if_t<is_vector_t<T>>...>
+/*static*/ inline Vector isle::math::Vector::GetNormalized(T &&v)
+{
+    if constexpr (std::is_rvalue_reference_v<T>)
+        return std::move(v.Normalize());
+
+    else return Vector(v).Normalize();
+}
+
 /*static*/ inline Vector Vector::GetNormalized(float _x, float _y, float _z)
 {
     return Vector(_x, _y, _z).Normalize();
 }
 
-/*static*/ inline Vector Vector::One()
+/*static*/ inline constexpr Vector Vector::One()
 {
     return Vector(1, 1, 1);
 }
