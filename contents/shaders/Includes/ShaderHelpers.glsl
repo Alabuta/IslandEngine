@@ -69,3 +69,19 @@ vec4 TransformFromModelToWorld(vec4 position)
     return mModel * position;
 }
 
+// Lambert Azimuthal Equal-Area projection
+vec2 EncodeNormal(vec3 n)
+{
+    float f = sqrt(fma(8, n.z, 8));
+    return n.xy / f + 0.5;
+}
+
+vec3 DecodeNormal(vec2 enc)
+{
+    vec2 fenc = fma(enc, vec2(4), vec2(-2));
+    float f = dot(fenc, fenc);
+    float g = sqrt(1 - f / 4.0);
+
+    vec3 n = vec3(fenc * g, 1 - f / 2.0);
+    return n;
+}
