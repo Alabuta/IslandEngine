@@ -74,9 +74,14 @@ layout(location = 2) out float fragTemp;
 layout(binding = nALBEDO) uniform sampler2D colorSampler;
 layout(binding = nNORMAL_MAP) uniform sampler2D normalSampler;
 layout(binding = nDEPTH) uniform sampler2D depthSampler;
-layout(binding = 2) uniform sampler2D tempSampler;
+layout(binding = 4) uniform sampler2D noiseSampler;
 
 layout(location = 8) uniform vec3 samples[64];
+
+const vec2 noiseScale = vec2(1920.0 / 4.0, 1080.0 / 4.0);
+const float radius = 0.25;
+const float bias = 0.025;
+const float kernelSize = 64;
 
 in vec4 light;
 in vec4 normal;
@@ -110,7 +115,43 @@ void renderGBuffer()
 layout(index = 1) subroutine(RenderPassType)
 void ssao()
 {
+    vec3 rvec = texture(noiseSampler, texCoord * noiseScale).rgb;
+
+    float depth = texture(depthSampler, texCoord).x;
+    depth = HyperbolicDepthToLinear(depth);
+
+    vec3 p = ray * depth;
+    //p.z *= -1;
+
+    vec3 n = vec3(texture(normalSampler, texCoord).xy, 0);
+    n.z = sqrt(fma(-n.y, n.y, fma(n.x, -n.x, 1)));
+
+    vec3 t = normalize(rvec - n * dot(rvec, n));
+    vec3 b = cross(n, t);
+    mat3 TBN = mat3(t, b, n);
+
+    float occlusion = 0;
+
+    for (int i = 0; i < kernelSize; ++i) {
+        vec3 s = TBN * samples[i];
+        s = p + s * radius;
+
+        vec4 o = viewport.proj * vec4(s, 1);
+        o.xyz /= o.w;
+        o.xyz = fma(o.xyz, vec3(0.5), vec3(0.5));
+
+        float d = texture(depthSampler, o.xy).x;
+        d = -HyperbolicDepthToLinear(d);
+
+        float rangeCheck = smoothstep(0, 1, radius / abs(p.z - d));
+
+        occlusion += d < s.z + bias ? 0 : rangeCheck;
+    }
+
+    occlusion = 1 - occlusion / kernelSize;
+
     fragColor.rgb = texture(colorSampler, texCoord).rgb;
+    fragColor.rgb *= occlusion;
     fragColor.a = 1;
 }
 
@@ -119,14 +160,14 @@ void blur()
 {
     fragColor.rgb = texture(colorSampler, texCoord).rgb;
 
-    vec3 n = vec3(texture(normalSampler, texCoord).xy, 0);
+    /*vec3 n = vec3(texture(normalSampler, texCoord).xy, 0);
     n.z = sqrt(fma(-n.y, n.y, fma(n.x, -n.x, 1)));
 
     float d = texture(depthSampler, texCoord).x;
     d = HyperbolicDepthToLinear(d);
 
     vec3 POS = ray * d;
-    POS.z *= -1;
+    POS.z *= -1;*/
 
     //fragColor.rgb = POS * 0.5 + 0.5;
 

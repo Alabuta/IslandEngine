@@ -459,6 +459,8 @@ void DrawFrame()
     matrices[2] = math::Matrix::GetNormalMatrix(Render::inst().vp_.cam().view() * matrices[1]);
     Render::inst().UpdateTransform(0, 3, matrices.data());
 
+    Render::inst().UpdateViewport(1, 1, &Render::inst().vp_.proj());
+
     glBindFramebuffer(GL_FRAMEBUFFER, main_fbo);
     glViewport(0, 0, width, height);
 
@@ -489,12 +491,12 @@ void DrawFrame()
     glClearNamedFramebufferfv(out_fbo, GL_DEPTH, 0, &clear_colors[0]);
 
     glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, &index1);
-    glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &index2);
+    glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &index1);
 
     glBindTextureUnit(Render::nALBEDO, rt_0);
     glBindTextureUnit(Render::nNORMAL_MAP, rt_1);
-    glBindTextureUnit(2, rt_2);
     glBindTextureUnit(Render::nDEPTH, rt_depth);
+    glBindTextureUnit(4, noise_tex);
 
     glBindVertexArray(quad_vao);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 8);
