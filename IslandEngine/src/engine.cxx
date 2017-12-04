@@ -394,7 +394,7 @@ void Init()
     if (!geom_program.AssignNew({R"(Defaults/Diffuse-Lambert.glsl)"}))
         return;
 
-    if (!ssao_program.AssignNew({R"(Defaults/SSAO1.glsl)"}))
+    if (!ssao_program.AssignNew({R"(Defaults/SSAO.glsl)"}))
         return;
 
     InitSSAO();
