@@ -501,7 +501,20 @@ void DrawFrame()
     glBindVertexArray(quad_vao);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 8);
 
+#if 0
     glFinish();
+
+    /*glClearNamedFramebufferfv(out_fbo, GL_COLOR, 0, colors::kPOWDERBLUE.rgba.data());
+    glClearNamedFramebufferfv(out_fbo, GL_DEPTH, 0, &clear_colors[0]);*/
+
+    glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, &index1);
+    glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &index2);
+
+    glBindTextureUnit(Render::nALBEDO, out_rt);
+
+    glBindVertexArray(quad_vao);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 8);
+#endif
 
     glBlitNamedFramebuffer(out_fbo, 0, 0, 0, width, height, 0, 0, width, height, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST);
 
