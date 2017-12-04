@@ -185,6 +185,42 @@ bool LoadBinaryModel(std::string const &path, std::vector<T> &vertex_buffer)
     return true;
 }
 
+template<typename T>
+bool LoadModel(std::string const &name, uint32 &count, std::vector<T> &vertex_buffer)
+{
+    std::vector<Position> positions;
+    std::vector<math::Vector> normals;
+    std::vector<UV> uvs;
+
+    std::vector<std::vector<std::size_t>> faces;
+
+    auto path = "../contents/geometry/" + name;
+
+    if (!LoadBinaryModel(path, vertex_buffer)) {
+        if (LoadOBJ(path, positions, normals, uvs, faces)) {
+            for (auto &face : faces)
+                std::transform(face.begin(), face.end(), face.begin(), [] (auto &&a) { return a - 1; });
+
+            for (auto const &face : faces) {
+                for (auto it_index = face.cbegin(); it_index < face.cend(); std::advance(it_index, 2))
+                    vertex_buffer.emplace_back(T{
+                    positions.at(*it_index),
+                    normals.at(*std::next(it_index, 2)),
+                    uvs.at(*++it_index)
+                                               });
+            }
+
+            SaveBinaryModel(path, vertex_buffer);
+        }
+
+        else return false;
+    }
+
+    count = static_cast<std::decay_t<decltype(count)>>(vertex_buffer.size() / 3);
+
+    return true;
+}
+
 void InitSSAO()
 {
     std::uniform_real_distribution<float> floats(0.1f, 1.f);
@@ -251,40 +287,6 @@ void InitSSAO()
         glTextureStorage2D(noise_tex, 1, GL_RGB32F, 4, 4);
         glTextureSubImage2D(noise_tex, 0, 0, 0, 4, 4, GL_RGB, GL_FLOAT, noise.data());
     }
-}
-
-template<typename T>
-bool LoadModel(std::string const &path, uint32 &count, std::vector<T> &vertex_buffer)
-{
-    std::vector<Position> positions;
-    std::vector<math::Vector> normals;
-    std::vector<UV> uvs;
-
-    std::vector<std::vector<std::size_t>> faces;
-
-    if (!LoadBinaryModel(path, vertex_buffer)) {
-        if (LoadOBJ(path, positions, normals, uvs, faces)) {
-            for (auto &face : faces)
-                std::transform(face.begin(), face.end(), face.begin(), [] (auto &&a) { return a - 1; });
-
-            for (auto const &face : faces) {
-                for (auto it_index = face.cbegin(); it_index < face.cend(); std::advance(it_index, 2))
-                    vertex_buffer.emplace_back(T{
-                    positions.at(*it_index),
-                    normals.at(*std::next(it_index, 2)),
-                    uvs.at(*++it_index)
-                });
-            }
-
-            SaveBinaryModel(path, vertex_buffer);
-        }
-
-        else return false;
-    }
-
-    count = static_cast<std::decay_t<decltype(count)>>(vertex_buffer.size() / 3);
-
-    return true;
 }
 
 
@@ -379,7 +381,7 @@ void Init()
 {
     std::vector<Vertex> vertex_buffer;
 
-    auto future = std::async(std::launch::async, LoadModel<Vertex>, "../objects.obj", std::ref(geom_count), std::ref(vertex_buffer));
+    auto future = std::async(std::launch::async, LoadModel<Vertex>, "sponza.obj", std::ref(geom_count), std::ref(vertex_buffer));
 
     Camera::inst().Create(Camera::eCAM_BEHAVIOR::nFREE);
     Camera::inst().SetPos(0, 0, 2);
