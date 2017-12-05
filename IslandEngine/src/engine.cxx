@@ -194,7 +194,7 @@ bool LoadModel(std::string const &name, uint32 &count, std::vector<T> &vertex_bu
 
     std::vector<std::vector<std::size_t>> faces;
 
-    auto path = "../contents/geometry/" + name;
+    auto path = "../contents/meshes/" + name;
 
     if (!LoadBinaryModel(path, vertex_buffer)) {
         if (LoadOBJ(path, positions, normals, uvs, faces)) {
