@@ -122,6 +122,13 @@ inline float clamp(float x, float min, float max)
     return std::max(std::min(x, max), min);
 }
 
+inline float gauss(float x, float sigma2)
+{
+    auto coeff = 1.f / (kPI * 2.f * sigma2);
+    auto e = -x * x / (2.f * sigma2);
+    return coeff * std::exp(e);
+}
+
 inline float float_next(float val)
 {
     if (std::isnan(val) || std::isinf(val)) {

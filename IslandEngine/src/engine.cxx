@@ -21,7 +21,7 @@ std::array<float, 2> constexpr clear_colors = { 0.f, 1.f };
 uint32 main_fbo, rt_0, rt_1, rt_2, rt_depth;
 uint32 out_fbo, out_rt, out_depth;
 
-uint32 constexpr index0 = 0, index1 = 1, index2 = 2;
+uint32 constexpr index0 = 0, index1 = 1, index2 = 2, index3 = 3, index4 = 4;
 
 isle::Program ssao_program;
 
@@ -41,9 +41,7 @@ Program geom_program;
 uint32 geom_vao, geom_count;
 
 Program ssao_program;
-uint32 quad_vao, quad_tid, quad_fbo, quad_depth, quad_inter, quad_blur;
-
-uint32 pos_tex, norm_tex, depth_tex, color_tex, noise_tex, ssao_tex, blured_tex;
+uint32 quad_vao, quad_tid, quad_fbo, quad_depth, quad_inter, quad_blur, noise_tex;
 
 
 std::array<math::Matrix, 3> matrices = {
@@ -242,7 +240,7 @@ void InitSSAO()
         sample.Normalize();
         sample *= floats(mt);
 
-        auto scale = static_cast<float>(i++) / static_cast<float>(size);
+        auto scale = static_cast<float>(++i) / static_cast<float>(size);
         scale = math::lerp(.1f, 1.f, scale * scale);
 
         sample *= scale;
@@ -286,6 +284,24 @@ void InitSSAO()
 
         glTextureStorage2D(noise_tex, 1, GL_RGB32F, 4, 4);
         glTextureSubImage2D(noise_tex, 0, 0, 0, 4, 4, GL_RGB, GL_FLOAT, noise.data());
+    }
+
+    {
+        std::array<float, 5> weights;
+        auto sigma2 = 8.f;
+
+        weights.at(0) = math::gauss(0, sigma2);
+        auto sum = weights.at(0);
+
+        std::generate(std::next(weights.begin()), weights.end(), [sigma2, &sum, i = 0]() mutable
+        {
+            auto weight = math::gauss(static_cast<float>(++i), sigma2);
+            sum += 2.f * weight;
+
+            return weight;
+        });
+
+        log::Debug() << weights[0];
     }
 }
 
@@ -503,7 +519,7 @@ void DrawFrame()
     glBindVertexArray(quad_vao);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 8);
 
-#if 0
+#if 1
     glFinish();
 
     /*glClearNamedFramebufferfv(out_fbo, GL_COLOR, 0, colors::kPOWDERBLUE.rgba.data());
@@ -516,6 +532,13 @@ void DrawFrame()
 
     glBindVertexArray(quad_vao);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 8);
+
+    /*glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &index4);
+
+    glBindTextureUnit(Render::nALBEDO, out_rt);
+
+    glBindVertexArray(quad_vao);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 8);*/
 #endif
 
     glBlitNamedFramebuffer(out_fbo, 0, 0, 0, width, height, 0, 0, width, height, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST);

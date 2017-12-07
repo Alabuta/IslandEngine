@@ -80,8 +80,11 @@ layout(location = 8) uniform vec3 samples[64];
 
 const vec2 noiseScale = vec2(1920.0 / 4.0, 1080.0 / 4.0);
 const float radius = 0.25;
-const float bias = 0.025;
+const float bias = 0.0125;
 const float kernelSize = 64;
+
+
+uniform float Weight[5] = float[](0.2270270270, 0.1945945946, 0.1216216216, 0.0540540541, 0.0162162162);
 
 in vec4 light;
 in vec4 normal;
@@ -170,7 +173,45 @@ void blur()
     fragColor.rgb = vec3(result / (4.0 * 4.0));
     //fragColor = texture(colorSampler, texCoord);
 
-    fragColor.a = 1;
+    fragColor.a = texture(colorSampler, gl_FragCoord.xy).a;
+}
+
+layout(index = 3) subroutine(RenderPassType)
+void blur_pass_vertical()
+{
+    ivec2 pix = ivec2(gl_FragCoord.xy);
+
+    vec4 sum = texelFetch(colorSampler, pix, 0) * Weight[0];
+
+    sum += texelFetchOffset(colorSampler, pix, 0, ivec2(0,  1)) * Weight[1];
+    sum += texelFetchOffset(colorSampler, pix, 0, ivec2(0, -1)) * Weight[1];
+    sum += texelFetchOffset(colorSampler, pix, 0, ivec2(0,  2)) * Weight[2];
+    sum += texelFetchOffset(colorSampler, pix, 0, ivec2(0, -2)) * Weight[2];
+    sum += texelFetchOffset(colorSampler, pix, 0, ivec2(0,  3)) * Weight[3];
+    sum += texelFetchOffset(colorSampler, pix, 0, ivec2(0, -3)) * Weight[3];
+    sum += texelFetchOffset(colorSampler, pix, 0, ivec2(0,  4)) * Weight[4];
+    sum += texelFetchOffset(colorSampler, pix, 0, ivec2(0, -4)) * Weight[4];
+
+    fragColor = sum;
+}
+
+layout(index = 4) subroutine(RenderPassType)
+void blur_pass_horizontal()
+{
+    ivec2 pix = ivec2(gl_FragCoord.xy);
+
+    vec4 sum = texelFetch(colorSampler, pix, 0) * Weight[0];
+
+    sum += texelFetchOffset(colorSampler, pix, 0, ivec2( 1, 0)) * Weight[1];
+    sum += texelFetchOffset(colorSampler, pix, 0, ivec2(-1, 0)) * Weight[1];
+    sum += texelFetchOffset(colorSampler, pix, 0, ivec2( 2, 0)) * Weight[2];
+    sum += texelFetchOffset(colorSampler, pix, 0, ivec2(-2, 0)) * Weight[2];
+    sum += texelFetchOffset(colorSampler, pix, 0, ivec2( 3, 0)) * Weight[3];
+    sum += texelFetchOffset(colorSampler, pix, 0, ivec2(-3, 0)) * Weight[3];
+    sum += texelFetchOffset(colorSampler, pix, 0, ivec2( 4, 0)) * Weight[4];
+    sum += texelFetchOffset(colorSampler, pix, 0, ivec2(-4, 0)) * Weight[4];
+
+    fragColor = sum;
 }
 
 void main()
