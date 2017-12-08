@@ -13,8 +13,8 @@
 
 #include "engine.h"
 
-auto constexpr width = 1920;
-auto constexpr height = 1080;
+auto constexpr width = 1024;
+auto constexpr height = 1024;
 
 std::array<float, 2> constexpr clear_colors = { 0.f, 1.f };
 
@@ -32,6 +32,8 @@ void DrawCubemap();
 
 namespace app {
 intf::Grid grid;
+
+Texture blur_texture(Texture::eTEXTURE_TYPE::n2D, "blur");
 
 
 Program hemisphere_program;
@@ -462,6 +464,8 @@ void Init()
 
         glVertexArrayVertexBuffer(geom_vao, 0, bo, 0, sizeof(Vertex));
     }
+
+    blur_texture.Init();
 }
 
 void Update()
@@ -526,19 +530,20 @@ void DrawFrame()
     glClearNamedFramebufferfv(out_fbo, GL_DEPTH, 0, &clear_colors[0]);*/
 
     glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, &index1);
-    glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &index2);
+    glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &index3);
+
+    glBindTextureUnit(Render::nALBEDO, blur_texture.id());
+
+    glBindVertexArray(quad_vao);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 8);
+#if 1
+    glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &index4);
 
     glBindTextureUnit(Render::nALBEDO, out_rt);
 
     glBindVertexArray(quad_vao);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 8);
-
-    /*glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &index4);
-
-    glBindTextureUnit(Render::nALBEDO, out_rt);
-
-    glBindVertexArray(quad_vao);
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, 8);*/
+#endif
 #endif
 
     glBlitNamedFramebuffer(out_fbo, 0, 0, 0, width, height, 0, 0, width, height, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST);
