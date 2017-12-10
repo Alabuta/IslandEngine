@@ -13,15 +13,16 @@
 
 #include "engine.h"
 
-auto constexpr width = 1024;
-auto constexpr height = 1024;
+auto constexpr width = 1920;
+auto constexpr height = 1080;
 
 std::array<float, 2> constexpr clear_colors = { 0.f, 1.f };
 
-uint32 main_fbo, rt_0, rt_1, rt_2, rt_depth;
-uint32 out_fbo, out_rt, out_depth;
-
 uint32 constexpr index0 = 0, index1 = 1, index2 = 2, index3 = 3, index4 = 4;
+
+uint32 main_fbo, rt_0, rt_1, rt_2, rt_depth;
+uint32 out_fbo, out_rt0, out_rt1, out_depth;
+uint32 blur_tex;
 
 isle::Program ssao_program;
 
@@ -43,7 +44,7 @@ Program geom_program;
 uint32 geom_vao, geom_count;
 
 Program ssao_program;
-uint32 quad_vao, quad_tid, quad_fbo, quad_depth, quad_inter, quad_blur, noise_tex;
+uint32 quad_vao, noise_tex;
 
 
 std::array<math::Matrix, 3> matrices = {
@@ -51,6 +52,7 @@ std::array<math::Matrix, 3> matrices = {
     math::Matrix::Identity(),
     math::Matrix::Identity()
 };
+
 struct Vertex {
     Position pos;
     math::Vector normal;
@@ -415,8 +417,8 @@ void Init()
     auto future = std::async(std::launch::async, LoadModel<Vertex>, "sponza.obj", std::ref(geom_count), std::ref(vertex_buffer));
 
     Camera::inst().Create(Camera::eCAM_BEHAVIOR::nFREE);
-    Camera::inst().SetPos(0, 0, 2);
-    Camera::inst().LookAt(0, 0, 0);
+    Camera::inst().SetPos(0, 2, 0);
+    Camera::inst().LookAt(1, 2, 0.4);
 
     grid.Update(15, 1, 5);
 
