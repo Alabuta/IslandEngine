@@ -324,8 +324,10 @@ void InitFramebuffer()
 
     Render::inst().CreateTBO(GL_TEXTURE_2D, rt_0);
 
-    glTextureParameteri(rt_0, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTextureParameteri(rt_0, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTextureParameteri(rt_0, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTextureParameteri(rt_0, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    //glTextureParameteri(rt_0, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    //glTextureParameteri(rt_0, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTextureParameteri(rt_0, GL_TEXTURE_MAX_LEVEL, 0);
     glTextureParameteri(rt_0, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTextureParameteri(rt_0, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -366,18 +368,29 @@ void InitFramebuffer()
 
     glCreateFramebuffers(1, &out_fbo);
 
-    Render::inst().CreateTBO(GL_TEXTURE_2D, out_rt);
-    glBindTextureUnit(0, out_rt);
+    Render::inst().CreateTBO(GL_TEXTURE_2D, out_rt0);
 
-    glTextureParameteri(out_rt, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTextureParameteri(out_rt, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTextureParameteri(out_rt, GL_TEXTURE_MAX_LEVEL, 0);
-    glTextureParameteri(out_rt, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTextureParameteri(out_rt, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTextureParameteri(out_rt0, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTextureParameteri(out_rt0, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    //glTextureParameteri(out_rt0, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    //glTextureParameteri(out_rt0, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTextureParameteri(out_rt0, GL_TEXTURE_MAX_LEVEL, 0);
+    glTextureParameteri(out_rt0, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTextureParameteri(out_rt0, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-    glTextureStorage2D(out_rt, 1, GL_RGBA8, width, height);
+    glTextureStorage2D(out_rt0, 1, GL_RGBA8, width, height);
 
-    glNamedFramebufferTexture(out_fbo, GL_COLOR_ATTACHMENT0, out_rt, 0);
+    Render::inst().CreateTBO(GL_TEXTURE_2D, out_rt1);
+
+    glTextureParameteri(out_rt1, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTextureParameteri(out_rt1, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTextureParameteri(out_rt1, GL_TEXTURE_MAX_LEVEL, 0);
+    glTextureParameteri(out_rt1, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTextureParameteri(out_rt1, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+    glTextureStorage2D(out_rt1, 1, GL_RGBA8, width, height);
+
+    glNamedFramebufferTexture(out_fbo, GL_COLOR_ATTACHMENT0, out_rt0, 0);
 
     /*glCreateRenderbuffers(1, &out_depth);
     glNamedRenderbufferStorage(out_depth, GL_DEPTH_COMPONENT32F, width, height);
@@ -465,7 +478,23 @@ void Init()
         glVertexArrayVertexBuffer(geom_vao, 0, bo, 0, sizeof(Vertex));
     }
 
+#if 1
+    Render::inst().CreateTBO(GL_TEXTURE_2D, blur_tex);
+
+    glTextureParameteri(rt_0, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTextureParameteri(rt_0, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTextureParameteri(rt_0, GL_TEXTURE_MAX_LEVEL, 0);
+    glTextureParameteri(rt_0, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTextureParameteri(rt_0, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+#else
     blur_texture.Init();
+
+    glTextureParameteri(blur_texture.id(), GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTextureParameteri(blur_texture.id(), GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTextureParameteri(blur_texture.id(), GL_TEXTURE_MAX_LEVEL, 0);
+    glTextureParameteri(blur_texture.id(), GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTextureParameteri(blur_texture.id(), GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+#endif
 }
 
 void Update()
@@ -488,7 +517,6 @@ void DrawFrame()
 
     glClearNamedFramebufferfv(main_fbo, GL_COLOR, 0, colors::kPOWDERBLUE.rgba.data());
     glClearNamedFramebufferfv(main_fbo, GL_COLOR, 1, colors::kBLACK.rgba.data());
-    //glClearNamedFramebufferfv(main_fbo, GL_COLOR, 2, colors::kBLACK.rgba.data());
     glClearNamedFramebufferfv(main_fbo, GL_DEPTH, 0, &clear_colors[0]);
 
     //cubemap::DrawCubemap();
@@ -509,6 +537,8 @@ void DrawFrame()
     glBindFramebuffer(GL_FRAMEBUFFER, out_fbo);
     glViewport(0, 0, width, height);
 
+    glNamedFramebufferTexture(out_fbo, GL_COLOR_ATTACHMENT0, out_rt0, 0);
+
     glClearNamedFramebufferfv(out_fbo, GL_COLOR, 0, colors::kPOWDERBLUE.rgba.data());
     glClearNamedFramebufferfv(out_fbo, GL_DEPTH, 0, &clear_colors[0]);
 
@@ -526,20 +556,24 @@ void DrawFrame()
 #if 1
     glFinish();
 
+    glNamedFramebufferTexture(out_fbo, GL_COLOR_ATTACHMENT0, out_rt1, 0);
+
     /*glClearNamedFramebufferfv(out_fbo, GL_COLOR, 0, colors::kPOWDERBLUE.rgba.data());
     glClearNamedFramebufferfv(out_fbo, GL_DEPTH, 0, &clear_colors[0]);*/
 
     glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, &index1);
     glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &index3);
 
-    glBindTextureUnit(Render::nALBEDO, blur_texture.id());
+    glBindTextureUnit(Render::nALBEDO, out_rt0);
 
     glBindVertexArray(quad_vao);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 8);
 #if 1
+
+    glNamedFramebufferTexture(out_fbo, GL_COLOR_ATTACHMENT0, out_rt0, 0);
     glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &index4);
 
-    glBindTextureUnit(Render::nALBEDO, out_rt);
+    glBindTextureUnit(Render::nALBEDO, out_rt1);
 
     glBindVertexArray(quad_vao);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 8);

@@ -83,9 +83,6 @@ const float radius = 0.25;
 const float bias = 0.0125;
 const float kernelSize = 64;
 
-
-uniform float Weight[5] = float[](0.2270270270, 0.1945945946, 0.1216216216, 0.0540540541, 0.0162162162);
-
 in vec4 light;
 in vec4 normal;
 in vec2 texCoord;
@@ -176,10 +173,56 @@ void blur()
     fragColor.a = texture(colorSampler, gl_FragCoord.xy).a;
 }
 
+const float KERNEL_RADIUS = 3.0;
+const float g_Sharpness = 40.0;
+const vec2  g_InvResolutionDirection = 1.0 / vec2(1920.0, 1080.0);
+
+vec4 BlurFunction(vec2 uv, float r, vec4 center_c, float center_d, inout float w_total)
+{
+    vec4  c = texture(colorSampler, uv);
+    float d = texture(depthSampler, uv).x;
+    d = HyperbolicDepthToLinear(d);
+
+    const float BlurSigma = float(KERNEL_RADIUS) * 0.5;
+    const float BlurFalloff = 1.0 / (2.0 * BlurSigma * BlurSigma);
+
+    float ddiff = (d - center_d) * g_Sharpness;
+    float w = exp2(-r * r * BlurFalloff - ddiff * ddiff);
+    w_total += w;
+
+    return c * w;
+}
+
+#if 1
+uniform float Weight[5] = float[](0.2270270270, 0.1945945946, 0.1216216216, 0.0540540541, 0.0162162162);
+
 layout(index = 3) subroutine(RenderPassType)
 void blur_pass_vertical()
 {
-    ivec2 pix = ivec2(gl_FragCoord.xy);
+    vec2 res = 1.0 / vec2(1920.0, 1080.0);
+
+    vec4  center_c = texture(colorSampler, texCoord);
+    float center_d = texture(depthSampler, texCoord).x;
+    center_d = HyperbolicDepthToLinear(center_d);
+
+    vec4 c_total = center_c;
+    float w_total = 1.0;
+
+    vec2 uv;
+
+    for (float r = 1; r <= KERNEL_RADIUS; ++r) {
+        uv = fma(res, vec2(0, +r), texCoord);
+        c_total += BlurFunction(uv, r, center_c, center_d, w_total);
+    }
+
+    for (float r = 1; r <= KERNEL_RADIUS; ++r) {
+        uv = fma(res, vec2(0, -r), texCoord);
+        c_total += BlurFunction(uv, r, center_c, center_d, w_total);
+    }
+
+    fragColor = c_total / w_total;
+
+    /*ivec2 pix = ivec2(gl_FragCoord.xy);
 
     vec4 sum = texelFetch(colorSampler, pix, 0) * Weight[0];
 
@@ -192,13 +235,13 @@ void blur_pass_vertical()
     sum += texelFetchOffset(colorSampler, pix, 0, ivec2(0,  4)) * Weight[4];
     sum += texelFetchOffset(colorSampler, pix, 0, ivec2(0, -4)) * Weight[4];
 
-    fragColor = sum;
+    fragColor = sum;*/
 }
 
 layout(index = 4) subroutine(RenderPassType)
 void blur_pass_horizontal()
 {
-    ivec2 pix = ivec2(gl_FragCoord.xy);
+    /*ivec2 pix = ivec2(gl_FragCoord.xy);
 
     vec4 sum = texelFetch(colorSampler, pix, 0) * Weight[0];
 
@@ -211,8 +254,64 @@ void blur_pass_horizontal()
     sum += texelFetchOffset(colorSampler, pix, 0, ivec2( 4, 0)) * Weight[4];
     sum += texelFetchOffset(colorSampler, pix, 0, ivec2(-4, 0)) * Weight[4];
 
+    fragColor = sum;*/
+
+    vec2 res = 1.0 / vec2(1920.0, 1080.0);
+
+    vec4  center_c = texture(colorSampler, texCoord);
+    float center_d = texture(depthSampler, texCoord).x;
+    center_d = HyperbolicDepthToLinear(center_d);
+
+    vec4 c_total = center_c;
+    float w_total = 1.0;
+
+    vec2 uv;
+
+    for (float r = 1; r <= KERNEL_RADIUS; ++r) {
+        uv = fma(res, vec2(+r, 0), texCoord);
+        c_total += BlurFunction(uv, r, center_c, center_d, w_total);
+    }
+
+    for (float r = 1; r <= KERNEL_RADIUS; ++r) {
+        uv = fma(res, vec2(-r, 0), texCoord);
+        c_total += BlurFunction(uv, r, center_c, center_d, w_total);
+    }
+
+    fragColor = c_total / w_total;
+}
+#else
+
+uniform float offsets[3] = float[](0.0, 1.3846153846, 3.2307692308);
+uniform float weights[3] = float[](0.2270270270, 0.3162162162, 0.0702702703);
+
+layout(index = 3) subroutine(RenderPassType)
+void blur_pass_vertical()
+{
+    vec2 res = 1.0 / vec2(1920.0, 1080.0);
+    vec4 sum = texture(colorSampler, gl_FragCoord.xy * res) * weights[0];
+
+    sum += texture(colorSampler, (gl_FragCoord.xy + vec2(0, offsets[1])) * res) * weights[1];
+    sum += texture(colorSampler, (gl_FragCoord.xy - vec2(0, offsets[1])) * res) * weights[1];
+    sum += texture(colorSampler, (gl_FragCoord.xy + vec2(0, offsets[2])) * res) * weights[2];
+    sum += texture(colorSampler, (gl_FragCoord.xy - vec2(0, offsets[2])) * res) * weights[2];
+
     fragColor = sum;
 }
+
+layout(index = 4) subroutine(RenderPassType)
+void blur_pass_horizontal()
+{
+    vec2 res = 1.0 / vec2(1920.0, 1080.0);
+    vec4 sum = texture(colorSampler, gl_FragCoord.xy * res) * weights[0];
+
+    sum += texture(colorSampler, (gl_FragCoord.xy + vec2(offsets[1], 0)) * res) * weights[1];
+    sum += texture(colorSampler, (gl_FragCoord.xy - vec2(offsets[1], 0)) * res) * weights[1];
+    sum += texture(colorSampler, (gl_FragCoord.xy + vec2(offsets[2], 0)) * res) * weights[2];
+    sum += texture(colorSampler, (gl_FragCoord.xy - vec2(offsets[2], 0)) * res) * weights[2];
+
+    fragColor = sum;
+}
+#endif
 
 void main()
 {
