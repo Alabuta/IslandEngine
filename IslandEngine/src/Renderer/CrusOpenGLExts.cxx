@@ -257,6 +257,12 @@ CRUS_INLINE void APIENTRY glCopyBufferSubData(GLenum readTarget, GLenum writeTar
     return glCopyBufferSubData(readTarget, writeTarget, readOffset, writeOffset, size);
 }
 
+CRUS_INLINE void APIENTRY glCopyImageSubData(GLuint srcName, GLenum srcTarget, GLint srcLevel, GLint srcX, GLint srcY, GLint srcZ, GLuint dstName, GLenum dstTarget, GLint dstLevel, GLint dstX, GLint dstY, GLint dstZ, GLsizei srcWidth, GLsizei srcHeight, GLsizei srcDepth)
+{
+    GL_PROC_INIT(glCopyImageSubData);
+    return glCopyImageSubData(srcName, srcTarget, srcLevel, srcX, srcY, srcZ, dstName, dstTarget, dstLevel, dstX, dstY, dstZ, srcWidth, srcHeight, srcDepth);
+}
+
 CRUS_INLINE void APIENTRY glCreateBuffers(GLsizei n, GLuint *buffers)
 {
     GL_PROC_INIT(glCreateBuffers);
