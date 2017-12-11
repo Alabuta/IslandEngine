@@ -135,18 +135,21 @@ void ssao()
 
     for (int i = 0; i < kernelSize; ++i) {
         vec3 s = TBN * samples[i];
-        s = p + s * radius;// / max(1, -p.z * 0.1);
+        s = p + s * radius;// * max(1, -depth);
+
+        vec3 sdir = normalize(s - p);
+        float nDotS = max(dot(n, sdir), 0);
 
         vec4 o = viewport.proj * vec4(s, 1);
-        o.xyz /= o.w;
-        o.xyz = fma(o.xyz, vec3(0.5), vec3(0.5));
+        o.xy /= o.w;
+        o.xy = fma(o.xy, vec2(0.5), vec2(0.5));
 
         float d = texture(depthSampler, o.xy).x;
-        d = -HyperbolicDepthToLinear(d);
+        d = HyperbolicDepthToLinear(d);
 
-        float rangeCheck = smoothstep(0, 1, radius / abs(p.z - d));
+        float rangeCheck = smoothstep(0, 1, radius / abs(d - depth));
 
-        occlusion += d < s.z + bias ? 0 : rangeCheck;
+        occlusion += step(s.z + bias, -d) * rangeCheck * nDotS;
     }
 
     occlusion = max(0, 1 - occlusion / kernelSize);

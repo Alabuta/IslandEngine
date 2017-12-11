@@ -275,7 +275,7 @@ void InitSSAO()
         std::array<math::Vector, 16> noise;
         std::generate(noise.begin(), noise.end(), [&floats, &mt] ()
         {
-            return math::Vector(floats(mt) * 2 - 1, floats(mt) * 2 - 1, 0.f).Normalize();
+            return math::Vector(floats(mt) * 2 - 1, floats(mt) * 2 - 1, 0).Normalize();
         });
 
         Render::inst().CreateTBO(GL_TEXTURE_2D, noise_tex);
@@ -418,7 +418,7 @@ void Init()
 
     Camera::inst().Create(Camera::eCAM_BEHAVIOR::nFREE);
     Camera::inst().SetPos(0, 2, 0);
-    Camera::inst().LookAt(1, 2, 0.4);
+    Camera::inst().LookAt(1, 2, 0.4f);
 
     grid.Update(15, 1, 5);
 
