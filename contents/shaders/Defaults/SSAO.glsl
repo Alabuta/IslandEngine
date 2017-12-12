@@ -108,7 +108,7 @@ void renderGBuffer()
     float diffuse = dot(n, l);
 #endif
 
-    fragColor = vec4(vec3(1), 1.0);
+    fragColor = vec4(vec3(1), 1);
     fragNormal = EncodeNormal(n);
 }
 

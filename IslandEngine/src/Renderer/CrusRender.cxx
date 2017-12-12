@@ -47,6 +47,8 @@ void Render::Init()
 
     glEnable(GL_CULL_FACE);
     //glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    //glFrontFace(GL_CCW);
+    //glCullFace(GL_BACK);
 
     glEnablei(GL_BLEND, 0);
     glBlendFunci(0, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -61,7 +63,6 @@ void Render::Init()
 
     using namespace colors;
     glClearColor(kCLEARGRAY.r, kCLEARGRAY.g, kCLEARGRAY.b, 1.0f);
-    //glClearColor(41 / 256.0f, 34 / 256.0f, 37 / 256.0f, 1.0f);
 
     vp_.Create(intf::Viewport::eVIEWPORT_TYPE::nPERSPECTIVE);
     vp_.SetCamera(&Camera::inst());

@@ -44,7 +44,7 @@ layout(early_fragment_tests) in;
 layout(location = nBASE_COLOR) out vec4 fragColor;
 layout(location = nNORMALS) out vec2 fragNormal;
 
-layout(location = nMAIN_COLOR) uniform vec4 mainColor = vec4(1.0); // vec4(0, 0.74609375, 1, 1);
+/*layout(location = nMAIN_COLOR)*/ uniform vec4 mainColor = vec4(1.0); // vec4(0, 0.74609375, 1, 1);
 
 layout(binding = 0) uniform sampler2D mainTexture;
 

@@ -10,17 +10,19 @@
 
 const float zNear = 0.01, zFar = 100.0;
 
-/*vec2 clippedToViewport(in vec4 position)
+vec2 clippedToViewport(in vec4 position)
 {
-    return vec2(viewport.rect.z * 0.5 * (position.x / position.w + 1.0) + viewport.rect.x,
-                viewport.rect.w * 0.5 * (position.y / position.w + 1.0) + viewport.rect.y);
+    const vec4 rect = vec4(0, 0, 1920, 1080);
+    return vec2(rect.z * 0.5 * (position.x / position.w + 1.0) + rect.x,
+                rect.w * 0.5 * (position.y / position.w + 1.0) + rect.y);
 }
 
 vec2 normalizedToViewport(in vec2 position)
 {
-    return vec2(viewport.rect.z * 0.5 * (position.x + 1.0) + viewport.rect.x,
-                viewport.rect.w * 0.5 * (position.y + 1.0) + viewport.rect.y);
-}*/
+    const vec4 rect = vec4(0, 0, 1920, 1080);
+    return vec2(rect.z * 0.5 * (position.x + 1.0) + rect.x,
+                rect.w * 0.5 * (position.y + 1.0) + rect.y);
+}
 
 float HyperbolicDepthToLinear(float hyperbolicDepth)
 {
