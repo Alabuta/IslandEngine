@@ -154,7 +154,7 @@ void ssao()
 
     occlusion = max(0, 1 - occlusion / kernelSize);
 
-    fragColor.rgb *= occlusion;
+    fragColor.rgb *= pow(occlusion, 1);
 }
 
 layout(index = 2) subroutine(RenderPassType)
