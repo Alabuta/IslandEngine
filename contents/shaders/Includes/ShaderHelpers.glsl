@@ -31,10 +31,10 @@ float HyperbolicDepthToLinear(float hyperbolicDepth)
         #if CRUS_INFINITE_FAR_PLANE
             return zNear / hyperbolicDepth;
         #else
-            return zNear * zFar / (hyperbolicDepth * (zNear - zFar) + zNear);
+            return -zNear * zFar / (hyperbolicDepth * (zNear - zFar) + zNear);
         #endif
     #else
-        return -zNear * zFar / (hyperbolicDepth * (zNear - zFar) + zFar);
+        return zNear * zFar / (hyperbolicDepth * (zNear - zFar) + zFar);
     #endif
 #else
     return -2.0 * zNear * zFar / (hyperbolicDepth * (zNear - zFar) + zFar + zNear);

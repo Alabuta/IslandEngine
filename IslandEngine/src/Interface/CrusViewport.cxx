@@ -25,15 +25,14 @@ void Viewport::SetViewport(int16 _x, int16 _y, int16 _w, int16 _h)
     x_ = _x;    y_ = _y;
     w_ = _w;    h_ = _h;
 
-    // :TODO: find the correct near and far plane values.
-    auto const kFOV = 72.0f, zNear = 0.01f, zFar = 100.0f;
-    auto const f = 1.0f / std::tan(kFOV * math::kPI_DIV_180 * 0.5f);
+    auto const kFOV = 72.f, zNear = 0.01f, zFar = 100.f;
+    auto const f = 1.f / std::tan(kFOV * math::kPI_DIV_180 * 0.5f);
 
     auto const aspect = static_cast<float>(w_) / static_cast<float>(h_);
 
     // Default OpenGL perspective projection matrix.
     auto kA = (zNear + zFar) / (zNear - zFar);
-    auto kB = 2.0f * zNear * zFar / (zNear - zFar);
+    auto kB = 2.f * zNear * zFar / (zNear - zFar);
 
     // Depth value mapped from 0 to 1. See 'D3DXMatrixPerspectiveFovRH'.
     if constexpr (Render::kDEPTH_CLIPPED_FROM_ZERO_TO_ONE) {
@@ -73,7 +72,7 @@ void Viewport::SetViewport(int16 _x, int16 _y, int16 _w, int16 _h)
         w2, 0.f, 0.f, 0.f,
         0.f, h2, 0.f, 0.f,
         0.f, 0.f, 1.f, 0.f,
-        w2 + x_, h2 + y_, 0.0f, 1.0f
+        w2 + x_, h2 + y_, 0.f, 1.f
     );
 }
 
