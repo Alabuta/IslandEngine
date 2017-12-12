@@ -519,7 +519,7 @@ void DrawFrame()
 
     glClearNamedFramebufferfv(main_fbo, GL_COLOR, 0, colors::kPOWDERBLUE.rgba.data());
     glClearNamedFramebufferfv(main_fbo, GL_COLOR, 1, colors::kBLACK.rgba.data());
-    glClearNamedFramebufferfv(main_fbo, GL_DEPTH, 0, &clear_colors[0]);
+    glClearNamedFramebufferfv(main_fbo, GL_DEPTH, 0, &clear_colors[Render::kREVERSED_DEPTH ? 0 : 1]);
 
     //cubemap::DrawCubemap();
     //grid.Draw();
@@ -542,7 +542,7 @@ void DrawFrame()
     glNamedFramebufferTexture(out_fbo, GL_COLOR_ATTACHMENT0, out_rt0, 0);
 
     glClearNamedFramebufferfv(out_fbo, GL_COLOR, 0, colors::kPOWDERBLUE.rgba.data());
-    glClearNamedFramebufferfv(out_fbo, GL_DEPTH, 0, &clear_colors[0]);
+    glClearNamedFramebufferfv(out_fbo, GL_DEPTH, 0, &clear_colors[Render::kREVERSED_DEPTH ? 0 : 1]);
 
     glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, &index1);
     glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &index1);
@@ -561,7 +561,7 @@ void DrawFrame()
     glNamedFramebufferTexture(out_fbo, GL_COLOR_ATTACHMENT0, out_rt1, 0);
 
     /*glClearNamedFramebufferfv(out_fbo, GL_COLOR, 0, colors::kPOWDERBLUE.rgba.data());
-    glClearNamedFramebufferfv(out_fbo, GL_DEPTH, 0, &clear_colors[0]);*/
+    glClearNamedFramebufferfv(out_fbo, GL_DEPTH, 0, &clear_colors[Render::kREVERSED_DEPTH ? 0 : 1]);*/
 
     glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, &index1);
     glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &index3);
