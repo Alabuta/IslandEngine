@@ -115,7 +115,7 @@ void renderGBuffer()
 layout(index = 1) subroutine(RenderPassType)
 void ssao()
 {
-    vec3 rvec = texture(noiseSampler, texCoord * noiseScale).rgb;
+    fragColor = texture(colorSampler, texCoord);
 
     float depth = texture(depthSampler, texCoord).x;
     depth = HyperbolicDepthToLinear(depth);
@@ -124,23 +124,24 @@ void ssao()
     //p.z *= -1;
 
     vec3 n = DecodeNormal(texture(normalSampler, texCoord).xy);
+    vec3 rvec = texture(noiseSampler, texCoord * noiseScale).rgb;
 
     vec3 t = normalize(rvec - n * dot(rvec, n));
     vec3 b = cross(n, t);
     mat3 TBN = mat3(t, b, n);
 
-    fragColor = texture(colorSampler, texCoord);
-
-    float occlusion = 0;
+    float occlusion = 0, rejectedSamples = 0;
+    vec3 s, sdir;
+    vec4 o;
 
     for (int i = 0; i < kernelSize; ++i) {
-        vec3 s = TBN * samples[i];
+        s = TBN * samples[i];
         s = p + s * radius;// * max(1, -depth);
 
-        vec3 sdir = normalize(s - p);
+        sdir = normalize(s - p);
         float nDotS = max(dot(n, sdir), 0);
 
-        vec4 o = viewport.proj * vec4(s, 1);
+        o = viewport.proj * vec4(s, 1);
         o.xy /= o.w;
         o.xy = fma(o.xy, vec2(0.5), vec2(0.5));
 
@@ -148,11 +149,19 @@ void ssao()
         d = HyperbolicDepthToLinear(d);
 
         float rangeCheck = smoothstep(0, 1, radius / abs(d - depth));
+#if 0
+        float tttt = step(s.z + bias, -d);
 
+        if (abs(d - depth) > radius)
+            rejectedSamples += 1;
+
+        occlusion += tttt * rangeCheck * nDotS;
+#else
         occlusion += step(s.z + bias, -d) * rangeCheck * nDotS;
+#endif
     }
 
-    occlusion = max(0, 1 - occlusion / kernelSize);
+    occlusion = max(0, 1 - (occlusion / (kernelSize - rejectedSamples)));
 
     fragColor.rgb *= pow(occlusion, 1);
 }
