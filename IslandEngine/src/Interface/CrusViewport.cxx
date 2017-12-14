@@ -31,8 +31,8 @@ void Viewport::SetViewport(int16 _x, int16 _y, int16 _w, int16 _h)
     auto const aspect = static_cast<float>(w_) / static_cast<float>(h_);
 
     // Default OpenGL perspective projection matrix.
-    auto kA = (zNear + zFar) / (zNear - zFar);
-    auto kB = 2.f * zNear * zFar / (zNear - zFar);
+    auto kA = -(zFar + zNear) / (zFar - zNear);
+    auto kB = -2.f * zFar * zNear / (zFar - zNear);
 
     // Depth value mapped from 0 to 1. See 'D3DXMatrixPerspectiveFovRH'.
     if constexpr (Render::kDEPTH_CLIPPED_FROM_ZERO_TO_ONE) {

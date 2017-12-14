@@ -37,7 +37,7 @@ float HyperbolicDepthToLinear(float hyperbolicDepth)
         return zNear * zFar / (hyperbolicDepth * (zNear - zFar) + zFar);
     #endif
 #else
-    return -2.0 * zNear * zFar / (hyperbolicDepth * (zNear - zFar) + zFar + zNear);
+    return -2.0 * zNear * zFar / (hyperbolicDepth * (zFar - zNear) - (zFar + zNear));
 #endif
 }
 
