@@ -35,6 +35,7 @@ public:
 
     math::Matrix const &proj() const;
     math::Matrix projView() const;
+    math::Matrix const &invProj() const;
 
     int16 x() const;
     int16 y() const;
@@ -45,6 +46,7 @@ public:
     int16 x_, y_, w_, h_;
 
     math::Matrix proj_, viewport_;
+    math::Matrix invProj_;
     Camera *cam_;
 
     struct {
@@ -68,6 +70,11 @@ inline math::Matrix const &Viewport::proj() const
 inline math::Matrix Viewport::projView() const
 {
     return proj_ * cam_->view();
+}
+
+inline math::Matrix const &Viewport::invProj() const
+{
+    return invProj_;
 }
 
 inline Camera &Viewport::cam()

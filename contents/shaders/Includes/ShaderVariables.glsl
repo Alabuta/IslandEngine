@@ -19,6 +19,8 @@ layout(binding = nVIEWPORT, std140) uniform VIEWPORT
     layout(row_major) mat4 proj;
     layout(row_major) mat4 view;
 
+    layout(row_major) mat4 invProj;
+
     //vec4 rect = vec4(0, 0, 1920, 1080);
     //vec2 clipPlanes;
 } viewport;

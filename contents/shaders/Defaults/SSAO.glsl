@@ -52,7 +52,7 @@ void fullQuadRender()
     gl_Position = vec4(inVertex.xy, 1.0, 1.0);
     texCoord = inVertex.xy * 0.5 + 0.5;
 
-    ray = (inverse(viewport.proj) * gl_Position).xyz;
+    ray = (viewport.invProj * gl_Position).xyz;
 }
 
 void main()

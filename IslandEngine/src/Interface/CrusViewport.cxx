@@ -62,6 +62,9 @@ void Viewport::SetViewport(int16 _x, int16 _y, int16 _w, int16 _h)
         0.f, 0.f, -1.f, 0.f
     );
 
+    invProj_ = proj_;
+    invProj_.Inverse();
+
     glViewport(x_, y_, w_, h_);
 
     auto const w2 = w_ * 0.5f;
