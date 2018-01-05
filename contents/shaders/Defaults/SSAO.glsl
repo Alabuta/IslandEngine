@@ -157,6 +157,7 @@ void ssao()
 
         occlusion += tttt * rangeCheck * nDotS;
 #else
+        // rangeCheck = 1.0 - pow(abs(d - depth) / radius, 2.0);
         occlusion += step(s.z + bias, -d) * rangeCheck * nDotS;
 #endif
     }
@@ -232,7 +233,7 @@ void blur_pass_vertical()
         c_total += BlurFunction(uv, r, center_c, center_d, w_total);
     }
 
-    fragColor = c_total / w_total;
+    fragColor.rgb = c_total.rgb / w_total;
 
     /*ivec2 pix = ivec2(gl_FragCoord.xy);
 
@@ -289,7 +290,7 @@ void blur_pass_horizontal()
         c_total += BlurFunction(uv, r, center_c, center_d, w_total);
     }
 
-    fragColor = c_total / w_total;
+    fragColor.rgb = c_total.rgb / w_total;
 }
 #else
 
