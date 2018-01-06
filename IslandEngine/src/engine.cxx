@@ -410,6 +410,23 @@ void InitFramebuffer()
         log::Error() << __FUNCTION__ << ": " << code;
 }
 
+bool InitGaussFilter()
+{
+	auto constexpr kKernelSize = 7;
+
+	if ((kKernelSize % 2) != 1) {
+		log::Error() << "kernel size must be odd number.";
+		return false;
+	}
+
+	auto constexpr epsilon = 2e-2f / kKernelSize;
+	auto searchStep = 1.f, sigma = 1.f;
+
+
+
+	return true;
+}
+
 void Init()
 {
     std::vector<Vertex> vertex_buffer;
@@ -425,6 +442,8 @@ void Init()
     cubemap::InitCubemap();
 
     InitFramebuffer();
+
+	InitGaussFilter();
 
     if (!geom_program.AssignNew({R"(Defaults/Diffuse-Lambert.glsl)"}))
         return;
