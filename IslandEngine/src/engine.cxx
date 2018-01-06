@@ -457,6 +457,24 @@ void Init()
 
     }
 
+#if 1
+    Render::inst().CreateTBO(GL_TEXTURE_2D, blur_tex);
+
+    glTextureParameteri(rt_0, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTextureParameteri(rt_0, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTextureParameteri(rt_0, GL_TEXTURE_MAX_LEVEL, 0);
+    glTextureParameteri(rt_0, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTextureParameteri(rt_0, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+#else
+    blur_texture.Init();
+
+    glTextureParameteri(blur_texture.id(), GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTextureParameteri(blur_texture.id(), GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTextureParameteri(blur_texture.id(), GL_TEXTURE_MAX_LEVEL, 0);
+    glTextureParameteri(blur_texture.id(), GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTextureParameteri(blur_texture.id(), GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+#endif
+
     if (future.get()) {
         Render::inst().CreateVAO(geom_vao);
 
@@ -479,24 +497,6 @@ void Init()
 
         glVertexArrayVertexBuffer(geom_vao, 0, bo, 0, sizeof(Vertex));
     }
-
-#if 1
-    Render::inst().CreateTBO(GL_TEXTURE_2D, blur_tex);
-
-    glTextureParameteri(rt_0, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTextureParameteri(rt_0, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTextureParameteri(rt_0, GL_TEXTURE_MAX_LEVEL, 0);
-    glTextureParameteri(rt_0, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTextureParameteri(rt_0, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-#else
-    blur_texture.Init();
-
-    glTextureParameteri(blur_texture.id(), GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTextureParameteri(blur_texture.id(), GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTextureParameteri(blur_texture.id(), GL_TEXTURE_MAX_LEVEL, 0);
-    glTextureParameteri(blur_texture.id(), GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTextureParameteri(blur_texture.id(), GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-#endif
 }
 
 void Update()

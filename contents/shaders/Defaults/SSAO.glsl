@@ -252,7 +252,7 @@ void blur_pass_horizontal()
 // 9x9 tap filter
 uniform float Weight[5] = float[](0.2270270270, 0.1945945946, 0.1216216216, 0.0540540541, 0.0162162162);
 #else
-// 5x5 tap filter
+// 9x9 tap optimized filter
 uniform float weights[3] = float[](0.2270270270, 0.3162162162, 0.0702702703);
 uniform float offsets[3] = float[](0.0, 1.3846153846, 3.2307692308);
 #endif
