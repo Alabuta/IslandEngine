@@ -412,17 +412,31 @@ void InitFramebuffer()
 
 bool InitGaussFilter()
 {
-	auto constexpr kKernelSize = 7;
+	auto constexpr kKernelSize = 9;
 
 	if ((kKernelSize % 2) != 1) {
 		log::Error() << "kernel size must be odd number.";
 		return false;
 	}
 
-	auto constexpr epsilon = 2e-2f / kKernelSize;
-	auto searchStep = 1.f, sigma = 1.f;
+	/*auto constexpr epsilon = 2e-2f / kKernelSize;
+	auto searchStep = 1.f, sigma = 1.f;*/
 
+	auto constexpr sigma = 1.f;
 
+	std::vector<float> weights(kKernelSize / 2 + 1);
+
+	std::generate(weights.begin(), weights.end(), [sigma, i = 0] () mutable
+	{
+		return (1.f / sigma * std::sqrt(2.f * math::kPI)) * std::exp(std::pow(static_cast<float>(i++), 2.f) / 2.f * std::pow(sigma, 2.f));
+	});
+
+	auto sum = std::accumulate(weights.begin(), weights.end(), 0.f);
+
+	std::transform(weights.begin(), weights.end(), weights.begin(), [sum] (auto &&weight)
+	{
+		return weight / sum;
+	});
 
 	return true;
 }
