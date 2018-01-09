@@ -412,31 +412,46 @@ void InitFramebuffer()
 
 bool InitGaussFilter()
 {
-	auto constexpr kKernelSize = 9;
+	auto constexpr kKernelSize = 5;
+	auto constexpr kSampleCount = 1000.;
 
 	if ((kKernelSize % 2) != 1) {
 		log::Error() << "kernel size must be odd number.";
 		return false;
 	}
 
-	/*auto constexpr epsilon = 2e-2f / kKernelSize;
-	auto searchStep = 1.f, sigma = 1.f;*/
+	auto samplesPerBin = static_cast<uint32>(std::ceil(kSampleCount / static_cast<double>(kKernelSize)));
 
-	auto constexpr sigma = 1.f;
+	// Need an even number of intervals for simpson integration => odd number of samples
+	if ((samplesPerBin % 2) == 0) ++samplesPerBin;
 
-	std::vector<float> weights(kKernelSize / 2 + 1);
+	auto weightSum = 0.;
+
+	{
+		auto const kKernelLeft = -std::floor(kKernelSize / 2.);
+
+		//auto gaussainDistribution 
+	}
+
+	auto constexpr sigma = 1.;
+
+	std::vector<double> weights(kKernelSize / 2 + 1);
 
 	std::generate(weights.begin(), weights.end(), [sigma, i = 0] () mutable
 	{
-		return (1.f / sigma * std::sqrt(2.f * math::kPI)) * std::exp(std::pow(static_cast<float>(i++), 2.f) / 2.f * std::pow(sigma, 2.f));
+		return std::exp(-std::pow(static_cast<double>(i++), 2) / (2 * std::pow(sigma, 2))) / (sigma * std::sqrt(2 * static_cast<double>(math::kPI)));
 	});
 
-	auto sum = std::accumulate(weights.begin(), weights.end(), 0.f);
+	auto const sum = std::accumulate(std::next(weights.begin()), weights.end(), 0.) * 2 + weights.at(0);
 
 	std::transform(weights.begin(), weights.end(), weights.begin(), [sum] (auto &&weight)
 	{
 		return weight / sum;
 	});
+
+	for (auto &&weight : weights)
+		log::Debug() << weight;
+	log::Debug() << "sum " << std::accumulate(std::next(weights.begin()), weights.end(), 0.) * 2 + weights.at(0);
 
 	return true;
 }
