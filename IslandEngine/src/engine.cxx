@@ -206,10 +206,10 @@ bool LoadModel(std::string const &name, uint32 &count, std::vector<T> &vertex_bu
             for (auto const &face : faces) {
                 for (auto it_index = face.cbegin(); it_index < face.cend(); std::advance(it_index, 2))
                     vertex_buffer.emplace_back(T{
-                    positions.at(*it_index),
-                    normals.at(*std::next(it_index, 2)),
-                    uvs.at(*++it_index)
-                                               });
+						positions.at(*it_index),
+						normals.at(*std::next(it_index, 2)),
+						uvs.at(*++it_index)
+                    });
             }
 
             SaveBinaryModel(path, vertex_buffer);
