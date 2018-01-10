@@ -129,6 +129,12 @@ inline float gauss(float x, float sigma2)
     return coeff * std::exp(e);
 }
 
+template<typename T>
+T gaussianDistribution (T x, T sigma, T EV = 0)
+{
+	return static_cast<T>(std::exp(-0.5 * std::pow((x - EV) / sigma, 2))) / (sigma * std::sqrt(static_cast<double>(math::kPI * 2)));
+}
+
 inline float float_next(float val)
 {
     if (std::isnan(val) || std::isinf(val)) {
