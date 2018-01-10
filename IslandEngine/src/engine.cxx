@@ -412,8 +412,10 @@ void InitFramebuffer()
 
 bool InitGaussFilter()
 {
-	auto constexpr kKernelSize = 5;
+	auto constexpr kKernelSize = 3;
 	auto constexpr kSampleCount = 1000.;
+
+	auto constexpr sigma = 1.;
 
 	if ((kKernelSize % 2) != 1) {
 		log::Error() << "kernel size must be odd number.";
@@ -430,10 +432,64 @@ bool InitGaussFilter()
 	{
 		auto const kKernelLeft = -std::floor(kKernelSize / 2.);
 
-		//auto gaussainDistribution 
-	}
+		using F = double(*)(double);
 
-	auto constexpr sigma = 1.;
+		auto sampleInterval = [] (auto f, auto a, auto b, uint32 sampleCount)
+		{
+			using T = decltype(a);
+
+			std::vector<std::pair<T, T>> result(sampleCount);
+
+			auto const step = (b - a) / static_cast<T>(sampleCount - 1);
+
+			std::generate(result.begin(), result.end(), [=, i = 0]() mutable
+			{
+				auto x = a + i++ * step;
+				auto y = std::invoke(f, x);
+
+				return std::make_pair(x, y);
+			});
+
+			return result;
+		};
+
+		auto integrateSimpson = [] (auto samples)
+		{
+			auto result = samples.at(0).second + samples.back().second;
+
+			for (auto it = std::next(samples.cbegin()); it < samples.cend(); ++it) {
+				auto sampleWeight = (std::distance(samples.cbegin(), it) % 2) == 0 ? 2 : 4;
+				result += sampleWeight * it->second;
+			}
+
+			auto h = (samples.back().first - samples.back().first) / static_cast<double>(samples.size() - 1);
+		};
+
+		auto outsideSamplesLeft = sampleInterval([sigma] (auto x)
+		{
+			return math::gaussianDistribution(x, sigma, 0.);
+		}, -5 * sigma, kKernelLeft - 0.5, samplesPerBin);
+
+		auto outsideSamplesRight = sampleInterval([sigma] (auto x)
+		{
+			return math::gaussianDistribution(x, sigma, 0.);
+		}, 0.5 - kKernelLeft, 5 * sigma, samplesPerBin);
+
+		std::vector<std::pair<decltype(outsideSamplesLeft), double>> allSamples = {{
+			{ std::move(outsideSamplesLeft), 0. }
+		}};
+
+		for (auto tap = 0; tap < kKernelSize; ++tap) {
+			auto left = kKernelSize - 0.5 + tap;
+
+			auto tapSamples = sampleInterval([sigma] (auto x)
+			{
+				return math::gaussianDistribution(x, sigma, 0.);
+			}, left, left + 1, samplesPerBin);
+		}
+
+		allSamples.emplace_back(std::move(outsideSamplesRight), 0.);
+	}
 
 	std::vector<double> weights(kKernelSize / 2 + 1);
 
