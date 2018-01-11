@@ -453,7 +453,7 @@ bool InitGaussFilter()
 			return result;
 		};
 
-		auto integrateSimpson = [] (auto samples)
+		auto integrateSimpson = [] (std::vector<std::pair<double, double>> const &samples)
 		{
 			auto result = samples.at(0).second + samples.back().second;
 
@@ -463,6 +463,8 @@ bool InitGaussFilter()
 			}
 
 			auto h = (samples.back().first - samples.back().first) / static_cast<double>(samples.size() - 1);
+
+			return result * h / 3.0;
 		};
 
 		auto outsideSamplesLeft = sampleInterval([sigma] (auto x)
@@ -480,22 +482,36 @@ bool InitGaussFilter()
 		}};
 
 		for (auto tap = 0; tap < kKernelSize; ++tap) {
-			auto left = kKernelSize - 0.5 + tap;
+			auto left = kKernelLeft - 0.5 + tap;
 
 			auto tapSamples = sampleInterval([sigma] (auto x)
 			{
 				return math::gaussianDistribution(x, sigma, 0.);
 			}, left, left + 1, samplesPerBin);
+
+			auto tapWeight = integrateSimpson(tapSamples);
+			weightSum += tapWeight;
 		}
 
 		allSamples.emplace_back(std::move(outsideSamplesRight), 0.);
+
+		auto roundTo = [] (auto num, uint32 decimals)
+		{
+			auto shift = std::pow(static_cast<decltype(num)>(10), decimals);
+			return std::round(num * shift) / shift;
+		};
+
+		for (auto &&sample : allSamples)
+			sample.second = roundTo(sample.second, 6);
+
+		log::Debug() << allSamples.size() << '\n';
 	}
 
 	std::vector<double> weights(kKernelSize / 2 + 1);
 
 	std::generate(weights.begin(), weights.end(), [sigma, i = 0] () mutable
 	{
-		return std::exp(-std::pow(static_cast<double>(i++), 2) / (2 * std::pow(sigma, 2))) / (sigma * std::sqrt(2 * static_cast<double>(math::kPI)));
+		return math::gaussianDistribution(static_cast<double>(i++), sigma, 0.);
 	});
 
 	auto const sum = std::accumulate(std::next(weights.begin()), weights.end(), 0.) * 2 + weights.at(0);
