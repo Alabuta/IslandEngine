@@ -456,6 +456,7 @@ bool InitGaussFilter()
 		auto integrateSimpson = [] (std::vector<std::pair<double, double>> const &samples)
 		{
 			auto result = samples.at(0).second + samples.back().second;
+			log::Debug() << samples.at(0).second << "|" << samples.back().second;
 
 			for (auto it = std::next(samples.cbegin()); it < samples.cend(); ++it) {
 				auto sampleWeight = (std::distance(samples.cbegin(), it) % 2) == 0 ? 2 : 4;
@@ -463,6 +464,7 @@ bool InitGaussFilter()
 			}
 
 			auto h = (samples.back().first - samples.back().first) / static_cast<double>(samples.size() - 1);
+			log::Debug() << h << "|" << result;
 
 			return result * h / 3.0;
 		};
@@ -476,6 +478,16 @@ bool InitGaussFilter()
 		{
 			return math::gaussianDistribution(x, sigma, 0.);
 		}, 0.5 - kKernelLeft, 5 * sigma, samplesPerBin);
+
+
+		std::size_t i = 0;
+
+		/*for (auto &&[x, y] : outsideSamplesLeft)
+			log::Debug() << "(" << i++ << ") [" << x << ", " << y << "]";
+		log::Debug() << "\n\n";*/
+
+		/*for (auto &&[x, y] : outsideSamplesRight)
+			log::Debug() << "(" << i++ << ") [" << x << ", " << y << "]";*/
 
 		std::vector<std::pair<decltype(outsideSamplesLeft), double>> allSamples = {{
 			{ std::move(outsideSamplesLeft), 0. }
@@ -491,6 +503,12 @@ bool InitGaussFilter()
 
 			auto tapWeight = integrateSimpson(tapSamples);
 			weightSum += tapWeight;
+
+			/*for (auto &&[x, y] : tapSamples)
+				log::Debug() << "(" << i++ << ") [" << x << ", " << y << "]";
+			log::Debug() << "\n\n";*/
+
+			allSamples.emplace_back(std::move(tapSamples), tapWeight);
 		}
 
 		allSamples.emplace_back(std::move(outsideSamplesRight), 0.);
