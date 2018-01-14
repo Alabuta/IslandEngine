@@ -410,16 +410,16 @@ void InitFramebuffer()
         log::Error() << __FUNCTION__ << ": " << code;
 }
 
-bool InitGaussFilter()
+std::optional<std::vector<double>> InitGaussFilter()
 {
-	auto constexpr kKernelSize = 3;
+	auto constexpr kKernelSize = 9;
 	auto constexpr kSampleCount = 1000.;
 
-	auto constexpr sigma = 1.;
+	auto constexpr sigma = 2.;
 
 	if ((kKernelSize % 2) != 1) {
 		log::Error() << "kernel size must be odd number.";
-		return false;
+		return {};
 	}
 
 	auto samplesPerBin = static_cast<uint32>(std::ceil(kSampleCount / static_cast<double>(kKernelSize)));
@@ -429,102 +429,85 @@ bool InitGaussFilter()
 
 	auto weightSum = 0.;
 
+	auto const kKernelLeft = -std::floor(kKernelSize / 2.);
+
+	using F = double(*)(double);
+
+	auto sampleInterval = [] (auto f, auto a, auto b, uint32 sampleCount)
 	{
-		auto const kKernelLeft = -std::floor(kKernelSize / 2.);
+		using T = decltype(a);
 
-		using F = double(*)(double);
+		std::vector<std::pair<T, T>> result(sampleCount);
 
-		auto sampleInterval = [] (auto f, auto a, auto b, uint32 sampleCount)
+		auto const step = (b - a) / static_cast<T>(sampleCount - 1);
+
+		std::generate(result.begin(), result.end(), [=, i = 0] () mutable
 		{
-			using T = decltype(a);
+			auto x = a + i++ * step;
+			auto y = std::invoke(f, x);
 
-			std::vector<std::pair<T, T>> result(sampleCount);
+			return std::make_pair(x, y);
+		});
 
-			auto const step = (b - a) / static_cast<T>(sampleCount - 1);
+		return result;
+	};
 
-			std::generate(result.begin(), result.end(), [=, i = 0]() mutable
-			{
-				auto x = a + i++ * step;
-				auto y = std::invoke(f, x);
+	auto integrateSimpson = [] (std::vector<std::pair<double, double>> const &samples)
+	{
+		auto result = samples.at(0).second + samples.back().second;
 
-				return std::make_pair(x, y);
-			});
-
-			return result;
-		};
-
-		auto integrateSimpson = [] (std::vector<std::pair<double, double>> const &samples)
-		{
-			auto result = samples.at(0).second + samples.back().second;
-			log::Debug() << samples.at(0).second << "|" << samples.back().second;
-
-			for (auto it = std::next(samples.cbegin()); it < samples.cend(); ++it) {
-				auto sampleWeight = (std::distance(samples.cbegin(), it) % 2) == 0 ? 2 : 4;
-				result += sampleWeight * it->second;
-			}
-
-			auto h = (samples.back().first - samples.back().first) / static_cast<double>(samples.size() - 1);
-			log::Debug() << h << "|" << result;
-
-			return result * h / 3.0;
-		};
-
-		auto outsideSamplesLeft = sampleInterval([sigma] (auto x)
-		{
-			return math::gaussianDistribution(x, sigma, 0.);
-		}, -5 * sigma, kKernelLeft - 0.5, samplesPerBin);
-
-		auto outsideSamplesRight = sampleInterval([sigma] (auto x)
-		{
-			return math::gaussianDistribution(x, sigma, 0.);
-		}, 0.5 - kKernelLeft, 5 * sigma, samplesPerBin);
-
-
-		std::size_t i = 0;
-
-		/*for (auto &&[x, y] : outsideSamplesLeft)
-			log::Debug() << "(" << i++ << ") [" << x << ", " << y << "]";
-		log::Debug() << "\n\n";*/
-
-		/*for (auto &&[x, y] : outsideSamplesRight)
-			log::Debug() << "(" << i++ << ") [" << x << ", " << y << "]";*/
-
-		std::vector<std::pair<decltype(outsideSamplesLeft), double>> allSamples = {{
-			{ std::move(outsideSamplesLeft), 0. }
-		}};
-
-		for (auto tap = 0; tap < kKernelSize; ++tap) {
-			auto left = kKernelLeft - 0.5 + tap;
-
-			auto tapSamples = sampleInterval([sigma] (auto x)
-			{
-				return math::gaussianDistribution(x, sigma, 0.);
-			}, left, left + 1, samplesPerBin);
-
-			auto tapWeight = integrateSimpson(tapSamples);
-			weightSum += tapWeight;
-
-			/*for (auto &&[x, y] : tapSamples)
-				log::Debug() << "(" << i++ << ") [" << x << ", " << y << "]";
-			log::Debug() << "\n\n";*/
-
-			allSamples.emplace_back(std::move(tapSamples), tapWeight);
+		for (auto it = std::next(samples.cbegin()); it < std::prev(samples.cend()); ++it) {
+			auto sampleWeight = (std::distance(samples.cbegin(), it) % 2) == 0 ? 2 : 4;
+			result += sampleWeight * it->second;
 		}
 
-		allSamples.emplace_back(std::move(outsideSamplesRight), 0.);
+		auto h = (samples.back().first - samples.at(0).first) / static_cast<double>(samples.size() - 1);
 
-		auto roundTo = [] (auto num, uint32 decimals)
+		return result * h / 3.0;
+	};
+
+	auto outsideSamplesLeft = sampleInterval([sigma] (auto x)
+	{
+		return math::gaussianDistribution(x, sigma, 0.);
+	}, -5 * sigma, kKernelLeft - 0.5, samplesPerBin);
+
+	std::vector<std::pair<decltype(outsideSamplesLeft), double>> allSamples = {{
+		{ std::move(outsideSamplesLeft), 0. }
+	}};
+
+	for (auto tap = 0; tap < kKernelSize; ++tap) {
+		auto left = kKernelLeft - 0.5 + tap;
+
+		auto tapSamples = sampleInterval([sigma] (auto x)
 		{
-			auto shift = std::pow(static_cast<decltype(num)>(10), decimals);
-			return std::round(num * shift) / shift;
-		};
+			return math::gaussianDistribution(x, sigma, 0.);
+		}, left, left + 1, samplesPerBin);
 
-		for (auto &&sample : allSamples)
-			sample.second = roundTo(sample.second, 6);
+		auto tapWeight = integrateSimpson(tapSamples);
+		weightSum += tapWeight;
 
-		log::Debug() << allSamples.size() << '\n';
+		allSamples.emplace_back(std::move(tapSamples), tapWeight);
 	}
 
+	auto outsideSamplesRight = sampleInterval([sigma] (auto x)
+	{
+		return math::gaussianDistribution(x, sigma, 0.);
+	}, 0.5 - kKernelLeft, 5 * sigma, samplesPerBin);
+
+	allSamples.emplace_back(std::move(outsideSamplesRight), 0.);
+
+	auto roundTo = [] (auto num, uint32 decimals)
+	{
+		auto shift = std::pow(static_cast<decltype(num)>(10), decimals);
+		return std::round(num * shift) / shift;
+	};
+
+	std::vector<double> weights;
+
+	for (auto &&sample : allSamples)
+		weights.emplace_back(roundTo(sample.second / weightSum, 6));
+
+#if 0
 	std::vector<double> weights(kKernelSize / 2 + 1);
 
 	std::generate(weights.begin(), weights.end(), [sigma, i = 0] () mutable
@@ -542,8 +525,15 @@ bool InitGaussFilter()
 	for (auto &&weight : weights)
 		log::Debug() << weight;
 	log::Debug() << "sum " << std::accumulate(std::next(weights.begin()), weights.end(), 0.) * 2 + weights.at(0);
+#endif
 
-	return true;
+	for (auto &weight : weights)
+		log::Debug() << weight;
+
+	auto total = std::accumulate(weights.cbegin(), weights.cend(), 0.);
+	log::Debug() << total;
+
+	return weights;
 }
 
 void Init()
