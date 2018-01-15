@@ -289,24 +289,6 @@ void InitSSAO()
         glTextureStorage2D(noise_tex, 1, GL_RGB32F, 4, 4);
         glTextureSubImage2D(noise_tex, 0, 0, 0, 4, 4, GL_RGB, GL_FLOAT, noise.data());
     }
-
-    {
-        std::array<float, 5> weights;
-        auto sigma2 = 8.f;
-
-        weights.at(0) = math::gauss(0, sigma2);
-        auto sum = weights.at(0);
-
-        std::generate(std::next(weights.begin()), weights.end(), [sigma2, &sum, i = 0]() mutable
-        {
-            auto weight = math::gauss(static_cast<float>(++i), sigma2);
-            sum += 2.f * weight;
-
-            return weight;
-        });
-
-        log::Debug() << weights[0];
-    }
 }
 
 
@@ -506,26 +488,6 @@ std::optional<std::vector<double>> InitGaussFilter()
 
 	for (auto &&sample : allSamples)
 		weights.emplace_back(roundTo(sample.second / weightSum, 6));
-
-#if 0
-	std::vector<double> weights(kKernelSize / 2 + 1);
-
-	std::generate(weights.begin(), weights.end(), [sigma, i = 0] () mutable
-	{
-		return math::gaussianDistribution(static_cast<double>(i++), sigma, 0.);
-	});
-
-	auto const sum = std::accumulate(std::next(weights.begin()), weights.end(), 0.) * 2 + weights.at(0);
-
-	std::transform(weights.begin(), weights.end(), weights.begin(), [sum] (auto &&weight)
-	{
-		return weight / sum;
-	});
-
-	for (auto &&weight : weights)
-		log::Debug() << weight;
-	log::Debug() << "sum " << std::accumulate(std::next(weights.begin()), weights.end(), 0.) * 2 + weights.at(0);
-#endif
 
 	for (auto &weight : weights)
 		log::Debug() << weight;
