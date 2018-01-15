@@ -93,20 +93,15 @@ constexpr bool is_quaternion_t = std::is_base_of_v<std::true_type, is_quaternion
 
 //inline std::ostream &operator<< (std::ostream &stream, Vector const &vector);
 
-inline float DegToRad(float degree)
+inline constexpr float DegToRad(float degree)
 {
     return degree * kPI_DIV_180;
 }
 
-inline float RadToDeg(float radian)
+inline constexpr float RadToDeg(float radian)
 {
     return radian * kPI_DIV_180_INV;
 }
-
-/*long double operator"" _deg(long double deg)
-{
-    return deg*3.141592 / 180;
-}*/
 
 inline float lerp(float a, float b, float alpha)
 {
@@ -117,20 +112,8 @@ inline float lerp(float a, float b, float alpha)
     return std::fma(a, (1.f - alpha), b * alpha);
 }
 
-inline float clamp(float x, float min, float max)
-{
-    return std::max(std::min(x, max), min);
-}
-
-inline float gauss(float x, float sigma2)
-{
-    auto coeff = 1.f / (kPI * 2.f * sigma2);
-    auto e = -x * x / (2.f * sigma2);
-    return coeff * std::exp(e);
-}
-
 template<typename T>
-T gaussianDistribution (T x, T sigma, T EV = 0)
+T constexpr gaussianDistribution (T x, T sigma, T EV = 0)
 {
 	return static_cast<T>(std::exp(-0.5 * std::pow((x - EV) / sigma, 2))) / (sigma * std::sqrt(static_cast<double>(math::kPI * 2)));
 }

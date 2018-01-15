@@ -19,8 +19,6 @@ UNIT_SUITE_CLASS(isle::math)
     CHECK(IsTooSmall(kMIN * 0.9999f), "IsTooSmall(float)");
     CHECK(!IsTooSmall(kMIN * 1.0001f), "IsTooSmall(float)");
 
-    CHECK_EQUAL(2.9999f, clamp(2.9999f, 1.999999f, 2.999999f), "clamp()");
-
     {
         auto const x = rand<float>();
 
