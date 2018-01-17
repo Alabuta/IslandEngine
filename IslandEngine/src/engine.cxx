@@ -291,7 +291,6 @@ void InitSSAO()
     }
 }
 
-
 void InitFramebuffer()
 {
     glCreateFramebuffers(1, &main_fbo);
@@ -394,10 +393,10 @@ void InitFramebuffer()
 
 std::optional<std::vector<double>> InitGaussFilter()
 {
-	auto constexpr kKernelSize = 9;
+	auto constexpr kKernelSize = 3;
 	auto constexpr kSampleCount = 1000.;
 
-	auto constexpr sigma = 2.;
+	auto constexpr sigma = 1.;
 
 	if ((kKernelSize % 2) != 1) {
 		log::Error() << "kernel size must be odd number.";
@@ -522,11 +521,28 @@ void Init()
     if (!ssao_program.AssignNew({R"(Defaults/SSAO.glsl)"}))
         return;
 
+	std::vector<double> weights(3);
+	std::generate(weights.begin(), weights.end(), [i = 0] () mutable
+	{
+		auto x = static_cast<float>(i - (3 / 2));
+		++i;
+		return math::gaussianDistribution(x, 1.f);
+	});
+
+	auto total = std::accumulate(weights.cbegin(), weights.cend(), 0.);
+	std::transform(weights.begin(), weights.end(), weights.begin(), [total] (auto &&w) mutable
+	{
+		return w / total;
+	});
+
+	for (auto &weight : weights)
+		log::Debug() << weight;
+
     InitSSAO();
 
-    Render::inst().CreateVAO(quad_vao);
-
     {
+		Render::inst().CreateVAO(quad_vao);
+
         std::array<Position, 4> vertices = {{
             {-1.f, +1.f, 0.f},
             {-1.f, -1.f, 0.f},
@@ -544,7 +560,6 @@ void Init()
         glEnableVertexArrayAttrib(quad_vao, Render::eVERTEX_IN::nPOSITION);
 
         glVertexArrayVertexBuffer(quad_vao, 0, bo, 0, sizeof(Position));
-
     }
 
 #if 1
@@ -684,6 +699,18 @@ void DrawFrame()
 
     glBindVertexArray(hemisphere_vao);
     glDrawArrays(GL_POINTS, 0, hemisphere_count);
+#endif
+
+#if 0
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	test_program.UseThis();
+	matrices[1].Scale(1, 1, 1);
+	matrices[0] = Render::inst().vp_.projView() * matrices[1];
+	Render::inst().UpdateTransform(0, 2, matrices.data());
+
+	glBindVertexArray(test_vao);
+	glDrawArrays(GL_LINE_STRIP, 0, test_count);
 #endif
 }
 };
