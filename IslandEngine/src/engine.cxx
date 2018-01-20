@@ -513,43 +513,27 @@ T GaussianSimpsonIntegration(T sigma, T a, T b)
 template<typename T>
 std::vector<T> GaussianKernelIntegrals(T sigma, int taps)
 {
-	std::vector<T> ret(taps);
+	std::vector<T> weights(taps);
 
-	std::generate(ret.begin(), ret.end(), [sigma, half = (taps / 2), i = 0] () mutable
+	std::generate(weights.begin(), weights.end(), [sigma, half = (taps / 2), i = 0] () mutable
 	{
 		auto x = static_cast<T>(i++ - half);
 		return GaussianSimpsonIntegration(sigma, x - static_cast<T>(0.5), x + static_cast<T>(0.5));
 	});
 
-	auto total = std::accumulate(ret.begin(), ret.end(), static_cast<T>(0));
+	auto total = std::accumulate(weights.begin(), weights.end(), static_cast<T>(0));
 
-	std::transform(ret.begin(), ret.end(), ret.begin(), [total] (auto value)
+	std::transform(weights.begin(), weights.end(), weights.begin(), [total] (auto value)
 	{
 		return value / total;
 	});
 
-	log::Debug() << "size: " << ret.size() << std::setw(2);
-
-	return ret;
+	return weights;
 }
 
 
 void Init()
 {
-	{
-		auto constexpr xblursigma = 2.4f;
-
-		auto xblur = PixelsNeededForSigma(xblursigma, 0.5f);
-		auto xblursize = static_cast<int>(floor(xblur) + 1) | 1;
-
-		log::Debug() << xblursize << " : " << xblur;
-
-		auto row = GaussianKernelIntegrals(xblursigma, xblursize);
-
-		row.erase(row.begin(), std::next(row.begin(), xblursize / 2));
-
-		glProgramUniform1fv(ssao_program.program(), 10, static_cast<uint32>(row.size()), row.data());
-	}
 
     std::vector<Vertex> vertex_buffer;
 
@@ -565,13 +549,48 @@ void Init()
 
     InitFramebuffer();
 
-	InitGaussFilter();
+	//InitGaussFilter();
 
     if (!geom_program.AssignNew({R"(Defaults/Diffuse-Lambert.glsl)"}))
         return;
 
-    if (!ssao_program.AssignNew({R"(Defaults/SSAO.glsl)"}))
-        return;
+	{
+		auto constexpr xblursigma = 1.6f;
+
+		auto xblur = PixelsNeededForSigma(xblursigma, 0.5f);
+		auto xblursize = static_cast<int>(std::floor(xblur) + 1) | 1;
+
+		log::Debug() << xblursize << " : " << xblur;
+
+		auto weights = GaussianKernelIntegrals(xblursigma, xblursize);
+
+		weights.erase(weights.begin(), std::next(weights.begin(), xblursize / 2));
+		weights.erase(std::prev(weights.end(), 2), weights.end());
+
+		std::ostringstream stream;
+		std::copy(weights.cbegin(), weights.cend(), std::ostream_iterator<decltype(weights)::value_type>(stream, ", "));
+
+		log::Debug() << stream.str();
+
+		using namespace std::string_literals;
+		if (!ssao_program.AssignNew({ R"(Defaults/SSAO.glsl)"s }, "#define kWEIGHTS_SIZE\t"s + std::to_string(weights.size())))
+			return;
+
+		auto index = glGetProgramResourceIndex(ssao_program.program(), GL_SHADER_STORAGE_BLOCK, "GAUSS_FILTER_KERNEL");
+
+		if (index == GL_INVALID_INDEX)
+			log::Error() << "can't init the SSBO: invalid index param: " << "GAUSS_FILTER_KERNEL";
+
+		uint32 GAUSS_FILTER_KERNEL = 0;
+
+		Render::inst().CreateBO(GAUSS_FILTER_KERNEL);
+		glNamedBufferStorage(GAUSS_FILTER_KERNEL, sizeof(decltype(weights)::value_type) * weights.size(), weights.data(), 0);
+
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 5, GAUSS_FILTER_KERNEL);
+		glShaderStorageBlockBinding(ssao_program.program(), index, 5);
+
+		//glProgramUniform1fv(ssao_program.program(), 5, static_cast<uint32>(weights.size()), weights.data());
+	}
 
     InitSSAO();
 
