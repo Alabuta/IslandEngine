@@ -9,6 +9,7 @@
 #include <variant>
 #include <array>
 #include <bitset>
+#include <iomanip>
 #include <regex>
 
 #include "engine.h"
@@ -497,8 +498,59 @@ std::optional<std::vector<double>> InitGaussFilter()
 	return weights;
 }
 
+template<typename T>
+T PixelsNeededForSigma(T sigma, T threshold)
+{
+	return 1 + 2 * std::sqrt(-2 * std::pow(sigma, 2) * std::log(threshold * static_cast<T>(0.01)));
+}
+
+template<typename T>
+T GaussianSimpsonIntegration(T sigma, T a, T b)
+{
+	return ((b - a) / static_cast<T>(6)) * (math::gaussianDistribution(a, sigma) + 4 * math::gaussianDistribution((a + b) / static_cast<T>(2), sigma) + math::gaussianDistribution(b, sigma));
+}
+
+template<typename T>
+std::vector<T> GaussianKernelIntegrals(T sigma, int taps)
+{
+	std::vector<T> ret(taps);
+
+	std::generate(ret.begin(), ret.end(), [sigma, half = (taps / 2), i = 0] () mutable
+	{
+		auto x = static_cast<T>(i++ - half);
+		return GaussianSimpsonIntegration(sigma, x - static_cast<T>(0.5), x + static_cast<T>(0.5));
+	});
+
+	auto total = std::accumulate(ret.begin(), ret.end(), static_cast<T>(0));
+
+	std::transform(ret.begin(), ret.end(), ret.begin(), [total] (auto value)
+	{
+		return value / total;
+	});
+
+	log::Debug() << "size: " << ret.size() << std::setw(2);
+
+	return ret;
+}
+
+
 void Init()
 {
+	{
+		auto constexpr xblursigma = 2.4f;
+
+		auto xblur = PixelsNeededForSigma(xblursigma, 0.5f);
+		auto xblursize = static_cast<int>(floor(xblur) + 1) | 1;
+
+		log::Debug() << xblursize << " : " << xblur;
+
+		auto row = GaussianKernelIntegrals(xblursigma, xblursize);
+
+		row.erase(row.begin(), std::next(row.begin(), xblursize / 2));
+
+		glProgramUniform1fv(ssao_program.program(), 10, static_cast<uint32>(row.size()), row.data());
+	}
+
     std::vector<Vertex> vertex_buffer;
 
     auto future = std::async(std::launch::async, LoadModel<Vertex>, "sponza.obj", std::ref(geom_count), std::ref(vertex_buffer));
