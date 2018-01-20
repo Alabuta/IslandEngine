@@ -7,6 +7,7 @@
 ****
 ****************************************************************************************/
 #pragma include("Includes/ShaderVariables.glsl")
+#pragma include("Includes/ShaderHelpers.glsl")
 
 #pragma stage("vertex")
 

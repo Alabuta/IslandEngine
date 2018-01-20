@@ -521,23 +521,6 @@ void Init()
     if (!ssao_program.AssignNew({R"(Defaults/SSAO.glsl)"}))
         return;
 
-	std::vector<double> weights(3);
-	std::generate(weights.begin(), weights.end(), [i = 0] () mutable
-	{
-		auto x = static_cast<float>(i - (3 / 2));
-		++i;
-		return math::gaussianDistribution(x, 1.f);
-	});
-
-	auto total = std::accumulate(weights.cbegin(), weights.cend(), 0.);
-	std::transform(weights.begin(), weights.end(), weights.begin(), [total] (auto &&w) mutable
-	{
-		return w / total;
-	});
-
-	for (auto &weight : weights)
-		log::Debug() << weight;
-
     InitSSAO();
 
     {
