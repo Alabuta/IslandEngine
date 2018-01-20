@@ -76,7 +76,7 @@ layout(binding = nNORMAL_MAP) uniform sampler2D normalSampler;
 layout(binding = nDEPTH) uniform sampler2D depthSampler;
 layout(binding = 4) uniform sampler2D noiseSampler;
 
-layout(location = 8) uniform vec3 samples[64];
+layout(location = 20) uniform vec3 samples[64];
 
 const vec2 noiseScale = vec2(1920.0 / 4.0, 1080.0 / 4.0);
 const float radius = 0.25;
@@ -250,11 +250,11 @@ void blur_pass_horizontal()
 
 #if NAIVE_SEPARATED_GAUSS_BLUR
 // 9x9 tap filter
-uniform float Weight[5] = float[](0.2270270270, 0.1945945946, 0.1216216216, 0.0540540541, 0.0162162162);
+layout(location = 10) uniform float Weight[] = float[](0.2270270270, 0.1945945946, 0.1216216216, 0.0540540541, 0.0162162162);
 #else
 // 9x9 tap optimized filter
-uniform float weights[3] = float[](0.2270270270, 0.3162162162, 0.0702702703);
-uniform float offsets[3] = float[](0.0, 1.3846153846, 3.2307692308);
+uniform float weights[] = float[](0.2270270270, 0.3162162162, 0.0702702703);
+uniform float offsets[] = float[](0.0, 1.3846153846, 3.2307692308);
 #endif
 
 layout(index = 3) subroutine(RenderPassType)

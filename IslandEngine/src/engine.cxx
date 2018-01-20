@@ -252,7 +252,7 @@ void InitSSAO()
         return sample;
     });
 
-    glProgramUniform3fv(ssao_program.program(), 8, kernel_size, &kernel.data()->x);
+    glProgramUniform3fv(ssao_program.program(), 20, kernel_size, &kernel.data()->x);
 
     if (hemisphere_program.AssignNew({R"(Defaults/Unlit-Simple.glsl)"})) {
         Render::inst().CreateVAO(hemisphere_vao);
