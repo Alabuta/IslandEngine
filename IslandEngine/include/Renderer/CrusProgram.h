@@ -22,7 +22,7 @@ namespace isle {
 class Program {
 public:
 
-    bool AssignNew(std::initializer_list<std::string> &&names);
+    bool AssignNew(std::initializer_list<std::string> &&names, std::string options = "");
     void Destroy();
 
     void UseThis() const;
@@ -40,7 +40,7 @@ private:
 
     uint32 program_{0};
 
-    uint32 CreateShaderObject(std::vector<std::string> const &includes, std::string_view source, uint32 type);
+    uint32 CreateShaderObject(std::vector<std::string> const &includes, std::string_view source, uint32 type, std::string options);
 
     bool LinkAndValidateProgram() const;
 

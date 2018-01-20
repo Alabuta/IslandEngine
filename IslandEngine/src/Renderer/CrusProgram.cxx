@@ -66,8 +66,8 @@ std::unordered_map<uint32, std::string> Program::SeparateByStages(std::string co
 
     thread_local static std::unordered_map<std::string, uint32> const stagesTypes = {
         {"vertex", GL_VERTEX_SHADER},
-    {"fragment", GL_FRAGMENT_SHADER},
-    {"geometry", GL_GEOMETRY_SHADER}
+		{"fragment", GL_FRAGMENT_SHADER},
+		{"geometry", GL_GEOMETRY_SHADER}
     };
 
     std::unordered_map<uint32, std::string> stages;
@@ -122,7 +122,7 @@ void Program::PreprocessIncludes(std::string const &_source, std::string_view _n
     }
 }
 
-bool Program::AssignNew(std::initializer_list<std::string> &&_names)
+bool Program::AssignNew(std::initializer_list<std::string> &&_names, std::string _options)
 {
     using namespace std::string_literals;
 
@@ -130,7 +130,7 @@ bool Program::AssignNew(std::initializer_list<std::string> &&_names)
     if (glIsProgram(program_) == GL_TRUE) {
         Destroy();
 
-        return AssignNew(std::move(_names));
+        return AssignNew(std::move(_names), _options);
     }
 
     auto names = std::move(_names);
@@ -153,7 +153,7 @@ bool Program::AssignNew(std::initializer_list<std::string> &&_names)
         PreprocessIncludes(includes, name);
 
         for (auto const &[type, src] : stages) {
-            if (auto shaderObject = CreateShaderObject(cachedIncludeFiles, src, type); shaderObject != 0)
+            if (auto shaderObject = CreateShaderObject(cachedIncludeFiles, src, type, _options); shaderObject != 0)
                 shaderObjects.push_back(shaderObject);
 
             else return false;
@@ -206,7 +206,7 @@ void Program::Destroy()
     glDeleteProgram(program_);
 }
 
-uint32 Program::CreateShaderObject(std::vector<std::string> const &_includes, std::string_view _source, uint32 _type)
+uint32 Program::CreateShaderObject(std::vector<std::string> const &_includes, std::string_view _source, uint32 _type, std::string _options)
 {
     using namespace std::string_literals;
     static std::unordered_map<uint32, std::string> const shaderTypes = {
@@ -217,7 +217,7 @@ uint32 Program::CreateShaderObject(std::vector<std::string> const &_includes, st
 
     auto const shaderObject = glCreateShader(_type);
 
-    const auto preprocessorDirectives = [] (uint32 type)
+    const auto preprocessorDirectives = [&_options] (uint32 type)
     {
         // Used for shader source file preprocessing.
         std::ostringstream preprocessor_directives;
@@ -294,6 +294,8 @@ uint32 Program::CreateShaderObject(std::vector<std::string> const &_includes, st
         preprocessor_directives << "#define CRUS_REVERSED_DEPTH " << static_cast<int32>(Render::kREVERSED_DEPTH) << '\n';
         preprocessor_directives << "#define CRUS_INFINITE_FAR_PLANE " << static_cast<int32>(Render::kINFINITE_FAR_PLANE) << '\n';
         preprocessor_directives << "#define CRUS_DEPTH_CLIPPED_FROM_ZERO_TO_ONE " << static_cast<int32>(Render::kDEPTH_CLIPPED_FROM_ZERO_TO_ONE) << '\n';
+
+		preprocessor_directives << _options << '\n';
 
         using namespace std::string_literals;
         return preprocessor_directives.good() ? preprocessor_directives.str() : ""s;
