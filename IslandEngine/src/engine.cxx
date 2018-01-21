@@ -499,9 +499,17 @@ std::optional<std::vector<double>> InitGaussFilter()
 }
 
 template<typename T>
-T PixelsNeededForSigma(T sigma, T threshold)
+int32 PixelsNeededForSigma(T sigma, T threshold)
 {
-	return 1 + 2 * std::sqrt(-2 * std::pow(sigma, 2) * std::log(threshold * static_cast<T>(0.01)));
+	auto const size = 1 + 2 * sigma * std::sqrt(-2 * std::log(threshold * static_cast<T>(0.01)));
+	
+	return static_cast<int32>(std::floor(size)) | 1;
+}
+
+template<typename T>
+T GetSigmaBasedOnTapSize(int32 size, T threshold)
+{
+	return static_cast<T>(size - 1) / (2 * std::sqrt(-2 * std::log(threshold * static_cast<T>(0.01))));
 }
 
 template<typename T>
@@ -510,14 +518,16 @@ T GaussianSimpsonIntegration(T sigma, T a, T b)
 	return ((b - a) / static_cast<T>(6)) * (math::gaussianDistribution(a, sigma) + 4 * math::gaussianDistribution((a + b) / static_cast<T>(2), sigma) + math::gaussianDistribution(b, sigma));
 }
 
-template<typename T>
-std::vector<T> GaussianKernelIntegrals(T sigma, int taps)
+template<bool half_size = true, typename T>
+std::vector<T> GaussianKernelIntegrals(T sigma, int32 taps)
 {
+	auto const half_taps = taps >> 1;
+
 	std::vector<T> weights(taps);
 
-	std::generate(weights.begin(), weights.end(), [sigma, half = (taps / 2), i = 0] () mutable
+	std::generate(weights.begin(), weights.end(), [sigma, half_taps, i = 0] () mutable
 	{
-		auto x = static_cast<T>(i++ - half);
+		auto const x = static_cast<T>(i++ - half_taps);
 		return GaussianSimpsonIntegration(sigma, x - static_cast<T>(0.5), x + static_cast<T>(0.5));
 	});
 
@@ -527,6 +537,9 @@ std::vector<T> GaussianKernelIntegrals(T sigma, int taps)
 	{
 		return value / total;
 	});
+
+	if constexpr (half_size)
+		weights.erase(weights.begin(), std::next(weights.begin(), half_taps));
 
 	return weights;
 }
@@ -553,19 +566,17 @@ void Init()
 
     if (!geom_program.AssignNew({R"(Defaults/Diffuse-Lambert.glsl)"}))
         return;
-
 	{
-		auto constexpr xblursigma = 1.6f;
-
-		auto xblur = PixelsNeededForSigma(xblursigma, 0.5f);
-		auto xblursize = static_cast<int>(std::floor(xblur) + 1) | 1;
-
-		log::Debug() << xblursize << " : " << xblur;
+#if 0
+		auto constexpr xblursigma = 1.5765f;
+		auto xblursize = PixelsNeededForSigma(xblursigma, 4.f);
+#else
+		auto xblursize = 9;
+		auto const xblursigma = GetSigmaBasedOnTapSize(xblursize, 4.f);
+#endif
+		log::Debug() << xblursize;
 
 		auto weights = GaussianKernelIntegrals(xblursigma, xblursize);
-
-		weights.erase(weights.begin(), std::next(weights.begin(), xblursize / 2));
-		weights.erase(std::prev(weights.end(), 2), weights.end());
 
 		std::ostringstream stream;
 		std::copy(weights.cbegin(), weights.cend(), std::ostream_iterator<decltype(weights)::value_type>(stream, ", "));
