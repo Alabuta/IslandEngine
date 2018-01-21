@@ -142,7 +142,7 @@ bool Program::AssignNew(std::initializer_list<std::string> &&_names, std::string
 
     std::string includes, source;
 
-    for (auto const &name : names) {
+    for (auto &&name : names) {
         if (source = ReadShaderSource(kSHADERS_PATH, name); source.empty()) {
             log::Error() << "can't read file: " << name;
             return false;
@@ -152,7 +152,7 @@ bool Program::AssignNew(std::initializer_list<std::string> &&_names, std::string
 
         PreprocessIncludes(includes, name);
 
-        for (auto const &[type, src] : stages) {
+        for (auto &&[type, src] : stages) {
             if (auto shaderObject = CreateShaderObject(cachedIncludeFiles, src, type, _options); shaderObject != 0)
                 shaderObjects.push_back(shaderObject);
 

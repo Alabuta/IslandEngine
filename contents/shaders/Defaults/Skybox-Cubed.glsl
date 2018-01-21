@@ -35,14 +35,13 @@ void main()
 
 layout(early_fragment_tests) in;
 
-layout(location = nBASE_COLOR/*, index = 0*/) out vec4 fragColor;
-layout(location = nMAIN_COLOR) uniform vec4 mainColor = vec4(1.0);
+layout(location = nBASE_COLOR) out vec4 fragColor;
 
-layout(binding = 0) uniform samplerCube skybox;
+layout(binding = nALBEDO) uniform samplerCube skybox;
 
 in vec3 texCoord;
 
 void main()
 {
-    fragColor = texture(skybox, texCoord) * mainColor;
+    fragColor = texture(skybox, texCoord);
 }
