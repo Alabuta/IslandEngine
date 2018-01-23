@@ -245,10 +245,10 @@ void blur_pass_horizontal()
 }
 #else
 
-#define NAIVE_SEPARATED_GAUSS_BLUR 0
+#define  GPU_FILTERED_GAUSSIAN_BLUR 0
 
 
-#if NAIVE_SEPARATED_GAUSS_BLUR
+#if  GPU_FILTERED_GAUSSIAN_BLUR
 // 9x9 tap optimized filter
 uniform float weights[] = float[](0.2270270270, 0.3162162162, 0.0702702703);
 uniform float offsets[] = float[](0.0, 1.3846153846, 3.2307692308);
@@ -265,7 +265,7 @@ layout(binding = 5, std430) readonly buffer GAUSS_FILTER_KERNEL
 layout(index = 3) subroutine(RenderPassType)
 void blur_pass_vertical()
 {
-#if NAIVE_SEPARATED_GAUSS_BLUR
+#if  GPU_FILTERED_GAUSSIAN_BLUR
 	vec4 sum = texture(colorSampler, gl_FragCoord.xy * kInvResolution) * weights[0];
 
 	sum += texture(colorSampler, (gl_FragCoord.xy + vec2(0, offsets[1])) * kInvResolution) * weights[1];
@@ -300,7 +300,7 @@ void blur_pass_vertical()
 layout(index = 4) subroutine(RenderPassType)
 void blur_pass_horizontal()
 {
-#if NAIVE_SEPARATED_GAUSS_BLUR
+#if  GPU_FILTERED_GAUSSIAN_BLUR
 	vec4 sum = texture(colorSampler, gl_FragCoord.xy * kInvResolution) * weights[0];
 
 	sum += texture(colorSampler, (gl_FragCoord.xy + vec2(offsets[1], 0)) * kInvResolution) * weights[1];

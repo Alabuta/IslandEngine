@@ -583,24 +583,47 @@ void Init()
 
 		log::Debug() << stream.str();
 
+		if constexpr (true) {
+			decltype(weights) offsets;
+
+			offsets.emplace_back(0.f);
+
+			for (auto it = std::next(weights.cbegin()); it < weights.cend(); it += 2) {
+				auto it_next = std::next(it);
+
+				auto const weight = *it + *it_next;
+
+				auto const a = std::distance(weights.cbegin(), it) * *it;
+				auto const b = std::distance(weights.cbegin(), it_next) * *it_next;
+
+				offsets.emplace_back((a + b) / weight);
+			}
+
+			std::ostringstream stream;
+			std::copy(offsets.cbegin(), offsets.cend(), std::ostream_iterator<decltype(offsets)::value_type>(stream, ", "));
+
+			log::Debug() << stream.str();
+		}
+
 		using namespace std::string_literals;
 		if (!ssao_program.AssignNew({ R"(Defaults/SSAO.glsl)"s }, "#define kWEIGHTS_SIZE\t"s + std::to_string(weights.size())))
 			return;
 
+        ssao_program.AssignNew1({R"(Defaults/SSAO.glsl)"s}, "#define kWEIGHTS_SIZE\t", weights.size());
+
 		auto index = glGetProgramResourceIndex(ssao_program.program(), GL_SHADER_STORAGE_BLOCK, "GAUSS_FILTER_KERNEL");
 
-		if (index == GL_INVALID_INDEX)
-			log::Error() << "can't init the SSBO: invalid index param: " << "GAUSS_FILTER_KERNEL";
+        if (index != GL_INVALID_INDEX) {
+            uint32 GAUSS_FILTER_KERNEL = 0;
 
-		uint32 GAUSS_FILTER_KERNEL = 0;
+            Render::inst().CreateBO(GAUSS_FILTER_KERNEL);
+            glNamedBufferStorage(GAUSS_FILTER_KERNEL, sizeof(decltype(weights)::value_type) * weights.size(), weights.data(), 0);
 
-		Render::inst().CreateBO(GAUSS_FILTER_KERNEL);
-		glNamedBufferStorage(GAUSS_FILTER_KERNEL, sizeof(decltype(weights)::value_type) * weights.size(), weights.data(), 0);
+            glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 5, GAUSS_FILTER_KERNEL);
+            glShaderStorageBlockBinding(ssao_program.program(), index, 5);
+        }
 
-		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 5, GAUSS_FILTER_KERNEL);
-		glShaderStorageBlockBinding(ssao_program.program(), index, 5);
-
-		//glProgramUniform1fv(ssao_program.program(), 5, static_cast<uint32>(weights.size()), weights.data());
+        else log::Error() << "can't init the SSBO: invalid index param: " << "GAUSS_FILTER_KERNEL";
 	}
 
     InitSSAO();
