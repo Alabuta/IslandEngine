@@ -22,6 +22,48 @@ namespace isle {
 class Program {
 public:
 
+    template<typename T>
+    void to_stream(std::ostringstream &stream, T &&option)
+    {
+        stream << std::forward<T>(option);
+    }
+
+    template<typename T, typename ... Ts>
+    void to_stream(std::ostringstream &stream, T &&option, Ts &&...options)
+    {
+        stream << std::forward<T>(option);
+        to_stream(stream, std::forward<Ts>(options)...);
+    }
+
+    template<typename T, typename ... Ts>
+    bool AssignNew1(std::initializer_list<std::string> &&names, T &&option, Ts &&...options)
+    {
+        std::ostringstream stream;
+
+        to_stream(stream, "#define kSIZE\t", 128, '\n', "#define USE_GPU\t", 1, "\n");
+
+        log::Debug() << stream.str();
+
+        return true;
+    }
+
+    template<class ... O>
+    bool AssignNew1(std::initializer_list<std::string> &&names, O &&...options)
+    {
+        std::ostringstream stream;
+
+        /*auto to_stream = [&stream] (auto &&option)
+        {
+            stream << option;
+        };*/
+
+        to_stream(std::forward<O>(options)...);
+
+        log::Debug() << steam.str();
+
+        return true;
+    }
+
     bool AssignNew(std::initializer_list<std::string> &&names, std::string options = "");
     void Destroy();
 
