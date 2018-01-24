@@ -583,7 +583,9 @@ void Init()
 
 		log::Debug() << stream.str();
 
-		if constexpr (true) {
+        auto constexpr use_gpu = false;
+
+		if constexpr (use_gpu) {
 			decltype(weights) offsets;
 
 			offsets.emplace_back(0.f);
@@ -606,24 +608,24 @@ void Init()
 		}
 
 		using namespace std::string_literals;
-		if (!ssao_program.AssignNew({ R"(Defaults/SSAO.glsl)"s }, "#define kWEIGHTS_SIZE\t"s + std::to_string(weights.size())))
+		if (!ssao_program.AssignNew({ R"(Defaults/SSAO.glsl)"s }, "kWEIGHTS_SIZE", weights.size(), "GPU_FILTERED_GAUSSIAN_BLUR", use_gpu))
 			return;
 
-        ssao_program.AssignNew1({R"(Defaults/SSAO.glsl)"s}, "#define kWEIGHTS_SIZE\t", weights.size());
+        if constexpr (!use_gpu) {
+            auto index = glGetProgramResourceIndex(ssao_program.program(), GL_SHADER_STORAGE_BLOCK, "GAUSS_FILTER_KERNEL");
 
-		auto index = glGetProgramResourceIndex(ssao_program.program(), GL_SHADER_STORAGE_BLOCK, "GAUSS_FILTER_KERNEL");
+            if (index != GL_INVALID_INDEX) {
+                uint32 GAUSS_FILTER_KERNEL = 0;
 
-        if (index != GL_INVALID_INDEX) {
-            uint32 GAUSS_FILTER_KERNEL = 0;
+                Render::inst().CreateBO(GAUSS_FILTER_KERNEL);
+                glNamedBufferStorage(GAUSS_FILTER_KERNEL, sizeof(decltype(weights)::value_type) * weights.size(), weights.data(), 0);
 
-            Render::inst().CreateBO(GAUSS_FILTER_KERNEL);
-            glNamedBufferStorage(GAUSS_FILTER_KERNEL, sizeof(decltype(weights)::value_type) * weights.size(), weights.data(), 0);
+                glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 5, GAUSS_FILTER_KERNEL);
+                glShaderStorageBlockBinding(ssao_program.program(), index, 5);
+            }
 
-            glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 5, GAUSS_FILTER_KERNEL);
-            glShaderStorageBlockBinding(ssao_program.program(), index, 5);
+            else log::Error() << "can't init the SSBO: invalid index param: " << "GAUSS_FILTER_KERNEL";
         }
-
-        else log::Error() << "can't init the SSBO: invalid index param: " << "GAUSS_FILTER_KERNEL";
 	}
 
     InitSSAO();

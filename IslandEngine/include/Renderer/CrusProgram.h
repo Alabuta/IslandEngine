@@ -22,46 +22,13 @@ namespace isle {
 class Program {
 public:
 
-    template<typename T>
-    void to_stream(std::ostringstream &stream, T &&option)
-    {
-        stream << std::forward<T>(option);
-    }
-
-    template<typename T, typename ... Ts>
-    void to_stream(std::ostringstream &stream, T &&option, Ts &&...options)
-    {
-        stream << std::forward<T>(option);
-        to_stream(stream, std::forward<Ts>(options)...);
-    }
-
-    template<typename T, typename ... Ts>
-    bool AssignNew1(std::initializer_list<std::string> &&names, T &&option, Ts &&...options)
+    template<class ... Ts>
+    constexpr bool AssignNew(std::initializer_list<std::string> &&names, Ts &&...options)
     {
         std::ostringstream stream;
+        UnpackOptionsToStream(stream, std::forward<Ts>(options)...);
 
-        to_stream(stream, "#define kSIZE\t", 128, '\n', "#define USE_GPU\t", 1, "\n");
-
-        log::Debug() << stream.str();
-
-        return true;
-    }
-
-    template<class ... O>
-    bool AssignNew1(std::initializer_list<std::string> &&names, O &&...options)
-    {
-        std::ostringstream stream;
-
-        /*auto to_stream = [&stream] (auto &&option)
-        {
-            stream << option;
-        };*/
-
-        to_stream(std::forward<O>(options)...);
-
-        log::Debug() << steam.str();
-
-        return true;
+        return AssignNew(std::move(names), stream.good() ? stream.str() : "");
     }
 
     bool AssignNew(std::initializer_list<std::string> &&names, std::string options = "");
@@ -89,9 +56,22 @@ private:
     static std::string ReadShaderSource(std::string const &parentPath, std::string const &name);
     static std::unordered_map<uint32, std::string> SeparateByStages(std::string const &name, std::string &includes, std::string const &source);
     static void PreprocessIncludes(std::string const &source, std::string_view name, int32 includingLevel = 0);
+
+    template<typename T, typename S>
+    constexpr std::ostream &UnpackOptionsToStream(std::ostream &stream, T &&first, S &&second)
+    {
+        return stream << "#define " << std::forward<T>(first) << '\t' << std::forward<S>(second) << '\n';
+    }
+
+    template<typename T, typename S, typename ... Ts>
+    constexpr std::ostream &UnpackOptionsToStream(std::ostream &stream, T &&first, S &&second, Ts &&...options)
+    {
+        stream << "#define " << std::forward<T>(first) << '\t' << std::forward<S>(second) << '\n';
+        return UnpackOptionsToStream(stream, std::forward<Ts>(options)...);
+    }
 };
 
-__forceinline uint32 Program::program() const
+inline uint32 Program::program() const
 {
     return program_;
 }
