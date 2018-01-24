@@ -206,7 +206,7 @@ vec4 BlurFunction(in vec2 uv, in float r, in vec4 center_c, in float center_d, i
     return c * w;
 }
 
-#if 0
+#if USE_BILATERAL_GAUSSIAN_GILTER
 
 void blur_pass(in vec2 offset)
 {
@@ -244,8 +244,6 @@ void blur_pass_horizontal()
 	blur_pass(vec2(1, 0));
 }
 #else
-
-#define  GPU_FILTERED_GAUSSIAN_BLUR 0
 
 
 #if  GPU_FILTERED_GAUSSIAN_BLUR
