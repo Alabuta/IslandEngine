@@ -347,7 +347,7 @@ UNIT_SUITE_CLASS(isle::math::Matrix)
             CHECK(inverted == matrx, "Matrix &Inverse()");
         }
 
-        {
+        /*{
             std::array<float, 16> vec;
             std::generate(vec.begin(), vec.end(), rand<float>);
 
@@ -368,7 +368,7 @@ UNIT_SUITE_CLASS(isle::math::Matrix)
                     std::cout << '\n' << m1 << "\n\n" << m2 << "\n\n" << m1 * m2 << "\n\n" << m2 * m1 << '\n';
                 }
             }
-        }
+        }*/
 
         {
             std::array<float, 16> vecs[2];
