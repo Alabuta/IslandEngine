@@ -578,17 +578,21 @@ void Init()
 
 		auto weights = GaussianKernelIntegrals(xblursigma, xblursize);
 
-		std::ostringstream stream;
-		std::copy(weights.cbegin(), weights.cend(), std::ostream_iterator<decltype(weights)::value_type>(stream, ", "));
+        {
+            std::ostringstream stream;
+            std::copy(weights.cbegin(), weights.cend(), std::ostream_iterator<decltype(weights)::value_type>(stream, ", "));
 
-		log::Debug() << stream.str();
+            log::Debug() << stream.str();
+        }
 
-        auto constexpr use_gpu = false;
+        auto constexpr use_gpu = true;
+        decltype(weights) offsets;
 
 		if constexpr (use_gpu) {
-			decltype(weights) offsets;
+            decltype(weights) new_weights;
 
-			offsets.emplace_back(0.f);
+            new_weights.emplace_back(weights.front());
+            offsets.emplace_back(0.f);
 
 			for (auto it = std::next(weights.cbegin()); it < weights.cend(); it += 2) {
 				auto it_next = std::next(it);
@@ -599,7 +603,10 @@ void Init()
 				auto const b = std::distance(weights.cbegin(), it_next) * *it_next;
 
 				offsets.emplace_back((a + b) / weight);
+                new_weights.emplace_back(weight);
 			}
+
+            weights = std::move(new_weights);
 
 			std::ostringstream stream;
 			std::copy(offsets.cbegin(), offsets.cend(), std::ostream_iterator<decltype(offsets)::value_type>(stream, ", "));
@@ -607,24 +614,47 @@ void Init()
 			log::Debug() << stream.str();
 		}
 
+        {
+            std::ostringstream stream;
+            std::copy(weights.cbegin(), weights.cend(), std::ostream_iterator<decltype(weights)::value_type>(stream, ", "));
+
+            log::Debug() << stream.str();
+        }
+
 		using namespace std::string_literals;
-		if (!ssao_program.AssignNew({ R"(Defaults/SSAO.glsl)"s }, "kWEIGHTS_SIZE", weights.size(), "GPU_FILTERED_GAUSSIAN_BLUR", use_gpu))
+		if (!ssao_program.AssignNew({ R"(Defaults/SSAO.glsl)"s }, "kKERNEL_SIZE"s, weights.size(), "GPU_FILTERED_GAUSSIAN_BLUR"s, use_gpu))
 			return;
 
-        if constexpr (!use_gpu) {
-            auto index = glGetProgramResourceIndex(ssao_program.program(), GL_SHADER_STORAGE_BLOCK, "GAUSS_FILTER_KERNEL");
+        {
+            auto index = glGetProgramResourceIndex(ssao_program.program(), GL_SHADER_STORAGE_BLOCK, "GAUSS_FILTER_WEIGHTS");
 
             if (index != GL_INVALID_INDEX) {
-                uint32 GAUSS_FILTER_KERNEL = 0;
+                uint32 GAUSS_FILTER_WEIGHTS = 0;
 
-                Render::inst().CreateBO(GAUSS_FILTER_KERNEL);
-                glNamedBufferStorage(GAUSS_FILTER_KERNEL, sizeof(decltype(weights)::value_type) * weights.size(), weights.data(), 0);
+                Render::inst().CreateBO(GAUSS_FILTER_WEIGHTS);
+                glNamedBufferStorage(GAUSS_FILTER_WEIGHTS, sizeof(decltype(weights)::value_type) * weights.size(), weights.data(), 0);
 
-                glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 5, GAUSS_FILTER_KERNEL);
+                glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 5, GAUSS_FILTER_WEIGHTS);
                 glShaderStorageBlockBinding(ssao_program.program(), index, 5);
             }
 
-            else log::Error() << "can't init the SSBO: invalid index param: " << "GAUSS_FILTER_KERNEL";
+            else log::Error() << "can't init the SSBO: invalid index param: " << "GAUSS_FILTER_WEIGHTS";
+        }
+
+        if constexpr (use_gpu) {
+            auto index = glGetProgramResourceIndex(ssao_program.program(), GL_SHADER_STORAGE_BLOCK, "GAUSS_FILTER_OFFSETS");
+
+            if (index != GL_INVALID_INDEX) {
+                uint32 GAUSS_FILTER_OFFSETS = 0;
+
+                Render::inst().CreateBO(GAUSS_FILTER_OFFSETS);
+                glNamedBufferStorage(GAUSS_FILTER_OFFSETS, sizeof(decltype(offsets)::value_type) * offsets.size(), offsets.data(), 0);
+
+                glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 6, GAUSS_FILTER_OFFSETS);
+                glShaderStorageBlockBinding(ssao_program.program(), index, 6);
+            }
+
+            else log::Error() << "can't init the SSBO: invalid index param: " << "GAUSS_FILTER_OFFSETS";
         }
 	}
 

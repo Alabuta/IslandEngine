@@ -186,9 +186,12 @@ void blur()
     fragColor.a = texture(colorSampler, gl_FragCoord.xy).a;
 }
 
+const vec2 kInvResolution = 1.0 / vec2(1920.0, 1080.0);
+
+#if USE_BILATERAL_GAUSSIAN_GILTER
+
 const float kKernelRadius = 3.0;
 const float kSharpness = 40.0;
-const vec2  kInvResolution = 1.0 / vec2(1920.0, 1080.0);
 
 vec4 BlurFunction(in vec2 uv, in float r, in vec4 center_c, in float center_d, inout float w_total)
 {
@@ -206,9 +209,7 @@ vec4 BlurFunction(in vec2 uv, in float r, in vec4 center_c, in float center_d, i
     return c * w;
 }
 
-#if USE_BILATERAL_GAUSSIAN_GILTER
-
-void blur_pass(in vec2 offset)
+vec3 blur_pass(in vec2 offset)
 {
 	vec4  center_c = texture(colorSampler, texCoord);
 	float center_d = texture(depthSampler, texCoord).x;
@@ -229,107 +230,60 @@ void blur_pass(in vec2 offset)
 		c_total += BlurFunction(uv, r, center_c, center_d, w_total);
 	}
 
-	fragColor.rgb = c_total.rgb / w_total;
-}
-
-layout(index = 3) subroutine(RenderPassType)
-void blur_pass_vertical()
-{
-	blur_pass(vec2(0, 1));
-}
-
-layout(index = 4) subroutine(RenderPassType)
-void blur_pass_horizontal()
-{
-	blur_pass(vec2(1, 0));
+	 return c_total.rgb / w_total;
 }
 #else
 
+layout(binding = 5, std430) readonly buffer GAUSS_FILTER_WEIGHTS
+{
+    float weights[kKERNEL_SIZE];
+};
 
 #if  GPU_FILTERED_GAUSSIAN_BLUR
-// 9x9 tap optimized filter
-uniform float weights[] = float[](0.2270270270, 0.3162162162, 0.0702702703);
-uniform float offsets[] = float[](0.0, 1.3846153846, 3.2307692308);
-#else
-// 9x9 tap filter
-//layout(location = 5) uniform float Weight[];// = float[](0.2270270270, 0.1945945946, 0.1216216216, 0.0540540541, 0.0162162162);
-
-layout(binding = 5, std430) readonly buffer GAUSS_FILTER_KERNEL
+layout(binding = 6, std430) readonly buffer GAUSS_FILTER_OFFSETS
 {
-	float Weight[kWEIGHTS_SIZE];
+    float offsets[kKERNEL_SIZE];
 };
 #endif
 
-layout(index = 3) subroutine(RenderPassType)
-void blur_pass_vertical()
-{
-#if  GPU_FILTERED_GAUSSIAN_BLUR
-	vec4 sum = texture(colorSampler, gl_FragCoord.xy * kInvResolution) * weights[0];
 
-	sum += texture(colorSampler, (gl_FragCoord.xy + vec2(0, offsets[1])) * kInvResolution) * weights[1];
-	sum += texture(colorSampler, (gl_FragCoord.xy - vec2(0, offsets[1])) * kInvResolution) * weights[1];
-	sum += texture(colorSampler, (gl_FragCoord.xy + vec2(0, offsets[2])) * kInvResolution) * weights[2];
-	sum += texture(colorSampler, (gl_FragCoord.xy - vec2(0, offsets[2])) * kInvResolution) * weights[2];
+vec4 blur_pass(in vec2 offset)
+{
+#if GPU_FILTERED_GAUSSIAN_BLUR
+    vec4 sum = texture(colorSampler, gl_FragCoord.xy * kInvResolution) * weights[0];
+
+    for (int i = 1; i < kKERNEL_SIZE; ++i) {
+        sum += texture(colorSampler, (gl_FragCoord.xy + offset * offsets[i]) * kInvResolution) * weights[i];
+        sum += texture(colorSampler, (gl_FragCoord.xy - offset * offsets[i]) * kInvResolution) * weights[i];
+    }
 
 #else
-	ivec2 pix = ivec2(gl_FragCoord.xy);
+    ivec2 pix = ivec2(gl_FragCoord.xy);
 
-	vec4 sum = texelFetch(colorSampler, pix, 0) * Weight[0];
+    vec4 sum = texelFetch(colorSampler, pix, 0) * weights[0];
 
-	for (int i = 1; i < kWEIGHTS_SIZE; ++i) {
-		sum += texelFetchOffset(colorSampler, pix, 0, ivec2(0, +i)) * Weight[i];
-		sum += texelFetchOffset(colorSampler, pix, 0, ivec2(0, -i)) * Weight[i];
-	}
-
-	/*sum += texelFetchOffset(colorSampler, pix, 0, ivec2(0, 1)) * Weight[1];
-	sum += texelFetchOffset(colorSampler, pix, 0, ivec2(0, -1)) * Weight[1];
-	sum += texelFetchOffset(colorSampler, pix, 0, ivec2(0, 2)) * Weight[2];
-	sum += texelFetchOffset(colorSampler, pix, 0, ivec2(0, -2)) * Weight[2];
-	sum += texelFetchOffset(colorSampler, pix, 0, ivec2(0, 3)) * Weight[3];
-	sum += texelFetchOffset(colorSampler, pix, 0, ivec2(0, -3)) * Weight[3];
-	sum += texelFetchOffset(colorSampler, pix, 0, ivec2(0, 4)) * Weight[4];
-	sum += texelFetchOffset(colorSampler, pix, 0, ivec2(0, -4)) * Weight[4];*/
+    for (int i = 1; i < kKERNEL_SIZE; ++i) {
+        sum += texelFetchOffset(colorSampler, pix, 0, +ivec2(offset) * i) * weights[i];
+        sum += texelFetchOffset(colorSampler, pix, 0, -ivec2(offset) * i) * weights[i];
+    }
 
 #endif
 
-    fragColor = sum;
+    return sum;
+}
+#endif
+
+layout(index = 3) subroutine(RenderPassType)
+void blur_pass_vertical()
+{
+    fragColor.rgb = blur_pass(vec2(0, 1)).rgb;
 }
 
 layout(index = 4) subroutine(RenderPassType)
 void blur_pass_horizontal()
 {
-#if  GPU_FILTERED_GAUSSIAN_BLUR
-	vec4 sum = texture(colorSampler, gl_FragCoord.xy * kInvResolution) * weights[0];
-
-	sum += texture(colorSampler, (gl_FragCoord.xy + vec2(offsets[1], 0)) * kInvResolution) * weights[1];
-	sum += texture(colorSampler, (gl_FragCoord.xy - vec2(offsets[1], 0)) * kInvResolution) * weights[1];
-	sum += texture(colorSampler, (gl_FragCoord.xy + vec2(offsets[2], 0)) * kInvResolution) * weights[2];
-	sum += texture(colorSampler, (gl_FragCoord.xy - vec2(offsets[2], 0)) * kInvResolution) * weights[2];
-
-#else
-	ivec2 pix = ivec2(gl_FragCoord.xy);
-
-	vec4 sum = texelFetch(colorSampler, pix, 0) * Weight[0];
-
-	for (int i = 1; i < kWEIGHTS_SIZE; ++i) {
-		sum += texelFetchOffset(colorSampler, pix, 0, ivec2(+i, 0)) * Weight[i];
-		sum += texelFetchOffset(colorSampler, pix, 0, ivec2(-i, 0)) * Weight[i];
-	}
-
-	/*sum += texelFetchOffset(colorSampler, pix, 0, ivec2(1, 0)) * Weight[1];
-	sum += texelFetchOffset(colorSampler, pix, 0, ivec2(-1, 0)) * Weight[1];
-	sum += texelFetchOffset(colorSampler, pix, 0, ivec2(2, 0)) * Weight[2];
-	sum += texelFetchOffset(colorSampler, pix, 0, ivec2(-2, 0)) * Weight[2];
-	sum += texelFetchOffset(colorSampler, pix, 0, ivec2(3, 0)) * Weight[3];
-	sum += texelFetchOffset(colorSampler, pix, 0, ivec2(-3, 0)) * Weight[3];
-	sum += texelFetchOffset(colorSampler, pix, 0, ivec2(4, 0)) * Weight[4];
-	sum += texelFetchOffset(colorSampler, pix, 0, ivec2(-4, 0)) * Weight[4];*/
-
-#endif
-
-    fragColor = sum;
+    fragColor.rgb = blur_pass(vec2(1, 0)).rgb;
 }
-#endif
 
 void main()
 {
