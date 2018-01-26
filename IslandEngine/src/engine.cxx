@@ -585,7 +585,9 @@ void Init()
             log::Debug() << stream.str();
         }
 
+        auto constexpr use_bf = true;
         auto constexpr use_gpu = true;
+
         decltype(weights) offsets;
 
 		if constexpr (use_gpu) {
@@ -622,7 +624,7 @@ void Init()
         }
 
 		using namespace std::string_literals;
-		if (!ssao_program.AssignNew({ R"(Defaults/SSAO.glsl)"s }, "kKERNEL_SIZE"s, weights.size(), "GPU_FILTERED_GAUSSIAN_BLUR"s, use_gpu))
+		if (!ssao_program.AssignNew({ R"(Defaults/SSAO.glsl)"s }, "kKERNEL_SIZE"s, weights.size(), "GPU_FILTERED_GAUSSIAN_BLUR"s, use_gpu, "USE_BILATERAL_GAUSSIAN_GILTER"s, use_bf))
 			return;
 
         {

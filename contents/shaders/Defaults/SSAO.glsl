@@ -188,9 +188,30 @@ void blur()
 
 const vec2 kInvResolution = 1.0 / vec2(1920.0, 1080.0);
 
+layout(binding = 5, std430) readonly buffer GAUSS_FILTER_WEIGHTS
+{
+    float weights[kKERNEL_SIZE];
+};
+
+#if  GPU_FILTERED_GAUSSIAN_BLUR
+layout(binding = 6, std430) readonly buffer GAUSS_FILTER_OFFSETS
+{
+    float offsets[kKERNEL_SIZE];
+};
+#endif
+
 #if USE_BILATERAL_GAUSSIAN_GILTER
 
-const float kKernelRadius = 3.0;
+const int kKernelRadius = 7;
+
+float GetSigmaBasedOnTapSize(int size, float threshold)
+{
+    return float(size - 1) / (2.0 * sqrt(-2.0 * log(threshold * 0.01)));
+}
+
+const float kBlurSigma = GetSigmaBasedOnTapSize(kKernelRadius, 4.0);
+const float kBlurFalloff = 1.0 / (2.0 * kBlurSigma * kBlurSigma);
+
 const float kSharpness = 40.0;
 
 vec4 BlurFunction(in vec2 uv, in float r, in vec4 center_c, in float center_d, inout float w_total)
@@ -198,9 +219,6 @@ vec4 BlurFunction(in vec2 uv, in float r, in vec4 center_c, in float center_d, i
     vec4  c = texture(colorSampler, uv);
     float d = texture(depthSampler, uv).x;
     d = HyperbolicDepthToLinear(d);
-
-    const float kBlurSigma = float(kKernelRadius) * 0.5;
-    const float kBlurFalloff = 1.0 / (2.0 * kBlurSigma * kBlurSigma);
 
     float ddiff = (d - center_d) * kSharpness;
     float w = exp2(-r * r * kBlurFalloff - ddiff * ddiff);
@@ -232,20 +250,8 @@ vec3 blur_pass(in vec2 offset)
 
 	 return c_total.rgb / w_total;
 }
+
 #else
-
-layout(binding = 5, std430) readonly buffer GAUSS_FILTER_WEIGHTS
-{
-    float weights[kKERNEL_SIZE];
-};
-
-#if  GPU_FILTERED_GAUSSIAN_BLUR
-layout(binding = 6, std430) readonly buffer GAUSS_FILTER_OFFSETS
-{
-    float offsets[kKERNEL_SIZE];
-};
-#endif
-
 
 vec4 blur_pass(in vec2 offset)
 {
