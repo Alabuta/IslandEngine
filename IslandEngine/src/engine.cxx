@@ -392,7 +392,7 @@ void InitFramebuffer()
         log::Error() << __FUNCTION__ << ": " << code;
 }
 
-std::optional<std::vector<double>> InitGaussFilter()
+std::optional<std::vector<double>> InitGaussFilter1()
 {
 	auto constexpr kKernelSize = 3;
 	auto constexpr kSampleCount = 1000.;
@@ -544,6 +544,93 @@ std::vector<T> GaussianKernelIntegrals(T sigma, int32 taps)
 	return weights;
 }
 
+void InitGaussFilter(Program &program)
+{
+#if 0
+    auto constexpr variance = 1.5765f;
+    auto kernelSize = PixelsNeededForSigma(kernelSize, 4.f);
+#else
+    auto kernelSize = 7;
+    auto const variance = GetSigmaBasedOnTapSize(kernelSize, 4.f);
+#endif
+
+    auto weights = GaussianKernelIntegrals(variance, kernelSize);
+
+    auto constexpr use_bf = false;
+    auto constexpr use_gpu = true;
+
+    decltype(weights) offsets;
+
+    if constexpr (use_gpu) 
+    {
+        decltype(weights) new_weights;
+
+        new_weights.emplace_back(weights.front());
+        offsets.emplace_back(0.f);
+
+        for (auto it = std::next(weights.cbegin()); it < weights.cend(); std::advance(it, 2)) {
+            auto it_next = std::next(it);
+
+            auto const w0 = *it;
+            auto const w1 = it_next < weights.cend() ? *it_next : 0;
+
+            auto const weight = w0 + w1;
+
+            auto const a = std::distance(weights.cbegin(), it) * w0;
+            auto const b = std::distance(weights.cbegin(), it_next) * w1;
+
+            offsets.emplace_back((a + b) / weight);
+            new_weights.emplace_back(weight);
+
+            it = it < std::prev(weights.cend()) ? it : std::prev(it);
+        }
+
+        weights = std::move(new_weights);
+    }
+
+    else
+        if (weights.size() != kernelSize) {
+            log::Error() << "requested blur kernel size is not equal to weights' vector size.";
+            return;
+        }
+
+    using namespace std::string_literals;
+    if (!program.AssignNew({R"(Defaults/SSAO.glsl)"s}, "kKERNEL_SIZE"s, weights.size(), "GPU_FILTERED_GAUSSIAN_BLUR"s, use_gpu, "USE_BILATERAL_GAUSSIAN_GILTER"s, use_bf))
+        return;
+
+    {
+        auto index = glGetProgramResourceIndex(program.program(), GL_SHADER_STORAGE_BLOCK, "GAUSS_FILTER_WEIGHTS");
+
+        if (index != GL_INVALID_INDEX) {
+            uint32 GAUSS_FILTER_WEIGHTS = 0;
+
+            Render::inst().CreateBO(GAUSS_FILTER_WEIGHTS);
+            glNamedBufferStorage(GAUSS_FILTER_WEIGHTS, sizeof(decltype(weights)::value_type) * weights.size(), weights.data(), 0);
+
+            glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 5, GAUSS_FILTER_WEIGHTS);
+            glShaderStorageBlockBinding(program.program(), index, 5);
+        }
+
+        else log::Error() << "can't init the SSBO: invalid index param: " << "GAUSS_FILTER_WEIGHTS";
+    }
+
+    if constexpr (use_gpu)
+    {
+        auto index = glGetProgramResourceIndex(program.program(), GL_SHADER_STORAGE_BLOCK, "GAUSS_FILTER_OFFSETS");
+
+        if (index != GL_INVALID_INDEX) {
+            uint32 GAUSS_FILTER_OFFSETS = 0;
+
+            Render::inst().CreateBO(GAUSS_FILTER_OFFSETS);
+            glNamedBufferStorage(GAUSS_FILTER_OFFSETS, sizeof(decltype(offsets)::value_type) * offsets.size(), offsets.data(), 0);
+
+            glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 6, GAUSS_FILTER_OFFSETS);
+            glShaderStorageBlockBinding(program.program(), index, 6);
+        }
+
+        else log::Error() << "can't init the SSBO: invalid index param: " << "GAUSS_FILTER_OFFSETS";
+    }
+}
 
 void Init()
 {
@@ -562,103 +649,10 @@ void Init()
 
     InitFramebuffer();
 
-	//InitGaussFilter();
-
     if (!geom_program.AssignNew({R"(Defaults/Diffuse-Lambert.glsl)"}))
         return;
-	{
-#if 0
-		auto constexpr xblursigma = 1.5765f;
-		auto xblursize = PixelsNeededForSigma(xblursigma, 4.f);
-#else
-		auto xblursize = 9;
-		auto const xblursigma = GetSigmaBasedOnTapSize(xblursize, 4.f);
-#endif
-		log::Debug() << xblursize;
 
-		auto weights = GaussianKernelIntegrals(xblursigma, xblursize);
-
-        {
-            std::ostringstream stream;
-            std::copy(weights.cbegin(), weights.cend(), std::ostream_iterator<decltype(weights)::value_type>(stream, ", "));
-
-            log::Debug() << stream.str();
-        }
-
-        auto constexpr use_bf = true;
-        auto constexpr use_gpu = true;
-
-        decltype(weights) offsets;
-
-		if constexpr (use_gpu) {
-            decltype(weights) new_weights;
-
-            new_weights.emplace_back(weights.front());
-            offsets.emplace_back(0.f);
-
-			for (auto it = std::next(weights.cbegin()); it < weights.cend(); it += 2) {
-				auto it_next = std::next(it);
-
-				auto const weight = *it + *it_next;
-
-				auto const a = std::distance(weights.cbegin(), it) * *it;
-				auto const b = std::distance(weights.cbegin(), it_next) * *it_next;
-
-				offsets.emplace_back((a + b) / weight);
-                new_weights.emplace_back(weight);
-			}
-
-            weights = std::move(new_weights);
-
-			std::ostringstream stream;
-			std::copy(offsets.cbegin(), offsets.cend(), std::ostream_iterator<decltype(offsets)::value_type>(stream, ", "));
-
-			log::Debug() << stream.str();
-		}
-
-        {
-            std::ostringstream stream;
-            std::copy(weights.cbegin(), weights.cend(), std::ostream_iterator<decltype(weights)::value_type>(stream, ", "));
-
-            log::Debug() << stream.str();
-        }
-
-		using namespace std::string_literals;
-		if (!ssao_program.AssignNew({ R"(Defaults/SSAO.glsl)"s }, "kKERNEL_SIZE"s, weights.size(), "GPU_FILTERED_GAUSSIAN_BLUR"s, use_gpu, "USE_BILATERAL_GAUSSIAN_GILTER"s, use_bf))
-			return;
-
-        {
-            auto index = glGetProgramResourceIndex(ssao_program.program(), GL_SHADER_STORAGE_BLOCK, "GAUSS_FILTER_WEIGHTS");
-
-            if (index != GL_INVALID_INDEX) {
-                uint32 GAUSS_FILTER_WEIGHTS = 0;
-
-                Render::inst().CreateBO(GAUSS_FILTER_WEIGHTS);
-                glNamedBufferStorage(GAUSS_FILTER_WEIGHTS, sizeof(decltype(weights)::value_type) * weights.size(), weights.data(), 0);
-
-                glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 5, GAUSS_FILTER_WEIGHTS);
-                glShaderStorageBlockBinding(ssao_program.program(), index, 5);
-            }
-
-            else log::Error() << "can't init the SSBO: invalid index param: " << "GAUSS_FILTER_WEIGHTS";
-        }
-
-        if constexpr (use_gpu) {
-            auto index = glGetProgramResourceIndex(ssao_program.program(), GL_SHADER_STORAGE_BLOCK, "GAUSS_FILTER_OFFSETS");
-
-            if (index != GL_INVALID_INDEX) {
-                uint32 GAUSS_FILTER_OFFSETS = 0;
-
-                Render::inst().CreateBO(GAUSS_FILTER_OFFSETS);
-                glNamedBufferStorage(GAUSS_FILTER_OFFSETS, sizeof(decltype(offsets)::value_type) * offsets.size(), offsets.data(), 0);
-
-                glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 6, GAUSS_FILTER_OFFSETS);
-                glShaderStorageBlockBinding(ssao_program.program(), index, 6);
-            }
-
-            else log::Error() << "can't init the SSBO: invalid index param: " << "GAUSS_FILTER_OFFSETS";
-        }
-	}
+	InitGaussFilter(ssao_program);
 
     InitSSAO();
 
