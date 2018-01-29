@@ -61,12 +61,6 @@
     <Filter Include="Samples">
       <UniqueIdentifier>{2ca0c804-22ae-4071-bc7c-b45777b2bac9}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Core\Systems">
-      <UniqueIdentifier>{ed9bbbca-139e-46d3-bf8b-9f7077eed990}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="geometry">
-      <UniqueIdentifier>{813ed9a1-3526-4788-9280-ed1ec4ab48ad}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\engine.cxx" />
@@ -79,13 +73,7 @@
     <ClCompile Include="src\Interface\CrusViewport.cxx">
       <Filter>Core\Interface</Filter>
     </ClCompile>
-    <ClCompile Include="src\Interface\CrusPlayer.cxx">
-      <Filter>Core\Interface</Filter>
-    </ClCompile>
     <ClCompile Include="src\Renderer\CrusProgram.cxx">
-      <Filter>Core\Renderer</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Interface\CrusTextOut.cxx">
       <Filter>Core\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="src\Renderer\CrusTexture.cxx">
@@ -175,9 +163,6 @@
       <Filter>.resources</Filter>
     </ClInclude>
     <ClInclude Include="include\Interface\CrusGrid.h">
-      <Filter>Core\Interface</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Interface\CrusPlayer.h">
       <Filter>Core\Interface</Filter>
     </ClInclude>
     <ClInclude Include="include\Interface\CrusViewport.h">
@@ -294,24 +279,6 @@
     <ClInclude Include="include\Renderer\CrusOpenGLContext.h">
       <Filter>Core\Renderer</Filter>
     </ClInclude>
-    <ClInclude Include="..\contents\geometry\hydrant">
-      <Filter>geometry</Filter>
-    </ClInclude>
-    <ClInclude Include="..\contents\geometry\cube">
-      <Filter>geometry</Filter>
-    </ClInclude>
-    <ClInclude Include="..\contents\geometry\geosphere">
-      <Filter>geometry</Filter>
-    </ClInclude>
-    <ClInclude Include="..\contents\geometry\teapot">
-      <Filter>geometry</Filter>
-    </ClInclude>
-    <ClInclude Include="..\contents\geometry\Hebe">
-      <Filter>geometry</Filter>
-    </ClInclude>
-    <ClInclude Include="include\geometry\torus.h">
-      <Filter>geometry</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="resources\resource.aps">
@@ -331,9 +298,6 @@
     </None>
     <None Include="include\Renderer\CrusPosition.inl">
       <Filter>Core\Renderer</Filter>
-    </None>
-    <None Include="..\contents\shaders\test.glsl">
-      <Filter>Shader sources</Filter>
     </None>
     <None Include="..\contents\shaders\Defaults\Fullscreen-Quad.glsl">
       <Filter>Shader sources\Defaults</Filter>

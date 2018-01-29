@@ -14,8 +14,6 @@
 #include "System\CrusMouse.h"
 #include "System\CrusGamepad.h"
 
-#include "Interface\CrusPlayer.h"
-
 extern "C" {
 #include <HIDsdi.h>
 #pragma comment(lib, "HID.lib")
