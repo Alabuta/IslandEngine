@@ -22,7 +22,7 @@ struct Position {
 
     template<class T, typename std::enable_if_t<std::is_same_v<std::decay_t<T>, std::array<float, 3>>>...>
     constexpr Position(T &&xyz) : xyz(std::forward(xyz)) { };
-    constexpr Position(float x, float y, float z = 0) : xyz({x, y, z}) { };
+    constexpr Position(float x, float y, float z = 0) : xyz({ x, y, z }) { };
 
     bool operator== (Position const &position)  const;
     bool operator!= (Position const &position) const;

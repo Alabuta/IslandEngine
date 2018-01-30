@@ -67,7 +67,7 @@ inline Vector const &Vector::operator= (float _s)
     return *this;
 }
 
-inline Vector &Vector::operator= (Vector const &_v)
+/*inline Vector &Vector::operator= (Vector const &_v)
 {
     if (this != &_v)
         xyz = _v.xyz;
@@ -79,7 +79,7 @@ inline Vector &Vector::operator= (Vector &&_v)
 {
     xyz = std::move(_v.xyz);
     return *this;
-}
+}*/
 
 template<class T, typename std::enable_if_t<is_vector_t<T>>...>
 inline bool Vector::operator== (T &&_v) const

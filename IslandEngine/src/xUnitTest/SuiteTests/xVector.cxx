@@ -7,6 +7,7 @@
 ****    Description: Vector class unit-testing.
 ****
 ********************************************************************************************************************************/
+#include <vector>
 #include "Math\CrusVector.h"
 
 UNIT_SUITE_CLASS(isle::math::Vector)
@@ -42,6 +43,22 @@ UNIT_SUITE_CLASS(isle::math::Vector)
         CHECK_EQUAL(v2.x, v5.x, "class member 'x'");
         CHECK_EQUAL(v2.y, v5.y, "class member 'y'");
         CHECK_EQUAL(v2.z, v5.z, "class member 'z'");
+
+        Vector constexpr v6(1, 2, 3);
+        auto constexpr v7{v6};
+        Vector constexpr v8{std::move(v7)};
+
+        CHECK_EQUAL(v8.x, v6.x, "class member 'x'");
+        CHECK_EQUAL(v8.y, v6.y, "class member 'y'");
+        CHECK_EQUAL(v8.z, v6.z, "class member 'z'");
+
+        std::vector<Vector> vector;
+        vector.emplace_back(v6.x, v6.y, v6.z);
+        vector.emplace_back(std::move(v8));
+
+        CHECK_EQUAL(vector.front().x, vector.back().x, "class member 'x'");
+        CHECK_EQUAL(vector.front().y, vector.back().y, "class member 'y'");
+        CHECK_EQUAL(vector.front().z, vector.back().z, "class member 'z'");
     }
 
     // The sum and sub operators...
