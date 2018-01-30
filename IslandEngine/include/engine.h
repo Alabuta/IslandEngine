@@ -49,4 +49,6 @@
 #include "Game\CrusSprite.h"
 #include "Renderer\CrusUV.h"
 
+#include "Manager\CrusMeshLoader.h"
+
 #endif // CRUS_ENGINE_H

@@ -154,6 +154,9 @@
     <ClCompile Include="src\Samples\Cubemap.cxx">
       <Filter>Samples</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\Crusoe%27s Island LLC\Island Engine\IslandEngine\src\Manager\CrusMeshLoader.cxx">
+      <Filter>Core\Manager</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\engine.h">
@@ -278,6 +281,9 @@
     </ClInclude>
     <ClInclude Include="include\Renderer\CrusOpenGLContext.h">
       <Filter>Core\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Manager\CrusMeshLoader.h">
+      <Filter>Core\Manager</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
