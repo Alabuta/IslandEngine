@@ -221,7 +221,7 @@ vec4 BlurFunction(in vec2 uv, in float r, in vec4 center_c, in float center_d, i
     d = HyperbolicDepthToLinear(d);
 
     float ddiff = (d - center_d) * kSharpness;
-    float w = exp2(-r * r * kBlurFalloff - ddiff * ddiff);
+    float w = exp2(-r * r * kBlurFalloff) / exp2(ddiff * ddiff);
     w_total += w;
 
     return c * w;

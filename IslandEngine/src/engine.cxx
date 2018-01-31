@@ -397,8 +397,8 @@ void InitGaussFilter(Program &program)
 
     auto weights = GaussianKernelIntegrals(variance, kernelSize);
 
-    auto constexpr use_bf = false;
-    auto constexpr use_gpu = true;
+    auto constexpr use_bf = true;
+    auto constexpr use_gpu = false;
 
     decltype(weights) offsets;
 
@@ -430,7 +430,7 @@ void InitGaussFilter(Program &program)
     }
 
     else
-        if (weights.size() != kernelSize) {
+        if (weights.size() != kernelSize / 2 + 1) {
             log::Error() << "requested blur kernel size is not equal to weights' vector size.";
             return;
         }
