@@ -27,7 +27,7 @@ out vec2 texCoord;
 out vec3 pos;
 out vec3 ray;
 
-layout(index = 0) subroutine (RenderPassType)
+layout(index = 0) subroutine(RenderPassType)
 void modelProccessing()
 {
     texCoord = inTexCoord;
@@ -167,24 +167,6 @@ void ssao()
     fragColor.rgb *= pow(occlusion, 1);
 }
 
-layout(index = 2) subroutine(RenderPassType)
-void blur()
-{
-    vec2 texelSize = 1.0 / vec2(textureSize(colorSampler, 0));
-    float result = 0;
-
-    for (int x = -2; x < 2; ++x) {
-        for (int y = -2; y < 2; ++y) {
-            vec2 offset = vec2(float(x), float(y)) * texelSize;
-            result += texture(colorSampler, texCoord + offset).x;
-        }
-    }
-
-    fragColor.rgb = vec3(result / (4.0 * 4.0));
-    //fragColor = texture(colorSampler, texCoord);
-
-    fragColor.a = texture(colorSampler, gl_FragCoord.xy).a;
-}
 
 const vec2 kInvResolution = 1.0 / vec2(1920.0, 1080.0);
 
@@ -214,14 +196,14 @@ const float kBlurFalloff = 1.0 / (2.0 * kBlurSigma * kBlurSigma);
 
 const float kSharpness = 40.0;
 
-vec4 BlurFunction(in vec2 uv, in float r, in vec4 center_c, in float center_d, inout float w_total)
+vec4 BlurFunction(in int r, in float center_d, in ivec2 pix, in ivec2 offset, inout float w_total)
 {
-    vec4  c = texture(colorSampler, uv);
-    float d = texture(depthSampler, uv).x;
+    vec4  c = texelFetchOffset(colorSampler, pix, 0, offset);
+    float d = texelFetchOffset(depthSampler, pix, 0, offset).x;
     d = HyperbolicDepthToLinear(d);
 
     float ddiff = (d - center_d) * kSharpness;
-    float w = exp2(-r * r * kBlurFalloff) / exp2(ddiff * ddiff);
+    float w = exp2(-float(r * r) * kBlurFalloff) / exp2(ddiff * ddiff);
     w_total += w;
 
     return c * w;
@@ -229,26 +211,21 @@ vec4 BlurFunction(in vec2 uv, in float r, in vec4 center_c, in float center_d, i
 
 vec3 blur_pass(in vec2 offset)
 {
-	vec4  center_c = texture(colorSampler, texCoord);
-	float center_d = texture(depthSampler, texCoord).x;
-	center_d = HyperbolicDepthToLinear(center_d);
+    ivec2 pix = ivec2(gl_FragCoord.xy);
 
-	vec4 c_total = center_c;
-	float w_total = 1.0;
+    vec4 c_total = texelFetch(colorSampler, pix, 0);
 
-	vec2 uv;
+    float center_d = texelFetch(depthSampler, pix, 0).x;
+    center_d = HyperbolicDepthToLinear(center_d);
 
-	for (float r = 1; r <= kKernelRadius; ++r) {
-		uv = fma(kInvResolution, offset * +r, texCoord);
-		c_total += BlurFunction(uv, r, center_c, center_d, w_total);
-	}
+    float w_total = 1.0;
 
-	for (float r = 1; r <= kKernelRadius; ++r) {
-		uv = fma(kInvResolution, offset * -r, texCoord);
-		c_total += BlurFunction(uv, r, center_c, center_d, w_total);
-	}
+    for (int i = 1; i < kKernelRadius; ++i) {
+        c_total += BlurFunction(i, center_d, pix, +ivec2(offset) * i, w_total);
+        c_total += BlurFunction(i, center_d, pix, -ivec2(offset) * i, w_total);
+    }
 
-	 return c_total.rgb / w_total;
+    return c_total.rgb / w_total;
 }
 
 #else
