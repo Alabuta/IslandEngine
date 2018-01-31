@@ -22,9 +22,6 @@ public:
 
     Vector() = default;
 
-    /*constexpr Vector(Vector const &vector) = default;
-    constexpr Vector(Vector &&vector) = default;*/
-
     template<class T, typename std::enable_if_t<std::is_same_v<std::decay_t<T>, std::array<float, 3>>>...>
     constexpr Vector(T &&xyz) : xyz(std::forward<T>(xyz)) { };
     constexpr Vector(float x, float y, float z) : xyz({ x, y, z }) { };
@@ -45,9 +42,6 @@ public:
     Vector operator/ (float s) const;
 
     Vector const &operator= (float s);
-
-    /*Vector &operator= (Vector const &v);
-    Vector &operator= (Vector &&v);*/
 
     template<class T, typename std::enable_if_t<is_vector_t<T>>...>
     bool operator== (T &&v) const;
