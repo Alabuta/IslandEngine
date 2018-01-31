@@ -16,7 +16,7 @@
 
 #include "System\CrusSystem.h"
 
-#include "Math\CrusMath.h"
+#include "Math\CrusVector.h"
 #include "Renderer\CrusPosition.h"
 #include "Renderer\CrusUV.h"
 

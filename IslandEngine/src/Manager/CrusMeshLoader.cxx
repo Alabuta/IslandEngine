@@ -45,7 +45,7 @@ bool LoadOBJ(std::string const &path, std::vector<Position> &positions, std::vec
 
         else if (attribute == "vn") {
             stream >> x >> y >> z;
-            //normals.emplace_back(x, y, z);
+            normals.emplace_back(x, y, z);
         }
 
         else if (attribute == "vt") {

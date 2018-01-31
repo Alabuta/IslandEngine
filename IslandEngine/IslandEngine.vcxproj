@@ -126,7 +126,7 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\Crusoe%27s Island LLC\Island Engine\IslandEngine\src\Manager\CrusMeshLoader.cxx" />
+    <ClCompile Include="src\Manager\CrusMeshLoader.cxx" />
     <ClCompile Include="src\Samples\Cubemap.cxx" />
     <ClCompile Include="src\Renderer\CrusOpenGLContext.cxx" />
     <ClCompile Include="src\Camera\CrusCamera.cxx" />
