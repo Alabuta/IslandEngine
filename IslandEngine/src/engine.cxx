@@ -340,7 +340,7 @@ std::optional<std::vector<double>> InitGaussFilter1()
 }
 
 template<typename T>
-int32 PixelsNeededForSigma(T sigma, T threshold)
+constexpr int32 PixelsNeededForSigma(T sigma, T threshold)
 {
 	auto const size = 1 + 2 * sigma * std::sqrt(-2 * std::log(threshold * static_cast<T>(0.01)));
 	
@@ -348,19 +348,19 @@ int32 PixelsNeededForSigma(T sigma, T threshold)
 }
 
 template<typename T>
-T GetSigmaBasedOnTapSize(int32 size, T threshold)
+constexpr T GetSigmaBasedOnTapSize(int32 size, T threshold)
 {
 	return static_cast<T>(size - 1) / (2 * std::sqrt(-2 * std::log(threshold * static_cast<T>(0.01))));
 }
 
 template<typename T>
-T GaussianSimpsonIntegration(T sigma, T a, T b)
+constexpr T GaussianSimpsonIntegration(T sigma, T a, T b)
 {
 	return ((b - a) / static_cast<T>(6)) * (math::gaussianDistribution(a, sigma) + 4 * math::gaussianDistribution((a + b) / static_cast<T>(2), sigma) + math::gaussianDistribution(b, sigma));
 }
 
-template<bool half_size = true, typename T>
-std::vector<T> GaussianKernelIntegrals(T sigma, int32 taps)
+template<typename T>
+constexpr std::vector<T> GaussianKernelIntegrals(T sigma, int32 taps, bool half_size = true, bool normalize = true)
 {
 	auto const half_taps = taps >> 1;
 
@@ -372,14 +372,16 @@ std::vector<T> GaussianKernelIntegrals(T sigma, int32 taps)
 		return GaussianSimpsonIntegration(sigma, x - static_cast<T>(0.5), x + static_cast<T>(0.5));
 	});
 
-	auto total = std::accumulate(weights.begin(), weights.end(), static_cast<T>(0));
+    if (normalize) {
+        auto total = std::accumulate(weights.begin(), weights.end(), static_cast<T>(0));
 
-	std::transform(weights.begin(), weights.end(), weights.begin(), [total] (auto value)
-	{
-		return value / total;
-	});
+        std::transform(weights.begin(), weights.end(), weights.begin(), [total] (auto value)
+        {
+            return value / total;
+        });
+    }
 
-	if constexpr (half_size)
+	if (half_size)
 		weights.erase(weights.begin(), std::next(weights.begin(), half_taps));
 
 	return weights;
