@@ -184,48 +184,49 @@ layout(binding = 6, std430) readonly buffer GAUSS_FILTER_OFFSETS
 
 #if USE_BILATERAL_GAUSSIAN_GILTER
 
-const int kKernelRadius = 7;
-
 float GetSigmaBasedOnTapSize(int size, float threshold)
 {
     return float(size - 1) / (2.0 * sqrt(-2.0 * log(threshold * 0.01)));
 }
 
-const float kBlurSigma = GetSigmaBasedOnTapSize(kKernelRadius, 4.0);
+const float kBlurSigma = GetSigmaBasedOnTapSize(kKERNEL_SIZE, 4.0);
 const float kBlurFalloff = 1.0 / (2.0 * kBlurSigma * kBlurSigma);
 
 const float kSharpness = 40.0;
 
-vec4 BlurFunction(in int r, in float center_d, in ivec2 pix, in ivec2 offset, inout float w_total)
+float BlurFunction(in float center_d, in ivec2 pix, in ivec2 offset)
 {
-    vec4  c = texelFetchOffset(colorSampler, pix, 0, offset);
     float d = texelFetchOffset(depthSampler, pix, 0, offset).x;
     d = HyperbolicDepthToLinear(d);
 
     float ddiff = (d - center_d) * kSharpness;
-    float w = exp2(-float(r * r) * kBlurFalloff) / exp2(ddiff * ddiff);
-    w_total += w;
+    float w = exp2(ddiff * ddiff);
 
-    return c * w;
+    return w;
 }
 
-vec3 blur_pass(in vec2 offset)
+vec4 blur_pass(in vec2 offset)
 {
     ivec2 pix = ivec2(gl_FragCoord.xy);
 
-    vec4 c_total = texelFetch(colorSampler, pix, 0);
+    vec4 sum = texelFetch(colorSampler, pix, 0) * weights[0];
 
     float center_d = texelFetch(depthSampler, pix, 0).x;
     center_d = HyperbolicDepthToLinear(center_d);
 
-    float w_total = 1.0;
+    float total_weight = 0.0;
 
-    for (int i = 1; i < kKernelRadius; ++i) {
-        c_total += BlurFunction(i, center_d, pix, +ivec2(offset) * i, w_total);
-        c_total += BlurFunction(i, center_d, pix, -ivec2(offset) * i, w_total);
+    for (int i = 1; i < kKERNEL_SIZE; ++i) {
+        float weight = weights[i];
+        float weight2 = BlurFunction(center_d, pix, +ivec2(offset) * i);
+
+        total_weight += weight / weight2;
+
+        sum += texelFetchOffset(colorSampler, pix, 0, +ivec2(offset) * i) * weight / weight2;
+        sum += texelFetchOffset(colorSampler, pix, 0, -ivec2(offset) * i) * weight / weight2;
     }
 
-    return c_total.rgb / w_total;
+    return sum / (2.0 * total_weight + weights[0]);
 }
 
 #else

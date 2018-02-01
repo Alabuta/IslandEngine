@@ -397,7 +397,7 @@ void InitGaussFilter(Program &program)
     auto const variance = GetSigmaBasedOnTapSize(kernelSize, 4.f);
 #endif
 
-    auto weights = GaussianKernelIntegrals(variance, kernelSize);
+    auto weights = GaussianKernelIntegrals(variance, kernelSize, true, false);
 
     auto constexpr use_bf = true;
     auto constexpr use_gpu = false;
