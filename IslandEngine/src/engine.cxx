@@ -397,14 +397,14 @@ void InitGaussFilter(Program &program)
     auto const variance = GetSigmaBasedOnTapSize(kernelSize, 4.f);
 #endif
 
-    auto weights = GaussianKernelIntegrals(variance, kernelSize, true, false);
-
     auto constexpr use_bf = true;
-    auto constexpr use_gpu = false;
+    auto constexpr use_gpu = true;
+
+    auto weights = GaussianKernelIntegrals(variance, kernelSize, true, !use_bf);
 
     decltype(weights) offsets;
 
-    if constexpr (use_gpu) 
+    if constexpr (use_gpu && !use_bf)
     {
         decltype(weights) new_weights;
 
@@ -442,22 +442,22 @@ void InitGaussFilter(Program &program)
         return;
 
     {
-        auto index = glGetProgramResourceIndex(program.program(), GL_SHADER_STORAGE_BLOCK, "GAUSS_FILTER_WEIGHTS");
+        auto index = glGetProgramResourceIndex(program.program(), GL_SHADER_STORAGE_BLOCK, "GAUSS_FILTER_COLOR_WEIGHTS");
 
         if (index != GL_INVALID_INDEX) {
-            uint32 GAUSS_FILTER_WEIGHTS = 0;
+            uint32 GAUSS_FILTER_COLOR_WEIGHTS = 0;
 
-            Render::inst().CreateBO(GAUSS_FILTER_WEIGHTS);
-            glNamedBufferStorage(GAUSS_FILTER_WEIGHTS, sizeof(decltype(weights)::value_type) * weights.size(), weights.data(), 0);
+            Render::inst().CreateBO(GAUSS_FILTER_COLOR_WEIGHTS);
+            glNamedBufferStorage(GAUSS_FILTER_COLOR_WEIGHTS, sizeof(decltype(weights)::value_type) * weights.size(), weights.data(), 0);
 
-            glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 5, GAUSS_FILTER_WEIGHTS);
+            glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 5, GAUSS_FILTER_COLOR_WEIGHTS);
             glShaderStorageBlockBinding(program.program(), index, 5);
         }
 
-        else log::Error() << "can't init the SSBO: invalid index param: " << "GAUSS_FILTER_WEIGHTS";
+        else log::Error() << "can't init the SSBO: invalid index param: " << "GAUSS_FILTER_COLOR_WEIGHTS";
     }
 
-    if constexpr (use_gpu)
+    if constexpr (use_gpu && !use_bf)
     {
         auto index = glGetProgramResourceIndex(program.program(), GL_SHADER_STORAGE_BLOCK, "GAUSS_FILTER_OFFSETS");
 
