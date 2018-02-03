@@ -170,12 +170,12 @@ void ssao()
 
 const vec2 kInvResolution = 1.0 / vec2(1920.0, 1080.0);
 
-layout(binding = 5, std430) readonly buffer GAUSS_FILTER_WEIGHTS
+layout(binding = 5, std430) readonly buffer GAUSS_FILTER_COLOR_WEIGHTS
 {
     float weights[kKERNEL_SIZE];
 };
 
-#if  GPU_FILTERED_GAUSSIAN_BLUR
+#if GPU_FILTERED_GAUSSIAN_BLUR && !USE_BILATERAL_GAUSSIAN_GILTER
 layout(binding = 6, std430) readonly buffer GAUSS_FILTER_OFFSETS
 {
     float offsets[kKERNEL_SIZE];
@@ -183,79 +183,65 @@ layout(binding = 6, std430) readonly buffer GAUSS_FILTER_OFFSETS
 #endif
 
 #if USE_BILATERAL_GAUSSIAN_GILTER
-
-float GetSigmaBasedOnTapSize(int size, float threshold)
-{
-    return float(size - 1) / (2.0 * sqrt(-2.0 * log(threshold * 0.01)));
-}
-
-const float kBlurSigma = GetSigmaBasedOnTapSize(kKERNEL_SIZE, 4.0);
-const float kBlurFalloff = 1.0 / (2.0 * kBlurSigma * kBlurSigma);
-
 const float kSharpness = 40.0;
 
-float BlurFunction(in float center_d, in ivec2 pix, in ivec2 offset)
+float GetDepthBasedRangeWeight(in float center_depth, in ivec2 center, in ivec2 offset)
 {
-    float d = texelFetchOffset(depthSampler, pix, 0, offset).x;
-    d = HyperbolicDepthToLinear(d);
+    float depth = texelFetchOffset(depthSampler, center, 0, offset).x;
+    depth = HyperbolicDepthToLinear(depth);
 
-    float ddiff = (d - center_d) * kSharpness;
-    float w = exp2(ddiff * ddiff);
+    float depth_diff = (depth - center_depth) * kSharpness;
+    float w = exp2(depth_diff * depth_diff);
 
     return w;
 }
+#endif
 
-vec4 blur_pass(in vec2 offset)
+vec4 blur_pass(in vec2 direction)
 {
-    ivec2 pix = ivec2(gl_FragCoord.xy);
+#if USE_BILATERAL_GAUSSIAN_GILTER
+    ivec2 center = ivec2(gl_FragCoord.xy), offset = ivec2(direction);
 
-    vec4 sum = texelFetch(colorSampler, pix, 0) * weights[0];
+    vec4 sum = texelFetch(colorSampler, center, 0) * weights[0];
 
-    float center_d = texelFetch(depthSampler, pix, 0).x;
-    center_d = HyperbolicDepthToLinear(center_d);
+    float center_depth = texelFetch(depthSampler, center, 0).x;
+    center_depth = HyperbolicDepthToLinear(center_depth);
 
     float total_weight = 0.0;
 
     for (int i = 1; i < kKERNEL_SIZE; ++i) {
-        float weight = weights[i];
-        float weight2 = BlurFunction(center_d, pix, +ivec2(offset) * i);
+        float weight = weights[i] / GetDepthBasedRangeWeight(center_depth, center, offset * i);
 
-        total_weight += weight / weight2;
+        total_weight += weight;
 
-        sum += texelFetchOffset(colorSampler, pix, 0, +ivec2(offset) * i) * weight / weight2;
-        sum += texelFetchOffset(colorSampler, pix, 0, -ivec2(offset) * i) * weight / weight2;
+        sum += texelFetchOffset(colorSampler, center, 0, +offset * i) * weight;
+        sum += texelFetchOffset(colorSampler, center, 0, -offset * i) * weight;
     }
 
-    return sum / (2.0 * total_weight + weights[0]);
-}
+    return sum / (fma(2.0, total_weight, weights[0]));
 
-#else
-
-vec4 blur_pass(in vec2 offset)
-{
-#if GPU_FILTERED_GAUSSIAN_BLUR
+#elif GPU_FILTERED_GAUSSIAN_BLUR
     vec4 sum = texture(colorSampler, gl_FragCoord.xy * kInvResolution) * weights[0];
 
     for (int i = 1; i < kKERNEL_SIZE; ++i) {
-        sum += texture(colorSampler, (gl_FragCoord.xy + offset * offsets[i]) * kInvResolution) * weights[i];
-        sum += texture(colorSampler, (gl_FragCoord.xy - offset * offsets[i]) * kInvResolution) * weights[i];
+        sum += texture(colorSampler, (gl_FragCoord.xy + direction * offsets[i]) * kInvResolution) * weights[i];
+        sum += texture(colorSampler, (gl_FragCoord.xy - direction * offsets[i]) * kInvResolution) * weights[i];
     }
 
 #else
-    ivec2 pix = ivec2(gl_FragCoord.xy);
+    ivec2 center = ivec2(gl_FragCoord.xy), offset = ivec2(direction);
 
-    vec4 sum = texelFetch(colorSampler, pix, 0) * weights[0];
+    vec4 sum = texelFetch(colorSampler, center, 0) * weights[0];
 
     for (int i = 1; i < kKERNEL_SIZE; ++i) {
-        sum += texelFetchOffset(colorSampler, pix, 0, +ivec2(offset) * i) * weights[i];
-        sum += texelFetchOffset(colorSampler, pix, 0, -ivec2(offset) * i) * weights[i];
+        sum += texelFetchOffset(colorSampler, center, 0, +offset * i) * weights[i];
+        sum += texelFetchOffset(colorSampler, center, 0, -offset * i) * weights[i];
     }
 
 #endif
 
     return sum;
 }
-#endif
 
 layout(index = 3) subroutine(RenderPassType)
 void blur_pass_vertical()
