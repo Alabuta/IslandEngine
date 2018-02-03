@@ -90,8 +90,8 @@ in vec2 texCoord;
 in vec3 pos;
 in vec3 ray;
 
-#define HALF_LAMBERT 1
-#define WRAPPED_AROUND_LAMBERT 0
+#define HALF_LAMBERT 0
+#define WRAPPED_AROUND_LAMBERT 1
 
 layout(index = 0) subroutine(RenderPassType)
 void renderGBuffer()
@@ -136,7 +136,7 @@ void ssao()
 
     for (int i = 0; i < kernelSize; ++i) {
         s = TBN * samples[i];
-        s = p + s * radius;// * max(1, -depth);
+        s = p + s * radius;// / (depth);
 
         sdir = normalize(s - p);
         float nDotS = max(dot(n, sdir), 0);
@@ -148,18 +148,10 @@ void ssao()
         float d = texture(depthSampler, o.xy).x;
         d = HyperbolicDepthToLinear(d);
 
-        float rangeCheck = smoothstep(0, 1, radius / abs(d - depth));
-#if 0
-        float tttt = step(s.z + bias, -d);
-
-        if (abs(d - depth) > radius)
-            rejectedSamples += 1;
-
-        occlusion += tttt * rangeCheck * nDotS;
-#else
+        float rangeCheck = smoothstep(0, 1, radius / (depth - d));
         // rangeCheck = 1.0 - pow(abs(d - depth) / radius, 2.0);
-        occlusion += step(s.z + bias, -d) * rangeCheck * nDotS;
-#endif
+
+        occlusion += step(s.z + bias, -d) * nDotS * rangeCheck;
     }
 
     occlusion = max(0, 1 - (occlusion / (kernelSize - rejectedSamples)));
@@ -175,14 +167,14 @@ layout(binding = 5, std430) readonly buffer GAUSS_FILTER_COLOR_WEIGHTS
     float weights[kKERNEL_SIZE];
 };
 
-#if GPU_FILTERED_GAUSSIAN_BLUR && !USE_BILATERAL_GAUSSIAN_GILTER
+#if GPU_FILTERED_GAUSSIAN_BLUR && !BILATERAL_GAUSSIAN_GILTER
 layout(binding = 6, std430) readonly buffer GAUSS_FILTER_OFFSETS
 {
     float offsets[kKERNEL_SIZE];
 };
 #endif
 
-#if USE_BILATERAL_GAUSSIAN_GILTER
+#if BILATERAL_GAUSSIAN_GILTER
 const float kSharpness = 40.0;
 
 float GetDepthBasedRangeWeight(in float center_depth, in ivec2 center, in ivec2 offset)
@@ -199,7 +191,7 @@ float GetDepthBasedRangeWeight(in float center_depth, in ivec2 center, in ivec2 
 
 vec4 blur_pass(in vec2 direction)
 {
-#if USE_BILATERAL_GAUSSIAN_GILTER
+#if BILATERAL_GAUSSIAN_GILTER
     ivec2 center = ivec2(gl_FragCoord.xy), offset = ivec2(direction);
 
     vec4 sum = texelFetch(colorSampler, center, 0) * weights[0];

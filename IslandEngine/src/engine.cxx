@@ -354,7 +354,7 @@ constexpr T GetSigmaBasedOnTapSize(int32 size, T threshold)
 }
 
 template<typename T>
-constexpr T GaussianSimpsonIntegration(T sigma, T a, T b)
+constexpr T GaussianSimpsonIntegration(T a, T b, T sigma)
 {
 	return ((b - a) / static_cast<T>(6)) * (math::gaussianDistribution(a, sigma) + 4 * math::gaussianDistribution((a + b) / static_cast<T>(2), sigma) + math::gaussianDistribution(b, sigma));
 }
@@ -369,7 +369,7 @@ constexpr std::vector<T> GaussianKernelIntegrals(T sigma, int32 taps, bool half_
 	std::generate(weights.begin(), weights.end(), [sigma, half_taps, i = 0] () mutable
 	{
 		auto const x = static_cast<T>(i++ - half_taps);
-		return GaussianSimpsonIntegration(sigma, x - static_cast<T>(0.5), x + static_cast<T>(0.5));
+		return GaussianSimpsonIntegration(x - static_cast<T>(0.5), x + static_cast<T>(0.5), sigma);
 	});
 
     if (normalize) {
@@ -438,7 +438,7 @@ void InitGaussFilter(Program &program)
         }
 
     using namespace std::string_literals;
-    if (!program.AssignNew({R"(Defaults/SSAO.glsl)"s}, "kKERNEL_SIZE"s, weights.size(), "GPU_FILTERED_GAUSSIAN_BLUR"s, use_gpu, "USE_BILATERAL_GAUSSIAN_GILTER"s, use_bf))
+    if (!program.AssignNew({R"(Defaults/SSAO.glsl)"s}, "kKERNEL_SIZE"s, weights.size(), "GPU_FILTERED_GAUSSIAN_BLUR"s, use_gpu, "BILATERAL_GAUSSIAN_GILTER"s, use_bf))
         return;
 
     {
