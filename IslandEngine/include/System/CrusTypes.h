@@ -68,7 +68,7 @@ template<class C>
 struct is_iterable<C, std::void_t<decltype(std::cbegin(std::declval<C>()), std::cend(std::declval<C>()))>> : std::true_type { };
 
 template<class T>
-constexpr bool is_iterable_t = std::is_same_v<is_iterable<T>, std::true_type>;
+constexpr bool is_iterable_v = is_iterable<T>::value;
 
 #if _CRUS_TEMP_DISABLED
 template<class C, std::enable_if_t<!is_printable_t<std::decay_t<C>> && is_iterable_t<std::decay_t<C>>>...>
