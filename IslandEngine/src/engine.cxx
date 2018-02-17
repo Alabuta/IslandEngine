@@ -48,11 +48,11 @@ Program ssao_program;
 uint32 quad_vao, noise_tex;
 
 
-std::array<math::Matrix, 3> matrices = {
+auto matrices = make_array(
     math::Matrix::Identity(),
     math::Matrix::Identity(),
     math::Matrix::Identity()
-};
+);
 
 struct Vertex {
     Position pos;
@@ -502,12 +502,12 @@ void Init()
     {
 		Render::inst().CreateVAO(quad_vao);
 
-        std::array<Position, 4> vertices = {{
-            {-1.f, +1.f, 0.f},
-            {-1.f, -1.f, 0.f},
-            {+1.f, +1.f, 0.f},
-            {+1.f, -1.f, 0.f}
-        }};
+        auto vertices = make_array(
+            Position{-1.f, +1.f, 0.f},
+            Position{-1.f, -1.f, 0.f},
+            Position{+1.f, +1.f, 0.f},
+            Position{+1.f, -1.f, 0.f}
+        );
 
         auto bo = 0u;
         Render::inst().CreateBO(bo);
