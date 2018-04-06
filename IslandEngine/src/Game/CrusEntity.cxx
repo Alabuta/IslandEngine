@@ -27,5 +27,5 @@ void f()
     Component c;
     Entity1::entitySystem->addComponent<Component>(&e, &c);
 
-    auto comp = Entity1::entitySystem->getComponent<Component>(&e);
+    [[maybe_unused]] auto comp = Entity1::entitySystem->getComponent<Component>(&e);
 }

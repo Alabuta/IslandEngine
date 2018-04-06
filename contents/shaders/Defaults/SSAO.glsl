@@ -24,7 +24,6 @@ out vec4 light;
 out vec4 normal;
 out vec2 texCoord;
 
-out vec3 pos;
 out vec3 ray;
 
 layout(index = 0) subroutine(RenderPassType)
@@ -42,8 +41,6 @@ void modelProccessing()
     else light.xyz = normalize(TransformFromWorldToView(lightPosition).xyz - position.xyz);
 
     gl_Position = TransformFromViewToClip(position);
-
-    pos = position.xyz;
 }
 
 layout(index = 1) subroutine(RenderPassType)
@@ -69,7 +66,6 @@ layout(location = 0) subroutine uniform RenderPassType RenderPass;
 
 layout(location = nBASE_COLOR) out vec4 fragColor;
 layout(location = nNORMALS) out vec2 fragNormal;
-layout(location = 2) out float fragTemp;
 
 layout(binding = nALBEDO) uniform sampler2D colorSampler;
 layout(binding = nNORMAL_MAP) uniform sampler2D normalSampler;
@@ -87,7 +83,6 @@ in vec4 light;
 in vec4 normal;
 in vec2 texCoord;
 
-in vec3 pos;
 in vec3 ray;
 
 #define HALF_LAMBERT 0

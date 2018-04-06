@@ -69,9 +69,9 @@ bool Texture::Init()
 
         std::vector<std::future<bool>> futures;
 
-        for (auto &[index, name, image] : tuples) {
+        for (auto &[index, name, img] : tuples) {
             UNREFERENCED_PARAMETER(index);
-            futures.emplace_back(std::async(/*std::launch::async, */LoadTARGA, &image, path_ + name));
+            futures.emplace_back(std::async(/*std::launch::async, */LoadTARGA, &img, path_ + name));
         }
 
         Render::inst().CreateTBO(GL_TEXTURE_CUBE_MAP, id_);

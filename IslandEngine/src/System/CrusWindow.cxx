@@ -88,7 +88,7 @@ void Window::Destroy()
 
         DestroyWindow(hWnd_);
 
-        EnumChildWindows(hWnd_, [] (HWND hWnd, LPARAM lParam) mutable
+        EnumChildWindows(hWnd_, [] (HWND hWnd, [[maybe_unused]] LPARAM lParam) mutable
         {
             Window::windowsTable.erase(windowsTable.find(hWnd));
 

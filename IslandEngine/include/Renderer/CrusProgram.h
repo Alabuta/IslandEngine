@@ -55,7 +55,7 @@ private:
 
     static std::string ReadShaderSource(std::string const &parentPath, std::string const &name);
     static std::unordered_map<uint32, std::string> SeparateByStages(std::string const &name, std::string &includes, std::string const &source);
-    static void PreprocessIncludes(std::string const &source, std::string_view name, int32 includingLevel = 0);
+    static void PreprocessIncludes(std::string const &source, int32 includingLevel = 0);
 
     template<typename T, typename S>
     constexpr std::ostream &UnpackOptionsToStream(std::ostream &stream, T &&first, S &&second)

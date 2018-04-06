@@ -86,7 +86,7 @@ std::ostream &operator<< (std::ostream &stream, C &&container)
 template<class... Ts>
 constexpr std::array<std::decay_t<std::tuple_element_t<0, std::tuple<Ts...>>>, sizeof...(Ts)> make_array(Ts &&...t)
 {
-    return {std::forward<Ts>(t)...};
+    return {{std::forward<Ts>(t)...}};
 }
 };
 

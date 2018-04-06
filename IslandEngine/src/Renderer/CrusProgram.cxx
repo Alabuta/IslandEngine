@@ -90,7 +90,7 @@ std::unordered_map<uint32, std::string> Program::SeparateByStages(std::string co
     return stages;
 }
 
-void Program::PreprocessIncludes(std::string const &_source, std::string_view _name, int32 _includingLevel)
+void Program::PreprocessIncludes(std::string const &_source, int32 _includingLevel)
 {
     using namespace std::string_literals;
 
@@ -118,7 +118,7 @@ void Program::PreprocessIncludes(std::string const &_source, std::string_view _n
             cachedIncludeFiles.push_back("#line -1 \""s + include_file_name + "\"\n"s + std::move(include_file_source));
         }
 
-        PreprocessIncludes(include_file_source, include_file_name, _includingLevel + 1);
+        PreprocessIncludes(include_file_source, _includingLevel + 1);
     }
 }
 
@@ -150,7 +150,7 @@ bool Program::AssignNew(std::initializer_list<std::string> &&_names, std::string
 
         auto stages = SeparateByStages(name, includes, source);
 
-        PreprocessIncludes(includes, name);
+        PreprocessIncludes(includes);
 
         for (auto &&[type, src] : stages) {
             if (auto shaderObject = CreateShaderObject(cachedIncludeFiles, src, type, _options); shaderObject != 0)

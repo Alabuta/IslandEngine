@@ -7,7 +7,7 @@ namespace isle {
 //    return eCOMPONENT_TYPES::nVIEWPORT;
 //}
 
-inline std::ostream &operator<< (std::ostream &_stream, Transform const &tr)
+inline std::ostream &operator<< (std::ostream &_stream, [[maybe_unused]] Transform const &tr)
 {
     return _stream;
 }
