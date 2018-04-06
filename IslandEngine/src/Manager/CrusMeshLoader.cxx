@@ -11,13 +11,8 @@
 namespace isle {
 
 
-bool LoadOBJ(std::string const &path, std::vector<Position> &positions, std::vector<math::Vector> &normals, std::vector<UV> &uvs, std::vector<std::vector<std::size_t>> &faces)
+bool LoadOBJ(fs::path const &path, std::vector<Position> &positions, std::vector<math::Vector> &normals, std::vector<UV> &uvs, std::vector<std::vector<std::size_t>> &faces)
 {
-    if (path.empty()) {
-        log::Error() << "file name is invalid.";
-        return false;
-    }
-
     std::ifstream file(path, std::ios::in);
 
     if (!file.is_open()) {
@@ -33,8 +28,8 @@ bool LoadOBJ(std::string const &path, std::vector<Position> &positions, std::vec
     float x, y, z;
     std::size_t inx;
 
-    while (file.getline(line.data(), line.size())) {
-        std::istringstream stream(line.data());
+    while (file.getline(std::data(line), std::size(line))) {
+        std::istringstream stream(std::data(line));
 
         stream >> attribute;
 
