@@ -78,7 +78,7 @@ bool LoadBinaryModel(fs::path path, std::vector<T> &vertex_buffer)
 }
 
 template<typename T>
-bool LoadModel(std::string const &_name, uint32 &count, std::vector<T> &vertex_buffer)
+bool LoadModel(std::string_view _name, uint32 &count, std::vector<T> &vertex_buffer)
 {
     using namespace std::string_literals;
 
@@ -93,23 +93,20 @@ bool LoadModel(std::string const &_name, uint32 &count, std::vector<T> &vertex_b
     fs::path directory{"../contents/meshes/"s};
     fs::path name{std::data(_name)};
 
-    /*if (!fs::exists(current_path / directory))
-        directory = current_path / fs::path{"../../"s} / directory;*/
-
-    auto const path = (directory / name).native();
+    auto const path = directory / name;
 
     if (!LoadBinaryModel(path, vertex_buffer)) {
         if (LoadOBJ(path, positions, normals, uvs, faces)) {
-            for (auto &face : faces)
+            for (auto &&face : faces) {
                 std::transform(face.begin(), face.end(), face.begin(), [] (auto &&a) { return a - 1; });
 
-            for (auto const &face : faces) {
-                for (auto it_index = face.cbegin(); it_index < face.cend(); std::advance(it_index, 2))
-                    vertex_buffer.emplace_back(T{
-                        positions.at(*it_index),
-                        normals.at(*std::next(it_index, 2)),
-                        uvs.at(*++it_index)
-                    });
+                for (auto it_index = face.cbegin(); it_index < face.cend(); std::advance(it_index, 1)) {
+                    auto position = positions.at(*it_index);
+                    auto uv = uvs.at(*++it_index);
+                    auto normal = normals.at(*++it_index);
+
+                    vertex_buffer.emplace_back(std::move(position), std::move(normal), std::move(uv));
+                }
             }
 
             SaveBinaryModel(path, vertex_buffer);

@@ -11,14 +11,26 @@
 #include <fstream>
 #include <iterator>
 
+#ifdef _MSC_VER
+#include <filesystem>
+namespace fs = std::experimental::filesystem;
+#else
+#include <boost/filesystem.hpp>
+namespace fs = boost::filesystem;
+#endif
+
+using namespace std::string_literals;
+using namespace std::string_view_literals;
+
 #include "System\CrusSystem.h"
 #include "Renderer\CrusRender.h"
 
 #include "Renderer\CrusTexture.h"
 #include "Manager\CrusTARGA.h"
 
+
 namespace {
-auto constexpr kTEXTURES_PATH = R"(../contents/textures/)";
+auto constexpr kTEXTURES_PATH = R"(../contents/textures/)"sv;
 };
 
 namespace isle {
@@ -141,10 +153,14 @@ bool LoadCompressedTARGA(Image &_image, std::ifstream &_file)
     return true;
 }
 
-bool LoadTARGA(Image *const _image, std::string const &_name)
+bool LoadTARGA(Image *const _image, std::string_view _name)
 {
-    std::string path(kTEXTURES_PATH + _name + ".tga");
-    std::ifstream file(path, std::ios::binary);
+    auto current_path = fs::current_path();
+
+    fs::path directory{std::data(kTEXTURES_PATH)};
+    fs::path name{std::data(_name)};
+
+    std::ifstream file((directory / name).native(), std::ios::binary);
 
     if (!file.is_open()) {
         log::Error() << "can't open texture file: " << _name.data();

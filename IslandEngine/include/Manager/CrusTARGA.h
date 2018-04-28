@@ -14,7 +14,7 @@
 namespace isle {
 struct Image;
 
-bool LoadTARGA(Image *const image, std::string const &name);
+bool LoadTARGA(Image *const image, std::string_view name);
 };
 
 #endif // CRUS_TARGA_H

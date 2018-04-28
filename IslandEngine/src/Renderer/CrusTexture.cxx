@@ -21,6 +21,9 @@
 #include <type_traits>
 
 
+using namespace std::string_literals;
+using namespace std::string_view_literals;
+
 
 //#define GL_TEXTURE_MAX_ANISOTROPY_EXT 0x84FE
 //#define GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT 0x84FF
@@ -36,7 +39,7 @@ Texture::Texture(eTEXTURE_TYPE _type, std::string &&_path) : type_(_type)
 bool Texture::Init()
 {
     if (type_ == eTEXTURE_TYPE::n2D) {
-        if (!LoadTARGA(&image, path_))
+        if (!LoadTARGA(&image, path_ + ".tga"s))
             return false;
 
         Render::inst().CreateTBO(GL_TEXTURE_2D, id_);
@@ -58,20 +61,20 @@ bool Texture::Init()
     }
 
     else if (type_ == eTEXTURE_TYPE::nCUBE) {
-        std::array<std::tuple<int32, std::string, Image>, 6> tuples = {{
-            {0, "_px", {}},
-            {1, "_nx", {}},
-            {2, "_py", {}},
-            {3, "_ny", {}},
-            {4, "_pz", {}},
-            {5, "_nz", {}}
+        std::array<std::tuple<int32, std::string, Image>, 6> tuples{{
+            { 0, "_px"s, {} },
+            { 1, "_nx"s, {} },
+            { 2, "_py"s, {} },
+            { 3, "_ny"s, {} },
+            { 4, "_pz"s, {} },
+            { 5, "_nz"s, {} }
         }};
 
         std::vector<std::future<bool>> futures;
 
         for (auto &[index, name, img] : tuples) {
             UNREFERENCED_PARAMETER(index);
-            futures.emplace_back(std::async(/*std::launch::async, */LoadTARGA, &img, path_ + name));
+            futures.emplace_back(std::async(/*std::launch::async, */LoadTARGA, &img, path_ + name + ".tga"s));
         }
 
         Render::inst().CreateTBO(GL_TEXTURE_CUBE_MAP, id_);
