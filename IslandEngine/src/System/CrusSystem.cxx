@@ -34,13 +34,13 @@
 #include "Renderer\CrusRender.h"
 #include "Camera\CrusCamera.h"
 
-/*template<typename... Ts>
+template<typename... Ts>
 struct overloader : Ts... {
     using Ts::operator()...;
 };
 
 template<typename... Ts>
-overloader(Ts...)->overloader<Ts...>;*/
+overloader(Ts...) -> overloader<Ts...>;
 
 #if _CRUS_NOT_YET_IMPLEMENTED
 

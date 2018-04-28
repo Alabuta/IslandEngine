@@ -64,10 +64,10 @@ std::unordered_map<uint32, std::string> Program::SeparateByStages(std::string co
     using namespace std::string_literals;
     thread_local static std::regex const rex_shader_stage_pattern("^[ |\t]*#[ |\t]*pragma[ |\t]+stage[ |\t]*[(][\"](.*)[\"][)].*", std::regex::optimize);
 
-    thread_local static std::unordered_map<std::string, uint32> const stagesTypes = {
-        {"vertex", GL_VERTEX_SHADER},
-		{"fragment", GL_FRAGMENT_SHADER},
-		{"geometry", GL_GEOMETRY_SHADER}
+    thread_local static std::unordered_map<std::string, uint32> const stagesTypes{
+        {"vertex"s, GL_VERTEX_SHADER},
+		{"fragment"s, GL_FRAGMENT_SHADER},
+		{"geometry"s, GL_GEOMETRY_SHADER}
     };
 
     std::unordered_map<uint32, std::string> stages;
@@ -209,10 +209,10 @@ void Program::Destroy()
 uint32 Program::CreateShaderObject(std::vector<std::string> const &_includes, std::string_view _source, uint32 _type, std::string _options)
 {
     using namespace std::string_literals;
-    static std::unordered_map<uint32, std::string> const shaderTypes = {
-        {GL_VERTEX_SHADER, "vertex"},
-        {GL_FRAGMENT_SHADER, "fragment"},
-        {GL_GEOMETRY_SHADER, "geometry"}
+    static std::unordered_map<uint32, std::string> const shaderTypes{
+        {GL_VERTEX_SHADER, "vertex"s},
+        {GL_FRAGMENT_SHADER, "fragment"s},
+        {GL_GEOMETRY_SHADER, "geometry"s}
     };
 
     auto const shaderObject = glCreateShader(_type);

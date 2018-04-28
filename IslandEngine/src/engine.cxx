@@ -58,6 +58,22 @@ struct Vertex {
     Position pos;
     math::Vector normal;
     UV uv;
+
+    Vertex() = default;
+
+    template<class P, class C, class U, typename std::enable_if_t<std::is_same_v<Position, std::decay_t<P>> && std::is_same_v<math::Vector, std::decay_t<C>> && std::is_same_v<UV, std::decay_t<U>>>...>
+    constexpr Vertex(P &&position, C &&color, U &&uv)
+    {
+        pos = std::forward<P>(position);
+        color = std::forward<C>(color);
+        uv = std::forward<UV>(uv);
+    }
+
+    template<class T, typename std::enable_if_t<std::is_same_v<Vertex, std::decay_t<T>>>...>
+    constexpr bool operator== (T &&rhs) const
+    {
+        return pos == rhs.pos && color == rhs.color && uv == rhs.uv;
+    }
 };
 
 std::ostream &operator<< (std::ostream &_stream, Vertex const &v)
@@ -395,7 +411,7 @@ void InitGaussFilter(Program &program)
     auto constexpr variance = 1.5765f;
     auto kernelSize = PixelsNeededForSigma(kernelSize, 4.f);
 #else
-    auto kernelSize = 7;
+    auto kernelSize = 15;
     auto const variance = GetSigmaBasedOnTapSize(kernelSize, 4.f);
 #endif
 
@@ -481,7 +497,8 @@ void Init()
 {
     std::vector<Vertex> vertex_buffer;
 
-    auto future = std::async(std::launch::async, LoadModel<Vertex>, "sponza.obj", std::ref(geom_count), std::ref(vertex_buffer));
+    //auto future = std::async(std::launch::async, LoadModel<Vertex>, "chalet.obj", std::ref(geom_count), std::ref(vertex_buffer));
+    LoadModel<Vertex>("sponza.obj"sv, std::ref(geom_count), std::ref(vertex_buffer));
 
     Camera::inst().Create(Camera::eCAM_BEHAVIOR::nFREE);
     Camera::inst().SetPos(0, 2, 0);
@@ -522,7 +539,7 @@ void Init()
         glVertexArrayVertexBuffer(quad_vao, 0, bo, 0, sizeof(Position));
     }
 
-    if (future.get()) {
+    //if (future.get()) {
         Render::inst().CreateVAO(geom_vao);
 
         auto bo = 0u;
@@ -543,7 +560,7 @@ void Init()
         glEnableVertexArrayAttrib(geom_vao, Render::eVERTEX_IN::nTEX_COORD);
 
         glVertexArrayVertexBuffer(geom_vao, 0, bo, 0, sizeof(decltype(vertex_buffer)::value_type));
-    }
+    //}
 }
 
 void Update()
