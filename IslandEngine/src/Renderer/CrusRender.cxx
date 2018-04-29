@@ -73,7 +73,7 @@ void Render::DeleteContext()
     CleanUp();
 }
 
-bool Render::CreateProgram(uint32 &_program)
+bool Render::CreateProgram(u32 &_program)
 {
     if (glIsProgram(_program) == GL_TRUE) {
         log::Warning() << "already used program index: " << _program;
@@ -91,7 +91,7 @@ bool Render::CreateProgram(uint32 &_program)
     return true;
 }
 
-bool Render::CreateBO(uint32 &_bo)
+bool Render::CreateBO(u32 &_bo)
 {
     if (_bo != 0 && glIsBuffer(_bo) == GL_TRUE) {
         log::Warning() << "already used buffer object index: " << _bo;
@@ -109,7 +109,7 @@ bool Render::CreateBO(uint32 &_bo)
     return true;
 }
 
-bool Render::CreateVAO(uint32 &_vao)
+bool Render::CreateVAO(u32 &_vao)
 {
     if (glIsVertexArray(_vao) == GL_TRUE) {
         log::Warning() << "already used VAO index: " << _vao;
@@ -127,7 +127,7 @@ bool Render::CreateVAO(uint32 &_vao)
     return true;
 }
 
-bool Render::CreateTBO(uint32 _target, uint32 &_tbo)
+bool Render::CreateTBO(u32 _target, u32 &_tbo)
 {
     if (glIsTexture(_tbo) == GL_TRUE) {
         log::Warning() << "already used texture buffer object index: " << _tbo;
@@ -145,7 +145,7 @@ bool Render::CreateTBO(uint32 _target, uint32 &_tbo)
     return true;
 }
 
-void Render::SetViewport(int16 _x, int16 _y, int16 _w, int16 _h)
+void Render::SetViewport(i16 _x, i16 _y, i16 _w, i16 _h)
 {
     vp_.SetViewport(_x, _y, _w, _h);
 }
@@ -249,8 +249,8 @@ void Render::CleanUp()
 
     glUseProgram(0);
 
-    uint32 shaders[3];
-    int32 count;
+    u32 shaders[3];
+    i32 count;
 
     while (--POs_) {
         if (glIsProgram(POs_) == GL_FALSE)
@@ -299,7 +299,7 @@ void EnumScreenModes()
     };
 
     struct DisplaySettings {
-        uint32 width, height, frequency;
+        u32 width, height, frequency;
 
         bool operator< (DisplaySettings const &b) const
         {

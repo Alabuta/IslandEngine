@@ -36,10 +36,10 @@ public:
 
     void UseThis() const;
 
-    uint32 program() const;
+    u32 program() const;
 
-    int32 GetAttributeLoc(std::string_view name) const;
-    int32 GetUniformLoc(std::string_view name) const;
+    i32 GetAttributeLoc(std::string_view name) const;
+    i32 GetUniformLoc(std::string_view name) const;
 
 private:
     static auto constexpr kINCLUDING_LEVEL{16};
@@ -47,15 +47,15 @@ private:
     thread_local static std::set<std::string> cachedIncludeNames;
     thread_local static std::vector<std::string> cachedIncludeFiles;
 
-    uint32 program_{0};
+    u32 program_{0};
 
-    uint32 CreateShaderObject(std::vector<std::string> const &includes, std::string_view source, uint32 type, std::string options);
+    u32 CreateShaderObject(std::vector<std::string> const &includes, std::string_view source, u32 type, std::string options);
 
     bool LinkAndValidateProgram() const;
 
     static std::string ReadShaderSource(std::string const &parentPath, std::string const &name);
-    static std::unordered_map<uint32, std::string> SeparateByStages(std::string const &name, std::string &includes, std::string const &source);
-    static void PreprocessIncludes(std::string const &source, int32 includingLevel = 0);
+    static std::unordered_map<u32, std::string> SeparateByStages(std::string const &name, std::string &includes, std::string const &source);
+    static void PreprocessIncludes(std::string const &source, i32 includingLevel = 0);
 
     template<typename T, typename S>
     constexpr std::ostream &UnpackOptionsToStream(std::ostream &stream, T &&first, S &&second)
@@ -71,7 +71,7 @@ private:
     }
 };
 
-inline uint32 Program::program() const
+inline u32 Program::program() const
 {
     return program_;
 }

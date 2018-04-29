@@ -33,11 +33,11 @@ isle::Rect GetCroppedSpriteRectSSE(isle::Image const &image, isle::Rect const &r
 
     // In on cycle pass the algorithm reads the 16 texels.
     // So, make sure that left and right bounds are multiples of 16.
-    auto const left = (static_cast<uint32>(rect.x()) >> 4) << 4;
-    auto const top = static_cast<uint32>(image.height_ - rect.ymax());
+    auto const left = (static_cast<u32>(rect.x()) >> 4) << 4;
+    auto const top = static_cast<u32>(image.height_ - rect.ymax());
 
-    auto const right = (((static_cast<uint32>(rect.xmax()) >> 4) + 1) << 4) - left;
-    auto const bottom = static_cast<uint32>(rect.height());
+    auto const right = (((static_cast<u32>(rect.xmax()) >> 4) + 1) << 4) - left;
+    auto const bottom = static_cast<u32>(rect.height());
 
     auto col_offset = 4, row_offset = 0;
 
@@ -46,10 +46,10 @@ isle::Rect GetCroppedSpriteRectSSE(isle::Image const &image, isle::Rect const &r
 
     auto const alpha = _mm_set1_epi32(0xFF000000);
 
-    auto texels1 = reinterpret_cast<__m128i const *>(&texels[left + (0 * sizeof(__m128i) / sizeof(uint32)) + image.width_ * top]);
-    auto texels2 = reinterpret_cast<__m128i const *>(&texels[left + (1 * sizeof(__m128i) / sizeof(uint32)) + image.width_ * top]);
-    auto texels3 = reinterpret_cast<__m128i const *>(&texels[left + (2 * sizeof(__m128i) / sizeof(uint32)) + image.width_ * top]);
-    auto texels4 = reinterpret_cast<__m128i const *>(&texels[left + (3 * sizeof(__m128i) / sizeof(uint32)) + image.width_ * top]);
+    auto texels1 = reinterpret_cast<__m128i const *>(&texels[left + (0 * sizeof(__m128i) / sizeof(u32)) + image.width_ * top]);
+    auto texels2 = reinterpret_cast<__m128i const *>(&texels[left + (1 * sizeof(__m128i) / sizeof(u32)) + image.width_ * top]);
+    auto texels3 = reinterpret_cast<__m128i const *>(&texels[left + (2 * sizeof(__m128i) / sizeof(u32)) + image.width_ * top]);
+    auto texels4 = reinterpret_cast<__m128i const *>(&texels[left + (3 * sizeof(__m128i) / sizeof(u32)) + image.width_ * top]);
 
     __m128i r1, r2, r3, r4;
     __m128i pk;
@@ -60,17 +60,17 @@ isle::Rect GetCroppedSpriteRectSSE(isle::Image const &image, isle::Rect const &r
 
     __m128i mask;
 
-    int32 rightShift, leftShift;
-    int32 rightLowShift, rightHighShift;
-    int32 leftHighShift, leftLowShift;
+    i32 rightShift, leftShift;
+    i32 rightLowShift, rightHighShift;
+    i32 leftHighShift, leftLowShift;
 
     // Used for BSF and BSR functions.
     auto firstBit = 0ul, lastBit = 0ul;
     auto isThereBit = false;
 
     // The required variables. By default, sprite boundaries is invalid.
-    auto leftmost = static_cast<uint32>(image.width_), rightmost = 0u;
-    auto topmost = static_cast<uint32>(image.height_), bottommost = 0u;
+    auto leftmost = static_cast<u32>(image.width_), rightmost = 0u;
+    auto topmost = static_cast<u32>(image.height_), bottommost = 0u;
 
     for (auto row = 0u; row < bottom; ++row) {
         for (auto col = 0u; col < right >> 2; col += 4) {
@@ -105,13 +105,13 @@ isle::Rect GetCroppedSpriteRectSSE(isle::Image const &image, isle::Rect const &r
 
             // In on cycle pass the algorithm reads the 16 texels. If the sprite boundaries is not a multiple of 16,
             // create a clipping mask for the texels are not included in this sprite.
-            rightShift = std::max<int32>((col << 2) + left + 16 - static_cast<int32>(rect.xmax()), 0);   // Texels amount that will be clipped at line's end.
-            leftShift = std::max<int32>(static_cast<int32>(rect.x()) - ((col << 2) + left), 0);          // Texels amount that will be clipped at line's begin.
+            rightShift = std::max<i32>((col << 2) + left + 16 - static_cast<i32>(rect.xmax()), 0);   // Texels amount that will be clipped at line's end.
+            leftShift = std::max<i32>(static_cast<i32>(rect.x()) - ((col << 2) + left), 0);          // Texels amount that will be clipped at line's begin.
 
-            rightLowShift = std::max<int32>(rightShift - 8, 0);
+            rightLowShift = std::max<i32>(rightShift - 8, 0);
             rightHighShift = rightShift - rightLowShift;
 
-            leftHighShift = std::max<int32>(leftShift - 8, 0);
+            leftHighShift = std::max<i32>(leftShift - 8, 0);
             leftLowShift = leftShift - leftHighShift;
 
             rightLowMask = _mm_srli_epi64(one, rightLowShift << 3);
@@ -186,23 +186,23 @@ isle::Rect GetCroppedSpriteRect(isle::Image const &image, isle::Rect const &rect
     auto const width = image.width_;
     auto const height = image.height_;
 
-    auto const left = static_cast<int32>(rect.x());
-    auto const top = static_cast<int32>(height - rect.y() - rect.height());
+    auto const left = static_cast<i32>(rect.x());
+    auto const top = static_cast<i32>(height - rect.y() - rect.height());
 
-    auto const right = static_cast<int32>(rect.xmax());
-    auto const bottom = static_cast<int32>(height - rect.y());
+    auto const right = static_cast<i32>(rect.xmax());
+    auto const bottom = static_cast<i32>(height - rect.y());
 
     auto const bpp = image.BytesPerPixel();
 
-    int32 leftmost = width;
-    int32 rightmost = -1;
+    i32 leftmost = width;
+    i32 rightmost = -1;
 
-    std::vector<int32> topmosts(0), bottommosts(0);
+    std::vector<i32> topmosts(0), bottommosts(0);
 
     topmosts.resize(static_cast<size_t>(rect.width()), height);
     bottommosts.resize(static_cast<size_t>(rect.width()), -1);
 
-    byte data = 0;
+    u8 data{0};
 
     for (auto i = top; i < bottom; ++i) {
         for (auto j = left; j < right; ++j) {
@@ -240,7 +240,7 @@ isle::Rect GetCroppedSpriteRect(isle::Image const &image, isle::Rect const &rect
 
 namespace isle {
 
-/*static*/ std::optional<Sprite> Sprite::Create(std::shared_ptr<Texture> const &_texture, uint32 _number, Rect const &_rect, Point const &_pivot, float _pixelsPerUnit)
+/*static*/ std::optional<Sprite> Sprite::Create(std::shared_ptr<Texture> const &_texture, u32 _number, Rect const &_rect, Point const &_pivot, float _pixelsPerUnit)
 {
     Sprite sprite;
 

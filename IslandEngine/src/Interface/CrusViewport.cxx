@@ -20,7 +20,7 @@ void Viewport::Create(Viewport::eVIEWPORT_TYPE _type)
     _type;
 }
 
-void Viewport::SetViewport(int16 _x, int16 _y, int16 _w, int16 _h)
+void Viewport::SetViewport(i16 _x, i16 _y, i16 _w, i16 _h)
 {
     x_ = _x;    y_ = _y;
     w_ = _w;    h_ = _h;

@@ -29,7 +29,7 @@ public:
     std::string name() const;
 
 protected:
-    uint32 instanceID{0};
+    u32 instanceID{0};
     std::string name_{""};
 
     explicit CrusObject() = default;

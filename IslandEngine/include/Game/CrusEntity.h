@@ -29,7 +29,7 @@ private:
 
     Transform transform_;
 
-    std::vector<uint32> componentsIDs_;
+    std::vector<u32> componentsIDs_;
 };
 };
 

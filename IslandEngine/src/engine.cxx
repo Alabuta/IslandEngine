@@ -22,10 +22,10 @@ auto constexpr height = 1080;
 
 auto constexpr clear_colors = isle::make_array(0.f, 1.f);
 
-uint32 constexpr index0 = 0, index1 = 1, index2 = 2, index3 = 3, index4 = 4;
+u32 constexpr index0 = 0, index1 = 1, index2 = 2, index3 = 3, index4 = 4;
 
-uint32 main_fbo, rt_0, rt_1, rt_2, rt_depth;
-uint32 out_fbo, out_rt0, out_rt1, out_depth;
+u32 main_fbo, rt_0, rt_1, rt_2, rt_depth;
+u32 out_fbo, out_rt0, out_rt1, out_depth;
 
 isle::Program ssao_program;
 
@@ -39,13 +39,13 @@ intf::Grid grid;
 
 
 Program hemisphere_program;
-uint32 hemisphere_vao, hemisphere_count;
+u32 hemisphere_vao, hemisphere_count;
 
 Program geom_program;
-uint32 geom_vao, geom_count;
+u32 geom_vao, geom_count;
 
 Program ssao_program;
-uint32 quad_vao, noise_tex;
+u32 quad_vao, noise_tex;
 
 
 auto matrices = make_array(
@@ -192,7 +192,7 @@ void InitFramebuffer()
 
     {
         std::uint32_t constexpr drawBuffers[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
-        glNamedFramebufferDrawBuffers(main_fbo, static_cast<int32>(std::size(drawBuffers)), std::data(drawBuffers));
+        glNamedFramebufferDrawBuffers(main_fbo, static_cast<i32>(std::size(drawBuffers)), std::data(drawBuffers));
     }
 
     glDisablei(GL_BLEND, 0);
@@ -239,7 +239,7 @@ void InitFramebuffer()
 
     {
         std::uint32_t constexpr drawBuffers[] = { GL_COLOR_ATTACHMENT0 };
-        glNamedFramebufferDrawBuffers(out_fbo, static_cast<int32>(std::size(drawBuffers)), std::data(drawBuffers));
+        glNamedFramebufferDrawBuffers(out_fbo, static_cast<i32>(std::size(drawBuffers)), std::data(drawBuffers));
     }
 
     if (auto result = glCheckNamedFramebufferStatus(out_fbo, GL_FRAMEBUFFER); result != GL_FRAMEBUFFER_COMPLETE)
@@ -262,7 +262,7 @@ std::optional<std::vector<double>> InitGaussFilter1()
 		return {};
 	}
 
-	auto samplesPerBin = static_cast<uint32>(std::ceil(kSampleCount / static_cast<double>(kKernelSize)));
+	auto samplesPerBin = static_cast<u32>(std::ceil(kSampleCount / static_cast<double>(kKernelSize)));
 
 	// Need an even number of intervals for simpson integration => odd number of samples
 	if ((samplesPerBin % 2) == 0) ++samplesPerBin;
@@ -273,7 +273,7 @@ std::optional<std::vector<double>> InitGaussFilter1()
 
 	using F = double(*)(double);
 
-	auto sampleInterval = [] (auto f, auto a, auto b, uint32 sampleCount)
+	auto sampleInterval = [] (auto f, auto a, auto b, u32 sampleCount)
 	{
 		using T = decltype(a);
 
@@ -336,7 +336,7 @@ std::optional<std::vector<double>> InitGaussFilter1()
 
 	allSamples.emplace_back(std::move(outsideSamplesRight), 0.);
 
-	auto roundTo = [] (auto num, uint32 decimals)
+	auto roundTo = [] (auto num, u32 decimals)
 	{
 		auto shift = std::pow(static_cast<decltype(num)>(10), decimals);
 		return std::round(num * shift) / shift;
@@ -358,15 +358,15 @@ std::optional<std::vector<double>> InitGaussFilter1()
 #endif
 
 template<typename T>
-constexpr int32 PixelsNeededForSigma(T sigma, T threshold)
+constexpr i32 PixelsNeededForSigma(T sigma, T threshold)
 {
 	auto const size = 1 + 2 * sigma * std::sqrt(-2 * std::log(threshold * static_cast<T>(0.01)));
 	
-	return static_cast<int32>(std::floor(size)) | 1;
+	return static_cast<i32>(std::floor(size)) | 1;
 }
 
 template<typename T>
-constexpr T GetSigmaBasedOnTapSize(int32 size, T threshold)
+constexpr T GetSigmaBasedOnTapSize(i32 size, T threshold)
 {
 	return static_cast<T>(size - 1) / (2 * std::sqrt(-2 * std::log(threshold * static_cast<T>(0.01))));
 }
@@ -378,7 +378,7 @@ constexpr T GaussianSimpsonIntegration(T a, T b, T sigma)
 }
 
 template<typename T>
-constexpr std::vector<T> GaussianKernelIntegrals(T sigma, int32 taps, bool half_size = true, bool normalize = true)
+constexpr std::vector<T> GaussianKernelIntegrals(T sigma, i32 taps, bool half_size = true, bool normalize = true)
 {
 	auto const half_taps = taps >> 1;
 
@@ -463,7 +463,7 @@ void InitGaussFilter(Program &program)
         auto index = glGetProgramResourceIndex(program.program(), GL_SHADER_STORAGE_BLOCK, "GAUSS_FILTER_COLOR_WEIGHTS");
 
         if (index != GL_INVALID_INDEX) {
-            uint32 GAUSS_FILTER_COLOR_WEIGHTS = 0;
+            u32 GAUSS_FILTER_COLOR_WEIGHTS = 0;
 
             Render::inst().CreateBO(GAUSS_FILTER_COLOR_WEIGHTS);
             glNamedBufferStorage(GAUSS_FILTER_COLOR_WEIGHTS, sizeof(decltype(weights)::value_type) * std::size(weights), std::data(weights), 0);
@@ -480,7 +480,7 @@ void InitGaussFilter(Program &program)
         auto index = glGetProgramResourceIndex(program.program(), GL_SHADER_STORAGE_BLOCK, "GAUSS_FILTER_OFFSETS");
 
         if (index != GL_INVALID_INDEX) {
-            uint32 GAUSS_FILTER_OFFSETS = 0;
+            u32 GAUSS_FILTER_OFFSETS = 0;
 
             Render::inst().CreateBO(GAUSS_FILTER_OFFSETS);
             glNamedBufferStorage(GAUSS_FILTER_OFFSETS, sizeof(decltype(offsets)::value_type) * std::size(offsets), std::data(offsets), 0);

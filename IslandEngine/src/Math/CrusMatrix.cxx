@@ -479,7 +479,7 @@ Matrix &Matrix::Translate(float _x, float _y, float _z)
     return *this;
 }
 
-float Matrix::Minor(uint8 _a, uint8 _b, uint8 _c, uint8 _d, uint8 _e, uint8 _f) const
+float Matrix::Minor(u8 _a, u8 _b, u8 _c, u8 _d, u8 _e, u8 _f) const
 {
     _a <<= 2;    _b <<= 2;    _c <<= 2;
 

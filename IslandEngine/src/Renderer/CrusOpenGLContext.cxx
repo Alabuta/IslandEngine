@@ -101,7 +101,7 @@ void OpenGLContext::SetupContext()
     if (wglMakeCurrent(hDummyDC, hShareRC) == FALSE)
         isle::log::Fatal() << "can't make share context current.";
 
-    int32 constexpr attrilist[] = {
+    i32 constexpr attrilist[] = {
         WGL_SUPPORT_OPENGL_ARB, GL_TRUE,
         WGL_DRAW_TO_WINDOW_ARB, GL_TRUE,
         WGL_DOUBLE_BUFFER_ARB,  GL_TRUE,
@@ -127,7 +127,7 @@ void OpenGLContext::SetupContext()
     if (SetPixelFormat(hMainWndDC_, pfs, &hPFD) == FALSE)
         isle::log::Fatal() << "can't set renderer pixel format.";
 
-    int32 constexpr attrlist[] = {
+    i32 constexpr attrlist[] = {
         WGL_CONTEXT_MAJOR_VERSION_ARB,  4,
         WGL_CONTEXT_MINOR_VERSION_ARB,  5,
         WGL_CONTEXT_FLAGS_ARB,          WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB,

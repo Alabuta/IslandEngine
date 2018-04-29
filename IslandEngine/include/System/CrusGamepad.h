@@ -21,23 +21,23 @@ namespace Input
 class Gamepad : Device {
 private:
     XINPUT_STATE state_;
-    uint32 num_;
+    u32 num_;
 
     /*struct {
-        uint16 bDPAD_UP_:1;
-        uint16 bDPAD_DOWN_:1;
-        uint16 bDPAD_LEFT_:1;
-        uint16 bDPAD_RIGHT_:1;
-        uint16 bSTART_:1;
-        uint16 bBACK_:1;
-        uint16 bLEFT_THUMB_:1;
-        uint16 bRIGHT_THUMB_:1;
-        uint16 bLEFT_SHOULDER_:1;
-        uint16 bRIGHT_SHOULDER_:1;
-        uint16 bA_:1;
-        uint16 bB_:1;
-        uint16 bX_:1;
-        uint16 bY_:1;
+        u16 bDPAD_UP_:1;
+        u16 bDPAD_DOWN_:1;
+        u16 bDPAD_LEFT_:1;
+        u16 bDPAD_RIGHT_:1;
+        u16 bSTART_:1;
+        u16 bBACK_:1;
+        u16 bLEFT_THUMB_:1;
+        u16 bRIGHT_THUMB_:1;
+        u16 bLEFT_SHOULDER_:1;
+        u16 bRIGHT_SHOULDER_:1;
+        u16 bA_:1;
+        u16 bB_:1;
+        u16 bX_:1;
+        u16 bY_:1;
     };*/
 
 public:

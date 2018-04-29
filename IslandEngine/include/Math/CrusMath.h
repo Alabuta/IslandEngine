@@ -234,7 +234,7 @@ inline bool IsTooSmall(float x, float kindaSmallEnough = kMIN)
 };
 
 // :TODO: move to other place.
-inline bool crus::IsEqualBasedULP(float _a, float _b, float _max_diff, int32 _ulp_diff)
+inline bool crus::IsEqualBasedULP(float _a, float _b, float _max_diff, i32 _ulp_diff)
 {
 #if _CRUS_REAL_CHECK_ON_INF
     if(std::isinf(_a) || std::isinf(_b))

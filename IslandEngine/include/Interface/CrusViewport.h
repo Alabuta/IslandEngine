@@ -26,7 +26,7 @@ public:
 
     void Create(Viewport::eVIEWPORT_TYPE type);
 
-    void SetViewport(int16 x, int16 y, int16 w, int16 h);
+    void SetViewport(i16 x, i16 y, i16 w, i16 h);
     void SetCamera(Camera *const cam);
 
     void MakeCurrent() const;
@@ -37,13 +37,13 @@ public:
     math::Matrix projView() const;
     math::Matrix const &invProj() const;
 
-    int16 x() const;
-    int16 y() const;
-    int16 w() const;
-    int16 h() const;
+    i16 x() const;
+    i16 y() const;
+    i16 w() const;
+    i16 h() const;
 
 public:
-    int16 x_, y_, w_, h_;
+    i16 x_, y_, w_, h_;
 
     math::Matrix proj_, viewport_;
     math::Matrix invProj_;
@@ -56,8 +56,8 @@ public:
     };
 
     struct {
-        uint8 fill_mode_ : 2;     // Point, wireframe or solid.
-        uint8 cull_mode_ : 2;     // Off, back, front and both faces.
+        u8 fill_mode_ : 2;     // Point, wireframe or solid.
+        u8 cull_mode_ : 2;     // Off, back, front and both faces.
         bool _reserved_ : 4;
     };
 };
@@ -82,22 +82,22 @@ inline Camera &Viewport::cam()
     return *cam_;
 }
 
-inline int16 Viewport::x() const
+inline i16 Viewport::x() const
 {
     return x_;
 }
 
-inline int16 Viewport::y() const
+inline i16 Viewport::y() const
 {
     return y_;
 }
 
-inline int16 Viewport::w() const
+inline i16 Viewport::w() const
 {
     return w_;
 }
 
-inline int16 Viewport::h() const
+inline i16 Viewport::h() const
 {
     return h_;
 }

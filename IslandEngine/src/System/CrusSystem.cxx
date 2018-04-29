@@ -103,9 +103,9 @@ struct PhysicsComponent final : Component {
 struct MeshComponent final : Component {
     static auto constexpr id = 4;
 
-    int64 meshID;
+    i64 meshID;
 
-    MeshComponent(entity_id_t entityID, int64 meshID) : Component(entityID), meshID(meshID) { };
+    MeshComponent(entity_id_t entityID, i64 meshID) : Component(entityID), meshID(meshID) { };
 };
 
 using component_t = std::variant<PositionComponent *, VelocityComponent *, TransformComponent *>;
@@ -274,7 +274,7 @@ public:
         else return std::nullopt;
     }
 
-    void AddSystem(uint16 priority, std::unique_ptr<ISystem> system)
+    void AddSystem(u16 priority, std::unique_ptr<ISystem> system)
     {
         systems_.emplace(priority, std::move(system));
     }
@@ -310,7 +310,7 @@ private:
     std::vector<PhysicsComponent> physicsComponents_;
     std::vector<MeshComponent> meshComponents_;*/
 
-    std::map<uint16, std::unique_ptr<ISystem>> systems_;
+    std::map<u16, std::unique_ptr<ISystem>> systems_;
     std::map<decltype(Component::id), std::any> components_;
 };
 
@@ -451,7 +451,7 @@ Time System::time;
     log::Info() << "application destroyed.";
 }
 
-/*static*/ int32 System::Loop()
+/*static*/ i32 System::Loop()
 {
     MSG msg;
     time.Restart();
@@ -463,7 +463,7 @@ Time System::time;
 #pragma warning(pop)
         while (PeekMessageW(&msg, nullptr, 0, 0, PM_REMOVE /*| PM_NOYIELD*/) != 0) {
             if (msg.message == WM_QUIT)
-                return static_cast<int32>(msg.wParam);
+                return static_cast<i32>(msg.wParam);
 
             //TranslateMessage(&msg);
             DispatchMessageW(&msg);

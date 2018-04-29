@@ -20,7 +20,7 @@ namespace isle {
 class Sprite final : public CrusObject {
 public:
 
-    static std::optional<Sprite> Create(std::shared_ptr<Texture> const &texture, uint32 number, Rect const &rect, Point const &pivot, float pixelsPerUnit = 100);
+    static std::optional<Sprite> Create(std::shared_ptr<Texture> const &texture, u32 number, Rect const &rect, Point const &pivot, float pixelsPerUnit = 100);
 
     Texture const &textureSheet() const;
 
@@ -31,7 +31,7 @@ public:
     Rect const &textureRect() const;
     Rect const &textureRectOffset() const;
 
-    std::vector<uint16> const &indices() const;
+    std::vector<u16> const &indices() const;
     std::vector<Position> const &vertices() const;
     std::vector<math::Vector> const &normals() const;
     std::vector<UV> const &uvs() const;
@@ -50,7 +50,7 @@ private:
 
     std::weak_ptr<Texture> textureSheet_;
 
-    std::vector<uint16> indices_;
+    std::vector<u16> indices_;
     std::vector<Position> vertices_;
     std::vector<math::Vector> normals_;
     std::vector<UV> uvs_;
@@ -91,7 +91,7 @@ __forceinline Rect const &Sprite::textureRectOffset() const
     return textureRectOffset_;
 }
 
-__forceinline std::vector<uint16> const &Sprite::indices() const
+__forceinline std::vector<u16> const &Sprite::indices() const
 {
     return indices_;
 }

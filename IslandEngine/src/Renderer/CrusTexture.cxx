@@ -61,7 +61,7 @@ bool Texture::Init()
     }
 
     else if (type_ == eTEXTURE_TYPE::nCUBE) {
-        std::array<std::tuple<int32, std::string, Image>, 6> tuples{{
+        std::array<std::tuple<i32, std::string, Image>, 6> tuples{{
             { 0, "_px"s, {} },
             { 1, "_nx"s, {} },
             { 2, "_py"s, {} },
@@ -100,8 +100,8 @@ bool Texture::Init()
         glGenerateTextureMipmap(id_);
     }
 
-    w_ = static_cast<uint16>(image.width_);
-    h_ = static_cast<uint16>(image.height_);
+    w_ = static_cast<u16>(image.width_);
+    h_ = static_cast<u16>(image.height_);
 
     return true;
 }

@@ -59,18 +59,18 @@ std::string Program::ReadShaderSource(std::string const &_parentPath, std::strin
     return source;
 }
 
-std::unordered_map<uint32, std::string> Program::SeparateByStages(std::string const &_name, std::string &_includes, std::string const &_source)
+std::unordered_map<u32, std::string> Program::SeparateByStages(std::string const &_name, std::string &_includes, std::string const &_source)
 {
     using namespace std::string_literals;
     thread_local static std::regex const rex_shader_stage_pattern("^[ |\t]*#[ |\t]*pragma[ |\t]+stage[ |\t]*[(][\"](.*)[\"][)].*", std::regex::optimize);
 
-    thread_local static std::unordered_map<std::string, uint32> const stagesTypes{
+    thread_local static std::unordered_map<std::string, u32> const stagesTypes{
         {"vertex"s, GL_VERTEX_SHADER},
 		{"fragment"s, GL_FRAGMENT_SHADER},
 		{"geometry"s, GL_GEOMETRY_SHADER}
     };
 
-    std::unordered_map<uint32, std::string> stages;
+    std::unordered_map<u32, std::string> stages;
 
     auto begin = std::sregex_token_iterator(_source.cbegin(), _source.cend(), rex_shader_stage_pattern, {-1, 1});
     auto end = std::sregex_token_iterator();
@@ -90,7 +90,7 @@ std::unordered_map<uint32, std::string> Program::SeparateByStages(std::string co
     return stages;
 }
 
-void Program::PreprocessIncludes(std::string const &_source, int32 _includingLevel)
+void Program::PreprocessIncludes(std::string const &_source, i32 _includingLevel)
 {
     using namespace std::string_literals;
 
@@ -138,7 +138,7 @@ bool Program::AssignNew(std::initializer_list<std::string> &&_names, std::string
     if (!Render::inst().CreateProgram(program_))
         return false;
 
-    std::vector<uint32> shaderObjects;
+    std::vector<u32> shaderObjects;
 
     std::string includes, source;
 
@@ -189,12 +189,12 @@ void Program::Destroy()
 
     glUseProgram(0);
 
-    std::array<uint32, 16> shaders{0};
-    int32 count = -1;
+    std::array<u32, 16> shaders{0};
+    i32 count = -1;
 
     glGetAttachedShaders(program_, 3, &count, shaders.data());
 
-    count = std::clamp(count, 0, static_cast<int32>(shaders.size()));
+    count = std::clamp(count, 0, static_cast<i32>(shaders.size()));
 
     while (--count > -1) {
         if (glIsShader(shaders[count]) != 0) {
@@ -206,10 +206,10 @@ void Program::Destroy()
     glDeleteProgram(program_);
 }
 
-uint32 Program::CreateShaderObject(std::vector<std::string> const &_includes, std::string_view _source, uint32 _type, std::string _options)
+u32 Program::CreateShaderObject(std::vector<std::string> const &_includes, std::string_view _source, u32 _type, std::string _options)
 {
     using namespace std::string_literals;
-    static std::unordered_map<uint32, std::string> const shaderTypes{
+    static std::unordered_map<u32, std::string> const shaderTypes{
         {GL_VERTEX_SHADER, "vertex"s},
         {GL_FRAGMENT_SHADER, "fragment"s},
         {GL_GEOMETRY_SHADER, "geometry"s}
@@ -217,7 +217,7 @@ uint32 Program::CreateShaderObject(std::vector<std::string> const &_includes, st
 
     auto const shaderObject = glCreateShader(_type);
 
-    const auto preprocessorDirectives = [&_options] (uint32 type)
+    const auto preprocessorDirectives = [&_options] (u32 type)
     {
         // Used for shader source file preprocessing.
         std::ostringstream preprocessor_directives;
@@ -291,9 +291,9 @@ uint32 Program::CreateShaderObject(std::vector<std::string> const &_includes, st
         
         preprocessor_directives << std::endl;
 
-        preprocessor_directives << "#define CRUS_REVERSED_DEPTH " << static_cast<int32>(Render::kREVERSED_DEPTH) << '\n';
-        preprocessor_directives << "#define CRUS_INFINITE_FAR_PLANE " << static_cast<int32>(Render::kINFINITE_FAR_PLANE) << '\n';
-        preprocessor_directives << "#define CRUS_DEPTH_CLIPPED_FROM_ZERO_TO_ONE " << static_cast<int32>(Render::kDEPTH_CLIPPED_FROM_ZERO_TO_ONE) << '\n';
+        preprocessor_directives << "#define CRUS_REVERSED_DEPTH " << static_cast<i32>(Render::kREVERSED_DEPTH) << '\n';
+        preprocessor_directives << "#define CRUS_INFINITE_FAR_PLANE " << static_cast<i32>(Render::kINFINITE_FAR_PLANE) << '\n';
+        preprocessor_directives << "#define CRUS_DEPTH_CLIPPED_FROM_ZERO_TO_ONE " << static_cast<i32>(Render::kDEPTH_CLIPPED_FROM_ZERO_TO_ONE) << '\n';
 
 		preprocessor_directives << _options << '\n';
 
@@ -311,7 +311,7 @@ uint32 Program::CreateShaderObject(std::vector<std::string> const &_includes, st
 
     sources.push_back(_source.data());
 
-    glShaderSource(shaderObject, static_cast<int32>(sources.size()), sources.data(), nullptr);
+    glShaderSource(shaderObject, static_cast<i32>(sources.size()), sources.data(), nullptr);
     glCompileShader(shaderObject);
 
     auto success = 0;
@@ -322,7 +322,7 @@ uint32 Program::CreateShaderObject(std::vector<std::string> const &_includes, st
         glGetShaderiv(shaderObject, GL_INFO_LOG_LENGTH, &length);
 
         std::vector<char> log(length, '\0');
-        glGetShaderInfoLog(shaderObject, static_cast<int32>(log.size()), &length, log.data());
+        glGetShaderInfoLog(shaderObject, static_cast<i32>(log.size()), &length, log.data());
 
         glDeleteShader(shaderObject);
 
@@ -341,7 +341,7 @@ uint32 Program::CreateShaderObject(std::vector<std::string> const &_includes, st
 
 bool Program::LinkAndValidateProgram() const
 {
-    int32 status[2], length = -1;
+    i32 status[2], length = -1;
 
     glLinkProgram(program_);
     glGetProgramiv(program_, GL_LINK_STATUS, &status[0]);
@@ -384,7 +384,7 @@ void Program::UseThis() const
     glUseProgram(program_);
 }
 
-int32 Program::GetAttributeLoc(std::string_view _name) const
+i32 Program::GetAttributeLoc(std::string_view _name) const
 {
     auto attributeLocation = glGetAttribLocation(program_, _name.data());
 
@@ -394,7 +394,7 @@ int32 Program::GetAttributeLoc(std::string_view _name) const
     return attributeLocation;
 }
 
-int32 Program::GetUniformLoc(std::string_view _name) const
+i32 Program::GetUniformLoc(std::string_view _name) const
 {
     auto uniformLocation = glGetUniformLocation(program_, _name.data());
 

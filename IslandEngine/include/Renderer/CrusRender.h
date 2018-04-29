@@ -56,13 +56,13 @@ public:
     void Init();
     void DeleteContext();
 
-    bool CreateProgram(uint32 &program);
+    bool CreateProgram(u32 &program);
 
-    bool CreateBO(uint32 &vbo);
-    bool CreateVAO(uint32 &vao);
-    bool CreateTBO(uint32 target, uint32 &tbo);
+    bool CreateBO(u32 &vbo);
+    bool CreateVAO(u32 &vao);
+    bool CreateTBO(u32 target, u32 &tbo);
 
-    void SetViewport(int16 x, int16 y, int16 w, int16 h);
+    void SetViewport(i16 x, i16 y, i16 w, i16 h);
 
     void Update();
     void DrawFrame();
@@ -79,11 +79,11 @@ private:
     //HDC hDC_{nullptr};
     //HGLRC hRC_{nullptr};
 
-    uint32 BOs_{0}, VAOs_{0}, TBOs_{0};
-    uint32 POs_{0};                            // The POs is the program objects.
+    u32 BOs_{0}, VAOs_{0}, TBOs_{0};
+    u32 POs_{0};                            // The POs is the program objects.
 
     // Transform-scale-rotate matrices and color values UBOs indices.
-    uint32 VIEWPORT_{0}, CMTS_{0}, TRANSFORM_{0};
+    u32 VIEWPORT_{0}, CMTS_{0}, TRANSFORM_{0};
 
     //intf::Viewport vp_;
 

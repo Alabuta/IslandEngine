@@ -28,11 +28,11 @@ extern "C"
 #include "Game\CrusObject.h"
 
 namespace isle {
-struct alignas(sizeof(uint32)) RGBA
+struct alignas(sizeof(u32)) RGBA
 {
     union {
-        byte channels[4];
-        uint32 value;
+        u8 channels[4];
+        u32 value;
     };
 };
 
@@ -45,11 +45,11 @@ struct alignas(sizeof(uint32)) RGBA
 struct Image {
     alignas(sizeof(__m128i)) std::vector<RGBA> data_;
 
-    int32 bpp_{0};
-    int32 width_{0}, height_{0};
-    uint32 type_{0}, format_{0};
+    i32 bpp_{0};
+    i32 width_{0}, height_{0};
+    u32 type_{0}, format_{0};
 
-    uint8 BytesPerPixel() const;
+    u8 BytesPerPixel() const;
 };
 
 class Texture final : public CrusObject {
@@ -67,7 +67,7 @@ public:
         nCLAMP = 0, nREPEAT
     } wrapMode{eWRAP_MODE::nREPEAT};
 
-    int8 anisotrophyLevel{0};
+    i8 anisotrophyLevel{0};
 #endif
 
     Image image;
@@ -86,8 +86,8 @@ public:
     friend std::ostream &operator<< (std::ostream &stream, Texture const &texture);
 
 private:
-    uint32 id_{0}, unit_{0};
-    uint16 w_{0}, h_{0};
+    u32 id_{0}, unit_{0};
+    u16 w_{0}, h_{0};
 
     eTEXTURE_TYPE type_{eTEXTURE_TYPE::nUNKNOWN};
 

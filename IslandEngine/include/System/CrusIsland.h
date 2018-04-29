@@ -34,24 +34,24 @@
 namespace crus {
 // Unicode names.
 namespace names {
-wchar_t const *const kBUILD_DATE = __WDATE__ L", " __WTIME__;
-wchar_t const *const kBUILD_VERSION = L"0.1.17.0116";
+auto constexpr kBUILD_DATE = __WDATE__ L", " __WTIME__;
+auto constexpr kBUILD_VERSION = L"0.1.17.0116";
 
-wchar_t const *const kPROJECT = L"Crusoe's Island Engine";
+auto constexpr kPROJECT = L"Crusoe's Island Engine";
 
-wchar_t const *const kMAIN_WINDOW_CLASS = L"CrusWindowClass";
-wchar_t const *const kMAIN_WINDOW_NAME = L"Crusoe's Island Engine";
+auto constexpr kMAIN_WINDOW_CLASS = L"CrusWindowClass";
+auto constexpr kMAIN_WINDOW_NAME = L"Crusoe's Island Engine";
 };
 
 // ASCII names.
 namespace names_a {
-char const *const kBUILD_DATE = __DATE__ ", " __TIME__;
-char const *const kBUILD_VERSION = "0.1.17.0116";
+auto constexpr kBUILD_DATE = __DATE__ ", " __TIME__;
+auto constexpr kBUILD_VERSION = "0.1.17.0116";
 
-char const *const kPROJECT = "Crusoe's Island Engine";
+auto constexpr kPROJECT = "Crusoe's Island Engine";
 
-char const *const kMAIN_WINDOW_CLASS = "CrusWindowClass";
-char const *const kMAIN_WINDOW_NAME = "Crusoe's Island Engine";
+auto constexpr kMAIN_WINDOW_CLASS = "CrusWindowClass";
+auto constexpr kMAIN_WINDOW_NAME = "Crusoe's Island Engine";
 };
 };
 

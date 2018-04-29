@@ -6,7 +6,7 @@ namespace cubemap {
 auto cubemapIndirectBO = 0u;
 
 Program cubemapProgram;
-uint32 cubemapVAO;
+u32 cubemapVAO;
 Texture cubemapTexture(Texture::eTEXTURE_TYPE::nCUBE, R"(Skybox/skybox)");
 
 bool InitCubemap()
@@ -60,12 +60,12 @@ bool InitCubemap()
         Render::inst().CreateBO(cubemapIndirectBO);
 
         struct {
-            uint32  count;
-            uint32  instanceCount;
-            uint32  first;
-            uint32  baseInstance;
+            u32  count;
+            u32  instanceCount;
+            u32  first;
+            u32  baseInstance;
         } const command = {
-            static_cast<uint32>(vertices.size()), 1, 0, 0
+            static_cast<u32>(vertices.size()), 1, 0, 0
         };
 
         glNamedBufferStorage(cubemapIndirectBO, sizeof(command), &command, GL_DYNAMIC_STORAGE_BIT);

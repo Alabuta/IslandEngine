@@ -20,7 +20,7 @@ namespace isle {
 // A function execution duration measurement.
 template<typename TimeT = std::chrono::milliseconds>
 struct measure {
-    template<typename F, typename ...Args>
+    template<typename F, typename... Args>
     static auto execution(F func, Args &&... args)
     {
         auto start = std::chrono::system_clock::now();
@@ -45,7 +45,7 @@ public:
 private:
 
     std::chrono::time_point<std::chrono::system_clock> appStart_, prevFrame_;
-    int64 delta_, elapsed_;
+    i64 delta_, elapsed_;
 };
 }
 

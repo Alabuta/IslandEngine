@@ -12,7 +12,7 @@ class Renderer : Component {
 public:
     bool enabled{true};
     bool isVisible{true};
-    uint8 sortingLayer{0}, sortingOrder{0};
+    u8 sortingLayer{0}, sortingOrder{0};
     Bounds bounds_;
 
 private:

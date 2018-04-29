@@ -74,7 +74,7 @@ public:
     Matrix &Scale(float x, float y, float z);
     Matrix &Translate(float x, float y, float z);
 
-    float Minor(uint8, uint8, uint8, uint8, uint8, uint8) const;
+    float Minor(u8, u8, u8, u8, u8, u8) const;
     float Det() const;
 
     static Matrix Inverse(Matrix const &m);

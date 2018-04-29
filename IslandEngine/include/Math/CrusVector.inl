@@ -151,14 +151,14 @@ inline Vector &Vector::operator-- ()
     return *this;
 }
 
-inline Vector operator++ (Vector &_v, int32)
+inline Vector operator++ (Vector &_v, i32)
 {
     Vector ret(_v);
     ++_v;
     return ret;
 }
 
-inline Vector operator-- (Vector &_v, int32)
+inline Vector operator-- (Vector &_v, i32)
 {
     Vector ret(_v);
     --_v;

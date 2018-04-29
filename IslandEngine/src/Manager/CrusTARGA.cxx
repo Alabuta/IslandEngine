@@ -34,7 +34,7 @@ auto constexpr kTEXTURES_PATH = R"(../contents/textures/)"sv;
 };
 
 namespace isle {
-uint8 Image::BytesPerPixel() const
+u8 Image::BytesPerPixel() const
 {
     switch (bpp_) {
         case GL_RED:
@@ -121,7 +121,7 @@ bool LoadCompressedTARGA(Image &_image, std::ifstream &_file)
     _image.data_.reserve(pixelsCount);
 
     RGBA texel{0};
-    byte chunkheader = 0;
+    u8 chunkheader = 0;
 
     size_t currentPixel = 0;
 
@@ -167,12 +167,12 @@ bool LoadTARGA(Image *const _image, std::string_view _name)
         return false;
     }
 
-    file.seekg(sizeof(byte) * 2, std::ios::beg);
+    file.seekg(sizeof(u8) * 2, std::ios::beg);
 
     char headerTARGA = 0;
     file.read(&headerTARGA, sizeof(headerTARGA));
 
-    file.seekg(sizeof(byte) * 9, std::ios::cur);
+    file.seekg(sizeof(u8) * 9, std::ios::cur);
 
     char header[6]{0};
 

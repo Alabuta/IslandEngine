@@ -17,16 +17,16 @@ namespace isle::intf {
 class Grid {
 public:
 
-    void Update(float side = 15.0f, float step = 1.0f, uint16 subdivs = 5);
+    void Update(float side = 15.0f, float step = 1.0f, u16 subdivs = 5);
     void Draw();
 
 private:
     Program shader_;
-    uint32 vao_;
+    u32 vao_;
 
-    uint16 count_;
+    u16 count_;
 
-    auto Build(float side, float step, uint16 subdivs);
+    auto Build(float side, float step, u16 subdivs);
 };
 };
 

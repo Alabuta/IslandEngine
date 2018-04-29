@@ -78,7 +78,7 @@ bool LoadBinaryModel(fs::path path, std::vector<T> &vertex_buffer)
 }
 
 template<typename T>
-bool LoadModel(std::string_view _name, uint32 &count, std::vector<T> &vertex_buffer)
+bool LoadModel(std::string_view _name, u32 &count, std::vector<T> &vertex_buffer)
 {
     using namespace std::string_literals;
 

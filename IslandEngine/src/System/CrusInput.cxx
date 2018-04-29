@@ -32,8 +32,8 @@ Device devices[kMAX_HIDS];
 
 class CInput {
 private:
-    uint32 nHID_;
-    uint32 raw_size_;
+    u32 nHID_;
+    u32 raw_size_;
 
     RAWINPUT *raw_;
 
@@ -74,7 +74,7 @@ public:
 
 void CInput::Setup()
 {
-    uint32 nDevs = {0};
+    u32 nDevs = {0};
 
     if (GetRawInputDeviceList(nullptr, &nDevs, sizeof(RAWINPUTDEVICELIST)) == (UINT)-1)
         log::Fatal() << "an error is returned: " << __FILE__ << "at line" << __LINE__;
@@ -104,10 +104,10 @@ void CInput::Setup()
     };
 
     eDEVICE_TYPE dev_type = nKEYBOARD;
-    //uint32 gpad_num = 0;
+    //u32 gpad_num = 0;
 
     // Checking all plugged HID devices.
-    for (uint32 i = 0; i < nDevs; ++i) {
+    for (u32 i = 0; i < nDevs; ++i) {
         GetRawInputDeviceInfoW(ridl[i].hDevice, RIDI_DEVICEINFO, &rdi, &size);
 
         switch (ridl[i].dwType) {
@@ -177,7 +177,7 @@ void CInput::Destroy()
         log::Error() << "failed to get list of registered HID devices.";
 
     else {
-        for (uint32 i = 0; i < nHID_; ++i) {
+        for (u32 i = 0; i < nHID_; ++i) {
             rid[i].dwFlags = RIDEV_REMOVE;
             rid[i].hwndTarget = nullptr;
         }

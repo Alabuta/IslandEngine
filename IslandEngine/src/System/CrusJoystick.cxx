@@ -96,14 +96,14 @@ long Hat;
     if(HidP_GetCaps(preparsed, &caps) == HIDP_STATUS_INVALID_PREPARSED_DATA)
         return;
 
-    uint16 numCaps = caps.NumberInputButtonCaps;
-    uint16 valCaps = caps.NumberInputValueCaps;
+    u16 numCaps = caps.NumberInputButtonCaps;
+    u16 valCaps = caps.NumberInputValueCaps;
 
     if(sizeof(HIDP_BUTTON_CAPS) * numCaps > _msize(button))
         button = (PHIDP_BUTTON_CAPS)realloc(button, sizeof(HIDP_BUTTON_CAPS) * numCaps);
 
     HidP_GetButtonCaps(HidP_Input, button, &numCaps, preparsed);
-    uint16 const numButtons = button[1].Range.UsageMax - button->Range.UsageMin + 1;
+    u16 const numButtons = button[1].Range.UsageMax - button->Range.UsageMin + 1;
 
     if(sizeof(HIDP_VALUE_CAPS) * valCaps > _msize(value))
         value = (PHIDP_VALUE_CAPS)realloc(value, sizeof(HIDP_VALUE_CAPS) * valCaps);

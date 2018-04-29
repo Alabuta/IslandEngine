@@ -20,11 +20,11 @@ namespace Input
 {
 class Joystick : Device/*<Joystick>*/ {
 private:
-    int16 x_, y_, z_;
-    int16 Rx_, Ry_, Rz_;
+    i16 x_, y_, z_;
+    i16 Rx_, Ry_, Rz_;
 
-    int16 slider1_, slider2_;
-    uint8 button_;
+    i16 slider1_, slider2_;
+    u8 button_;
 
 public:
 

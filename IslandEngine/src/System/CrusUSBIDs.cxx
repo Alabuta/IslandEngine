@@ -18,7 +18,7 @@
 namespace isle
 {
 struct USBIDs {
-    uint32 hex_;
+    u32 hex_;
     char name_[256];
 };
 
@@ -39,7 +39,7 @@ void FindVendorDeviceID(USBIDs &_vendor, USBIDs &_device)
         return;
     }
 
-    uint32 vendor, device;
+    u32 vendor, device;
     astr itert = str;
 
 // :COMPILER: just to shut up the compiler.

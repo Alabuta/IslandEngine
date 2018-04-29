@@ -23,27 +23,25 @@ using acstr = char const *const;
 using wstr  = wchar_t const *;
 using wcstr = wchar_t const *const;
 
-using byte = unsigned __int8;
+using i8  = __int8;
+using i16 = __int16;
+using i32 = __int32;
+using i64 = __int64;
 
-using int8  = __int8;
-using int16 = __int16;
-using int32 = __int32;
-using int64 = __int64;
-
-using uint8  = unsigned __int8;
-using uint16 = unsigned __int16;
-using uint32 = unsigned __int32;
-using uint64 = unsigned __int64;
+using u8  = unsigned __int8;
+using u16 = unsigned __int16;
+using u32 = unsigned __int32;
+using u64 = unsigned __int64;
 
 union real {
     float f;
-    int32 i;
+    i32 i;
 };
 
 // Values sizes of application usertypes.
 namespace crus
 {
-bool IsEqualBasedULP(float a, float b, float max_diff, int32 ulp_diff);
+bool IsEqualBasedULP(float a, float b, float max_diff, i32 ulp_diff);
 };
 
 

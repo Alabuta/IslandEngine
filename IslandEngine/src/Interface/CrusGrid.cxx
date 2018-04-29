@@ -19,9 +19,9 @@
 #include "Interface\CrusGrid.h"
 
 namespace isle::intf {
-auto Grid::Build(float _side, float _step, uint16 _subdivs)
+auto Grid::Build(float _side, float _step, u16 _subdivs)
 {
-    auto lines = static_cast<uint16>(std::floor(_side / _step));
+    auto lines = static_cast<u16>(std::floor(_side / _step));
 
     auto const total = static_cast<decltype(lines)>(_side / (_step / _subdivs));
     auto const sub = _step / _subdivs;
@@ -74,7 +74,7 @@ auto Grid::Build(float _side, float _step, uint16 _subdivs)
     return data;
 }
 
-void Grid::Update(float _side, float _step, uint16 _subdivs)
+void Grid::Update(float _side, float _step, u16 _subdivs)
 {
     shader_.AssignNew({"Interface/grid.glsl"});
 

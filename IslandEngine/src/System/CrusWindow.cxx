@@ -156,7 +156,7 @@ void Window::ChooseMode(char _mode)
         bWindowed_ = false;
     }
 
-    uint32 const flags = SWP_DRAWFRAME | SWP_NOZORDER;
+    u32 const flags = SWP_DRAWFRAME | SWP_NOZORDER;
     SetWindowPos(hWnd_, nullptr, rc.left, rc.top, rc.right, rc.bottom, flags);
 }
 

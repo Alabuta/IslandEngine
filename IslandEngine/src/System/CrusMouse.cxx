@@ -13,7 +13,7 @@
 
 namespace isle {
 namespace Input {
-std::map<uint32, bool> Mouse::mouseKeys_ = {{VK_LBUTTON, false}, {VK_RBUTTON, false}};
+std::map<u32, bool> Mouse::mouseKeys_ = {{VK_LBUTTON, false}, {VK_RBUTTON, false}};
 
 Mouse::Mouse()
     : relat_x_(0), relat_y_(0), sense_x_(1.0f), sense_y_(1.0f),
@@ -29,8 +29,8 @@ void Mouse::Setup()
     byte mask[512][512];
 
     // Just make sure that the everything is okay.
-    int32 const w = GetSystemMetrics(SM_CXCURSOR);
-    int32 const h = GetSystemMetrics(SM_CYCURSOR);
+    i32 const w = GetSystemMetrics(SM_CXCURSOR);
+    i32 const h = GetSystemMetrics(SM_CYCURSOR);
 
     memset(&mask[0][0], 0xFF, w * 4);
     memset(&mask[1][0], 0x00, h * 4);
@@ -50,7 +50,7 @@ void Mouse::Destroy()
 #endif
 }
 
-/*static*/ void Mouse::CheckKeySync(uint32 _key, std::function<void()> _fnJustPressed, std::function<void()> _fnWhilePressed,
+/*static*/ void Mouse::CheckKeySync(u32 _key, std::function<void()> _fnJustPressed, std::function<void()> _fnWhilePressed,
                                     std::function<void()> _fnJustUnpressed, std::function<void()> _fnUnpressed)
 {
     SHORT const keyState = GetKeyState(_key);
@@ -86,8 +86,8 @@ void Mouse::Process(RAWMOUSE const *const _data)
 
     switch (_data->usFlags) {
         case MOUSE_MOVE_RELATIVE:
-            relat_x_ = -static_cast<int16>(_data->lLastX) * sense_x_;
-            relat_y_ = -static_cast<int16>(_data->lLastY) * sense_y_;
+            relat_x_ = -static_cast<i16>(_data->lLastX) * sense_x_;
+            relat_y_ = -static_cast<i16>(_data->lLastY) * sense_y_;
             break;
 
         case MOUSE_MOVE_ABSOLUTE:

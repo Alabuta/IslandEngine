@@ -24,7 +24,7 @@ public:
     static void Setup();
     static void Destroy();
 
-    static int32 Loop();
+    static i32 Loop();
 
 protected:
 

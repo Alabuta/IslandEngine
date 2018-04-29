@@ -36,7 +36,7 @@ public:
     void Setup();
     void Destroy();
 
-    static void CheckKeySync(uint32 key, std::function<void()> fnJustPressed, std::function<void()> fnWhilePressed,
+    static void CheckKeySync(u32 key, std::function<void()> fnJustPressed, std::function<void()> fnWhilePressed,
                               std::function<void()> fnJustUnpressed, std::function<void()> fnUnpressed);
 
     void Process(RAWMOUSE const *const _data);
@@ -56,11 +56,11 @@ private:
     float sense_x_, sense_y_;
 
     /*float sense_wheel_;
-    int16 wheel_;*/
+    i16 wheel_;*/
 
-    uint16 state_;
+    u16 state_;
 
-    static std::map<uint32, bool> mouseKeys_;
+    static std::map<u32, bool> mouseKeys_;
 };
 
 inline float Mouse::x() const
