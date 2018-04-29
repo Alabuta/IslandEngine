@@ -7,6 +7,11 @@
 ****
 ********************************************************************************************************************************/
 #include <iostream>
+#include <array>
+#include <string_view>
+
+//using namespace std::string_literals;
+using namespace std::string_view_literals;
 
 #ifndef _UNICODE
 #define _UNICODE
@@ -31,29 +36,38 @@
 
 namespace {
 #if _CRUS_DEBUG_CONSOLE
-#define SET(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t)\
-            {{a, b}, {c, d}, {e, f}, {g, h}, {i, j}, {k, l}, {m, n}, {o, p}, {q, r}, {s, t}}
-
 std::size_t constexpr kMARKERS_WIDTH = 10;
 
-CHAR_INFO constexpr kMARKERS[][kMARKERS_WIDTH] = {
-    SET('I', 2, 'n', 2, 'f', 2, 'o', 2, ' ', 0, ' ', 0, ' ', 0, ' ', 0, ' ', 0, ':', 1),
-    SET('D', 3, 'e', 3, 'b', 3, 'u', 3, 'g', 3, ' ', 0, ' ', 0, ' ', 0, ' ', 0, ':', 1),
-    SET('W', 4, 'a', 4, 'r', 4, 'n', 4, 'i', 4, 'n', 4, 'g', 4, ' ', 0, ' ', 0, ':', 1),
-    SET('E', 5, 'r', 5, 'r', 5, 'o', 5, 'r', 5, ' ', 0, ' ', 0, ' ', 0, ' ', 0, ':', 1),
-    SET('F', 6, 'a', 6, 't', 6, 'a', 6, 'l', 6, ' ', 0, ' ', 0, ' ', 0, ' ', 0, ':', 1)
-};
+template<std::size_t A, std::size_t N, std::size_t... I>
+std::array<CHAR_INFO, N> constexpr set(std::wstring_view message, std::index_sequence<I...>)
+{
+    return std::array<CHAR_INFO, N>{ { CHAR_INFO{message[I], A}... }};
+}
+
+template<std::size_t A, std::size_t N = kMARKERS_WIDTH>
+std::array<CHAR_INFO, N> constexpr set(std::wstring_view message)
+{
+    return set<A, N>(message, std::make_index_sequence<N>{});
+}
+
+std::array<std::array<CHAR_INFO, kMARKERS_WIDTH>, 5> constexpr kMARKERS{{
+        set<2>(L"Info     :"sv),
+        set<3>(L"Debug    :"sv),
+        set<4>(L"Warning  :"sv),
+        set<5>(L"Error    :"sv),
+        set<6>(L"Fatal    :"sv)
+}};
 
 #undef SET
 #endif // _CRUS_DEBUG_CONSOLE
 
-constexpr acstr kSEVERITIES[] = {
-    " Info    :",
-    " Debug   :",
-    " Warning :",
-    " Error   :",
-    " Fatal   :"
-};
+std::array<std::string_view, 5> constexpr kSEVERITIES{{
+    " Info     :"sv,
+    " Debug    :"sv,
+    " Warning  :"sv,
+    " Error    :"sv,
+    " Fatal    :"sv
+}};
 };
 
 namespace isle {
@@ -185,7 +199,7 @@ void LogStream::BeginLine(eSEVERITY _severity)
         kMARKERS_WIDTH, info.dwCursorPosition.Y
     };
 
-    WriteConsoleOutputW(hConsole, kMARKERS[index], {kMARKERS_WIDTH, 1}, {0, 0}, &rcDraw);
+    WriteConsoleOutputW(hConsole, std::data(kMARKERS[index]), {kMARKERS_WIDTH, 1}, {0, 0}, &rcDraw);
     SetConsoleCursorPosition(hConsole, {kMARKERS_WIDTH + 2, info.dwCursorPosition.Y});
 #endif
 
