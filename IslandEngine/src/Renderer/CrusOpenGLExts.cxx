@@ -831,6 +831,12 @@ CRUS_INLINE void APIENTRY glGetSynciv(GLsync sync, GLenum pname, GLsizei bufSize
     return glGetSynciv(sync, pname, bufSize, length, values);
 }
 
+CRUS_INLINE GLuint64 APIENTRY glGetTextureHandleARB(GLuint texture)
+{
+    GL_PROC_INIT(glGetTextureHandleARB);
+    return glGetTextureHandleARB(texture);
+}
+
 CRUS_INLINE void APIENTRY glGetTransformFeedbackVarying(GLuint program, GLuint index, GLsizei bufSize, GLsizei *length, GLsizei *size, GLenum *type, GLchar *name)
 {
     GL_PROC_INIT(glGetTransformFeedbackVarying);
@@ -966,6 +972,12 @@ CRUS_INLINE void APIENTRY glLinkProgram(GLuint program)
 }
 
 // glM ---------------------------------------------------------------------------------
+CRUS_INLINE void APIENTRY glMakeTextureHandleResidentARB(GLuint64 handle)
+{
+    GL_PROC_INIT(glMakeTextureHandleResidentARB);
+    return glMakeTextureHandleResidentARB(handle);
+}
+
 CRUS_INLINE GLvoid* APIENTRY glMapBuffer(GLenum target, GLenum access)
 {
     GL_PROC_INIT(glMapBuffer);
@@ -1623,6 +1635,12 @@ CRUS_INLINE void APIENTRY glUniform4uiv(GLint location, GLsizei count, const GLu
 {
     GL_PROC_INIT(glUniform4uiv);
     return glUniform4uiv(location, count, value);
+}
+
+CRUS_INLINE void APIENTRY glUniformHandleui64ARB(GLint location, GLuint64 value)
+{
+    GL_PROC_INIT(glUniformHandleui64ARB);
+    return glUniformHandleui64ARB(location, value);
 }
 
 CRUS_INLINE void APIENTRY glUniformMatrix2fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
