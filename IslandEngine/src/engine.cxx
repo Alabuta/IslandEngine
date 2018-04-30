@@ -26,6 +26,7 @@ u32 constexpr index0 = 0, index1 = 1, index2 = 2, index3 = 3, index4 = 4;
 
 u32 main_fbo, rt_0, rt_1, rt_2, rt_depth;
 u32 out_fbo, out_rt0, out_rt1, out_depth;
+u64 rt_depth_handle;
 
 isle::Program ssao_program;
 
@@ -162,6 +163,9 @@ void InitFramebuffer()
     glTextureParameteri(rt_depth, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
     glTextureStorage2D(rt_depth, 1, GL_DEPTH_COMPONENT32F, width, height);
+
+    rt_depth_handle = glGetTextureHandleARB(rt_depth);
+    glMakeTextureHandleResidentARB(rt_depth_handle);
 
     Render::inst().CreateTBO(GL_TEXTURE_2D, rt_0);
 
@@ -613,7 +617,8 @@ void DrawFrame()
 
     glBindTextureUnit(Render::nALBEDO, rt_0);
     glBindTextureUnit(Render::nNORMAL_MAP, rt_1);
-    glBindTextureUnit(Render::nDEPTH, rt_depth);
+    //glBindTextureUnit(Render::nDEPTH, rt_depth);
+    glUniformHandleui64ARB(ssao_program.GetUniformLoc("depthSampler"sv), rt_depth_handle);
     glBindTextureUnit(4, noise_tex);
 
     glBindVertexArray(quad_vao);

@@ -264,6 +264,7 @@ u32 Program::CreateShaderObject(std::vector<std::string> const &_includes, std::
                 preprocessor_directives
                     << '\n'
                     << kGLSL_VERSION
+                    << "\n#extension GL_ARB_bindless_texture : require"
                     << "\n#define CRUS_FRAGMENT_STAGE 1\n"
                     << "\n#define nVIEWPORT      " << Render::nVIEWPORT
                     << "\n#define nTRANSFORM     " << Render::nTRANSFORM
