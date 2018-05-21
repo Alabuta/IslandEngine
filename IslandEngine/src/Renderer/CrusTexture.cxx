@@ -103,6 +103,9 @@ bool Texture::Init()
     w_ = static_cast<u16>(image.width_);
     h_ = static_cast<u16>(image.height_);
 
+    handle_ = glGetTextureHandleARB(id_);
+    glMakeTextureHandleResidentARB(handle_);
+
     return true;
 }
 

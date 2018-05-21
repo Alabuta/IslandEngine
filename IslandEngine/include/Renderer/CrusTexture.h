@@ -88,6 +88,7 @@ public:
 private:
     u32 id_{0}, unit_{0};
     u16 w_{0}, h_{0};
+    u64 handle_;
 
     eTEXTURE_TYPE type_{eTEXTURE_TYPE::nUNKNOWN};
 
