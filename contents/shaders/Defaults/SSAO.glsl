@@ -74,6 +74,20 @@ layout(binding = 4) uniform sampler2D noiseSampler;
 
 layout(location = 20) uniform vec3 samples[64];
 
+struct PointLight {
+    vec3 position;
+    vec3 color;
+};
+
+const int kPOINT_LIGHTS = 5;
+layout(location = 10) uniform PointLight pointLights[kPOINT_LIGHTS] = {
+    { { -6, 1.4, 1.6 }, { 0, 1, 0 } },
+    { { 2, 0, 2 }, { 0, 0.8, 1 } },
+    { { 11.2, 1.2, -4.5 }, { 1, 0.24, 0 } },
+    { { 5, 1, -2 }, { 1, 0.8, 0.4 } },
+    { { -6, 1.4, -1.6 }, { 1, 1, 0 } }
+};
+
 const vec2 noiseScale = vec2(1920.0 / 4.0, 1080.0 / 4.0);
 const float radius = 0.25;
 const float bias = 0.0125;
@@ -103,7 +117,7 @@ void renderGBuffer()
     float diffuse = dot(n, l);
 #endif
 
-    fragColor = vec4(vec3(1), 1);
+    fragColor = vec4(vec3(0), 1);
     fragNormal = EncodeNormal(n);
 }
 
@@ -117,6 +131,19 @@ void ssao()
 
     vec3 p = ray * depth;
     //p.z *= -1;
+
+    vec3 lightPos;
+    float dist, attenuation;
+
+    for (int i = 0; i < kPOINT_LIGHTS; ++i) {
+        lightPos = TransformFromWorldToView(vec4(pointLights[i].position, 1)).xyz;
+
+        dist = distance(p, lightPos);
+        attenuation = 1.0 / (1.0 + dist * (0.7 + dist * 1.8));
+
+        fragColor.rgb += pointLights[i].color * attenuation;
+    }
+
 
     vec3 n = DecodeNormal(texture(normalSampler, texCoord).xy);
     vec3 rvec = texture(noiseSampler, texCoord * noiseScale).rgb;
