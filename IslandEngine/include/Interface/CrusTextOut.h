@@ -25,7 +25,7 @@ public:
     Textout();
     ~Textout();
 
-    bool Init(Texture const *const texture, float zoom, uint16 _x, uint16 _y, uint16 _w, uint16 _h);
+    bool Init(Texture const *const texture, float zoom, u16 _x, u16 _y, u16 _w, u16 _h);
 
     void SetText(std::string const &text);
     void SetTexture(Texture const *const texture);
@@ -34,7 +34,7 @@ public:
 
 private:
     Program program_;
-    uint32 vao_{0};
+    u32 vao_{0};
 
     struct {
         float w_{0}, h_{0};
