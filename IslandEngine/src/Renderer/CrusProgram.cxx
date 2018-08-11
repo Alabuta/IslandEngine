@@ -81,7 +81,11 @@ std::unordered_map<u32, std::string> Program::SeparateByStages(std::string const
     for (auto it = std::next(begin); it != end; std::advance(it, 2)) {
         auto const &stageSource = stages.try_emplace(
             stagesTypes.at(*it),
+#if CRUS_SPECIFY_SHADER_NAMES
             "#line "s + std::to_string(line + 1) + " \""s + _name + "\"\n"s + std::string(*std::next(it))
+#else
+            "#line "s + std::to_string(line + 1) + "\n"s + std::string(*std::next(it))
+#endif
         ).first;
 
         line += std::count(stageSource->second.cbegin(), stageSource->second.cend(), '\n') - 1;
@@ -115,7 +119,11 @@ void Program::PreprocessIncludes(std::string const &_source, i32 _includingLevel
                 return;
 
             cachedIncludeNames.emplace(include_file_name);
-            cachedIncludeFiles.push_back("#line -1 \""s + include_file_name + "\"\n"s + std::move(include_file_source));
+#if CRUS_SPECIFY_SHADER_NAMES
+            cachedIncludeFiles.emplace_back("#line -1 \""s + include_file_name + "\"\n"s + std::move(include_file_source));
+#else
+            cachedIncludeFiles.emplace_back("#line -1\n"s + std::move(include_file_source));
+#endif
         }
 
         PreprocessIncludes(include_file_source, _includingLevel + 1);
