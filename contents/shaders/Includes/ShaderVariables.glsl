@@ -25,11 +25,22 @@ layout(binding = nVIEWPORT, std140) uniform VIEWPORT
     //vec2 clipPlanes;
 } viewport;
 
+
+#ifdef TEMPORARILY_DISABLED
 layout(binding = nTRANSFORM, std430) readonly buffer TRANSFORM
 {
     layout(row_major) readonly mat4 mProjViewModel;
 
     layout(row_major) readonly mat4 mModel;
-    layout(row_major) readonly mat4 mNormal; // It's the transpose of the inverse of the upper left 3x3 sub-matrix of model(world)-view matrix.
+    layout(row_major) readonly mat4 mNormal; // Transpose of the inversed of the upper left 3x3 sub-matrix of model(world)-view matrix.
 };
 
+#else
+layout(binding = nTRANSFORM, std140) uniform TRANSFORM
+{
+    layout(row_major) readonly mat4 mProjViewModel;
+
+    layout(row_major) readonly mat4 mModel;
+    layout(row_major) readonly mat4 mNormal; // Transpose of the inversed of the upper left 3x3 sub-matrix of model(world)-view matrix.
+};
+#endif
