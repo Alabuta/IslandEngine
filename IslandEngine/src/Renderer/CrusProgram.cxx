@@ -228,17 +228,17 @@ u32 Program::CreateShaderObject(std::vector<std::string> const &_includes, std::
                     << '\n'
                     << kGLSL_VERSION
                     << "\n#define CRUS_VERTEX_STAGE 1\n"
-                    << "\n#define nPOSITION      " << Render::nPOSITION
-                    << "\n#define nNORMAL        " << Render::nNORMAL
-                    << "\n#define nTEX_COORD     " << Render::nTEX_COORD
-                    << "\n#define nCOLOR         " << Render::nCOLOR
+                    << "\n#define nPOSITION      " << Render::eVERTEX_IN::nPOSITION
+                    << "\n#define nNORMAL        " << Render::eVERTEX_IN::nNORMAL
+                    << "\n#define nTEX_COORD     " << Render::eVERTEX_IN::nTEX_COORD
+                    << "\n#define nCOLOR         " << Render::eVERTEX_IN::nCOLOR
 
-                    << "\n#define nVIEWPORT      " << Render::nVIEWPORT
-                    << "\n#define nTRANSFORM     " << Render::nTRANSFORM
+                    << "\n#define nVIEWPORT      " << Render::eBUFFERS_BINDING::nVIEWPORT
+                    << "\n#define nTRANSFORM     " << Render::eBUFFERS_BINDING::nTRANSFORM
 
-                    << "\n#define nALBEDO        " << Render::nALBEDO
-                    << "\n#define nNORMAL_MAP    " << Render::nNORMAL_MAP
-                    << "\n#define nDEPTH         " << Render::nDEPTH
+                    << "\n#define nALBEDO        " << Render::eSAMPLERS_BINDING::nALBEDO
+                    << "\n#define nNORMAL_MAP    " << Render::eSAMPLERS_BINDING::nNORMAL_MAP
+                    << "\n#define nDEPTH         " << Render::eSAMPLERS_BINDING::nDEPTH
                     /*<< "\n#define nVIEWPORT_RECT " << nVIEWPORT_RECT
                     << "\n#define nNEAR_FAR      " << nNEAR_FAR*/
                     << '\n';
@@ -249,12 +249,12 @@ u32 Program::CreateShaderObject(std::vector<std::string> const &_includes, std::
                     << '\n'
                     << kGLSL_VERSION
                     << "\n#define CRUS_GEOMETRY_STAGE 1\n"
-                    << "\n#define nVIEWPORT      " << Render::nVIEWPORT
-                    << "\n#define nTRANSFORM     " << Render::nTRANSFORM
+                    << "\n#define nVIEWPORT      " << Render::eBUFFERS_BINDING::nVIEWPORT
+                    << "\n#define nTRANSFORM     " << Render::eBUFFERS_BINDING::nTRANSFORM
 
-                    << "\n#define nALBEDO        " << Render::nALBEDO
-                    << "\n#define nNORMAL_MAP    " << Render::nNORMAL_MAP
-                    << "\n#define nDEPTH         " << Render::nDEPTH
+                    << "\n#define nALBEDO        " << Render::eSAMPLERS_BINDING::nALBEDO
+                    << "\n#define nNORMAL_MAP    " << Render::eSAMPLERS_BINDING::nNORMAL_MAP
+                    << "\n#define nDEPTH         " << Render::eSAMPLERS_BINDING::nDEPTH
                     /*<< "\n#define nVIEWPORT_RECT " << nVIEWPORT_RECT
                     << "\n#define nNEAR_FAR      " << nNEAR_FAR*/
                     << '\n';
@@ -266,16 +266,17 @@ u32 Program::CreateShaderObject(std::vector<std::string> const &_includes, std::
                     << kGLSL_VERSION
                     << "\n#extension GL_ARB_bindless_texture : require"
                     << "\n#define CRUS_FRAGMENT_STAGE 1\n"
-                    << "\n#define nVIEWPORT      " << Render::nVIEWPORT
-                    << "\n#define nTRANSFORM     " << Render::nTRANSFORM
+                    << "\n#define nVIEWPORT      " << Render::eBUFFERS_BINDING::nVIEWPORT
+                    << "\n#define nTRANSFORM     " << Render::eBUFFERS_BINDING::nTRANSFORM
 
-                    << "\n#define nBASE_COLOR    " << Render::nBASE_COLOR
-                    << "\n#define nNORMALS       " << Render::nNORMALS
-                    << "\n#define nMAIN_COLOR    " << Render::nMAIN_COLOR
+                    << "\n#define nBASE_COLOR    " << Render::eFRAGMENT_OUT::nBASE_COLOR
+                    << "\n#define nNORMALS       " << Render::eFRAGMENT_OUT::nNORMALS
 
-                    << "\n#define nALBEDO        " << Render::nALBEDO
-                    << "\n#define nNORMAL_MAP    " << Render::nNORMAL_MAP
-                    << "\n#define nDEPTH         " << Render::nDEPTH
+                    << "\n#define nMAIN_COLOR    " << Render::eUNIFORMS_BINDING::nMAIN_COLOR
+
+                    << "\n#define nALBEDO        " << Render::eSAMPLERS_BINDING::nALBEDO
+                    << "\n#define nNORMAL_MAP    " << Render::eSAMPLERS_BINDING::nNORMAL_MAP
+                    << "\n#define nDEPTH         " << Render::eSAMPLERS_BINDING::nDEPTH
                     /*<< "\n#define nVIEWPORT_RECT " << nVIEWPORT_RECT
                     << "\n#define nNEAR_FAR      " << nNEAR_FAR*/
                     << '\n';
@@ -330,7 +331,7 @@ u32 Program::CreateShaderObject(std::vector<std::string> const &_includes, std::
         if (length < 1)
             return false;
 
-        log::Error() << "[" << shaderTypes.at(_type) << " shader] " << log.data();
+        log::Error() << "["s << shaderTypes.at(_type) << " shader] "s << log.data();
 
         return 0;
     }

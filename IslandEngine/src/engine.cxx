@@ -615,8 +615,8 @@ void DrawFrame()
     glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, &index1);
     glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &index1);
 
-    glBindTextureUnit(Render::nALBEDO, rt_0);
-    glBindTextureUnit(Render::nNORMAL_MAP, rt_1);
+    glBindTextureUnit(Render::eSAMPLERS_BINDING::nALBEDO, rt_0);
+    glBindTextureUnit(Render::eSAMPLERS_BINDING::nNORMAL_MAP, rt_1);
     //glBindTextureUnit(Render::nDEPTH, rt_depth);
     glUniformHandleui64ARB(ssao_program.GetUniformLoc("depthSampler"sv), rt_depth_handle);
     glBindTextureUnit(4, noise_tex);
@@ -635,7 +635,7 @@ void DrawFrame()
     glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, &index1);
     glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &index3);
 
-    glBindTextureUnit(Render::nALBEDO, out_rt0);
+    glBindTextureUnit(Render::eSAMPLERS_BINDING::nALBEDO, out_rt0);
 
     glBindVertexArray(quad_vao);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 8);
@@ -644,7 +644,7 @@ void DrawFrame()
     glNamedFramebufferTexture(out_fbo, GL_COLOR_ATTACHMENT0, out_rt0, 0);
     glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &index4);
 
-    glBindTextureUnit(Render::nALBEDO, out_rt1);
+    glBindTextureUnit(Render::eSAMPLERS_BINDING::nALBEDO, out_rt1);
 
     glBindVertexArray(quad_vao);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 8);
