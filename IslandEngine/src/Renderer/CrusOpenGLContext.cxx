@@ -65,6 +65,8 @@ OpenGLContext::~OpenGLContext()
 {
     isle::log::Debug() << "~OpenGLContext(): " << std::this_thread::get_id();
 
+    std::lock_guard<std::mutex> lock(mutex_);
+
     DeleteContext();
 }
 
@@ -142,7 +144,7 @@ void OpenGLContext::SetupContext()
 
     hRC_ = hMainRC_;
 
-    auto shareContextsNumber = std::max(std::thread::hardware_concurrency(), 1u) * 2;
+    auto shareContextsNumber = std::max(std::thread::hardware_concurrency(), 1u);
 
     for (auto i = 0u; i < shareContextsNumber; ++i) {
         auto hRC = wglCreateContextAttribsARB(hMainWndDC_, hMainRC_, attrlist);
