@@ -221,7 +221,6 @@ void Render::InitBufferObjects()
 #endif
 
     {
-#ifdef TEMPORARILY_DISABLED
         auto index = glGetProgramResourceIndex(ubo.program(), GL_SHADER_STORAGE_BLOCK, "TRANSFORM");
 
         if (index == GL_INVALID_INDEX)
@@ -232,21 +231,6 @@ void Render::InitBufferObjects()
 
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, Render::eBUFFERS_BINDING::nTRANSFORM, TRANSFORM_);
         glShaderStorageBlockBinding(ubo.program(), index, Render::eBUFFERS_BINDING::nTRANSFORM);
-#else
-        auto index = glGetUniformBlockIndex(ubo.program(), "TRANSFORM");
-
-        auto size = -1;
-        glGetActiveUniformBlockiv(ubo.program(), Render::eBUFFERS_BINDING::nTRANSFORM, GL_UNIFORM_BLOCK_DATA_SIZE, &size);
-
-        if (index == GL_INVALID_INDEX || size < 1)
-            log::Fatal() << "can't init the UBO: invalid index param: " << "TRANSFORM";
-
-        CreateBO(TRANSFORM_);
-        glNamedBufferStorage(TRANSFORM_, size, nullptr, GL_DYNAMIC_STORAGE_BIT);
-
-        glBindBufferBase(GL_UNIFORM_BUFFER, Render::eBUFFERS_BINDING::nTRANSFORM, TRANSFORM_);
-        glUniformBlockBinding(ubo.program(), index, Render::eBUFFERS_BINDING::nTRANSFORM);
-#endif
     }
 }
 

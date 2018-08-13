@@ -7,12 +7,15 @@
 ****
 ********************************************************************************************************************************/
 #pragma include("Includes/ShaderVariables.glsl")
+#pragma include("Includes/ShaderHelpers.glsl")
 
 
 #pragma stage("vertex")
 
 void main()
-{ }
+{
+	gl_Position = TransformFromModelToClip(vec4(1.0));
+}
 
 #pragma stage("fragment")
 
