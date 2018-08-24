@@ -99,8 +99,8 @@ in vec2 texCoord;
 
 in vec3 ray;
 
-#define HALF_LAMBERT 0
-#define WRAPPED_AROUND_LAMBERT 1
+#define HALF_LAMBERT 1
+#define WRAPPED_AROUND_LAMBERT 0
 
 layout(index = 0) subroutine(RenderPassType)
 void renderGBuffer()
@@ -109,15 +109,15 @@ void renderGBuffer()
     vec3 l = normalize(light.xyz);
 
 #if HALF_LAMBERT
-    float diffuse = (dot(n, l) * 0.5 + 0.5);
+    float diffuse = max(dot(n, l) * 0.5 + 0.5, 0);
 #elif WRAPPED_AROUND_LAMBERT
     const float offset = 0.5;
     float diffuse = max(dot(n, l) + offset, 0) / (1 + offset);
 #else
-    float diffuse = dot(n, l);
+    float diffuse = max(dot(n, l), 0);
 #endif
 
-    fragColor = vec4(vec3(0), 1);
+    fragColor = vec4(vec3(diffuse), 1);
     fragNormal = EncodeNormal(n);
 }
 
@@ -132,6 +132,9 @@ void ssao()
     vec3 p = ray * depth;
     //p.z *= -1;
 
+#if 0
+    fragColor = vec4(vec3(0.16), 0);
+
     vec3 lightPos;
     float dist, attenuation;
 
@@ -143,6 +146,7 @@ void ssao()
 
         fragColor.rgb += pointLights[i].color * attenuation;
     }
+#endif
 
 
     vec3 n = DecodeNormal(texture(normalSampler, texCoord).xy);
@@ -176,7 +180,7 @@ void ssao()
         occlusion += step(s.z + bias, -d) * nDotS * rangeCheck;
     }
 
-    occlusion = max(0, 1 - (occlusion / (kernelSize - rejectedSamples)));
+    occlusion = max(1 - (occlusion / (kernelSize - rejectedSamples)), 0);
 
     fragColor.rgb *= pow(occlusion, 1);
 }
