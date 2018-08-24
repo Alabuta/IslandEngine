@@ -29,11 +29,9 @@ using namespace std::string_view_literals;
 //#define GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT 0x84FF
 
 namespace isle {
-Texture::Texture(eTEXTURE_TYPE _type, std::string &&_path) : type_(_type)
+Texture::Texture(eTEXTURE_TYPE type, std::string_view path, u8 samplesCount) : samplesCount_{samplesCount}, type_{type}, path_{path}
 {
-    path_ = _path;
-
-    name_ = _path.substr(0, _path.find_last_of('.'));
+    name_ = path.substr(0, path.find_last_of('.'));
 }
 
 bool Texture::Init()
@@ -42,7 +40,9 @@ bool Texture::Init()
         if (!LoadTARGA(&image, path_ + ".tga"s))
             return false;
 
-        Render::inst().CreateTBO(GL_TEXTURE_2D, id_);
+        auto const target = samplesCount_ == 1 ? GL_TEXTURE_2D : GL_TEXTURE_2D_MULTISAMPLE;
+
+        Render::inst().CreateTBO(target, id_);
 
         glTextureParameteri(id_, GL_TEXTURE_MIN_FILTER, GL_LINEAR);//GL_LINEAR_MIPMAP_LINEAR
         glTextureParameteri(id_, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -50,14 +50,21 @@ bool Texture::Init()
         glTextureParameteri(id_, GL_TEXTURE_WRAP_S, GL_REPEAT);
         glTextureParameteri(id_, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
-        glTextureStorage2D(id_, 1, image.bpp_, image.width_, image.height_);
-        glTextureSubImage2D(id_, 0, 0, 0, image.width_, image.height_, image.format_, image.type_, image.data_.data());
+        if (target == GL_TEXTURE_2D) {
+            glTextureStorage2D(id_, 1, image.bpp_, image.width_, image.height_);
+            glTextureSubImage2D(id_, 0, 0, 0, image.width_, image.height_, image.format_, image.type_, image.data_.data());
+        }
+
+        else {
+            glTextureStorage2DMultisample(id_, samplesCount_, image.bpp_, image.width_, image.height_, GL_TRUE);
+            glTextureSubImage2D(id_, 0, 0, 0, image.width_, image.height_, image.format_, image.type_, image.data_.data());
+        }
 
         glGenerateTextureMipmap(id_);
 
         /*auto maxAnisotrophy{0.0f};
         glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &maxAnisotrophy);
-        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, maxAnisotrophy);*/
+        glTexParameterf(target, GL_TEXTURE_MAX_ANISOTROPY_EXT, maxAnisotrophy);*/
     }
 
     else if (type_ == eTEXTURE_TYPE::nCUBE) {

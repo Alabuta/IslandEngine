@@ -1083,6 +1083,12 @@ CRUS_INLINE void APIENTRY glNamedRenderbufferStorage(GLuint renderbuffer, GLenum
     return glNamedRenderbufferStorage(renderbuffer, internalformat, width, height);
 }
 
+CRUS_INLINE void APIENTRY glNamedRenderbufferStorageMultisample(GLuint renderbuffer, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height)
+{
+    GL_PROC_INIT(glNamedRenderbufferStorageMultisample);
+    return glNamedRenderbufferStorageMultisample(renderbuffer, samples, internalformat, width, height);
+}
+
 // glO ---------------------------------------------------------------------------------
 CRUS_INLINE void APIENTRY glObjectLabel(GLenum identifier, GLuint name, GLsizei length, const GLchar *label)
 {
@@ -1466,6 +1472,12 @@ CRUS_INLINE void APIENTRY glTextureStorage2D(GLuint texture, GLsizei levels, GLe
 {
     GL_PROC_INIT(glTextureStorage2D);
     return glTextureStorage2D(texture, levels, internalformat, width, height);
+}
+
+CRUS_INLINE void APIENTRY glTextureStorage2DMultisample(GLuint texture, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height, GLboolean fixedsamplelocations)
+{
+    GL_PROC_INIT(glTextureStorage2DMultisample);
+    return glTextureStorage2DMultisample(texture, samples, internalformat, width, height, fixedsamplelocations);
 }
 
 CRUS_INLINE void APIENTRY glTextureStorage3D(GLuint texture, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth)
