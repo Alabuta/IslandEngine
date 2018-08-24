@@ -68,7 +68,8 @@ layout(location = nBASE_COLOR) out vec4 fragColor;
 layout(location = nNORMALS) out vec2 fragNormal;
 
 layout(binding = nALBEDO) uniform sampler2D colorSampler;
-layout(binding = nNORMAL_MAP) uniform sampler2D normalSampler;
+layout(binding = nNORMAL_MAP) uniform sampler2DMS normalSampler;
+//layout(binding = nDEPTH) uniform sampler2D depthSampler;
 layout(bindless_sampler) uniform sampler2D depthSampler;
 layout(binding = 4) uniform sampler2D noiseSampler;
 
@@ -148,8 +149,8 @@ void ssao()
     }
 #endif
 
-
-    vec3 n = DecodeNormal(texture(normalSampler, texCoord).xy);
+    vec3 n = DecodeNormal(texelFetch(normalSampler, ivec2(gl_FragCoord), gl_SampleID).xy);
+    //vec3 n = DecodeNormal(texture(normalSampler, texCoord).xy);
     vec3 rvec = texture(noiseSampler, texCoord * noiseScale).rgb;
 
     vec3 t = normalize(rvec - n * dot(rvec, n));
