@@ -1271,6 +1271,12 @@ CRUS_INLINE void APIENTRY glProgramUniform4uiv(GLuint program, GLint location, G
     return glProgramUniform4uiv(program, location, count, value);
 }
 
+CRUS_INLINE void APIENTRY glProgramUniformHandleui64ARB(GLuint program, GLint location, GLuint64 value)
+{
+    GL_PROC_INIT(glProgramUniformHandleui64ARB);
+    return glProgramUniformHandleui64ARB(program, location, value);
+}
+
 CRUS_INLINE void APIENTRY glProgramUniformMatrix2fv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
 {
     GL_PROC_INIT(glProgramUniformMatrix2fv);

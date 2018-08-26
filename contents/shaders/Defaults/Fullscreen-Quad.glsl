@@ -32,7 +32,7 @@ layout(early_fragment_tests) in;
 
 layout(location = nBASE_COLOR) out vec4 fragColor;
 
-layout(binding = 0) uniform sampler2D mainTexture;
+layout(binding = nALBEDO) uniform sampler2D mainTexture;
 
 in vec2 texCoord;
 

@@ -280,7 +280,7 @@ u32 Program::CreateShaderObject(std::vector<std::string> const &_includes, std::
                     << "\n#define nBASE_COLOR    " << Render::eFRAGMENT_OUT::nBASE_COLOR
                     << "\n#define nNORMALS       " << Render::eFRAGMENT_OUT::nNORMALS
 
-                    << "\n#define nMAIN_COLOR    " << Render::eUNIFORMS_BINDING::nMAIN_COLOR
+                    //<< "\n#define nMAIN_COLOR    " << Render::eUNIFORMS_BINDING::nMAIN_COLOR
 
                     << "\n#define nALBEDO        " << Render::eSAMPLERS_BINDING::nALBEDO
                     << "\n#define nNORMAL_MAP    " << Render::eSAMPLERS_BINDING::nNORMAL_MAP

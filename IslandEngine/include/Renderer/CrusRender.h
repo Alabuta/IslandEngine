@@ -39,9 +39,9 @@ public:
         nBASE_COLOR = 0, nNORMALS
     };
 
-    enum eUNIFORMS_BINDING {
+    /*enum eUNIFORMS_BINDING {
         nMAIN_COLOR = 0
-    };
+    };*/
 
     enum eBUFFERS_BINDING {
         nVIEWPORT = 0, nTRANSFORM
