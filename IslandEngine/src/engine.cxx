@@ -13,6 +13,7 @@
 #include <regex>
 
 #include "engine.h"
+#include "Math/GaussRoutines.h"
 
 using namespace std::string_literals;
 using namespace std::string_view_literals;
@@ -332,164 +333,11 @@ void InitFramebuffer()
         log::Error() << __FUNCTION__ << ": " << code;
 }
 
-#if OBSOLETE
-std::optional<std::vector<double>> InitGaussFilter1()
-{
-	auto constexpr kKernelSize = 3;
-	auto constexpr kSampleCount = 1000.;
-
-	auto constexpr sigma = 1.;
-
-	if ((kKernelSize % 2) != 1) {
-		log::Error() << "kernel size must be odd number.";
-		return {};
-	}
-
-	auto samplesPerBin = static_cast<u32>(std::ceil(kSampleCount / static_cast<double>(kKernelSize)));
-
-	// Need an even number of intervals for simpson integration => odd number of samples
-	if ((samplesPerBin % 2) == 0) ++samplesPerBin;
-
-	auto weightSum = 0.;
-
-	auto const kKernelLeft = -std::floor(kKernelSize / 2.);
-
-	using F = double(*)(double);
-
-	auto sampleInterval = [] (auto f, auto a, auto b, u32 sampleCount)
-	{
-		using T = decltype(a);
-
-		std::vector<std::pair<T, T>> result(sampleCount);
-
-		auto const step = (b - a) / static_cast<T>(sampleCount - 1);
-
-		std::generate(result.begin(), result.end(), [=, i = 0] () mutable
-		{
-			auto x = a + i++ * step;
-			auto y = std::invoke(f, x);
-
-			return std::make_pair(x, y);
-		});
-
-		return result;
-	};
-
-	auto integrateSimpson = [] (std::vector<std::pair<double, double>> const &samples)
-	{
-		auto result = samples.at(0).second + samples.back().second;
-
-		for (auto it = std::next(samples.cbegin()); it < std::prev(samples.cend()); ++it) {
-			auto sampleWeight = (std::distance(samples.cbegin(), it) % 2) == 0 ? 2 : 4;
-			result += sampleWeight * it->second;
-		}
-
-		auto h = (samples.back().first - samples.at(0).first) / static_cast<double>(samples.size() - 1);
-
-		return result * h / 3.0;
-	};
-
-	auto outsideSamplesLeft = sampleInterval([sigma] (auto x)
-	{
-		return math::gaussianDistribution(x, sigma, 0.);
-	}, -5 * sigma, kKernelLeft - 0.5, samplesPerBin);
-
-	std::vector<std::pair<decltype(outsideSamplesLeft), double>> allSamples = {{
-		{ std::move(outsideSamplesLeft), 0. }
-	}};
-
-	for (auto tap = 0; tap < kKernelSize; ++tap) {
-		auto left = kKernelLeft - 0.5 + tap;
-
-		auto tapSamples = sampleInterval([sigma] (auto x)
-		{
-			return math::gaussianDistribution(x, sigma, 0.);
-		}, left, left + 1, samplesPerBin);
-
-		auto tapWeight = integrateSimpson(tapSamples);
-		weightSum += tapWeight;
-
-		allSamples.emplace_back(std::move(tapSamples), tapWeight);
-	}
-
-	auto outsideSamplesRight = sampleInterval([sigma] (auto x)
-	{
-		return math::gaussianDistribution(x, sigma, 0.);
-	}, 0.5 - kKernelLeft, 5 * sigma, samplesPerBin);
-
-	allSamples.emplace_back(std::move(outsideSamplesRight), 0.);
-
-	auto roundTo = [] (auto num, u32 decimals)
-	{
-		auto shift = std::pow(static_cast<decltype(num)>(10), decimals);
-		return std::round(num * shift) / shift;
-	};
-
-	std::vector<double> weights;
-
-	for (auto &&sample : allSamples)
-		weights.emplace_back(roundTo(sample.second / weightSum, 6));
-
-	for (auto &weight : weights)
-		log::Debug() << weight;
-
-	auto total = std::accumulate(weights.cbegin(), weights.cend(), 0.);
-	log::Debug() << total;
-
-	return weights;
-}
-#endif
-
-template<typename T>
-constexpr i32 PixelsNeededForSigma(T sigma, T threshold)
-{
-	auto const size = 1 + 2 * sigma * std::sqrt(-2 * std::log(threshold * static_cast<T>(0.01)));
-	
-	return static_cast<i32>(std::floor(size)) | 1;
-}
-
-template<typename T>
-constexpr T GetSigmaBasedOnTapSize(i32 size, T threshold)
-{
-	return static_cast<T>(size - 1) / (2 * std::sqrt(-2 * std::log(threshold * static_cast<T>(0.01))));
-}
-
-template<typename T>
-constexpr T GaussianSimpsonIntegration(T a, T b, T sigma)
-{
-	return ((b - a) / static_cast<T>(6)) * (math::gaussianDistribution(a, sigma) + 4 * math::gaussianDistribution((a + b) / static_cast<T>(2), sigma) + math::gaussianDistribution(b, sigma));
-}
-
-template<typename T>
-constexpr std::vector<T> GaussianKernelIntegrals(T sigma, i32 taps, bool half_size = true, bool normalize = true)
-{
-	auto const half_taps = taps >> 1;
-
-	std::vector<T> weights(taps);
-
-	std::generate(weights.begin(), weights.end(), [sigma, half_taps, i = 0] () mutable
-	{
-		auto const x = static_cast<T>(i++ - half_taps);
-		return GaussianSimpsonIntegration(x - static_cast<T>(0.5), x + static_cast<T>(0.5), sigma);
-	});
-
-    if (normalize) {
-        auto total = std::accumulate(weights.begin(), weights.end(), static_cast<T>(0));
-
-        std::transform(weights.begin(), weights.end(), weights.begin(), [total] (auto value)
-        {
-            return value / total;
-        });
-    }
-
-	if (half_size)
-		weights.erase(weights.begin(), std::next(weights.begin(), half_taps));
-
-	return weights;
-}
 
 void InitGaussFilter(Program &program)
 {
+    using namespace math;
+
 #if 0
     auto constexpr variance = 1.5765f;
     auto kernelSize = PixelsNeededForSigma(kernelSize, 4.f);

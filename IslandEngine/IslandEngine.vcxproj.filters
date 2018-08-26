@@ -285,6 +285,9 @@
     <ClInclude Include="include\Manager\CrusMeshLoader.h">
       <Filter>Core\Manager</Filter>
     </ClInclude>
+    <ClInclude Include="include\Math\GaussRoutines.h">
+      <Filter>Core\Math</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="resources\resource.aps">

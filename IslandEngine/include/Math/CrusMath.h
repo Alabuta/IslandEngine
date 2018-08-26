@@ -112,12 +112,6 @@ inline float lerp(float a, float b, float alpha)
     return std::fma(a, (1.f - alpha), b * alpha);
 }
 
-template<typename T>
-T constexpr gaussianDistribution (T x, T sigma, T EV = 0)
-{
-	return std::exp(static_cast<T>(-0.5) * std::pow((x - EV) / sigma, 2)) / (sigma * std::sqrt(static_cast<T>(math::kPI * 2)));
-}
-
 inline float float_next(float val)
 {
     if (std::isnan(val) || std::isinf(val)) {
