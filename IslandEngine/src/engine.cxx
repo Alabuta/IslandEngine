@@ -170,6 +170,7 @@ void InitMultisampledFramebuffers()
 
     glTextureParameteri(ms_rt_depth, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTextureParameteri(ms_rt_depth, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTextureParameteri(ms_rt_depth, GL_TEXTURE_BASE_LEVEL, 0);
     glTextureParameteri(ms_rt_depth, GL_TEXTURE_MAX_LEVEL, 0);
     glTextureParameteri(ms_rt_depth, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTextureParameteri(ms_rt_depth, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -183,6 +184,7 @@ void InitMultisampledFramebuffers()
 
     glTextureParameteri(ms_rt_0, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTextureParameteri(ms_rt_0, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTextureParameteri(ms_rt_0, GL_TEXTURE_BASE_LEVEL, 0);
     glTextureParameteri(ms_rt_0, GL_TEXTURE_MAX_LEVEL, 0);
     glTextureParameteri(ms_rt_0, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTextureParameteri(ms_rt_0, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -196,6 +198,7 @@ void InitMultisampledFramebuffers()
 
     glTextureParameteri(ms_rt_1, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTextureParameteri(ms_rt_1, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTextureParameteri(ms_rt_1, GL_TEXTURE_BASE_LEVEL, 0);
     glTextureParameteri(ms_rt_1, GL_TEXTURE_MAX_LEVEL, 0);
     glTextureParameteri(ms_rt_1, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTextureParameteri(ms_rt_1, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -216,6 +219,11 @@ void InitMultisampledFramebuffers()
 
     if (auto result = glCheckNamedFramebufferStatus(ms_fbo, GL_FRAMEBUFFER); result != GL_FRAMEBUFFER_COMPLETE)
         log::Fatal() << "framebuffer error:" << std::hex << result;
+
+    auto samplesParam = 0;
+    glGetNamedFramebufferParameteriv(ms_fbo, GL_SAMPLES, &samplesParam);
+    if (samples != samples)
+        log::Fatal() << "unexpected framebuffer samples count";
 }
 
 
@@ -231,6 +239,7 @@ void InitFramebuffer()
 
     glTextureParameteri(rt_depth, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTextureParameteri(rt_depth, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTextureParameteri(rt_depth, GL_TEXTURE_BASE_LEVEL, 0);
     glTextureParameteri(rt_depth, GL_TEXTURE_MAX_LEVEL, 0);
     glTextureParameteri(rt_depth, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTextureParameteri(rt_depth, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -244,6 +253,7 @@ void InitFramebuffer()
 
     glTextureParameteri(rt_0, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTextureParameteri(rt_0, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTextureParameteri(rt_0, GL_TEXTURE_BASE_LEVEL, 0);
     glTextureParameteri(rt_0, GL_TEXTURE_MAX_LEVEL, 0);
     glTextureParameteri(rt_0, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTextureParameteri(rt_0, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -257,6 +267,7 @@ void InitFramebuffer()
 
     glTextureParameteri(rt_1, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTextureParameteri(rt_1, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTextureParameteri(rt_1, GL_TEXTURE_BASE_LEVEL, 0);
     glTextureParameteri(rt_1, GL_TEXTURE_MAX_LEVEL, 0);
     glTextureParameteri(rt_1, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTextureParameteri(rt_1, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -509,11 +520,11 @@ void DrawFrame()
 
     Render::inst().UpdateViewport(1, 1, &Render::inst().vp_.proj());
 
-    glViewport(0, 0, width, height);
-
-    auto constexpr kUSE_MS = false;
+    auto constexpr kUSE_MS = true;
 
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, kUSE_MS ? ms_fbo : main_fbo);
+
+    glViewport(0, 0, width, height);
 
     glClearNamedFramebufferfv(kUSE_MS ? ms_fbo : main_fbo, GL_COLOR, 0, std::data(colors::kPOWDERBLUE.rgba));
     glClearNamedFramebufferfv(kUSE_MS ? ms_fbo : main_fbo, GL_COLOR, 1, std::data(colors::kBLACK.rgba));

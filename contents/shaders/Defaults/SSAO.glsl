@@ -148,8 +148,8 @@ void ssao()
     }
 #endif
 
-    vec3 n = DecodeNormal(texelFetch(normalSampler, ivec2(gl_FragCoord), gl_SampleID).xy);
-    //vec3 n = DecodeNormal(texture(normalSampler, texCoord).xy);
+    //vec3 n = DecodeNormal(texelFetch(normalSampler, ivec2(gl_FragCoord), gl_SampleID).xy);
+    vec3 n = DecodeNormal(texture(normalSampler, interpolateAtSample(texCoord, gl_SampleID)).xy);
     vec3 rvec = texture(noiseSampler, texCoord * noiseScale).rgb;
 
     vec3 t = normalize(rvec - n * dot(rvec, n));
@@ -186,7 +186,7 @@ void ssao()
 }
 
 
-const vec2 kInvResolution = 1.0 / vec2(1920.0, 1080.0);
+const vec2 kInvResolution = 1.0 / vec2(1920, 1080);
 
 layout(binding = 5, std430) readonly buffer GAUSS_FILTER_COLOR_WEIGHTS
 {
