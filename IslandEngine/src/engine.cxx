@@ -17,19 +17,7 @@
 using namespace std::string_literals;
 using namespace std::string_view_literals;
 
-auto constexpr width = 1920;
-auto constexpr height = 1080;
 
-auto constexpr clear_colors = isle::make_array(0.f, 1.f);
-
-u32 constexpr index0 = 0, index1 = 1, index2 = 2, index3 = 3, index4 = 4;
-
-u32 main_fbo, rt_0, rt_1, rt_depth;
-u32 out_fbo, out_rt0, out_rt1, out_depth;
-u32 ms_fbo, ms_rt_0, ms_rt_1, ms_rt_depth;
-u64 rt_depth_handle, ms_rt_depth_handle;
-
-isle::Program ssao_program;
 
 namespace cubemap {
 bool InitCubemap();
@@ -39,6 +27,20 @@ void DrawCubemap();
 namespace app {
 intf::Grid grid;
 
+auto constexpr width = 1920;
+auto constexpr height = 1080;
+
+auto constexpr clear_colors = isle::make_array(0.f, 1.f);
+
+u32 constexpr index0 = 0, index1 = 1, index2 = 2, index3 = 3, index4 = 4;
+
+u32 main_fbo;
+u64 rt_0_handle, rt_1_handle, rt_depth_handle;
+u32 out_fbo;
+u64 out_rt0_handle, out_rt1_handle;
+u32 out_rt0, out_rt1;// , out_depth;
+u32 ms_fbo;
+u64 ms_rt_0_handle, ms_rt_1_handle, ms_rt_depth_handle;
 
 Program hemisphere_program;
 u32 hemisphere_vao, hemisphere_count;
@@ -48,6 +50,7 @@ u32 geom_vao, geom_count;
 
 Program ssao_program;
 u32 quad_vao, noise_tex;
+u64 noise_tex_handle;
 
 
 auto matrices = make_array(
@@ -112,7 +115,7 @@ void InitSSAO()
         return sample;
     });
 
-    glProgramUniform3fv(ssao_program.program(), 20, kernel_size, &std::data(kernel)->x);
+    glProgramUniform3fv(ssao_program.program(), 64, kernel_size, &std::data(kernel)->x);
 
     if (hemisphere_program.AssignNew({R"(Defaults/Unlit-Simple.glsl)"})) {
         Render::inst().CreateVAO(hemisphere_vao);
@@ -148,6 +151,9 @@ void InitSSAO()
 
         glTextureStorage2D(noise_tex, 1, GL_RGB32F, 4, 4);
         glTextureSubImage2D(noise_tex, 0, 0, 0, 4, 4, GL_RGB, GL_FLOAT, std::data(noise));
+
+        noise_tex_handle = glGetTextureHandleARB(noise_tex);
+        glMakeTextureHandleResidentARB(noise_tex_handle);
     }
 }
 
@@ -156,6 +162,8 @@ void InitMultisampledFramebuffers()
     auto constexpr samples = 16;
 
     glCreateFramebuffers(1, &ms_fbo);
+
+    u32 ms_rt_0, ms_rt_1, ms_rt_depth;
 
     Render::inst().CreateTBO(GL_TEXTURE_2D_MULTISAMPLE, ms_rt_depth);
 
@@ -180,6 +188,9 @@ void InitMultisampledFramebuffers()
 
     glTextureStorage2DMultisample(ms_rt_0, samples, GL_RGBA8, width, height, GL_TRUE);
 
+    ms_rt_0_handle = glGetTextureHandleARB(ms_rt_0);
+    glMakeTextureHandleResidentARB(ms_rt_0_handle);
+
     Render::inst().CreateTBO(GL_TEXTURE_2D_MULTISAMPLE, ms_rt_1);
 
     glTextureParameteri(ms_rt_1, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -189,6 +200,9 @@ void InitMultisampledFramebuffers()
     glTextureParameteri(ms_rt_1, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
     glTextureStorage2DMultisample(ms_rt_1, samples, GL_RG16F, width, height, GL_TRUE);
+
+    ms_rt_1_handle = glGetTextureHandleARB(ms_rt_1);
+    glMakeTextureHandleResidentARB(ms_rt_1_handle);
 
     glNamedFramebufferTexture(ms_fbo, GL_DEPTH_ATTACHMENT, ms_rt_depth, 0);
     glNamedFramebufferTexture(ms_fbo, GL_COLOR_ATTACHMENT0, ms_rt_0, 0);
@@ -203,11 +217,14 @@ void InitMultisampledFramebuffers()
         log::Fatal() << "framebuffer error:" << std::hex << result;
 }
 
+
 void InitFramebuffer()
 {
     InitMultisampledFramebuffers();
 
     glCreateFramebuffers(1, &main_fbo);
+
+    u32 rt_0, rt_1, rt_depth;
 
     Render::inst().CreateTBO(GL_TEXTURE_2D, rt_depth);
 
@@ -226,14 +243,14 @@ void InitFramebuffer()
 
     glTextureParameteri(rt_0, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTextureParameteri(rt_0, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    //glTextureParameteri(rt_0, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    //glTextureParameteri(rt_0, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTextureParameteri(rt_0, GL_TEXTURE_MAX_LEVEL, 0);
     glTextureParameteri(rt_0, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTextureParameteri(rt_0, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
     glTextureStorage2D(rt_0, 1, GL_RGBA8, width, height);
-    //glTextureSubImage2D(quad_tid, 0, 0, 0, width, height, GL_RGBA, GL_RGBA8, nullptr);
+
+    rt_0_handle = glGetTextureHandleARB(rt_0);
+    glMakeTextureHandleResidentARB(rt_0_handle);
 
     Render::inst().CreateTBO(GL_TEXTURE_2D, rt_1);
 
@@ -244,6 +261,9 @@ void InitFramebuffer()
     glTextureParameteri(rt_1, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
     glTextureStorage2D(rt_1, 1, GL_RG16F, width, height);
+
+    rt_1_handle = glGetTextureHandleARB(rt_1);
+    glMakeTextureHandleResidentARB(rt_1_handle);
 
     glNamedFramebufferTexture(main_fbo, GL_DEPTH_ATTACHMENT, rt_depth, 0);
     glNamedFramebufferTexture(main_fbo, GL_COLOR_ATTACHMENT0, rt_0, 0);
@@ -272,13 +292,14 @@ void InitFramebuffer()
 
     glTextureParameteri(out_rt0, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTextureParameteri(out_rt0, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    //glTextureParameteri(out_rt0, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    //glTextureParameteri(out_rt0, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTextureParameteri(out_rt0, GL_TEXTURE_MAX_LEVEL, 0);
     glTextureParameteri(out_rt0, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTextureParameteri(out_rt0, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
     glTextureStorage2D(out_rt0, 1, GL_RGBA8, width, height);
+
+    out_rt0_handle = glGetTextureHandleARB(out_rt0);
+    glMakeTextureHandleResidentARB(out_rt0_handle);
 
     Render::inst().CreateTBO(GL_TEXTURE_2D, out_rt1);
 
@@ -289,6 +310,9 @@ void InitFramebuffer()
     glTextureParameteri(out_rt1, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
     glTextureStorage2D(out_rt1, 1, GL_RGBA8, width, height);
+
+    out_rt1_handle = glGetTextureHandleARB(out_rt1);
+    glMakeTextureHandleResidentARB(out_rt1_handle);
 
     glNamedFramebufferTexture(out_fbo, GL_COLOR_ATTACHMENT0, out_rt0, 0);
 
@@ -677,16 +701,15 @@ void DrawFrame()
     glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, &index1);
     glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &index1);
 
-    glBindTextureUnit(Render::eSAMPLERS_BINDING::nALBEDO, rt_0);
-    glBindTextureUnit(Render::eSAMPLERS_BINDING::nNORMAL_MAP, ms_rt_1);
-    //glBindTextureUnit(Render::eSAMPLERS_BINDING::nDEPTH, rt_depth);
-    glUniformHandleui64ARB(ssao_program.GetUniformLoc("depthSampler"sv), rt_depth_handle);
-    glBindTextureUnit(4, noise_tex);
+    glProgramUniformHandleui64ARB(ssao_program.program(), Render::eSAMPLERS_BINDING::nALBEDO, rt_0_handle);
+    glProgramUniformHandleui64ARB(ssao_program.program(), Render::eSAMPLERS_BINDING::nNORMAL_MAP, rt_1_handle);
+    glProgramUniformHandleui64ARB(ssao_program.program(), Render::eSAMPLERS_BINDING::nDEPTH, rt_depth_handle);
+    glProgramUniformHandleui64ARB(ssao_program.program(), 32, noise_tex_handle);
 
     glBindVertexArray(quad_vao);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 8);
 
-#if USE_BLUR
+#ifdef USE_BLUR
     glFinish();
 
     glNamedFramebufferTexture(out_fbo, GL_COLOR_ATTACHMENT0, out_rt1, 0);
@@ -745,7 +768,7 @@ void DrawFrame()
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int)
 {
-    isle::Window window(crus::names::kMAIN_WINDOW_NAME, hInstance, width, height);
+    isle::Window window(crus::names::kMAIN_WINDOW_NAME, hInstance, app::width, app::height);
 
     return isle::System::Loop();
 }

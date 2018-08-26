@@ -67,13 +67,12 @@ layout(location = 0) subroutine uniform RenderPassType RenderPass;
 layout(location = nBASE_COLOR) out vec4 fragColor;
 layout(location = nNORMALS) out vec2 fragNormal;
 
-layout(binding = nALBEDO) uniform sampler2D colorSampler;
-layout(binding = nNORMAL_MAP) uniform sampler2DMS normalSampler;
-//layout(binding = nDEPTH) uniform sampler2D depthSampler;
-layout(bindless_sampler) uniform sampler2D depthSampler;
-layout(binding = 4) uniform sampler2D noiseSampler;
+layout(bindless_sampler, location = nALBEDO) uniform sampler2D colorSampler;
+layout(bindless_sampler, location = nNORMAL_MAP) uniform sampler2D normalSampler;
+layout(bindless_sampler, location = nDEPTH) uniform sampler2D depthSampler;
+layout(bindless_sampler, binding = 32) uniform sampler2D noiseSampler;
 
-layout(location = 20) uniform vec3 samples[64];
+layout(location = 64) uniform vec3 samples[64];
 
 struct PointLight {
     vec3 position;
@@ -81,7 +80,7 @@ struct PointLight {
 };
 
 const int kPOINT_LIGHTS = 5;
-layout(location = 10) uniform PointLight pointLights[kPOINT_LIGHTS] = {
+/*layout(location = 10)*/ uniform PointLight pointLights[kPOINT_LIGHTS] = {
     { { -6, 1.4, 1.6 }, { 0, 1, 0 } },
     { { 2, 0, 2 }, { 0, 0.8, 1 } },
     { { 11.2, 1.2, -4.5 }, { 1, 0.24, 0 } },
