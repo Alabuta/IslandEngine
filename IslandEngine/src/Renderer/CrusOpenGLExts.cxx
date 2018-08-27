@@ -735,6 +735,12 @@ CRUS_INLINE void APIENTRY glGetMultisamplefv(GLenum pname, GLuint index, GLfloat
     return glGetMultisamplefv(pname, index, val);
 }
 
+CRUS_INLINE void APIENTRY glGetNamedFramebufferParameteriv(GLuint framebuffer, GLenum pname, GLint *param)
+{
+    GL_PROC_INIT(glGetNamedFramebufferParameteriv);
+    return glGetNamedFramebufferParameteriv(framebuffer, pname, param);
+}
+
 CRUS_INLINE void APIENTRY glGetProgramiv(GLuint program, GLenum pname, GLint *params)
 {
     GL_PROC_INIT(glGetProgramiv);
@@ -910,6 +916,12 @@ CRUS_INLINE void APIENTRY glGetVertexAttribPointerv(GLuint index, GLenum pname, 
 }
 
 // glI ---------------------------------------------------------------------------------
+CRUS_INLINE void APIENTRY glInvalidateNamedFramebufferData(GLuint framebuffer, GLsizei numAttachments, const GLenum *attachments)
+{
+    GL_PROC_INIT(glInvalidateNamedFramebufferData);
+    return glInvalidateNamedFramebufferData(framebuffer, numAttachments, attachments);
+}
+
 CRUS_INLINE GLboolean APIENTRY glIsBuffer(GLuint buffer)
 {
     GL_PROC_INIT(glIsBuffer);
@@ -1081,6 +1093,12 @@ CRUS_INLINE void APIENTRY glNamedRenderbufferStorage(GLuint renderbuffer, GLenum
 {
     GL_PROC_INIT(glNamedRenderbufferStorage);
     return glNamedRenderbufferStorage(renderbuffer, internalformat, width, height);
+}
+
+CRUS_INLINE void APIENTRY glNamedRenderbufferStorageMultisample(GLuint renderbuffer, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height)
+{
+    GL_PROC_INIT(glNamedRenderbufferStorageMultisample);
+    return glNamedRenderbufferStorageMultisample(renderbuffer, samples, internalformat, width, height);
 }
 
 // glO ---------------------------------------------------------------------------------
@@ -1263,6 +1281,12 @@ CRUS_INLINE void APIENTRY glProgramUniform4uiv(GLuint program, GLint location, G
 {
     GL_PROC_INIT(glProgramUniform4uiv);
     return glProgramUniform4uiv(program, location, count, value);
+}
+
+CRUS_INLINE void APIENTRY glProgramUniformHandleui64ARB(GLuint program, GLint location, GLuint64 value)
+{
+    GL_PROC_INIT(glProgramUniformHandleui64ARB);
+    return glProgramUniformHandleui64ARB(program, location, value);
 }
 
 CRUS_INLINE void APIENTRY glProgramUniformMatrix2fv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
@@ -1466,6 +1490,12 @@ CRUS_INLINE void APIENTRY glTextureStorage2D(GLuint texture, GLsizei levels, GLe
 {
     GL_PROC_INIT(glTextureStorage2D);
     return glTextureStorage2D(texture, levels, internalformat, width, height);
+}
+
+CRUS_INLINE void APIENTRY glTextureStorage2DMultisample(GLuint texture, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height, GLboolean fixedsamplelocations)
+{
+    GL_PROC_INIT(glTextureStorage2DMultisample);
+    return glTextureStorage2DMultisample(texture, samples, internalformat, width, height, fixedsamplelocations);
 }
 
 CRUS_INLINE void APIENTRY glTextureStorage3D(GLuint texture, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth)

@@ -67,10 +67,15 @@ layout(location = 0) subroutine uniform RenderPassType RenderPass;
 layout(location = nBASE_COLOR) out vec4 fragColor;
 layout(location = nNORMALS) out vec2 fragNormal;
 
-layout(binding = nALBEDO) uniform sampler2D colorSampler;
-layout(binding = nNORMAL_MAP) uniform sampler2D normalSampler;
-layout(bindless_sampler) uniform sampler2D depthSampler;
+//layout(binding = nALBEDO) uniform sampler2D colorSampler;
+//layout(binding = nNORMAL_MAP) uniform sampler2D normalSampler;
+//layout(binding = nDEPTH) uniform sampler2D depthSampler;
 layout(binding = 4) uniform sampler2D noiseSampler;
+
+layout(bindless_sampler, location = nALBEDO) uniform sampler2D colorSampler;
+layout(bindless_sampler, location = nNORMAL_MAP) uniform sampler2D normalSampler;
+layout(bindless_sampler, location = nDEPTH) uniform sampler2D depthSampler;
+//layout(bindless_sampler, binding = 32) uniform sampler2D noiseSampler;
 
 layout(location = 20) uniform vec3 samples[64];
 
@@ -80,7 +85,7 @@ struct PointLight {
 };
 
 const int kPOINT_LIGHTS = 5;
-layout(location = 10) uniform PointLight pointLights[kPOINT_LIGHTS] = {
+/*layout(location = 10)*/ uniform PointLight pointLights[kPOINT_LIGHTS] = {
     { { -6, 1.4, 1.6 }, { 0, 1, 0 } },
     { { 2, 0, 2 }, { 0, 0.8, 1 } },
     { { 11.2, 1.2, -4.5 }, { 1, 0.24, 0 } },
@@ -99,8 +104,8 @@ in vec2 texCoord;
 
 in vec3 ray;
 
-#define HALF_LAMBERT 0
-#define WRAPPED_AROUND_LAMBERT 1
+#define HALF_LAMBERT 1
+#define WRAPPED_AROUND_LAMBERT 0
 
 layout(index = 0) subroutine(RenderPassType)
 void renderGBuffer()
@@ -109,15 +114,15 @@ void renderGBuffer()
     vec3 l = normalize(light.xyz);
 
 #if HALF_LAMBERT
-    float diffuse = (dot(n, l) * 0.5 + 0.5);
+    float diffuse = max(dot(n, l) * 0.5 + 0.5, 0);
 #elif WRAPPED_AROUND_LAMBERT
     const float offset = 0.5;
     float diffuse = max(dot(n, l) + offset, 0) / (1 + offset);
 #else
-    float diffuse = dot(n, l);
+    float diffuse = max(dot(n, l), 0);
 #endif
 
-    fragColor = vec4(vec3(0), 1);
+    fragColor = vec4(vec3(diffuse), 1);
     fragNormal = EncodeNormal(n);
 }
 
@@ -132,6 +137,9 @@ void ssao()
     vec3 p = ray * depth;
     //p.z *= -1;
 
+#if 0
+    fragColor = vec4(vec3(0.16), 0);
+
     vec3 lightPos;
     float dist, attenuation;
 
@@ -143,9 +151,10 @@ void ssao()
 
         fragColor.rgb += pointLights[i].color * attenuation;
     }
+#endif
 
-
-    vec3 n = DecodeNormal(texture(normalSampler, texCoord).xy);
+    //vec3 n = DecodeNormal(texelFetch(normalSampler, ivec2(gl_FragCoord), gl_SampleID).xy);
+    vec3 n = DecodeNormal(texture(normalSampler, interpolateAtSample(texCoord, gl_SampleID)).xy);
     vec3 rvec = texture(noiseSampler, texCoord * noiseScale).rgb;
 
     vec3 t = normalize(rvec - n * dot(rvec, n));
@@ -176,13 +185,13 @@ void ssao()
         occlusion += step(s.z + bias, -d) * nDotS * rangeCheck;
     }
 
-    occlusion = max(0, 1 - (occlusion / (kernelSize - rejectedSamples)));
+    occlusion = max(1 - (occlusion / (kernelSize - rejectedSamples)), 0);
 
     fragColor.rgb *= pow(occlusion, 1);
 }
 
 
-const vec2 kInvResolution = 1.0 / vec2(1920.0, 1080.0);
+const vec2 kInvResolution = 1.0 / vec2(1920, 1080);
 
 layout(binding = 5, std430) readonly buffer GAUSS_FILTER_COLOR_WEIGHTS
 {
@@ -223,7 +232,14 @@ vec4 blur_pass(in vec2 direction)
 
     float total_weight = 0.0;
 
+    vec3 center_normal = DecodeNormal(texelFetch(normalSampler, ivec2(gl_FragCoord.xy), 0).xy);
+
     for (int i = 1; i < kKERNEL_SIZE; ++i) {
+        vec3 normal = DecodeNormal(texelFetchOffset(normalSampler, center, 0, offset * i).xy);
+
+        if (dot(center_normal, normal) < 0.8)
+            continue;
+
         float weight = weights[i] / GetDepthBasedRangeWeight(center_depth, center, offset * i);
 
         total_weight += weight;

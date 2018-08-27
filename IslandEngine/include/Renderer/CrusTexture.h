@@ -27,7 +27,8 @@ extern "C"
 #include <vector>
 #include "Game\CrusObject.h"
 
-namespace isle {
+namespace isle
+{
 struct alignas(sizeof(u32)) RGBA
 {
     union {
@@ -72,7 +73,7 @@ public:
 
     Image image;
 
-    Texture(eTEXTURE_TYPE type, std::string &&path);
+    Texture(eTEXTURE_TYPE type, std::string_view path, u8 samplesCount = 1);
 
     bool Init();
 
@@ -89,6 +90,8 @@ private:
     u32 id_{0}, unit_{0};
     u16 w_{0}, h_{0};
     u64 handle_;
+
+    u8 samplesCount_{1};
 
     eTEXTURE_TYPE type_{eTEXTURE_TYPE::nUNKNOWN};
 
