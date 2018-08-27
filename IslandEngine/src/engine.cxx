@@ -19,7 +19,6 @@ using namespace std::string_literals;
 using namespace std::string_view_literals;
 
 
-
 namespace cubemap {
 bool InitCubemap();
 void DrawCubemap();
@@ -27,6 +26,8 @@ void DrawCubemap();
 
 namespace app {
 intf::Grid grid;
+
+auto constexpr kUSE_MS = false;
 
 auto constexpr width = 1920;
 auto constexpr height = 1080;
@@ -36,10 +37,13 @@ auto constexpr clear_colors = isle::make_array(0.f, 1.f);
 u32 constexpr index0 = 0, index1 = 1, index2 = 2, index3 = 3, index4 = 4;
 
 u32 main_fbo;
+u32 rt_0, rt_1, rt_depth;
 u64 rt_0_handle, rt_1_handle, rt_depth_handle;
+
 u32 out_fbo;
 u64 out_rt0_handle, out_rt1_handle;
 u32 out_rt0, out_rt1;// , out_depth;
+
 u32 ms_fbo;
 u64 ms_rt_0_handle, ms_rt_1_handle, ms_rt_depth_handle;
 
@@ -116,7 +120,7 @@ void InitSSAO()
         return sample;
     });
 
-    glProgramUniform3fv(ssao_program.program(), 64, kernel_size, &std::data(kernel)->x);
+    glProgramUniform3fv(ssao_program.program(), 20, kernel_size, &std::data(kernel)->x);
 
     if (hemisphere_program.AssignNew({R"(Defaults/Unlit-Simple.glsl)"})) {
         Render::inst().CreateVAO(hemisphere_vao);
@@ -152,11 +156,9 @@ void InitSSAO()
 
         glTextureStorage2D(noise_tex, 1, GL_RGB32F, 4, 4);
         glTextureSubImage2D(noise_tex, 0, 0, 0, 4, 4, GL_RGB, GL_FLOAT, std::data(noise));
-
-        noise_tex_handle = glGetTextureHandleARB(noise_tex);
-        glMakeTextureHandleResidentARB(noise_tex_handle);
     }
 }
+
 
 void InitMultisampledFramebuffers()
 {
@@ -170,7 +172,6 @@ void InitMultisampledFramebuffers()
 
     glTextureParameteri(ms_rt_depth, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTextureParameteri(ms_rt_depth, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTextureParameteri(ms_rt_depth, GL_TEXTURE_BASE_LEVEL, 0);
     glTextureParameteri(ms_rt_depth, GL_TEXTURE_MAX_LEVEL, 0);
     glTextureParameteri(ms_rt_depth, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTextureParameteri(ms_rt_depth, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -184,12 +185,14 @@ void InitMultisampledFramebuffers()
 
     glTextureParameteri(ms_rt_0, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTextureParameteri(ms_rt_0, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTextureParameteri(ms_rt_0, GL_TEXTURE_BASE_LEVEL, 0);
+    //glTextureParameteri(rt_0, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    //glTextureParameteri(rt_0, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTextureParameteri(ms_rt_0, GL_TEXTURE_MAX_LEVEL, 0);
     glTextureParameteri(ms_rt_0, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTextureParameteri(ms_rt_0, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
     glTextureStorage2DMultisample(ms_rt_0, samples, GL_RGBA8, width, height, GL_TRUE);
+    //glTextureSubImage2D(quad_tid, 0, 0, 0, width, height, GL_RGBA, GL_RGBA8, nullptr);
 
     ms_rt_0_handle = glGetTextureHandleARB(ms_rt_0);
     glMakeTextureHandleResidentARB(ms_rt_0_handle);
@@ -198,7 +201,6 @@ void InitMultisampledFramebuffers()
 
     glTextureParameteri(ms_rt_1, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTextureParameteri(ms_rt_1, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTextureParameteri(ms_rt_1, GL_TEXTURE_BASE_LEVEL, 0);
     glTextureParameteri(ms_rt_1, GL_TEXTURE_MAX_LEVEL, 0);
     glTextureParameteri(ms_rt_1, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTextureParameteri(ms_rt_1, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -226,20 +228,17 @@ void InitMultisampledFramebuffers()
         log::Fatal() << "unexpected framebuffer samples count";
 }
 
-
 void InitFramebuffer()
 {
-    InitMultisampledFramebuffers();
+    if constexpr (kUSE_MS)
+        InitMultisampledFramebuffers();
 
     glCreateFramebuffers(1, &main_fbo);
-
-    u32 rt_0, rt_1, rt_depth;
 
     Render::inst().CreateTBO(GL_TEXTURE_2D, rt_depth);
 
     glTextureParameteri(rt_depth, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTextureParameteri(rt_depth, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTextureParameteri(rt_depth, GL_TEXTURE_BASE_LEVEL, 0);
     glTextureParameteri(rt_depth, GL_TEXTURE_MAX_LEVEL, 0);
     glTextureParameteri(rt_depth, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTextureParameteri(rt_depth, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -253,12 +252,14 @@ void InitFramebuffer()
 
     glTextureParameteri(rt_0, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTextureParameteri(rt_0, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTextureParameteri(rt_0, GL_TEXTURE_BASE_LEVEL, 0);
+    //glTextureParameteri(rt_0, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    //glTextureParameteri(rt_0, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTextureParameteri(rt_0, GL_TEXTURE_MAX_LEVEL, 0);
     glTextureParameteri(rt_0, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTextureParameteri(rt_0, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
     glTextureStorage2D(rt_0, 1, GL_RGBA8, width, height);
+    //glTextureSubImage2D(quad_tid, 0, 0, 0, width, height, GL_RGBA, GL_RGBA8, nullptr);
 
     rt_0_handle = glGetTextureHandleARB(rt_0);
     glMakeTextureHandleResidentARB(rt_0_handle);
@@ -267,7 +268,6 @@ void InitFramebuffer()
 
     glTextureParameteri(rt_1, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTextureParameteri(rt_1, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTextureParameteri(rt_1, GL_TEXTURE_BASE_LEVEL, 0);
     glTextureParameteri(rt_1, GL_TEXTURE_MAX_LEVEL, 0);
     glTextureParameteri(rt_1, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTextureParameteri(rt_1, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -282,7 +282,7 @@ void InitFramebuffer()
     glNamedFramebufferTexture(main_fbo, GL_COLOR_ATTACHMENT1, rt_1, 0);
 
     {
-        std::uint32_t constexpr drawBuffers[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
+        std::uint32_t constexpr drawBuffers[] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
         glNamedFramebufferDrawBuffers(main_fbo, static_cast<i32>(std::size(drawBuffers)), std::data(drawBuffers));
     }
 
@@ -304,6 +304,8 @@ void InitFramebuffer()
 
     glTextureParameteri(out_rt0, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTextureParameteri(out_rt0, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    //glTextureParameteri(out_rt0, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    //glTextureParameteri(out_rt0, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTextureParameteri(out_rt0, GL_TEXTURE_MAX_LEVEL, 0);
     glTextureParameteri(out_rt0, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTextureParameteri(out_rt0, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -333,7 +335,7 @@ void InitFramebuffer()
     glNamedFramebufferRenderbuffer(out_fbo, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, out_depth);*/
 
     {
-        std::uint32_t constexpr drawBuffers[] = { GL_COLOR_ATTACHMENT0 };
+        std::uint32_t constexpr drawBuffers[] = {GL_COLOR_ATTACHMENT0};
         glNamedFramebufferDrawBuffers(out_fbo, static_cast<i32>(std::size(drawBuffers)), std::data(drawBuffers));
     }
 
@@ -343,6 +345,7 @@ void InitFramebuffer()
     if (auto const code = glGetError(); code != GL_NO_ERROR)
         log::Error() << __FUNCTION__ << ": " << code;
 }
+
 
 
 void InitGaussFilter(Program &program)
@@ -520,8 +523,6 @@ void DrawFrame()
 
     Render::inst().UpdateViewport(1, 1, &Render::inst().vp_.proj());
 
-    auto constexpr kUSE_MS = true;
-
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, kUSE_MS ? ms_fbo : main_fbo);
 
     glViewport(0, 0, width, height);
@@ -544,12 +545,11 @@ void DrawFrame()
     glDrawArrays(GL_TRIANGLES, 0, 3 * geom_count);
 
     glFinish();
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 
     if constexpr (kUSE_MS)
         glBlitNamedFramebuffer(ms_fbo, main_fbo, 0, 0, width, height, 0, 0, width, height, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST);
 
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, out_fbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, out_fbo);
     glViewport(0, 0, width, height);
 
     glNamedFramebufferTexture(out_fbo, GL_COLOR_ATTACHMENT0, out_rt0, 0);
@@ -563,12 +563,17 @@ void DrawFrame()
     glProgramUniformHandleui64ARB(ssao_program.program(), Render::eSAMPLERS_BINDING::nALBEDO, rt_0_handle);
     glProgramUniformHandleui64ARB(ssao_program.program(), Render::eSAMPLERS_BINDING::nNORMAL_MAP, rt_1_handle);
     glProgramUniformHandleui64ARB(ssao_program.program(), Render::eSAMPLERS_BINDING::nDEPTH, rt_depth_handle);
-    glProgramUniformHandleui64ARB(ssao_program.program(), 32, noise_tex_handle);
+    //glProgramUniformHandleui64ARB(ssao_program.program(), 4, noise_tex_handle);
+
+    //glBindTextureUnit(Render::eSAMPLERS_BINDING::nALBEDO, rt_0);
+    //glBindTextureUnit(Render::eSAMPLERS_BINDING::nNORMAL_MAP, rt_1);
+    //glBindTextureUnit(Render::nDEPTH, rt_depth);
+    glBindTextureUnit(4, noise_tex);
 
     glBindVertexArray(quad_vao);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 8);
 
-#ifdef USE_BLUR
+#ifndef BLUR
     glFinish();
 
     glNamedFramebufferTexture(out_fbo, GL_COLOR_ATTACHMENT0, out_rt1, 0);
@@ -579,7 +584,10 @@ void DrawFrame()
     glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, &index1);
     glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &index3);
 
-    glBindTextureUnit(Render::eSAMPLERS_BINDING::nALBEDO, out_rt0);
+    glProgramUniformHandleui64ARB(ssao_program.program(), Render::eSAMPLERS_BINDING::nALBEDO, out_rt0_handle);
+    glProgramUniformHandleui64ARB(ssao_program.program(), Render::eSAMPLERS_BINDING::nNORMAL_MAP, rt_1_handle);
+    glProgramUniformHandleui64ARB(ssao_program.program(), Render::eSAMPLERS_BINDING::nDEPTH, rt_depth_handle);
+    //glBindTextureUnit(Render::eSAMPLERS_BINDING::nALBEDO, out_rt0);
 
     glBindVertexArray(quad_vao);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 8);
@@ -588,7 +596,8 @@ void DrawFrame()
     glNamedFramebufferTexture(out_fbo, GL_COLOR_ATTACHMENT0, out_rt0, 0);
     glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &index4);
 
-    glBindTextureUnit(Render::eSAMPLERS_BINDING::nALBEDO, out_rt1);
+    glProgramUniformHandleui64ARB(ssao_program.program(), Render::eSAMPLERS_BINDING::nALBEDO, out_rt1_handle);
+    //glBindTextureUnit(Render::eSAMPLERS_BINDING::nALBEDO, out_rt1);
 
     glBindVertexArray(quad_vao);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 8);

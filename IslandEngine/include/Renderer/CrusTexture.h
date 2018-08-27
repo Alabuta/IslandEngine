@@ -27,7 +27,8 @@ extern "C"
 #include <vector>
 #include "Game\CrusObject.h"
 
-namespace isle {
+namespace isle
+{
 struct alignas(sizeof(u32)) RGBA
 {
     union {

@@ -172,7 +172,7 @@ void Camera::UpdateView()
     auto const yAxis = math::Vector::GetNormalized(view_.yAxis);
     auto const zAxis = math::Vector::GetNormalized(view_.zAxis);
 
-    auto const direction = math::Vector{x, y, z} * 4.f;
+    auto const direction = math::Vector{x, y, z} * 8.f;
     auto pos = pos_;
 
     pos.x += math::Vector{xAxis.x, yAxis.x, zAxis.x} * direction;

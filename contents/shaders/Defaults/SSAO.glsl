@@ -67,12 +67,17 @@ layout(location = 0) subroutine uniform RenderPassType RenderPass;
 layout(location = nBASE_COLOR) out vec4 fragColor;
 layout(location = nNORMALS) out vec2 fragNormal;
 
+//layout(binding = nALBEDO) uniform sampler2D colorSampler;
+//layout(binding = nNORMAL_MAP) uniform sampler2D normalSampler;
+//layout(binding = nDEPTH) uniform sampler2D depthSampler;
+layout(binding = 4) uniform sampler2D noiseSampler;
+
 layout(bindless_sampler, location = nALBEDO) uniform sampler2D colorSampler;
 layout(bindless_sampler, location = nNORMAL_MAP) uniform sampler2D normalSampler;
 layout(bindless_sampler, location = nDEPTH) uniform sampler2D depthSampler;
-layout(bindless_sampler, binding = 32) uniform sampler2D noiseSampler;
+//layout(bindless_sampler, binding = 32) uniform sampler2D noiseSampler;
 
-layout(location = 64) uniform vec3 samples[64];
+layout(location = 20) uniform vec3 samples[64];
 
 struct PointLight {
     vec3 position;
@@ -227,7 +232,14 @@ vec4 blur_pass(in vec2 direction)
 
     float total_weight = 0.0;
 
+    vec3 center_normal = DecodeNormal(texelFetch(normalSampler, ivec2(gl_FragCoord.xy), 0).xy);
+
     for (int i = 1; i < kKERNEL_SIZE; ++i) {
+        vec3 normal = DecodeNormal(texelFetchOffset(normalSampler, center, 0, offset * i).xy);
+
+        if (dot(center_normal, normal) < 0.8)
+            continue;
+
         float weight = weights[i] / GetDepthBasedRangeWeight(center_depth, center, offset * i);
 
         total_weight += weight;

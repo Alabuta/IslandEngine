@@ -28,7 +28,8 @@ using namespace std::string_view_literals;
 //#define GL_TEXTURE_MAX_ANISOTROPY_EXT 0x84FE
 //#define GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT 0x84FF
 
-namespace isle {
+namespace isle
+{
 Texture::Texture(eTEXTURE_TYPE type, std::string_view path, u8 samplesCount) : samplesCount_{samplesCount}, type_{type}, path_{path}
 {
     name_ = path.substr(0, path.find_last_of('.'));
