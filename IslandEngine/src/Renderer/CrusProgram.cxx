@@ -230,11 +230,15 @@ u32 Program::CreateShaderObject(std::vector<std::string> const &_includes, std::
         // Used for shader source file preprocessing.
         std::ostringstream preprocessor_directives;
 
+        preprocessor_directives
+            << '\n'
+            << kGLSL_VERSION
+            << "\n#extension GL_ARB_bindless_texture : require";
+
         switch (type) {
             case GL_VERTEX_SHADER:
                 preprocessor_directives
                     << '\n'
-                    << kGLSL_VERSION
                     << "\n#define CRUS_VERTEX_STAGE 1\n"
                     << "\n#define nPOSITION      " << Render::eVERTEX_IN::nPOSITION
                     << "\n#define nNORMAL        " << Render::eVERTEX_IN::nNORMAL
@@ -255,7 +259,6 @@ u32 Program::CreateShaderObject(std::vector<std::string> const &_includes, std::
             case GL_GEOMETRY_SHADER:
                 preprocessor_directives
                     << '\n'
-                    << kGLSL_VERSION
                     << "\n#define CRUS_GEOMETRY_STAGE 1\n"
                     << "\n#define nVIEWPORT      " << Render::eBUFFERS_BINDING::nVIEWPORT
                     << "\n#define nTRANSFORM     " << Render::eBUFFERS_BINDING::nTRANSFORM
@@ -271,8 +274,6 @@ u32 Program::CreateShaderObject(std::vector<std::string> const &_includes, std::
             case GL_FRAGMENT_SHADER:
                 preprocessor_directives
                     << '\n'
-                    << kGLSL_VERSION
-                    << "\n#extension GL_ARB_bindless_texture : require"
                     << "\n#define CRUS_FRAGMENT_STAGE 1\n"
                     << "\n#define nVIEWPORT      " << Render::eBUFFERS_BINDING::nVIEWPORT
                     << "\n#define nTRANSFORM     " << Render::eBUFFERS_BINDING::nTRANSFORM
@@ -293,7 +294,6 @@ u32 Program::CreateShaderObject(std::vector<std::string> const &_includes, std::
             case GL_COMPUTE_SHADER:
                 preprocessor_directives
                     << '\n'
-                    << kGLSL_VERSION
                     << "\n#define CRUS_COMPUTE_STAGE 1\n"
                     << '\n';
                 break;
