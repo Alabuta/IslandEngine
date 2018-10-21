@@ -17,6 +17,18 @@
 using namespace std::string_literals;
 using namespace std::string_view_literals;
 
+
+
+namespace cubemap
+{
+bool InitCubemap();
+void DrawCubemap();
+}
+
+namespace app
+{
+intf::Grid grid;
+
 auto constexpr width = 1920;
 auto constexpr height = 1080;
 
@@ -24,21 +36,17 @@ auto constexpr clear_colors = isle::make_array(0.f, 1.f);
 
 u32 constexpr index0 = 0, index1 = 1, index2 = 2, index3 = 3, index4 = 4;
 
-u32 main_fbo, rt_0, rt_1, rt_depth;
-u32 out_fbo, out_rt0, out_rt1, out_depth;
-u32 ms_fbo, ms_rt_0, ms_rt_1, ms_rt_depth;
-u64 rt_depth_handle, ms_rt_depth_handle;
+u32 main_fbo;
+u64 rt_0_handle, rt_1_handle, rt_depth_handle;
+u32 out_fbo;
+//u64 out_rt0_handle, out_rt1_handle;
+u32 out_rt0, out_rt1;// , out_depth;
+u32 ms_fbo;
+//u64 ms_rt_0_handle, ms_rt_1_handle, ms_rt_depth_handle;
 
-isle::Program ssao_program;
+u32 ms_rt_0, ms_rt_1, ms_rt_depth;
 
-namespace cubemap {
-bool InitCubemap();
-void DrawCubemap();
-}
-
-namespace app {
-intf::Grid grid;
-
+u32 rt_0, rt_1, rt_depth;
 
 Program hemisphere_program;
 u32 hemisphere_vao, hemisphere_count;
@@ -48,6 +56,7 @@ u32 geom_vao, geom_count;
 
 Program ssao_program;
 u32 quad_vao, noise_tex;
+u64 noise_tex_handle;
 
 
 auto matrices = make_array(
@@ -97,7 +106,7 @@ void InitSSAO()
     auto constexpr kernel_size = 64u;
 
     std::array<math::Vector, kernel_size> kernel;
-    std::generate(kernel.begin(), kernel.end(), [&floats, &mt, size = std::size(kernel), i = 0] () mutable
+    std::generate(kernel.begin(), kernel.end(), [&floats, &mt, size = std::size(kernel), i = 0]() mutable
     {
         math::Vector sample(floats(mt) * 2 - 1, floats(mt) * 2 - 1, floats(mt));
 
@@ -112,7 +121,7 @@ void InitSSAO()
         return sample;
     });
 
-    glProgramUniform3fv(ssao_program.program(), 20, kernel_size, &std::data(kernel)->x);
+    glProgramUniform3fv(ssao_program.program(), 64, kernel_size, &std::data(kernel)->x);
 
     if (hemisphere_program.AssignNew({R"(Defaults/Unlit-Simple.glsl)"})) {
         Render::inst().CreateVAO(hemisphere_vao);
@@ -148,6 +157,9 @@ void InitSSAO()
 
         glTextureStorage2D(noise_tex, 1, GL_RGB32F, 4, 4);
         glTextureSubImage2D(noise_tex, 0, 0, 0, 4, 4, GL_RGB, GL_FLOAT, std::data(noise));
+/*
+        noise_tex_handle = glGetTextureHandleARB(noise_tex);
+        glMakeTextureHandleResidentARB(noise_tex_handle);*/
     }
 }
 
@@ -156,6 +168,8 @@ void InitMultisampledFramebuffers()
     auto constexpr samples = 16;
 
     glCreateFramebuffers(1, &ms_fbo);
+
+    //u32 ms_rt_0, ms_rt_1, ms_rt_depth;
 
     Render::inst().CreateTBO(GL_TEXTURE_2D_MULTISAMPLE, ms_rt_depth);
 
@@ -166,9 +180,9 @@ void InitMultisampledFramebuffers()
     glTextureParameteri(ms_rt_depth, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
     glTextureStorage2DMultisample(ms_rt_depth, samples, GL_DEPTH_COMPONENT32F, width, height, GL_TRUE);
-
+/*
     ms_rt_depth_handle = glGetTextureHandleARB(ms_rt_depth);
-    glMakeTextureHandleResidentARB(ms_rt_depth_handle);
+    glMakeTextureHandleResidentARB(ms_rt_depth_handle);*/
 
     Render::inst().CreateTBO(GL_TEXTURE_2D_MULTISAMPLE, ms_rt_0);
 
@@ -179,6 +193,9 @@ void InitMultisampledFramebuffers()
     glTextureParameteri(ms_rt_0, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
     glTextureStorage2DMultisample(ms_rt_0, samples, GL_RGBA8, width, height, GL_TRUE);
+/*
+    ms_rt_0_handle = glGetTextureHandleARB(ms_rt_0);
+    glMakeTextureHandleResidentARB(ms_rt_0_handle);*/
 
     Render::inst().CreateTBO(GL_TEXTURE_2D_MULTISAMPLE, ms_rt_1);
 
@@ -189,6 +206,9 @@ void InitMultisampledFramebuffers()
     glTextureParameteri(ms_rt_1, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
     glTextureStorage2DMultisample(ms_rt_1, samples, GL_RG16F, width, height, GL_TRUE);
+/*
+    ms_rt_1_handle = glGetTextureHandleARB(ms_rt_1);
+    glMakeTextureHandleResidentARB(ms_rt_1_handle);*/
 
     glNamedFramebufferTexture(ms_fbo, GL_DEPTH_ATTACHMENT, ms_rt_depth, 0);
     glNamedFramebufferTexture(ms_fbo, GL_COLOR_ATTACHMENT0, ms_rt_0, 0);
@@ -209,6 +229,8 @@ void InitFramebuffer()
 
     glCreateFramebuffers(1, &main_fbo);
 
+    //u32 rt_0, rt_1, rt_depth;
+
     Render::inst().CreateTBO(GL_TEXTURE_2D, rt_depth);
 
     glTextureParameteri(rt_depth, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -226,14 +248,14 @@ void InitFramebuffer()
 
     glTextureParameteri(rt_0, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTextureParameteri(rt_0, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    //glTextureParameteri(rt_0, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    //glTextureParameteri(rt_0, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTextureParameteri(rt_0, GL_TEXTURE_MAX_LEVEL, 0);
     glTextureParameteri(rt_0, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTextureParameteri(rt_0, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
     glTextureStorage2D(rt_0, 1, GL_RGBA8, width, height);
-    //glTextureSubImage2D(quad_tid, 0, 0, 0, width, height, GL_RGBA, GL_RGBA8, nullptr);
+
+    rt_0_handle = glGetTextureHandleARB(rt_0);
+    glMakeTextureHandleResidentARB(rt_0_handle);
 
     Render::inst().CreateTBO(GL_TEXTURE_2D, rt_1);
 
@@ -244,6 +266,9 @@ void InitFramebuffer()
     glTextureParameteri(rt_1, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
     glTextureStorage2D(rt_1, 1, GL_RG16F, width, height);
+
+    rt_1_handle = glGetTextureHandleARB(rt_1);
+    glMakeTextureHandleResidentARB(rt_1_handle);
 
     glNamedFramebufferTexture(main_fbo, GL_DEPTH_ATTACHMENT, rt_depth, 0);
     glNamedFramebufferTexture(main_fbo, GL_COLOR_ATTACHMENT0, rt_0, 0);
@@ -272,13 +297,14 @@ void InitFramebuffer()
 
     glTextureParameteri(out_rt0, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTextureParameteri(out_rt0, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    //glTextureParameteri(out_rt0, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    //glTextureParameteri(out_rt0, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTextureParameteri(out_rt0, GL_TEXTURE_MAX_LEVEL, 0);
     glTextureParameteri(out_rt0, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTextureParameteri(out_rt0, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
     glTextureStorage2D(out_rt0, 1, GL_RGBA8, width, height);
+/*
+    out_rt0_handle = glGetTextureHandleARB(out_rt0);
+    glMakeTextureHandleResidentARB(out_rt0_handle);*/
 
     Render::inst().CreateTBO(GL_TEXTURE_2D, out_rt1);
 
@@ -289,6 +315,9 @@ void InitFramebuffer()
     glTextureParameteri(out_rt1, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
     glTextureStorage2D(out_rt1, 1, GL_RGBA8, width, height);
+/*
+    out_rt1_handle = glGetTextureHandleARB(out_rt1);
+    glMakeTextureHandleResidentARB(out_rt1_handle);*/
 
     glNamedFramebufferTexture(out_fbo, GL_COLOR_ATTACHMENT0, out_rt0, 0);
 
@@ -419,49 +448,48 @@ std::optional<std::vector<double>> InitGaussFilter1()
 template<typename T>
 constexpr i32 PixelsNeededForSigma(T sigma, T threshold)
 {
-	auto const size = 1 + 2 * sigma * std::sqrt(-2 * std::log(threshold * static_cast<T>(0.01)));
-	
-	return static_cast<i32>(std::floor(size)) | 1;
+    auto const size = 1 + 2 * sigma * std::sqrt(-2 * std::log(threshold * static_cast<T>(0.01)));
+
+    return static_cast<i32>(std::floor(size)) | 1;
 }
 
 template<typename T>
 constexpr T GetSigmaBasedOnTapSize(i32 size, T threshold)
 {
-	return static_cast<T>(size - 1) / (2 * std::sqrt(-2 * std::log(threshold * static_cast<T>(0.01))));
+    return static_cast<T>(size - 1) / (2 * std::sqrt(-2 * std::log(threshold * static_cast<T>(0.01))));
 }
 
 template<typename T>
 constexpr T GaussianSimpsonIntegration(T a, T b, T sigma)
 {
-	return ((b - a) / static_cast<T>(6)) * (math::gaussianDistribution(a, sigma) + 4 * math::gaussianDistribution((a + b) / static_cast<T>(2), sigma) + math::gaussianDistribution(b, sigma));
+    return ((b - a) / static_cast<T>(6)) * (math::gaussianDistribution(a, sigma) + 4 * math::gaussianDistribution((a + b) / static_cast<T>(2), sigma) + math::gaussianDistribution(b, sigma));
 }
 
 template<typename T>
 constexpr std::vector<T> GaussianKernelIntegrals(T sigma, i32 taps, bool half_size = true, bool normalize = true)
 {
-	auto const half_taps = taps >> 1;
+    auto const half_taps = taps >> 1;
 
-	std::vector<T> weights(taps);
+    std::vector<T> weights(taps);
 
-	std::generate(weights.begin(), weights.end(), [sigma, half_taps, i = 0] () mutable
-	{
-		auto const x = static_cast<T>(i++ - half_taps);
-		return GaussianSimpsonIntegration(x - static_cast<T>(0.5), x + static_cast<T>(0.5), sigma);
-	});
+    std::generate(weights.begin(), weights.end(), [sigma, half_taps, i = 0]() mutable
+    {
+        auto const x = static_cast<T>(i++ - half_taps);
+        return GaussianSimpsonIntegration(x - static_cast<T>(0.5), x + static_cast<T>(0.5), sigma);
+    });
 
     if (normalize) {
         auto total = std::accumulate(weights.begin(), weights.end(), static_cast<T>(0));
 
-        std::transform(weights.begin(), weights.end(), weights.begin(), [total] (auto value)
-        {
+        std::transform(weights.begin(), weights.end(), weights.begin(), [total] (auto value) {
             return value / total;
         });
     }
 
-	if (half_size)
-		weights.erase(weights.begin(), std::next(weights.begin(), half_taps));
+    if (half_size)
+        weights.erase(weights.begin(), std::next(weights.begin(), half_taps));
 
-	return weights;
+    return weights;
 }
 
 void InitGaussFilter(Program &program)
@@ -572,12 +600,12 @@ void Init()
     if (!geom_program.AssignNew({R"(Defaults/Diffuse-Lambert.glsl)"}))
         return;
 
-	InitGaussFilter(ssao_program);
+    InitGaussFilter(ssao_program);
 
     InitSSAO();
 
     {
-		Render::inst().CreateVAO(quad_vao);
+        Render::inst().CreateVAO(quad_vao);
 
         auto constexpr vertices = make_array(
             Position{-1, +1, 0},
@@ -599,26 +627,26 @@ void Init()
     }
 
     //if (future.get()) {
-        Render::inst().CreateVAO(geom_vao);
+    Render::inst().CreateVAO(geom_vao);
 
-        auto bo = 0u;
-        Render::inst().CreateBO(bo);
+    auto bo = 0u;
+    Render::inst().CreateBO(bo);
 
-        glNamedBufferStorage(bo, sizeof(decltype(vertex_buffer)::value_type) * std::size(vertex_buffer), std::data(vertex_buffer), 0);
+    glNamedBufferStorage(bo, sizeof(decltype(vertex_buffer)::value_type) * std::size(vertex_buffer), std::data(vertex_buffer), 0);
 
-        glVertexArrayAttribBinding(geom_vao, Render::eVERTEX_IN::nPOSITION, 0);
-        glVertexArrayAttribFormat(geom_vao, Render::eVERTEX_IN::nPOSITION, 3, GL_FLOAT, GL_FALSE, offsetof(Vertex, pos));
-        glEnableVertexArrayAttrib(geom_vao, Render::eVERTEX_IN::nPOSITION);
+    glVertexArrayAttribBinding(geom_vao, Render::eVERTEX_IN::nPOSITION, 0);
+    glVertexArrayAttribFormat(geom_vao, Render::eVERTEX_IN::nPOSITION, 3, GL_FLOAT, GL_FALSE, offsetof(Vertex, pos));
+    glEnableVertexArrayAttrib(geom_vao, Render::eVERTEX_IN::nPOSITION);
 
-        glVertexArrayAttribBinding(geom_vao, Render::eVERTEX_IN::nNORMAL, 0);
-        glVertexArrayAttribFormat(geom_vao, Render::eVERTEX_IN::nNORMAL, 3, GL_FLOAT, GL_TRUE, offsetof(Vertex, normal));
-        glEnableVertexArrayAttrib(geom_vao, Render::eVERTEX_IN::nNORMAL);
+    glVertexArrayAttribBinding(geom_vao, Render::eVERTEX_IN::nNORMAL, 0);
+    glVertexArrayAttribFormat(geom_vao, Render::eVERTEX_IN::nNORMAL, 3, GL_FLOAT, GL_TRUE, offsetof(Vertex, normal));
+    glEnableVertexArrayAttrib(geom_vao, Render::eVERTEX_IN::nNORMAL);
 
-        glVertexArrayAttribBinding(geom_vao, Render::eVERTEX_IN::nTEX_COORD, 0);
-        glVertexArrayAttribFormat(geom_vao, Render::eVERTEX_IN::nTEX_COORD, 2, GL_FLOAT, GL_FALSE, offsetof(Vertex, uv));
-        glEnableVertexArrayAttrib(geom_vao, Render::eVERTEX_IN::nTEX_COORD);
+    glVertexArrayAttribBinding(geom_vao, Render::eVERTEX_IN::nTEX_COORD, 0);
+    glVertexArrayAttribFormat(geom_vao, Render::eVERTEX_IN::nTEX_COORD, 2, GL_FLOAT, GL_FALSE, offsetof(Vertex, uv));
+    glEnableVertexArrayAttrib(geom_vao, Render::eVERTEX_IN::nTEX_COORD);
 
-        glVertexArrayVertexBuffer(geom_vao, 0, bo, 0, sizeof(decltype(vertex_buffer)::value_type));
+    glVertexArrayVertexBuffer(geom_vao, 0, bo, 0, sizeof(decltype(vertex_buffer)::value_type));
     //}
 }
 
@@ -678,6 +706,7 @@ void DrawFrame()
     glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &index1);
 
     glBindTextureUnit(Render::eSAMPLERS_BINDING::nALBEDO, rt_0);
+    //glUniformHandleui64ARB(ssao_program.GetUniformLoc("colorSampler"sv), rt_0_handle);
     glBindTextureUnit(Render::eSAMPLERS_BINDING::nNORMAL_MAP, ms_rt_1);
     //glBindTextureUnit(Render::eSAMPLERS_BINDING::nDEPTH, rt_depth);
     glUniformHandleui64ARB(ssao_program.GetUniformLoc("depthSampler"sv), rt_depth_handle);
@@ -686,7 +715,7 @@ void DrawFrame()
     glBindVertexArray(quad_vao);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 8);
 
-#if USE_BLUR
+#ifdef USE_BLUR
     glFinish();
 
     glNamedFramebufferTexture(out_fbo, GL_COLOR_ATTACHMENT0, out_rt1, 0);
@@ -728,15 +757,15 @@ void DrawFrame()
 #endif
 
 #if 0
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-	test_program.UseThis();
-	matrices[1].Scale(1, 1, 1);
-	matrices[0] = Render::inst().vp_.projView() * matrices[1];
-	Render::inst().UpdateTransform(0, 2, matrices.data());
+    test_program.UseThis();
+    matrices[1].Scale(1, 1, 1);
+    matrices[0] = Render::inst().vp_.projView() * matrices[1];
+    Render::inst().UpdateTransform(0, 2, matrices.data());
 
-	glBindVertexArray(test_vao);
-	glDrawArrays(GL_LINE_STRIP, 0, test_count);
+    glBindVertexArray(test_vao);
+    glDrawArrays(GL_LINE_STRIP, 0, test_count);
 #endif
 }
 };
@@ -745,7 +774,7 @@ void DrawFrame()
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int)
 {
-    isle::Window window(crus::names::kMAIN_WINDOW_NAME, hInstance, width, height);
+    isle::Window window(crus::names::kMAIN_WINDOW_NAME, hInstance, app::width, app::height);
 
     return isle::System::Loop();
 }

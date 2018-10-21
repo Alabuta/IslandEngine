@@ -68,12 +68,14 @@ layout(location = nBASE_COLOR) out vec4 fragColor;
 layout(location = nNORMALS) out vec2 fragNormal;
 
 layout(binding = nALBEDO) uniform sampler2D colorSampler;
-layout(binding = nNORMAL_MAP) uniform sampler2DMS normalSampler;
+//layout(bindless_sampler) uniform sampler2D colorSampler;
+layout(binding = nNORMAL_MAP) uniform sampler2D normalSampler;
+//layout(bindless_sampler) uniform sampler2DMS normalSampler;
 //layout(binding = nDEPTH) uniform sampler2D depthSampler;
 layout(bindless_sampler) uniform sampler2D depthSampler;
 layout(binding = 4) uniform sampler2D noiseSampler;
 
-layout(location = 20) uniform vec3 samples[64];
+layout(location = 64) uniform vec3 samples[64];
 
 struct PointLight {
     vec3 position;
