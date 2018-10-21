@@ -8,9 +8,10 @@
 ********************************************************************************************************************************/
 #include <iostream>
 #include <array>
+#include <string>
 #include <string_view>
 
-//using namespace std::string_literals;
+using namespace std::string_literals;
 using namespace std::string_view_literals;
 
 #ifndef _UNICODE
@@ -50,24 +51,25 @@ std::array<CHAR_INFO, N> constexpr set(std::wstring_view message)
     return set<A, N>(message, std::make_index_sequence<N>{});
 }
 
-std::array<std::array<CHAR_INFO, kMARKERS_WIDTH>, 5> constexpr kMARKERS{{
-        set<2>(L"Info     :"sv),
-        set<3>(L"Debug    :"sv),
-        set<4>(L"Warning  :"sv),
-        set<5>(L"Error    :"sv),
-        set<6>(L"Fatal    :"sv)
-}};
+
+auto constexpr kMARKERS = isle::make_array(
+    set<2>(L"Info     :"sv),
+    set<3>(L"Debug    :"sv),
+    set<4>(L"Warning  :"sv),
+    set<5>(L"Error    :"sv),
+    set<6>(L"Fatal    :"sv)
+);
 
 #undef SET
 #endif // _CRUS_DEBUG_CONSOLE
 
-std::array<std::string_view, 5> constexpr kSEVERITIES{{
+auto constexpr kSEVERITIES = isle::make_array(
     " Info     :"sv,
     " Debug    :"sv,
     " Warning  :"sv,
     " Error    :"sv,
     " Fatal    :"sv
-}};
+);
 };
 
 namespace isle {
@@ -77,10 +79,10 @@ LogStream::LogStream() : stream_(std::cerr.rdbuf())
 {
     std::lock_guard<std::mutex> lock(mutex_);
 
-    file_.open(R"(..\book.log)", std::ios_base::out | std::ios_base::trunc);
+    file_.open(R"(..\book.log)"s, std::ios_base::out | std::ios_base::trunc);
 
     if (!file_.is_open()) {
-        std::cerr << "Fatal    : can't create log file." << std::endl;
+        std::cerr << "Fatal    : can't create log file."sv << std::endl;
         ::_exit(EXIT_FAILURE);
     }
 
@@ -90,8 +92,8 @@ LogStream::LogStream() : stream_(std::cerr.rdbuf())
         InitConsoleWindow();
 
     stream_ << std::noshowpoint;
-    stream_ << crus::names_a::kPROJECT << " at " << crus::names_a::kBUILD_DATE << " (" << crus::names_a::kBUILD_VERSION << ")\n";
-    stream_ << "           --------------------------------------------------\n";
+    stream_ << crus::names_a::kPROJECT << " at "sv << crus::names_a::kBUILD_DATE << " ("sv << crus::names_a::kBUILD_VERSION << ")\n"sv;
+    stream_ << "           --------------------------------------------------\n"sv;
 }
 
 LogStream::~LogStream()
@@ -118,10 +120,10 @@ void LogStream::InitConsoleWindow()
 {
     auto result = AllocConsole();
 
-    conout_.open("conout$", std::ios_base::out | std::ios_base::trunc);
+    conout_.open("conout$"s, std::ios_base::out | std::ios_base::trunc);
 
     if (result == 0 || !conout_.is_open()) {
-        std::cerr << "Fatal    : can't create console window." << std::endl;
+        std::cerr << "Fatal    : can't create console window."sv << std::endl;
         ::_exit(EXIT_FAILURE);
     }
 
@@ -178,7 +180,7 @@ void LogStream::InitConsoleWindow()
     MoveWindow(hConsoleWnd, rcWorkArea.left, rcWorkArea.top, 736, rcWorkArea.bottom - rcWorkArea.top, TRUE);
 
     std::wostringstream consoleWindowTitle;
-    consoleWindowTitle << crus::names::kPROJECT << L" at " << crus::names::kBUILD_DATE << L" (" << crus::names::kBUILD_VERSION << L")\n";
+    consoleWindowTitle << crus::names::kPROJECT << L" at "sv << crus::names::kBUILD_DATE << L" ("sv << crus::names::kBUILD_VERSION << L")\n"sv;
 
     SetWindowTextW(hConsoleWnd, consoleWindowTitle.str().c_str());
 }
