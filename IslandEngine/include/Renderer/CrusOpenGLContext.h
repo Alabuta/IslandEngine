@@ -35,9 +35,9 @@ class OpenGLContext final {
 public:
 
     template<typename T>
-    auto GetProcedureAddress(std::string_view _name)
+    auto GetProcedureAddress(std::string _name)
     {
-        auto proc = reinterpret_cast<T *const>(wglGetProcAddress(_name.data()));
+        auto proc = reinterpret_cast<T *const>(wglGetProcAddress(_name.c_str()));
 
         if (proc == nullptr
             || proc == reinterpret_cast<void *>(-1) || proc == reinterpret_cast<void *>(+1)
@@ -48,8 +48,7 @@ public:
             if (hModule == nullptr)
                 isle::log::Fatal() << "can't load OpenGL32 library.";
 
-            else
-                proc = reinterpret_cast<decltype(proc)>(GetProcAddress(hModule, _name.data()));
+            else proc = reinterpret_cast<decltype(proc)>(GetProcAddress(hModule, _name.c_str()));
         }
 
         if (proc == nullptr)

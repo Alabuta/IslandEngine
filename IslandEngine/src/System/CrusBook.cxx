@@ -127,8 +127,8 @@ void LogStream::InitConsoleWindow()
 
     CONSOLE_FONT_INFOEX fontInfo = {
         sizeof(CONSOLE_FONT_INFOEX),
-        9,
-        {8, 18},
+        8,
+        {8, 16},
         54,
         FW_NORMAL,
         L"Consolas"

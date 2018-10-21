@@ -46,7 +46,7 @@ OpenGLContext::OpenGLContext() : hRC_(nullptr)
 {
     isle::log::Debug() << "OpenGLContext(): " << std::this_thread::get_id();
 
-    std::lock_guard<std::mutex> lock(mutex_);
+    //std::lock_guard<std::mutex> lock(mutex_);
 
     if (hMainWndDC_ == nullptr)
         SetupContext();
@@ -65,7 +65,7 @@ OpenGLContext::~OpenGLContext()
 {
     isle::log::Debug() << "~OpenGLContext(): " << std::this_thread::get_id();
 
-    //std::lock_guard<std::mutex> lock(mutex_);
+    std::lock_guard<std::mutex> lock(mutex_);
 
     DeleteContext();
 }
