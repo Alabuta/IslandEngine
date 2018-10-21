@@ -110,10 +110,10 @@ public:
     {
         // A little tricky, but it necessary. ;)
         struct {
-            Vector xAxis; float x;
-            Vector yAxis; float y;
-            Vector zAxis; float z;
-            std::array<float, 4> row;
+            Vector xAxis; float _03_;
+            Vector yAxis; float _07_;
+            Vector zAxis; float _11_;
+            Vector pos;   float w;
         };
 
         std::array<float, 16> m;

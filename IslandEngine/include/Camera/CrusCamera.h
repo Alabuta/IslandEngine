@@ -49,6 +49,9 @@ public:
     void LookAt(math::Vector const &aim);
     void LookAt(float x, float y, float z);
 
+    void LookAt(math::Vector const &eye, math::Vector const &target);
+
+
     math::Matrix const &view() const;
 
     math::Vector const &aim() const;

@@ -69,6 +69,38 @@ void Camera::SetBehavior(Camera::eCAM_BEHAVIOR _behavior)
     yaw_ = -math::RadToDeg(std::acos(view_.xAxis.x));       // Extract the yaw angle.
 }
 
+
+void isle::Camera::LookAt(math::Vector const &eye, math::Vector const &target)
+{
+    aim_ = target;
+
+    auto z = eye - target;
+
+    if (math::IsTooSmall(z.GetLenght())) z.z = 1.f;
+
+    z.Normalize();
+
+    auto x = kWORLD_AXIS_Y ^ z;
+
+    if (math::IsTooSmall(x.GetLenght())) {
+        if (std::abs(kWORLD_AXIS_Y.z) == 1.f) z.x += math::kEPSILON;
+        else z.z += math::kEPSILON;
+
+        z.Normalize();
+        x = kWORLD_AXIS_Y ^ z;
+    }
+
+    x.Normalize();
+
+    auto y = z ^ x;
+    y.Normalize();
+
+    pitch_ = -math::RadToDeg(std::acos(y.y));     // Extract the pitch angle.
+    yaw_ = -math::RadToDeg(std::atan2(x.x, z.z));       // Extract the yaw angle.
+
+    //view_.
+}
+
 void Camera::LookAt(math::Vector const &_aim)
 {
     aim_ = _aim;
@@ -82,12 +114,12 @@ void Camera::LookAt(math::Vector const &_aim)
     view_.xAxis = (kWORLD_AXIS_Y ^ view_.zAxis).Normalize();
     view_.yAxis = (view_.zAxis ^ view_.xAxis).Normalize();
 
-    view_.x = -view_.xAxis * pos_;
-    view_.y = -view_.yAxis * pos_;
-    view_.z = -view_.zAxis * pos_;
+    view_.pos.x = -view_.xAxis * pos_;
+    view_.pos.y = -view_.yAxis * pos_;
+    view_.pos.z = -view_.zAxis * pos_;
 
     pitch_ = -math::RadToDeg(std::acos(view_.yAxis.y));     // Extract the pitch angle.
-    yaw_ = -math::RadToDeg(std::acos(view_.xAxis.x));       // Extract the yaw angle.
+    yaw_ = -math::RadToDeg(std::atan2(view_.xAxis.x, view_.zAxis.z));       // Extract the yaw angle.
 
     // :TODO: remove.
     //rot_.FromMatrix4x4(view_.m());
@@ -181,9 +213,9 @@ void Camera::UpdateView()
 
     pos_.LerpStable(pos, System::time.delta());
 
-    view_.x = -xAxis * pos_;
-    view_.y = -yAxis * pos_;
-    view_.z = -zAxis * pos_;
+    view_.pos.x = -xAxis * pos_;
+    view_.pos.y = -yAxis * pos_;
+    view_.pos.z = -zAxis * pos_;
 }
 
 void Camera::Update()

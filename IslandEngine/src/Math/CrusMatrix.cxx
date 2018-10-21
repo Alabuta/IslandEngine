@@ -472,9 +472,10 @@ Matrix &Matrix::Translate(float _x, float _y, float _z)
     // 0  0  1  z
     // 0  0  0  1
 
-    x = _x;
+    pos = Vector(_x, _y, _z);
+    /*x = _x;
     y = _y;
-    z = _z;
+    z = _z;*/
 
     return *this;
 }
@@ -678,7 +679,8 @@ Matrix &Matrix::FromQuaternion(float const _q[])
     normalMatrix._07_ = 0.f;
     normalMatrix._11_ = 0.f;
 
-    normalMatrix.row = {0.f, 0.f, 0.f, 1.f};
+    normalMatrix.pos = Vector{0.f, 0.f, 0.f};
+    normalMatrix.w = 1.f;
 
     return Inverse(normalMatrix).Transpose();
 }
