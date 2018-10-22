@@ -109,11 +109,19 @@ public:
 #endif
     {
         // A little tricky, but it necessary. ;)
+#if NOT_YET_IMPLEMENTED
         struct {
             Vector xAxis; float _03_;
             Vector yAxis; float _07_;
             Vector zAxis; float _11_;
             Vector pos;   float w;
+        };
+#endif
+        struct {
+            Vector xAxis; float x;
+            Vector yAxis; float y;
+            Vector zAxis; float z;
+            float _12_, _13_, _14_, _15_;
         };
 
         std::array<float, 16> m;

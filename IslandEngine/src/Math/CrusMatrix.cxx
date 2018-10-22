@@ -472,10 +472,10 @@ Matrix &Matrix::Translate(float _x, float _y, float _z)
     // 0  0  1  z
     // 0  0  0  1
 
-    pos = Vector(_x, _y, _z);
-    /*x = _x;
+    //pos = Vector(_x, _y, _z);
+    x = _x;
     y = _y;
-    z = _z;*/
+    z = _z;
 
     return *this;
 }
@@ -613,11 +613,15 @@ Vector Matrix::TransformPosition(Vector &&_p) const
 
 void Matrix::TransformPosition(Vector &_p) const
 {
-    auto const np = _p.xyz;
+    auto const np = _p;
 
-    _p.xyz[0] = np[0] * _00_ + np[1] * _01_ + np[2] * _02_ + 1.f * _03_;
-    _p.xyz[1] = np[0] * _04_ + np[1] * _05_ + np[2] * _06_ + 1.f * _07_;
-    _p.xyz[2] = np[0] * _08_ + np[1] * _09_ + np[2] * _10_ + 1.f * _11_;
+    _p.x = np.x * _00_ + np.y * _01_ + np.z * _02_ + 1.f * _03_;
+    _p.y = np.x * _04_ + np.y * _05_ + np.z * _06_ + 1.f * _07_;
+    _p.z = np.x * _08_ + np.y * _09_ + np.z * _10_ + 1.f * _11_;
+
+    /*_p.x = np * xAxis + pos.x;
+    _p.y = np * yAxis + pos.y;
+    _p.z = np * zAxis + pos.z;*/
 }
 
 Vector Matrix::TransformVector(Vector const &_v) const
@@ -679,8 +683,14 @@ Matrix &Matrix::FromQuaternion(float const _q[])
     normalMatrix._07_ = 0.f;
     normalMatrix._11_ = 0.f;
 
-    normalMatrix.pos = Vector{0.f, 0.f, 0.f};
-    normalMatrix.w = 1.f;
+    //normalMatrix.pos = Vector{0.f, 0.f, 0.f};
+    //normalMatrix.w = 1.f;
+
+    normalMatrix._12_ = 0.f;
+    normalMatrix._13_ = 0.f;
+    normalMatrix._14_ = 0.f;
+    normalMatrix._15_ = 1.f;
+
 
     return Inverse(normalMatrix).Transpose();
 }

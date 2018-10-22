@@ -446,8 +446,9 @@ void Init()
     LoadModel<Vertex>("sponza.obj"sv, std::ref(geom_count), std::ref(vertex_buffer));
 
     Camera::inst().Create(Camera::eCAM_BEHAVIOR::nFREE);
-    Camera::inst().SetPos(0, 2, 0);
-    Camera::inst().LookAt(1, 2, 0.4f);
+    Camera::inst().SetPos(5, 7, 1);
+    Camera::inst().LookAt(0, 5, 2);
+    //Camera::inst().LookAt(math::Vector{0z, 7, -0}, math::Vector{0, 0, 0});
 
     grid.Update(15, 1, 5);
 

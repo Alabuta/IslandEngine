@@ -95,10 +95,13 @@ void isle::Camera::LookAt(math::Vector const &eye, math::Vector const &target)
     auto y = z ^ x;
     y.Normalize();
 
-    pitch_ = -math::RadToDeg(std::acos(y.y));     // Extract the pitch angle.
+    pitch_ = -math::RadToDeg(std::acos(y.y));           // Extract the pitch angle.
     yaw_ = -math::RadToDeg(std::atan2(x.x, z.z));       // Extract the yaw angle.
 
-    //view_.
+    view_.xAxis = x;
+    view_.yAxis = y;
+    view_.zAxis = z;
+    //view_.pos = eye;
 }
 
 void Camera::LookAt(math::Vector const &_aim)
@@ -114,9 +117,9 @@ void Camera::LookAt(math::Vector const &_aim)
     view_.xAxis = (kWORLD_AXIS_Y ^ view_.zAxis).Normalize();
     view_.yAxis = (view_.zAxis ^ view_.xAxis).Normalize();
 
-    view_.pos.x = -view_.xAxis * pos_;
-    view_.pos.y = -view_.yAxis * pos_;
-    view_.pos.z = -view_.zAxis * pos_;
+    view_.x = -view_.xAxis * pos_;
+    view_.y = -view_.yAxis * pos_;
+    view_.z = -view_.zAxis * pos_;
 
     pitch_ = -math::RadToDeg(std::acos(view_.yAxis.y));     // Extract the pitch angle.
     yaw_ = -math::RadToDeg(std::atan2(view_.xAxis.x, view_.zAxis.z));       // Extract the yaw angle.
@@ -213,9 +216,9 @@ void Camera::UpdateView()
 
     pos_.LerpStable(pos, System::time.delta());
 
-    view_.pos.x = -xAxis * pos_;
-    view_.pos.y = -yAxis * pos_;
-    view_.pos.z = -zAxis * pos_;
+    view_.x = -xAxis * pos_;
+    view_.y = -yAxis * pos_;
+    view_.z = -zAxis * pos_;
 }
 
 void Camera::Update()
