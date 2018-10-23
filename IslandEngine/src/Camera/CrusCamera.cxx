@@ -11,7 +11,6 @@
 #include "System\CrusInput.h"
 #include "System\CrusWindow.h"
 
-#include "Camera\CameraBehaviour.h"
 #include "Camera\CrusCamera.h"
 #include <iomanip>
 
@@ -19,7 +18,7 @@ extern isle::Input::Controller controller;
 
 namespace isle {
 
-Camera::Camera() : behavior{std::make_shared<__hidden::ICameraEditorBehaviour>()}, pitch_{0.0f}, yaw_{0.0f}, view_{math::Matrix::Identity()} { }
+Camera::Camera() : pitch_{0.0f}, yaw_{0.0f}, view_{math::Matrix::Identity()} { }
 Camera::~Camera() { };
 
 void Camera::Create(Camera::eCAM_BEHAVIOR _behavior)

@@ -66,7 +66,6 @@ public:
     static Camera &inst();
 
 private:
-    std::shared_ptr<__hidden::ICameraBehaviour> behavior;
     math::Matrix view_;
 
     math::Quaternion rot_;

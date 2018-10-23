@@ -187,7 +187,6 @@
     <ClInclude Include="include\Math\GaussRoutines.h" />
     <ClInclude Include="include\Manager\CrusMeshLoader.h" />
     <ClInclude Include="include\Renderer\CrusOpenGLContext.h" />
-    <ClInclude Include="include\Camera\CameraBehaviour.h" />
     <ClInclude Include="include\Camera\CrusCamera.h" />
     <ClInclude Include="include\Game\CrusBounds.h" />
     <ClInclude Include="include\Game\CrusComponent.h" />

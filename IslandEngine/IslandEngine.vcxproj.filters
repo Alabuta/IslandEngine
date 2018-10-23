@@ -270,9 +270,6 @@
     <ClInclude Include="include\Game\CrusTransform.h">
       <Filter>Game</Filter>
     </ClInclude>
-    <ClInclude Include="include\Camera\CameraBehaviour.h">
-      <Filter>Core\Camera</Filter>
-    </ClInclude>
     <ClInclude Include="include\Camera\CrusCamera.h">
       <Filter>Core\Camera</Filter>
     </ClInclude>
