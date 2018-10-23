@@ -22,8 +22,8 @@ namespace isle {
 class Program {
 public:
 
-    template<class ... Ts>
-    constexpr bool AssignNew(std::initializer_list<std::string> &&names, Ts &&...options)
+    template<typename... Ts>
+    constexpr bool AssignNew(std::initializer_list<std::string> &&names, Ts &&... options)
     {
         std::ostringstream stream;
         UnpackOptionsToStream(stream, std::forward<Ts>(options)...);

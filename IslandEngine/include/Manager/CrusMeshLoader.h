@@ -40,8 +40,8 @@ bool SaveBinaryModel(fs::path path, std::vector<T> const &vertex_buffer)
 
     std::ofstream file(path += fs::path{".bin"s}, std::ios::out | std::ios::trunc | std::ios::binary);
 
-    if (!file.is_open()) {
-        log::Error() << "can't open file: " << path;
+    if (file.bad() || file.fail()) {
+        log::Error() << "can't open file: "s << path;
         return false;
     }
 
@@ -60,8 +60,8 @@ bool LoadBinaryModel(fs::path path, std::vector<T> &vertex_buffer)
 
     std::ifstream file(path += fs::path{".bin"s}, std::ios::in | std::ios::binary);
 
-    if (!file.is_open()) {
-        log::Error() << "can't open file: " << path;
+    if (file.bad() || file.fail()) {
+        log::Error() << "can't open file: "s << path;
         return false;
     }
 

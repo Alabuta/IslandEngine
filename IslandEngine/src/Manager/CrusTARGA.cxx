@@ -155,6 +155,8 @@ bool LoadCompressedTARGA(Image &_image, std::ifstream &_file)
 
 bool LoadTARGA(Image *const _image, std::string_view _name)
 {
+    using namespace std::string_literals;
+
     auto current_path = fs::current_path();
 
     fs::path directory{std::data(kTEXTURES_PATH)};
@@ -162,8 +164,8 @@ bool LoadTARGA(Image *const _image, std::string_view _name)
 
     std::ifstream file((directory / name).native(), std::ios::binary);
 
-    if (!file.is_open()) {
-        log::Error() << "can't open texture file: " << _name.data();
+    if (file.bad() || file.fail()) {
+        log::Error() << "can't open texture file: "s << std::data(_name);
         return false;
     }
 
@@ -189,14 +191,14 @@ bool LoadTARGA(Image *const _image, std::string_view _name)
 
     switch (headerTARGA) {
         case 2:
-            log::Debug() << "Uncompressed: " << measure<>::execution([&_image, &file]
+            log::Debug() << "Uncompressed: "s << measure<>::execution([&_image, &file]
             {
                 LoadUncompressedTARGA(*_image, file);
             });
             break;
 
         case 10:
-            log::Debug() << "Compressed: " << measure<>::execution([&_image, &file]
+            log::Debug() << "Compressed: "s << measure<>::execution([&_image, &file]
             {
                 LoadCompressedTARGA(*_image, file);
             });

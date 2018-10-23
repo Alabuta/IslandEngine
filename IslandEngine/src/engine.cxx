@@ -25,6 +25,9 @@ void DrawCubemap();
 }
 
 namespace app {
+using namespace std::string_literals;
+using namespace std::string_view_literals;
+
 intf::Grid grid;
 
 auto constexpr kUSE_MS = false;
@@ -456,7 +459,7 @@ void Init()
 
     InitFramebuffer();
 
-    if (!geom_program.AssignNew({R"(Defaults/Diffuse-Lambert.glsl)"}))
+    if (!geom_program.AssignNew({ R"(Defaults/Diffuse-Lambert.glsl)" }))
         return;
 
 	InitGaussFilter(ssao_program);

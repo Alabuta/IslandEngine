@@ -13,10 +13,12 @@ namespace isle {
 
 bool LoadOBJ(fs::path const &path, std::vector<Position> &positions, std::vector<math::Vector> &normals, std::vector<UV> &uvs, std::vector<std::vector<std::size_t>> &faces)
 {
+    using namespace std::string_literals;
+
     std::ifstream file(path, std::ios::in);
 
-    if (!file.is_open()) {
-        log::Error() << "can't open file: " << path;
+    if (file.bad() || file.fail()) {
+        log::Error() << "can't open file: "s << path;
         return false;
     }
 
@@ -33,22 +35,22 @@ bool LoadOBJ(fs::path const &path, std::vector<Position> &positions, std::vector
 
         stream >> attribute;
 
-        if (attribute == "v") {
+        if (attribute == "v"s) {
             stream >> x >> y >> z;
             positions.emplace_back(x, y, z);
         }
 
-        else if (attribute == "vn") {
+        else if (attribute == "vn"s) {
             stream >> x >> y >> z;
             normals.emplace_back(x, y, z);
         }
 
-        else if (attribute == "vt") {
+        else if (attribute == "vt"s) {
             stream >> x >> y;
             uvs.emplace_back(x, y);
         }
 
-        else if (attribute == "f") {
+        else if (attribute == "f"s) {
             face.clear();
 
             std::istringstream in(&line[1]);
@@ -70,7 +72,7 @@ bool LoadOBJ(fs::path const &path, std::vector<Position> &positions, std::vector
                 face.emplace_back(inx);
             }
 
-            faces.push_back(face);
+            faces.emplace_back(face);
         }
     }
 
