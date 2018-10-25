@@ -105,6 +105,8 @@ void isle::Camera::LookAt(math::Vector const &eye, math::Vector const &target)
 
 void Camera::LookAt(math::Vector const &_aim)
 {
+    LookAt(pos_, _aim);
+    return;
     aim_ = _aim;
     view_.zAxis = pos_ - aim_;
 
@@ -206,7 +208,7 @@ void Camera::UpdateView()
     auto const yAxis = math::Vector::GetNormalized(view_.yAxis);
     auto const zAxis = math::Vector::GetNormalized(view_.zAxis);
 
-    auto const direction = math::Vector{x, y, z} * 8.f;
+    auto const direction = math::Vector{x, y, z} * 2.f;
     auto pos = pos_;
 
     pos.x += math::Vector{xAxis.x, yAxis.x, zAxis.x} * direction;

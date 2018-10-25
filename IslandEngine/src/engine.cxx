@@ -12,6 +12,9 @@
 #include <iomanip>
 #include <regex>
 
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb/stb_image.h"
+
 #include "engine.h"
 #include "Math/GaussRoutines.h"
 
@@ -59,6 +62,9 @@ u32 geom_vao, geom_count;
 Program ssao_program;
 u32 quad_vao, noise_tex;
 u64 noise_tex_handle;
+
+u32 radiance_tex;
+u64 radiance_tex_handle;
 
 
 auto matrices = make_array(
@@ -161,7 +167,6 @@ void InitSSAO()
         glTextureSubImage2D(noise_tex, 0, 0, 0, 4, 4, GL_RGB, GL_FLOAT, std::data(noise));
     }
 }
-
 
 void InitMultisampledFramebuffers()
 {
@@ -349,8 +354,6 @@ void InitFramebuffer()
         log::Error() << __FUNCTION__ << ": " << code;
 }
 
-
-
 void InitGaussFilter(Program &program)
 {
     using namespace math;
@@ -441,12 +444,39 @@ void InitGaussFilter(Program &program)
     }
 }
 
+void InitIBL()
+{
+    stbi_set_flip_vertically_on_load(true);
+
+    i32 width, height, nrComponents;
+
+    auto const path = R"(../contents/textures/newport_loft_ref.hdr)"s;
+
+    auto data = stbi_loadf(path.c_str(), &width, &height, &nrComponents, 0);
+
+    if (data == nullptr)
+        return;
+
+    Render::inst().CreateTBO(GL_TEXTURE_2D, radiance_tex);
+
+    glTextureParameteri(radiance_tex, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTextureParameteri(radiance_tex, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTextureParameteri(radiance_tex, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTextureParameteri(radiance_tex, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+    glTextureStorage2D(noise_tex, 1, GL_RGB16F, width, height);
+    glTextureSubImage2D(noise_tex, 0, 0, 0, width, height, GL_RGB, GL_FLOAT, data);
+
+    radiance_tex_handle = glGetTextureHandleARB(radiance_tex);
+    glMakeTextureHandleResidentARB(radiance_tex_handle);
+}
+
 void Init()
 {
     std::vector<Vertex> vertex_buffer;
 
     //auto future = std::async(std::launch::async, LoadModel<Vertex>, "chalet.obj", std::ref(geom_count), std::ref(vertex_buffer));
-    LoadModel<Vertex>("sponza.obj"sv, std::ref(geom_count), std::ref(vertex_buffer));
+    LoadModel<Vertex>("Hebe.obj"sv, std::ref(geom_count), std::ref(vertex_buffer));
 
     Camera::inst().Create(Camera::eCAM_BEHAVIOR::nFREE);
     Camera::inst().SetPos(5, 7, 1);
@@ -487,6 +517,8 @@ void Init()
 
         glVertexArrayVertexBuffer(quad_vao, 0, bo, 0, sizeof(Position));
     }
+
+    InitIBL();
 
     //if (future.get()) {
         Render::inst().CreateVAO(geom_vao);
