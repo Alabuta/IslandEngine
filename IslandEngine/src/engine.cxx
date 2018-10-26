@@ -223,7 +223,7 @@ void InitMultisampledFramebuffers()
     glNamedFramebufferTexture(ms_fbo, GL_COLOR_ATTACHMENT1, ms_rt_1, 0);
 
     {
-        std::uint32_t constexpr drawBuffers[] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
+        auto constexpr drawBuffers = make_array<u32>(GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1);
         glNamedFramebufferDrawBuffers(ms_fbo, static_cast<i32>(std::size(drawBuffers)), std::data(drawBuffers));
     }
 
@@ -290,7 +290,7 @@ void InitFramebuffer()
     glNamedFramebufferTexture(main_fbo, GL_COLOR_ATTACHMENT1, rt_1, 0);
 
     {
-        std::uint32_t constexpr drawBuffers[] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
+        auto constexpr drawBuffers = make_array<u32>(GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1);
         glNamedFramebufferDrawBuffers(main_fbo, static_cast<i32>(std::size(drawBuffers)), std::data(drawBuffers));
     }
 
@@ -343,7 +343,7 @@ void InitFramebuffer()
     glNamedFramebufferRenderbuffer(out_fbo, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, out_depth);*/
 
     {
-        std::uint32_t constexpr drawBuffers[] = {GL_COLOR_ATTACHMENT0};
+        auto constexpr drawBuffers = make_array<u32>(GL_COLOR_ATTACHMENT0);
         glNamedFramebufferDrawBuffers(out_fbo, static_cast<i32>(std::size(drawBuffers)), std::data(drawBuffers));
     }
 

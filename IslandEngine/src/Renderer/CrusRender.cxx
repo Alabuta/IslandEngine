@@ -50,6 +50,8 @@ void Render::Init()
     //glFrontFace(GL_CCW);
     //glCullFace(GL_BACK);
 
+    glEnable(GL_BLEND);
+
     glEnablei(GL_BLEND, 0);
     glBlendFunci(0, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 

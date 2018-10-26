@@ -111,7 +111,10 @@ using return_type_helper_t = typename return_type_helper<T, Ts...>::type;
 template<class T = void, class... Ts>
 constexpr std::array<detail::return_type_helper_t<T, Ts...>, sizeof...(Ts)> make_array(Ts &&...t)
 {
-    return {{ std::forward<Ts>(t)... }};
+    if constexpr (std::is_void_v<T>)
+        return {{ std::forward<Ts>(t)... }};
+
+    else return {{ static_cast<T>(t)... }};
 }
 
 namespace detail
