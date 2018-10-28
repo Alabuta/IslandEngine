@@ -344,6 +344,9 @@
     <None Include="..\contents\shaders\Defaults\Debug-SSAO-Kernel.glsl">
       <Filter>Shader sources\Defaults</Filter>
     </None>
+    <None Include="..\contents\shaders\Defaults\Radiance-Cube-Map.glsl">
+      <Filter>Shader sources\Defaults</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resources\resource.rc">
