@@ -65,6 +65,10 @@ u64 noise_tex_handle;
 
 u32 radiance_tex;
 u64 radiance_tex_handle;
+Program radiance_program;
+u32 radiance_vao, radiance_indirect_buffer;
+
+Texture tempTexture(Texture::eTEXTURE_TYPE::nCUBE, R"(Skybox/skybox)"s);
 
 
 auto matrices = make_array(
@@ -294,8 +298,10 @@ void InitFramebuffer()
         glNamedFramebufferDrawBuffers(main_fbo, static_cast<i32>(std::size(drawBuffers)), std::data(drawBuffers));
     }
 
-    glDisablei(GL_BLEND, 0);
-    glBlendFunci(0, GL_ONE, GL_ONE);
+    //glDisablei(GL_BLEND, 0);
+    //glBlendFunci(0, GL_ONE, GL_ONE);
+    glEnablei(GL_BLEND, 0);
+    glBlendFunci(0, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     glDisablei(GL_BLEND, 1);
     glBlendFunci(1, GL_ONE, GL_ONE);
@@ -452,7 +458,7 @@ void InitIBL()
 
     auto const path = R"(../contents/textures/newport_loft_ref.hdr)"s;
 
-    auto data = stbi_loadf(path.c_str(), &width, &height, &nrComponents, 0);
+    auto data = stbi_loadf(path.c_str(), &width, &height, &nrComponents, 4);
 
     if (data == nullptr)
         return;
@@ -464,11 +470,89 @@ void InitIBL()
     glTextureParameteri(radiance_tex, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTextureParameteri(radiance_tex, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-    glTextureStorage2D(noise_tex, 1, GL_RGB16F, width, height);
-    glTextureSubImage2D(noise_tex, 0, 0, 0, width, height, GL_RGB, GL_FLOAT, data);
+    glTextureStorage2D(noise_tex, 1, GL_RGBA16F, width, height);
+    glTextureSubImage2D(noise_tex, 0, 0, 0, width, height, GL_RGBA, GL_FLOAT, data);
+
+    stbi_image_free(data);
 
     radiance_tex_handle = glGetTextureHandleARB(radiance_tex);
     glMakeTextureHandleResidentARB(radiance_tex_handle);
+
+    //glActiveTexture(GL_TEXTURE1);
+
+
+    if (!tempTexture.Init())
+        return;
+
+
+    radiance_program.AssignNew({R"(Defaults/Radiance-Cube-Map.glsl)"s});
+
+    auto constexpr vertices = make_array(
+        Position{+.5f, +.5f, +.5f},
+        Position{-.5f, +.5f, +.5f},
+        Position{+.5f, +.5f, -.5f},
+        Position{-.5f, +.5f, -.5f},
+
+        Position{-.5f, +.5f, -.5f},
+        Position{-.5f, +.5f, -.5f},
+
+        Position{-.5f, +.5f, -.5f},
+        Position{-.5f, -.5f, -.5f},
+        Position{+.5f, +.5f, -.5f},
+        Position{+.5f, -.5f, -.5f},
+
+        Position{+.5f, +.5f, -.5f},
+        Position{+.5f, -.5f, -.5f},
+        Position{+.5f, +.5f, +.5f},
+        Position{+.5f, -.5f, +.5f},
+
+        Position{+.5f, +.5f, +.5f},
+        Position{+.5f, -.5f, +.5f},
+        Position{-.5f, +.5f, +.5f},
+        Position{-.5f, -.5f, +.5f},
+
+        Position{-.5f, +.5f, +.5f},
+        Position{-.5f, -.5f, +.5f},
+        Position{-.5f, +.5f, -.5f},
+        Position{-.5f, -.5f, -.5f},
+
+        Position{-.5f, -.5f, -.5f},
+        Position{-.5f, -.5f, -.5f},
+
+        Position{-.5f, -.5f, -.5f},
+        Position{-.5f, -.5f, +.5f},
+        Position{+.5f, -.5f, -.5f},
+        Position{+.5f, -.5f, +.5f}
+    );
+
+    Render::inst().CreateBO(radiance_indirect_buffer);
+
+    struct command_t {
+        u32  count;
+        u32  instanceCount;
+        u32  first;
+        u32  baseInstance;
+    };
+    
+    command_t constexpr command = {
+        static_cast<u32>(std::size(vertices)), 1, 0, 0
+    };
+
+    glNamedBufferStorage(radiance_indirect_buffer, sizeof(command), &command, GL_DYNAMIC_STORAGE_BIT);
+
+
+    Render::inst().CreateVAO(radiance_vao);
+
+    auto bo = 0u;
+    Render::inst().CreateBO(bo);
+
+    glNamedBufferStorage(bo, sizeof(vertices), vertices.data(), GL_DYNAMIC_STORAGE_BIT);
+
+    glVertexArrayAttribBinding(radiance_vao, Render::eVERTEX_IN::nPOSITION, 0);
+    glVertexArrayAttribFormat(radiance_vao, Render::eVERTEX_IN::nPOSITION, 3, GL_FLOAT, GL_FALSE, 0);
+    glVertexArrayVertexBuffer(radiance_vao, 0, bo, 0, sizeof(Position));
+
+    glEnableVertexArrayAttrib(radiance_vao, Render::eVERTEX_IN::nPOSITION);
 }
 
 void Init()
@@ -479,13 +563,13 @@ void Init()
     LoadModel<Vertex>("Hebe.obj"sv, std::ref(geom_count), std::ref(vertex_buffer));
 
     Camera::inst().Create(Camera::eCAM_BEHAVIOR::nFREE);
-    Camera::inst().SetPos(5, 7, 1);
-    Camera::inst().LookAt(0, 5, 2);
+    Camera::inst().SetPos(-1, 3, 1);
+    Camera::inst().LookAt(0, 2, 0);
     //Camera::inst().LookAt(math::Vector{0z, 7, -0}, math::Vector{0, 0, 0});
 
     grid.Update(15, 1, 5);
 
-    cubemap::InitCubemap();
+    //cubemap::InitCubemap();
 
     InitFramebuffer();
 
@@ -559,6 +643,30 @@ void DrawFrame()
 
     Render::inst().UpdateViewport(1, 1, &Render::inst().vp_.proj());
 
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    //glClearNamedFramebufferfv(0, GL_COLOR | GL_DEPTH, 0, std::data(colors::kPOWDERBLUE.rgba));
+
+    glViewport(0, 0, width, height);
+
+
+    radiance_program.UseThis();
+
+    glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, &index0);
+    glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &index0);
+
+    //tempTexture.Bind();
+    glBindTextureUnit(GL_TEXTURE1, radiance_tex);
+
+    glProgramUniformHandleui64ARB(radiance_program.program(), Render::eSAMPLERS_BINDING::nALBEDO, radiance_tex_handle);
+
+    glBindVertexArray(radiance_vao);
+    glBindBuffer(GL_DRAW_INDIRECT_BUFFER, radiance_indirect_buffer);
+    glDrawArraysIndirect(GL_TRIANGLE_STRIP, nullptr);
+
+    //cubemap::DrawCubemap();
+
+#if 0
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, kUSE_MS ? ms_fbo : main_fbo);
 
     glViewport(0, 0, width, height);
@@ -605,6 +713,7 @@ void DrawFrame()
     //glBindTextureUnit(Render::eSAMPLERS_BINDING::nNORMAL_MAP, rt_1);
     //glBindTextureUnit(Render::nDEPTH, rt_depth);
     glBindTextureUnit(4, noise_tex);
+    glBindTextureUnit(5, radiance_tex);
 
     glBindVertexArray(quad_vao);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 8);
@@ -641,6 +750,8 @@ void DrawFrame()
 #endif
 
     glBlitNamedFramebuffer(out_fbo, 0, 0, 0, width, height, 0, 0, width, height, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+#endif
+    //cubemap::DrawCubemap();
 
 #if 0
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
