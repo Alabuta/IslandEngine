@@ -16,7 +16,7 @@ bool InitCubemap()
 
     cubemapProgram.AssignNew({R"(Defaults/Skybox-Cubed.glsl)"});
 
-    std::array<Position, 4 * 6 + 4> const vertices = {
+    auto constexpr vertices = make_array(
         Position{+1, +1, +1},
         Position{-1, +1, +1},
         Position{+1, +1, -1},
@@ -52,7 +52,7 @@ bool InitCubemap()
         Position{-1, -1, +1},
         Position{+1, -1, -1},
         Position{+1, -1, +1}
-    };
+    );
 
     Render::inst().CreateVAO(cubemapVAO);
 

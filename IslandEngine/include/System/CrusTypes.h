@@ -90,6 +90,11 @@ constexpr std::uint16_t operator"" _ui16(unsigned long long value)
     return static_cast<std::uint16_t>(value);
 }
 
+constexpr std::uint32_t operator"" _ui32(unsigned long long value)
+{
+    return static_cast<std::uint32_t>(value);
+}
+
 template<std::size_t i = 0, typename T, typename V>
 constexpr void set_tuple(T &&tuple, V value)
 {
