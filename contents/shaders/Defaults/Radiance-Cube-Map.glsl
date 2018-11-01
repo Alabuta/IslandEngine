@@ -88,6 +88,7 @@ layout(index = 1) subroutine(RenderPassType)
 void cubeMapRender()
 {
     fragColor = texture(cubeMap, normalize(texCoord));
+    //fragColor = vec4(texCoord, 1);
 }
 
 void main()

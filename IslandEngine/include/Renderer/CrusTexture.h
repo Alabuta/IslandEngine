@@ -84,6 +84,8 @@ public:
     auto w() const { return w_; }
     auto h() const { return h_; }
 
+    auto handle() const { return handle_; }
+
     friend std::ostream &operator<< (std::ostream &stream, Texture const &texture);
 
 private:

@@ -478,8 +478,6 @@ void InitIBL()
     radiance_tex_handle = glGetTextureHandleARB(radiance_tex);
     glMakeTextureHandleResidentARB(radiance_tex_handle);
 
-    //glActiveTexture(GL_TEXTURE1);
-
 
     if (!tempTexture.Init())
         return;
@@ -655,10 +653,12 @@ void DrawFrame()
     glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, &index0);
     glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &index0);
 
-    //tempTexture.Bind();
-    glBindTextureUnit(GL_TEXTURE1, radiance_tex);
+    glBindTextureUnit(Render::eSAMPLERS_BINDING::nALBEDO, radiance_tex);
+    glBindTextureUnit(Render::eSAMPLERS_BINDING::nNORMAL_MAP, tempTexture.id());
 
-    glProgramUniformHandleui64ARB(radiance_program.program(), Render::eSAMPLERS_BINDING::nALBEDO, radiance_tex_handle);
+    //tempTexture.Bind();
+
+    //glProgramUniformHandleui64ARB(radiance_program.program(), Render::eSAMPLERS_BINDING::nALBEDO, radiance_tex_handle);
 
     glBindVertexArray(radiance_vao);
     glBindBuffer(GL_DRAW_INDIRECT_BUFFER, radiance_indirect_buffer);
