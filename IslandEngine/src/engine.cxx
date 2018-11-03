@@ -69,6 +69,8 @@ Program radiance_program;
 u32 radiance_vao, radiance_indirect_buffer;
 
 Texture tempTexture(Texture::eTEXTURE_TYPE::nCUBE, R"(Skybox/skybox)"s);
+Texture tempTexture2(Texture::eTEXTURE_TYPE::n2D, R"(newport_loft)"s);
+u32 temp_tex;
 
 
 auto matrices = make_array(
@@ -454,6 +456,31 @@ void InitIBL()
 {
     stbi_set_flip_vertically_on_load(true);
 
+    /*if constexpr (true) {
+        i32 width, height, nrComponents;
+
+        auto const path = R"(../contents/textures/Skybox/skybox_nx.tga)"s;
+
+        auto data = stbi_loadf(path.c_str(), &width, &height, &nrComponents, 0);
+
+        log::Debug() << "nrComponents: " << nrComponents;
+
+        if (data == nullptr)
+            return;
+
+        Render::inst().CreateTBO(GL_TEXTURE_2D, temp_tex);
+
+        glTextureParameteri(temp_tex, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTextureParameteri(temp_tex, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTextureParameteri(temp_tex, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTextureParameteri(temp_tex, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+        glTextureStorage2D(noise_tex, 1, GL_RGBA8, width, height);
+        glTextureSubImage2D(noise_tex, 0, 0, 0, width, height, GL_RGBA, GL_BGRA, data);
+
+        stbi_image_free(data);
+    }*/
+
     i32 width, height, nrComponents;
 
     auto const path = R"(../contents/textures/newport_loft_ref.hdr)"s;
@@ -480,6 +507,9 @@ void InitIBL()
 
 
     if (!tempTexture.Init())
+        return;
+
+    if (!tempTexture2.Init())
         return;
 
 
@@ -653,7 +683,7 @@ void DrawFrame()
     glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, &index0);
     glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &index0);
 
-    glBindTextureUnit(Render::eSAMPLERS_BINDING::nALBEDO, radiance_tex);
+    glBindTextureUnit(Render::eSAMPLERS_BINDING::nALBEDO, tempTexture2.id());
     glBindTextureUnit(Render::eSAMPLERS_BINDING::nNORMAL_MAP, tempTexture.id());
 
     //tempTexture.Bind();
