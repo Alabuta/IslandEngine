@@ -69,7 +69,7 @@ Program radiance_program;
 u32 radiance_vao, radiance_indirect_buffer;
 
 Texture tempTexture(Texture::eTEXTURE_TYPE::nCUBE, R"(Skybox/skybox)"s);
-Texture tempTexture2(Texture::eTEXTURE_TYPE::n2D, R"(newport_loft)"s);
+Texture tempTexture2(Texture::eTEXTURE_TYPE::n2D, R"(sprites-cat-running)"s);
 u32 temp_tex;
 
 
@@ -597,7 +597,7 @@ void Init()
 
     grid.Update(15, 1, 5);
 
-    //cubemap::InitCubemap();
+    cubemap::InitCubemap();
 
     InitFramebuffer();
 
@@ -677,24 +677,26 @@ void DrawFrame()
 
     glViewport(0, 0, width, height);
 
-
+#if 0
     radiance_program.UseThis();
 
     glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, &index0);
     glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &index0);
 
+    tempTexture.Bind();
+    tempTexture2.Bind();
+
     glBindTextureUnit(Render::eSAMPLERS_BINDING::nALBEDO, tempTexture2.id());
     glBindTextureUnit(Render::eSAMPLERS_BINDING::nNORMAL_MAP, tempTexture.id());
-
-    //tempTexture.Bind();
 
     //glProgramUniformHandleui64ARB(radiance_program.program(), Render::eSAMPLERS_BINDING::nALBEDO, radiance_tex_handle);
 
     glBindVertexArray(radiance_vao);
     glBindBuffer(GL_DRAW_INDIRECT_BUFFER, radiance_indirect_buffer);
     glDrawArraysIndirect(GL_TRIANGLE_STRIP, nullptr);
+#endif
 
-    //cubemap::DrawCubemap();
+    cubemap::DrawCubemap();
 
 #if 0
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, kUSE_MS ? ms_fbo : main_fbo);
