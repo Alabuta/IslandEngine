@@ -44,6 +44,15 @@ void cubeMapRender()
     texCoord = -inVertex;
 }
 
+
+layout(index = 2) subroutine(RenderPassType)
+void envMapRender()
+{
+    gl_Position = TransformFromModelToView(vec4(inVertex, 0));
+
+    texCoord = inVertex;
+}
+
 void main()
 {
     RenderPass();

@@ -452,6 +452,77 @@ void InitGaussFilter(Program &program)
     }
 }
 
+void RenderCubeMap()
+{
+    static auto invocked = false;
+
+    if (invocked)
+        return;
+
+    else invocked = true;
+
+    i32 width = 512, height = 512;
+
+    u32 envmap_fbo, rt_depth, rt_0;
+
+    glCreateFramebuffers(1, &envmap_fbo);
+
+    Render::inst().CreateTBO(GL_TEXTURE_2D, rt_depth);
+
+    glTextureParameteri(rt_depth, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTextureParameteri(rt_depth, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTextureParameteri(rt_depth, GL_TEXTURE_MAX_LEVEL, 0);
+    glTextureParameteri(rt_depth, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTextureParameteri(rt_depth, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+    glTextureStorage2D(rt_depth, 1, GL_DEPTH_COMPONENT32F, width, height);
+
+    Render::inst().CreateTBO(GL_TEXTURE_2D, rt_0);
+
+    glTextureParameteri(rt_0, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTextureParameteri(rt_0, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    //glTextureParameteri(rt_0, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    //glTextureParameteri(rt_0, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTextureParameteri(rt_0, GL_TEXTURE_MAX_LEVEL, 0);
+    glTextureParameteri(rt_0, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTextureParameteri(rt_0, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+    glTextureStorage2D(rt_0, 1, GL_RGBA8, width, height);
+
+
+    glNamedFramebufferTexture(envmap_fbo, GL_DEPTH_ATTACHMENT, rt_depth, 0);
+    glNamedFramebufferTexture(envmap_fbo, GL_COLOR_ATTACHMENT0, rt_0, 0);
+
+    {
+        auto constexpr drawBuffers = make_array<u32>(GL_COLOR_ATTACHMENT0);
+        glNamedFramebufferDrawBuffers(envmap_fbo, static_cast<i32>(std::size(drawBuffers)), std::data(drawBuffers));
+    }
+
+    if (auto result = glCheckNamedFramebufferStatus(envmap_fbo, GL_FRAMEBUFFER); result != GL_FRAMEBUFFER_COMPLETE)
+        log::Fatal() << "framebuffer error:" << result;
+
+    if (auto const code = glGetError(); code != GL_NO_ERROR)
+        log::Error() << __FUNCTION__ << ": " << code;
+
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, envmap_fbo);
+
+    glViewport(0, 0, width, height);
+
+    glClearNamedFramebufferfv(envmap_fbo, GL_COLOR, 0, std::data(colors::kBLACK.rgba));
+    glClearNamedFramebufferfv(envmap_fbo, GL_DEPTH, 0, &clear_colors[Render::kREVERSED_DEPTH ? 0 : 1]);
+
+    radiance_program.UseThis();
+
+    glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, &index2);
+    glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &index2);
+
+    glProgramUniformHandleui64ARB(radiance_program.program(), Render::eSAMPLERS_BINDING::nALBEDO, radiance_tex_handle);
+
+    glBindVertexArray(radiance_vao);
+    glBindBuffer(GL_DRAW_INDIRECT_BUFFER, radiance_indirect_buffer);
+    glDrawArraysIndirect(GL_TRIANGLE_STRIP, nullptr);
+}
+
 void InitIBL()
 {
     stbi_set_flip_vertically_on_load(true);
@@ -645,6 +716,8 @@ void DrawFrame()
     Render::inst().UpdateTransform(0, 3, std::data(matrices));
 
     Render::inst().UpdateViewport(1, 1, &Render::inst().vp_.proj());
+
+    RenderCubeMap();
 
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
