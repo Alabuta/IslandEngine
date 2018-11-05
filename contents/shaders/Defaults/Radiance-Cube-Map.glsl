@@ -24,7 +24,7 @@ void equirectangularMapRender()
 {
     gl_Position = TransformFromWorldToClip(vec4(inVertex, 0));
 
-    texCoord = -inVertex;
+    texCoord = inVertex;
 }
 
 layout(index = 1) subroutine(RenderPassType)
@@ -58,7 +58,7 @@ layout(early_fragment_tests) in;
 
 layout(location = nBASE_COLOR) out vec4 fragColor;
 
-layout(binding = nALBEDO) uniform sampler2D equirectangularMap;
+layout(bindless_sampler, location = nALBEDO) uniform sampler2D equirectangularMap;
 layout(binding = nNORMAL_MAP) uniform samplerCube cubeMap;
 //layout(bindless_sampler, location = nNORMAL_MAP) uniform samplerCube cubeMap;
 
@@ -79,16 +79,18 @@ layout(index = 0) subroutine(RenderPassType)
 void equirectangularMapRender()
 {
     vec2 uv = SampleSphericalMap(normalize(texCoord));
-    vec3 color = texture(equirectangularMap, uv).rgb;
+    vec3 envColor = texture(equirectangularMap, uv).rgb;
 
-    fragColor = vec4(color, 1.0);
+    envColor = envColor / (envColor + vec3(1));
+    envColor = pow(envColor, vec3(1.0 / 2.2));
+
+    fragColor = vec4(envColor, 1);
 }
 
 layout(index = 1) subroutine(RenderPassType)
 void cubeMapRender()
 {
     fragColor = texture(cubeMap, normalize(texCoord));
-    //fragColor = vec4(texCoord, 1);
 }
 
 void main()

@@ -456,36 +456,11 @@ void InitIBL()
 {
     stbi_set_flip_vertically_on_load(true);
 
-    /*if constexpr (true) {
-        i32 width, height, nrComponents;
-
-        auto const path = R"(../contents/textures/Skybox/skybox_nx.tga)"s;
-
-        auto data = stbi_loadf(path.c_str(), &width, &height, &nrComponents, 0);
-
-        log::Debug() << "nrComponents: " << nrComponents;
-
-        if (data == nullptr)
-            return;
-
-        Render::inst().CreateTBO(GL_TEXTURE_2D, temp_tex);
-
-        glTextureParameteri(temp_tex, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTextureParameteri(temp_tex, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTextureParameteri(temp_tex, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTextureParameteri(temp_tex, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-        glTextureStorage2D(noise_tex, 1, GL_RGBA8, width, height);
-        glTextureSubImage2D(noise_tex, 0, 0, 0, width, height, GL_RGBA, GL_BGRA, data);
-
-        stbi_image_free(data);
-    }*/
-
     i32 width, height, nrComponents;
 
     auto const path = R"(../contents/textures/newport-loft-ref.hdr)"s;
 
-    auto data = stbi_loadf(path.c_str(), &width, &height, &nrComponents, 4);
+    auto data = stbi_loadf(path.c_str(), &width, &height, &nrComponents, 0);
 
     if (data == nullptr)
         return;
@@ -497,8 +472,8 @@ void InitIBL()
     glTextureParameteri(radiance_tex, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTextureParameteri(radiance_tex, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-    glTextureStorage2D(noise_tex, 1, GL_RGBA16F, width, height);
-    glTextureSubImage2D(noise_tex, 0, 0, 0, width, height, GL_RGBA, GL_FLOAT, data);
+    glTextureStorage2D(radiance_tex, 1, GL_RGB16F, width, height);
+    glTextureSubImage2D(radiance_tex, 0, 0, 0, width, height, GL_RGB, GL_FLOAT, data);
 
     stbi_image_free(data);
 
@@ -509,8 +484,8 @@ void InitIBL()
     if (!tempTexture.Init())
         return;
 
-    if (!tempTexture2.Init())
-        return;
+    /*if (!tempTexture2.Init())
+        return;*/
 
 
     radiance_program.AssignNew({R"(Defaults/Radiance-Cube-Map.glsl)"s});
@@ -683,20 +658,16 @@ void DrawFrame()
     glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, &index0);
     glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &index0);
 
-    tempTexture.Bind();
-    tempTexture2.Bind();
-
-    glBindTextureUnit(Render::eSAMPLERS_BINDING::nALBEDO, tempTexture2.id());
+    //glBindTextureUnit(Render::eSAMPLERS_BINDING::nALBEDO, radiance_tex);
+    glProgramUniformHandleui64ARB(radiance_program.program(), Render::eSAMPLERS_BINDING::nALBEDO, radiance_tex_handle);
     glBindTextureUnit(Render::eSAMPLERS_BINDING::nNORMAL_MAP, tempTexture.id());
-
-    //glProgramUniformHandleui64ARB(radiance_program.program(), Render::eSAMPLERS_BINDING::nALBEDO, radiance_tex_handle);
 
     glBindVertexArray(radiance_vao);
     glBindBuffer(GL_DRAW_INDIRECT_BUFFER, radiance_indirect_buffer);
     glDrawArraysIndirect(GL_TRIANGLE_STRIP, nullptr);
 #endif
 
-    cubemap::DrawCubemap();
+    //cubemap::DrawCubemap();
 
 #if 0
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, kUSE_MS ? ms_fbo : main_fbo);
