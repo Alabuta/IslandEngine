@@ -69,7 +69,7 @@ Program radiance_program;
 u32 radiance_vao, radiance_indirect_buffer;
 
 Texture tempTexture(Texture::eTEXTURE_TYPE::nCUBE, R"(Skybox/skybox)"s);
-Texture tempTexture2(Texture::eTEXTURE_TYPE::n2D, R"(sprites-cat-running)"s);
+Texture tempTexture2(Texture::eTEXTURE_TYPE::n2D, R"(newport-loft-ref)"s);
 u32 temp_tex;
 
 
@@ -483,7 +483,7 @@ void InitIBL()
 
     i32 width, height, nrComponents;
 
-    auto const path = R"(../contents/textures/newport_loft_ref.hdr)"s;
+    auto const path = R"(../contents/textures/newport-loft-ref.hdr)"s;
 
     auto data = stbi_loadf(path.c_str(), &width, &height, &nrComponents, 4);
 
@@ -677,7 +677,7 @@ void DrawFrame()
 
     glViewport(0, 0, width, height);
 
-#if 0
+#if 1
     radiance_program.UseThis();
 
     glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, &index0);
