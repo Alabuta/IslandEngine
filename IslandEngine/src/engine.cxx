@@ -72,6 +72,9 @@ Texture tempTexture(Texture::eTEXTURE_TYPE::nCUBE, R"(Skybox/skybox)"s);
 Texture tempTexture2(Texture::eTEXTURE_TYPE::n2D, R"(newport-loft-ref)"s);
 u32 temp_tex;
 
+u32 envmap_fbo, envmap_rt_depth, envmap_rt_0;
+u64 envmap_rt_0_handle;
+
 
 auto matrices = make_array(
     math::Matrix::Identity(),
@@ -463,35 +466,34 @@ void RenderCubeMap()
 
     i32 width = 512, height = 512;
 
-    u32 envmap_fbo, rt_depth, rt_0;
-
     glCreateFramebuffers(1, &envmap_fbo);
 
-    Render::inst().CreateTBO(GL_TEXTURE_2D, rt_depth);
+    Render::inst().CreateTBO(GL_TEXTURE_2D, envmap_rt_depth);
 
-    glTextureParameteri(rt_depth, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTextureParameteri(rt_depth, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTextureParameteri(rt_depth, GL_TEXTURE_MAX_LEVEL, 0);
-    glTextureParameteri(rt_depth, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTextureParameteri(rt_depth, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTextureParameteri(envmap_rt_depth, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTextureParameteri(envmap_rt_depth, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTextureParameteri(envmap_rt_depth, GL_TEXTURE_MAX_LEVEL, 0);
+    glTextureParameteri(envmap_rt_depth, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTextureParameteri(envmap_rt_depth, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-    glTextureStorage2D(rt_depth, 1, GL_DEPTH_COMPONENT32F, width, height);
+    glTextureStorage2D(envmap_rt_depth, 1, GL_DEPTH_COMPONENT32F, width, height);
 
-    Render::inst().CreateTBO(GL_TEXTURE_2D, rt_0);
+    Render::inst().CreateTBO(GL_TEXTURE_2D, envmap_rt_0);
 
-    glTextureParameteri(rt_0, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTextureParameteri(rt_0, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    //glTextureParameteri(rt_0, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    //glTextureParameteri(rt_0, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTextureParameteri(rt_0, GL_TEXTURE_MAX_LEVEL, 0);
-    glTextureParameteri(rt_0, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTextureParameteri(rt_0, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTextureParameteri(envmap_rt_0, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTextureParameteri(envmap_rt_0, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTextureParameteri(envmap_rt_0, GL_TEXTURE_MAX_LEVEL, 0);
+    glTextureParameteri(envmap_rt_0, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTextureParameteri(envmap_rt_0, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-    glTextureStorage2D(rt_0, 1, GL_RGBA8, width, height);
+    glTextureStorage2D(envmap_rt_0, 1, GL_RGBA8, width, height);
+
+    envmap_rt_0_handle = glGetTextureHandleARB(envmap_rt_0);
+    glMakeTextureHandleResidentARB(envmap_rt_0_handle);
 
 
-    glNamedFramebufferTexture(envmap_fbo, GL_DEPTH_ATTACHMENT, rt_depth, 0);
-    glNamedFramebufferTexture(envmap_fbo, GL_COLOR_ATTACHMENT0, rt_0, 0);
+    glNamedFramebufferTexture(envmap_fbo, GL_DEPTH_ATTACHMENT, envmap_rt_depth, 0);
+    glNamedFramebufferTexture(envmap_fbo, GL_COLOR_ATTACHMENT0, envmap_rt_0, 0);
 
     {
         auto constexpr drawBuffers = make_array<u32>(GL_COLOR_ATTACHMENT0);
@@ -538,13 +540,15 @@ void InitIBL()
 
     Render::inst().CreateTBO(GL_TEXTURE_2D, radiance_tex);
 
-    glTextureParameteri(radiance_tex, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTextureParameteri(radiance_tex, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     glTextureParameteri(radiance_tex, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTextureParameteri(radiance_tex, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTextureParameteri(radiance_tex, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
     glTextureStorage2D(radiance_tex, 1, GL_RGB16F, width, height);
     glTextureSubImage2D(radiance_tex, 0, 0, 0, width, height, GL_RGB, GL_FLOAT, data);
+
+    glGenerateTextureMipmap(radiance_tex);
 
     stbi_image_free(data);
 
@@ -725,7 +729,7 @@ void DrawFrame()
 
     glViewport(0, 0, width, height);
 
-#if 1
+#if 0
     radiance_program.UseThis();
 
     glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, &index0);
@@ -741,6 +745,17 @@ void DrawFrame()
 #endif
 
     //cubemap::DrawCubemap();
+
+    radiance_program.UseThis();
+
+    glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, &index2);
+    glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &index2);
+
+    //glBindTextureUnit(Render::eSAMPLERS_BINDING::nALBEDO, radiance_tex);
+    glProgramUniformHandleui64ARB(radiance_program.program(), Render::eSAMPLERS_BINDING::nALBEDO, envmap_rt_0_handle);
+
+    glBindVertexArray(quad_vao);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 8);
 
 #if 0
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, kUSE_MS ? ms_fbo : main_fbo);

@@ -45,12 +45,12 @@ void cubeMapRender()
 }
 
 
-layout(index = 2) subroutine(RenderPassType)
-void envMapRender()
-{
-    gl_Position = TransformFromModelToView(vec4(inVertex, 0));
 
-    texCoord = inVertex;
+layout(index = 2) subroutine(RenderPassType)
+void fullQuadRender()
+{
+    gl_Position = vec4(inVertex.xy, 1.0, 1.0);
+    texCoord.xy = inVertex.xy * 0.5 + 0.5;
 }
 
 void main()
@@ -100,6 +100,13 @@ layout(index = 1) subroutine(RenderPassType)
 void cubeMapRender()
 {
     fragColor = texture(cubeMap, normalize(texCoord));
+}
+
+layout(index = 2) subroutine(RenderPassType)
+void temp()
+{
+    fragColor.rgb = texture(equirectangularMap, texCoord.xy).rgb;
+    fragColor.a = 1;
 }
 
 void main()
