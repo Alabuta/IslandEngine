@@ -74,6 +74,9 @@ u32 temp_tex;
 
 u32 envmap_fbo, envmap_rt_depth, envmap_rt_0;
 u64 envmap_rt_0_handle;
+u32 envmap_tex;
+u32 envmap_width = 512, envmap_height = 512;
+
 
 
 auto matrices = make_array(
@@ -455,17 +458,8 @@ void InitGaussFilter(Program &program)
     }
 }
 
-void RenderCubeMap()
+void InitCubeMap()
 {
-    static auto invocked = false;
-
-    if (invocked)
-        return;
-
-    else invocked = true;
-
-    i32 width = 512, height = 512;
-
     glCreateFramebuffers(1, &envmap_fbo);
 
     Render::inst().CreateTBO(GL_TEXTURE_2D, envmap_rt_depth);
@@ -476,7 +470,7 @@ void RenderCubeMap()
     glTextureParameteri(envmap_rt_depth, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTextureParameteri(envmap_rt_depth, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-    glTextureStorage2D(envmap_rt_depth, 1, GL_DEPTH_COMPONENT32F, width, height);
+    glTextureStorage2D(envmap_rt_depth, 1, GL_DEPTH_COMPONENT32F, envmap_width, envmap_height);
 
     Render::inst().CreateTBO(GL_TEXTURE_2D, envmap_rt_0);
 
@@ -486,7 +480,7 @@ void RenderCubeMap()
     glTextureParameteri(envmap_rt_0, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTextureParameteri(envmap_rt_0, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-    glTextureStorage2D(envmap_rt_0, 1, GL_RGBA8, width, height);
+    glTextureStorage2D(envmap_rt_0, 1, GL_RGBA8, envmap_width, envmap_height);
 
     envmap_rt_0_handle = glGetTextureHandleARB(envmap_rt_0);
     glMakeTextureHandleResidentARB(envmap_rt_0_handle);
@@ -506,9 +500,27 @@ void RenderCubeMap()
     if (auto const code = glGetError(); code != GL_NO_ERROR)
         log::Error() << __FUNCTION__ << ": " << code;
 
+    Render::inst().CreateTBO(GL_TEXTURE_CUBE_MAP, envmap_tex);
+
+    glTextureParameteri(envmap_tex, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTextureParameteri(envmap_tex, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    glTextureParameteri(envmap_tex, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTextureParameteri(envmap_tex, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+    glTextureParameteri(envmap_tex, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+
+    glTextureStorage2D(envmap_tex, 1, GL_RGBA8, envmap_width, envmap_height);
+
+    for (auto i : { 0, 1, 2, 3, 4, 5 })
+        glTextureSubImage3D(envmap_tex, 0, 0, 0, i, envmap_width, envmap_height, 1, GL_RGBA, GL_RGBA16F, nullptr);
+
+}
+
+void RenderCubeMap()
+{
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, envmap_fbo);
 
-    glViewport(0, 0, width, height);
+    glViewport(0, 0, envmap_width, envmap_height);
 
     glClearNamedFramebufferfv(envmap_fbo, GL_COLOR, 0, std::data(colors::kBLACK.rgba));
     glClearNamedFramebufferfv(envmap_fbo, GL_DEPTH, 0, &clear_colors[Render::kREVERSED_DEPTH ? 0 : 1]);
@@ -631,6 +643,8 @@ void InitIBL()
     glVertexArrayVertexBuffer(radiance_vao, 0, bo, 0, sizeof(Position));
 
     glEnableVertexArrayAttrib(radiance_vao, Render::eVERTEX_IN::nPOSITION);
+
+    InitCubeMap();
 }
 
 void Init()
