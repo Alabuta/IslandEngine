@@ -13,6 +13,18 @@
 
 layout(location = nPOSITION) in vec3 inVertex;
 
+const int kSIDES = 6;
+
+
+
+layout(location = 8) uniform mat4 projectionMatrix = mat4(1.0);
+layout(location = 9) uniform mat4 viewMatrix = mat4(1.0);
+
+//layout(binding = 8, std430) readonly buffer VIEW_MATRICES
+//{
+//    mat4 viewMatrices[kSIDES];
+//};
+
 out vec3 texCoord;
 
 subroutine void RenderPassType();
