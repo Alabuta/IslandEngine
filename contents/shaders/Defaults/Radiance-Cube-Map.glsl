@@ -82,6 +82,7 @@ layout(location = nBASE_COLOR) out vec4 fragColor;
 layout(bindless_sampler, location = nALBEDO) uniform sampler2D equirectangularMap;
 layout(binding = nNORMAL_MAP) uniform samplerCube cubeMap;
 //layout(bindless_sampler, location = nNORMAL_MAP) uniform samplerCube cubeMap;
+layout(binding = 3) uniform sampler2D map;
 
 
 in vec3 texCoord;
@@ -117,7 +118,7 @@ void cubeMapRender()
 layout(index = 2) subroutine(RenderPassType)
 void temp()
 {
-    fragColor.rgb = texture(equirectangularMap, texCoord.xy).rgb;
+    fragColor.rgb = texture(map, texCoord.xy).rgb;
     fragColor.a = 1;
 }
 
