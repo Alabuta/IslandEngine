@@ -1098,6 +1098,12 @@ void APIENTRY glNamedFramebufferTexture(GLuint framebuffer, GLenum attachment, G
     return glNamedFramebufferTexture(framebuffer, attachment, texture, level);
 }
 
+void APIENTRY glNamedFramebufferTextureLayer(GLuint framebuffer, GLenum attachment, GLuint texture, GLint level, GLint layer)
+{
+    GL_PROC_INIT(glNamedFramebufferTextureLayer);
+    return glNamedFramebufferTextureLayer(framebuffer, attachment, texture, level, layer);
+}
+
 void APIENTRY glNamedRenderbufferStorage(GLuint renderbuffer, GLenum internalformat, GLsizei width, GLsizei height)
 {
     GL_PROC_INIT(glNamedRenderbufferStorage);
