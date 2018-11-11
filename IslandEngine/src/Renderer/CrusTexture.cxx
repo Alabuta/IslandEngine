@@ -117,7 +117,7 @@ bool Texture::Init()
     return true;
 }
 
-void Texture::Bind() const
+void Texture::bind() const
 {
     glBindTextureUnit(unit_, id_);
 }

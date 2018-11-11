@@ -77,7 +77,7 @@ public:
 
     bool Init();
 
-    void Bind() const;
+    void bind() const;
 
     auto id() const { return id_; }
 

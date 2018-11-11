@@ -7,11 +7,16 @@ auto cubemapIndirectBO = 0u;
 
 Program cubemapProgram;
 u32 cubemapVAO;
-Texture cubemapTexture(Texture::eTEXTURE_TYPE::nCUBE, R"(Skybox/skybox)");
+Texture envmap(Texture::eTEXTURE_TYPE::nCUBE, R"(Skybox/skybox)");
+
+Texture const &texture()
+{
+    return envmap;
+}
 
 bool InitCubemap()
 {
-    if (!cubemapTexture.Init())
+    if (!envmap.Init())
         return false;
 
     cubemapProgram.AssignNew({R"(Defaults/Skybox-Cubed.glsl)"});
@@ -89,7 +94,7 @@ bool InitCubemap()
 
 void DrawCubemap()
 {
-    cubemapTexture.Bind();
+    envmap.bind();
     cubemapProgram.bind();
 
     glBindVertexArray(cubemapVAO);
