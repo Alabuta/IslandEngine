@@ -80,7 +80,9 @@ Program program;
 u32 rt_depth, equirectangular_tex;
 
 #if RENDER_TO_CUBEMAP
-u32 rt_cubemap;
+u32 rt_cubemap, rt_irradiance, rt_depth_irradiance;
+
+u32 irradiance_width = 32, irradiance_height = 32;
 #else
 u32 rt_2D;
 #endif
@@ -140,6 +142,29 @@ void initFramebuffer()
 
     glNamedFramebufferTextureLayer(fbo, GL_COLOR_ATTACHMENT0, rt_cubemap, 0, 0);
 
+
+
+    Render::inst().CreateTBO(GL_TEXTURE_2D, rt_depth_irradiance);
+
+    glTextureParameteri(rt_depth_irradiance, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTextureParameteri(rt_depth_irradiance, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTextureParameteri(rt_depth_irradiance, GL_TEXTURE_MAX_LEVEL, 0);
+    glTextureParameteri(rt_depth_irradiance, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTextureParameteri(rt_depth_irradiance, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+    glTextureStorage2D(rt_depth_irradiance, 1, GL_DEPTH_COMPONENT32F, irradiance_width, irradiance_height);
+
+
+    Render::inst().CreateTBO(GL_TEXTURE_CUBE_MAP, rt_irradiance);
+
+    glTextureParameteri(rt_irradiance, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTextureParameteri(rt_irradiance, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTextureParameteri(rt_irradiance, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTextureParameteri(rt_irradiance, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+    glTextureParameteri(rt_irradiance, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+
+    glTextureStorage2D(rt_irradiance, 1, GL_RGB16F, irradiance_width, irradiance_height);
+
 #else
     Render::inst().CreateTBO(GL_TEXTURE_2D, rt_2D);
 
@@ -162,6 +187,72 @@ void initFramebuffer()
 
     if (auto const code = glGetError(); code != GL_NO_ERROR)
         log::Error() << __FUNCTION__ << ": " << std::hex << code;
+}
+
+void render()
+{
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo);
+    glViewport(0, 0, width, height);
+
+#if !RENDER_TO_CUBEMAP
+    glClearNamedFramebufferfv(fbo, GL_COLOR, 0, std::data(colors::kPOWDERBLUE.rgba));
+    glClearNamedFramebufferfv(fbo, GL_DEPTH, 0, &clear_colors[Render::kREVERSED_DEPTH ? 0 : 1]);
+#endif
+
+    program.bind();
+
+    glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, &index1);
+    glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &index0);
+
+    glProgramUniformMatrix4fv(program.handle(), 8, 1, GL_FALSE, &projection[0][0]);
+
+    glBindTextureUnit(Render::eSAMPLERS_BINDING::nALBEDO, equirectangular_tex);
+
+#if RENDER_TO_CUBEMAP
+    std::for_each(std::begin(views), std::end(views), [face = 0] (auto &&view) mutable
+    {
+        glProgramUniformMatrix4fv(program.handle(), 9, 1, GL_FALSE, &view[0][0]);
+
+        glNamedFramebufferTextureLayer(fbo, GL_COLOR_ATTACHMENT0, rt_cubemap, 0, face++);
+
+        glClearNamedFramebufferfv(fbo, GL_COLOR, 0, std::data(colors::kPOWDERBLUE.rgba));
+        glClearNamedFramebufferfv(fbo, GL_DEPTH, 0, &clear_colors[Render::kREVERSED_DEPTH ? 0 : 1]);
+
+        glBindVertexArray(cube_vao);
+        glBindBuffer(GL_DRAW_INDIRECT_BUFFER, cube_ibo);
+        glDrawArraysIndirect(GL_TRIANGLE_STRIP, nullptr);
+    });
+
+
+    glViewport(0, 0, irradiance_width, irradiance_height);
+
+    glNamedFramebufferTexture(fbo, GL_DEPTH_ATTACHMENT, rt_depth_irradiance, 0);
+
+    glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &index3);
+
+    glBindTextureUnit(Render::eSAMPLERS_BINDING::nNORMAL_MAP, rt_cubemap);
+
+    std::for_each(std::begin(views), std::end(views), [face = 0] (auto &&view) mutable
+    {
+        glProgramUniformMatrix4fv(program.handle(), 9, 1, GL_FALSE, &view[0][0]);
+
+        glNamedFramebufferTextureLayer(fbo, GL_COLOR_ATTACHMENT0, rt_irradiance, 0, face++);
+
+        glClearNamedFramebufferfv(fbo, GL_COLOR, 0, std::data(colors::kPOWDERBLUE.rgba));
+        glClearNamedFramebufferfv(fbo, GL_DEPTH, 0, &clear_colors[Render::kREVERSED_DEPTH ? 0 : 1]);
+
+        glBindVertexArray(cube_vao);
+        glBindBuffer(GL_DRAW_INDIRECT_BUFFER, cube_ibo);
+        glDrawArraysIndirect(GL_TRIANGLE_STRIP, nullptr);
+    });
+
+#else
+    glBindVertexArray(cube_vao);
+    glBindBuffer(GL_DRAW_INDIRECT_BUFFER, cube_ibo);
+    glDrawArraysIndirect(GL_TRIANGLE_STRIP, nullptr);
+#endif
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void init()
@@ -262,49 +353,8 @@ void init()
     glEnableVertexArrayAttrib(cube_vao, Render::eVERTEX_IN::nPOSITION);
 
     initFramebuffer();
-}
 
-void render()
-{
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo);
-
-    glViewport(0, 0, width, height);
-
-#if !RENDER_TO_CUBEMAP
-    glClearNamedFramebufferfv(fbo, GL_COLOR, 0, std::data(colors::kPOWDERBLUE.rgba));
-    glClearNamedFramebufferfv(fbo, GL_DEPTH, 0, &clear_colors[Render::kREVERSED_DEPTH ? 0 : 1]);
-#endif
-
-    program.bind();
-
-    glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, &index1);
-    glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &index0);
-
-    glProgramUniformMatrix4fv(program.handle(), 8, 1, GL_FALSE, &projection[0][0]);
-
-    glBindTextureUnit(Render::eSAMPLERS_BINDING::nALBEDO, equirectangular_tex);
-
-#if RENDER_TO_CUBEMAP
-    std::for_each(std::begin(views), std::end(views), [face = 0] (auto &&view) mutable
-    {
-        glProgramUniformMatrix4fv(program.handle(), 9, 1, GL_FALSE, &view[0][0]);
-
-        glNamedFramebufferTextureLayer(fbo, GL_COLOR_ATTACHMENT0, rt_cubemap, 0, face++);
-
-        glClearNamedFramebufferfv(fbo, GL_COLOR, 0, std::data(colors::kPOWDERBLUE.rgba));
-        glClearNamedFramebufferfv(fbo, GL_DEPTH, 0, &clear_colors[Render::kREVERSED_DEPTH ? 0 : 1]);
-
-        glBindVertexArray(cube_vao);
-        glBindBuffer(GL_DRAW_INDIRECT_BUFFER, cube_ibo);
-        glDrawArraysIndirect(GL_TRIANGLE_STRIP, nullptr);
-    });
-#else
-    glBindVertexArray(cube_vao);
-    glBindBuffer(GL_DRAW_INDIRECT_BUFFER, cube_ibo);
-    glDrawArraysIndirect(GL_TRIANGLE_STRIP, nullptr);
-#endif
-
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    render();
 }
 }
 
@@ -890,8 +940,6 @@ void DrawFrame()
     Render::inst().UpdateTransform(0, 3, std::data(matrices));
     Render::inst().UpdateViewport(1, 1, &Render::inst().vp_.proj());
 
-    ibl::render();
-
     //cubemap::DrawCubemap();
     //grid.Draw();
 
@@ -904,7 +952,7 @@ void DrawFrame()
     glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &index1);
 
 #if RENDER_TO_CUBEMAP
-    glBindTextureUnit(Render::eSAMPLERS_BINDING::nNORMAL_MAP, ibl::rt_cubemap);
+    glBindTextureUnit(Render::eSAMPLERS_BINDING::nNORMAL_MAP, ibl::rt_irradiance);
 
     glBindVertexArray(ibl::cube_vao);
     glBindBuffer(GL_DRAW_INDIRECT_BUFFER, ibl::cube_ibo);
