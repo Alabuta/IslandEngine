@@ -389,7 +389,7 @@ bool Program::LinkAndValidateProgram() const
     return false;
 }
 
-void Program::UseThis() const
+void Program::bind() const
 {
     glUseProgram(program_);
 }

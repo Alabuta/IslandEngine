@@ -283,12 +283,12 @@ void render()
     glClearNamedFramebufferfv(fbo, GL_COLOR, 0, std::data(colors::kPOWDERBLUE.rgba));
     glClearNamedFramebufferfv(fbo, GL_DEPTH, 0, &clear_colors[Render::kREVERSED_DEPTH ? 0 : 1]);
 
-    program.UseThis();
+    program.bind();
 
     glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, &index0);
     glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &index0);
 
-    //glProgramUniformMatrix4fv(program.program(), 8, 1, GL_FALSE, &captureProjection[0][0]);
+    glProgramUniformMatrix4fv(program.handle(), 8, 1, GL_FALSE, &captureProjection[0][0]);
 
     glBindTextureUnit(Render::eSAMPLERS_BINDING::nALBEDO, equirectangular_tex);
 
@@ -605,7 +605,7 @@ void initGaussFilter(Program &program)
         return;
 
     {
-        auto index = glGetProgramResourceIndex(program.program(), GL_SHADER_STORAGE_BLOCK, "GAUSS_FILTER_COLOR_WEIGHTS");
+        auto index = glGetProgramResourceIndex(program.handle(), GL_SHADER_STORAGE_BLOCK, "GAUSS_FILTER_COLOR_WEIGHTS");
 
         if (index != GL_INVALID_INDEX) {
             u32 GAUSS_FILTER_COLOR_WEIGHTS = 0;
@@ -614,7 +614,7 @@ void initGaussFilter(Program &program)
             glNamedBufferStorage(GAUSS_FILTER_COLOR_WEIGHTS, sizeof(decltype(weights)::value_type) * std::size(weights), std::data(weights), 0);
 
             glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 5, GAUSS_FILTER_COLOR_WEIGHTS);
-            glShaderStorageBlockBinding(program.program(), index, 5);
+            glShaderStorageBlockBinding(program.handle(), index, 5);
         }
 
         else log::Error() << "can't init the SSBO: invalid index param: " << "GAUSS_FILTER_COLOR_WEIGHTS";
@@ -622,7 +622,7 @@ void initGaussFilter(Program &program)
 
     if constexpr (use_gpu && !use_bf)
     {
-        auto index = glGetProgramResourceIndex(program.program(), GL_SHADER_STORAGE_BLOCK, "GAUSS_FILTER_OFFSETS");
+        auto index = glGetProgramResourceIndex(program.handle(), GL_SHADER_STORAGE_BLOCK, "GAUSS_FILTER_OFFSETS");
 
         if (index != GL_INVALID_INDEX) {
             u32 GAUSS_FILTER_OFFSETS = 0;
@@ -631,7 +631,7 @@ void initGaussFilter(Program &program)
             glNamedBufferStorage(GAUSS_FILTER_OFFSETS, sizeof(decltype(offsets)::value_type) * std::size(offsets), std::data(offsets), 0);
 
             glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 6, GAUSS_FILTER_OFFSETS);
-            glShaderStorageBlockBinding(program.program(), index, 6);
+            glShaderStorageBlockBinding(program.handle(), index, 6);
         }
 
         else log::Error() << "can't init the SSBO: invalid index param: " << "GAUSS_FILTER_OFFSETS";
@@ -671,7 +671,7 @@ void init()
         return sample;
     });
 
-    glProgramUniform3fv(program.program(), 20, kernel_size, &std::data(kernel)->x);
+    glProgramUniform3fv(program.handle(), 20, kernel_size, &std::data(kernel)->x);
 
     if (hemisphere_program.AssignNew({R"(Defaults/Unlit-Simple.glsl)"})) {
         Render::inst().CreateVAO(hemisphere_vao);
@@ -719,7 +719,7 @@ void render()
     glClearNamedFramebufferfv(kUSE_MS ? ms_fbo : main_fbo, GL_COLOR, 1, std::data(colors::kBLACK.rgba));
     glClearNamedFramebufferfv(kUSE_MS ? ms_fbo : main_fbo, GL_DEPTH, 0, &clear_colors[Render::kREVERSED_DEPTH ? 0 : 1]);
 
-    program.UseThis();
+    program.bind();
 
     glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, &index0);
     glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &index0);
@@ -743,9 +743,9 @@ void render()
     glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, &index1);
     glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &index1);
 
-    glProgramUniformHandleui64ARB(program.program(), Render::eSAMPLERS_BINDING::nALBEDO, rt_0_handle);
-    glProgramUniformHandleui64ARB(program.program(), Render::eSAMPLERS_BINDING::nNORMAL_MAP, rt_1_handle);
-    glProgramUniformHandleui64ARB(program.program(), Render::eSAMPLERS_BINDING::nDEPTH, rt_depth_handle);
+    glProgramUniformHandleui64ARB(program.handle(), Render::eSAMPLERS_BINDING::nALBEDO, rt_0_handle);
+    glProgramUniformHandleui64ARB(program.handle(), Render::eSAMPLERS_BINDING::nNORMAL_MAP, rt_1_handle);
+    glProgramUniformHandleui64ARB(program.handle(), Render::eSAMPLERS_BINDING::nDEPTH, rt_depth_handle);
     //glProgramUniformHandleui64ARB(ssao_program.program(), 4, noise_tex_handle);
 
     //glBindTextureUnit(Render::eSAMPLERS_BINDING::nALBEDO, rt_0);
@@ -767,9 +767,9 @@ void render()
     glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, &index1);
     glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &index3);
 
-    glProgramUniformHandleui64ARB(program.program(), Render::eSAMPLERS_BINDING::nALBEDO, out_rt0_handle);
-    glProgramUniformHandleui64ARB(program.program(), Render::eSAMPLERS_BINDING::nNORMAL_MAP, rt_1_handle);
-    glProgramUniformHandleui64ARB(program.program(), Render::eSAMPLERS_BINDING::nDEPTH, rt_depth_handle);
+    glProgramUniformHandleui64ARB(program.handle(), Render::eSAMPLERS_BINDING::nALBEDO, out_rt0_handle);
+    glProgramUniformHandleui64ARB(program.handle(), Render::eSAMPLERS_BINDING::nNORMAL_MAP, rt_1_handle);
+    glProgramUniformHandleui64ARB(program.handle(), Render::eSAMPLERS_BINDING::nDEPTH, rt_depth_handle);
     //glBindTextureUnit(Render::eSAMPLERS_BINDING::nALBEDO, out_rt0);
 
     glBindVertexArray(quad_vao);
@@ -779,7 +779,7 @@ void render()
     glNamedFramebufferTexture(out_fbo, GL_COLOR_ATTACHMENT0, out_rt0, 0);
     glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &index4);
 
-    glProgramUniformHandleui64ARB(program.program(), Render::eSAMPLERS_BINDING::nALBEDO, out_rt1_handle);
+    glProgramUniformHandleui64ARB(program.handle(), Render::eSAMPLERS_BINDING::nALBEDO, out_rt1_handle);
     //glBindTextureUnit(Render::eSAMPLERS_BINDING::nALBEDO, out_rt1);
 
     glBindVertexArray(quad_vao);

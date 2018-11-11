@@ -34,9 +34,9 @@ public:
     bool AssignNew(std::initializer_list<std::string> &&names, std::string options = "");
     void Destroy();
 
-    void UseThis() const;
+    void bind() const;
 
-    u32 program() const;
+    u32 handle() const;
 
     i32 GetAttributeLoc(std::string_view name) const;
     i32 GetUniformLoc(std::string_view name) const;
@@ -71,7 +71,7 @@ private:
     }
 };
 
-inline u32 Program::program() const
+inline u32 Program::handle() const
 {
     return program_;
 }

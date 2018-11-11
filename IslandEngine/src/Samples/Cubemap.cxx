@@ -90,7 +90,7 @@ bool InitCubemap()
 void DrawCubemap()
 {
     cubemapTexture.Bind();
-    cubemapProgram.UseThis();
+    cubemapProgram.bind();
 
     glBindVertexArray(cubemapVAO);
     glBindBuffer(GL_DRAW_INDIRECT_BUFFER, cubemapIndirectBO);

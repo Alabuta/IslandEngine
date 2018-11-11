@@ -192,10 +192,10 @@ void Render::InitBufferObjects()
         log::Fatal() << "can't init the buffer objects.";
 
     {
-        auto index = glGetUniformBlockIndex(ubo.program(), "VIEWPORT");
+        auto index = glGetUniformBlockIndex(ubo.handle(), "VIEWPORT");
 
         auto size = -1;
-        glGetActiveUniformBlockiv(ubo.program(), Render::eBUFFERS_BINDING::nVIEWPORT, GL_UNIFORM_BLOCK_DATA_SIZE, &size);
+        glGetActiveUniformBlockiv(ubo.handle(), Render::eBUFFERS_BINDING::nVIEWPORT, GL_UNIFORM_BLOCK_DATA_SIZE, &size);
 
         if (index == GL_INVALID_INDEX || size < 1)
             log::Fatal() << "can't init the UBO: invalid index param: " << "VIEWPORT";
@@ -204,7 +204,7 @@ void Render::InitBufferObjects()
         glNamedBufferStorage(VIEWPORT_, size, nullptr, GL_DYNAMIC_STORAGE_BIT);
 
         glBindBufferBase(GL_UNIFORM_BUFFER, Render::eBUFFERS_BINDING::nVIEWPORT, VIEWPORT_);
-        glUniformBlockBinding(ubo.program(), index, Render::eBUFFERS_BINDING::nVIEWPORT);
+        glUniformBlockBinding(ubo.handle(), index, Render::eBUFFERS_BINDING::nVIEWPORT);
     }
 
 #if _CRUS_TEMP_DISABLED
@@ -223,7 +223,7 @@ void Render::InitBufferObjects()
 #endif
 
     {
-        auto index = glGetProgramResourceIndex(ubo.program(), GL_SHADER_STORAGE_BLOCK, "TRANSFORM");
+        auto index = glGetProgramResourceIndex(ubo.handle(), GL_SHADER_STORAGE_BLOCK, "TRANSFORM");
 
         if (index == GL_INVALID_INDEX)
             log::Fatal() << "can't init the SSBO: invalid index param: " << "TRANSFORM";
@@ -232,7 +232,7 @@ void Render::InitBufferObjects()
         glNamedBufferStorage(TRANSFORM_, sizeof(math::Matrix) * 4, nullptr, GL_DYNAMIC_STORAGE_BIT);
 
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, Render::eBUFFERS_BINDING::nTRANSFORM, TRANSFORM_);
-        glShaderStorageBlockBinding(ubo.program(), index, Render::eBUFFERS_BINDING::nTRANSFORM);
+        glShaderStorageBlockBinding(ubo.handle(), index, Render::eBUFFERS_BINDING::nTRANSFORM);
     }
 }
 

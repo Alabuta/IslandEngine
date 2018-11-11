@@ -122,7 +122,7 @@ void Grid::Update(float _side, float _step, u16 _subdivs)
 
 void Grid::Draw()
 {
-    shader_.UseThis();
+    shader_.bind();
 
     glBindVertexArray(vao_);
 
