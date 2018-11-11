@@ -26,6 +26,7 @@
 #include <glm/gtx/hash.hpp>
 #pragma warning(pop)
 
+#define RENDER_TO_CUBEMAP 0
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb/stb_image.h"
@@ -57,42 +58,36 @@ auto constexpr clear_colors = isle::make_array(0.f, 1.f);
 
 u32 constexpr index0 = 0, index1 = 1, index2 = 2, index3 = 3, index4 = 4;
 
-u32 main_fbo;
-u32 rt_0, rt_1, rt_depth;
-u64 rt_0_handle, rt_1_handle, rt_depth_handle;
+Program mesh_program;
+u32 mesh_vao, mesh_count;
 
-u32 out_fbo;
-u64 out_rt0_handle, out_rt1_handle;
-u32 out_rt0, out_rt1;// , out_depth;
+u32 quad_vao;
 
-u32 ms_fbo;
-u64 ms_rt_0_handle, ms_rt_1_handle, ms_rt_depth_handle;
 
-Program hemisphere_program;
-u32 hemisphere_vao, hemisphere_count;
 
-Program geom_program;
-u32 geom_vao, geom_count;
 
-Program ssao_program;
-u32 quad_vao, noise_tex;
-u64 noise_tex_handle;
+auto matrices = make_array(
+    math::Matrix::Identity(),
+    math::Matrix::Identity(),
+    math::Matrix::Identity()
+);
 
-u32 radiance_tex;
-u64 radiance_tex_handle;
-Program radiance_program;
-u32 radiance_vao, radiance_indirect_buffer;
+namespace ibl
+{
+u32 fbo;
+Program program;
 
-Texture tempTexture(Texture::eTEXTURE_TYPE::nCUBE, R"(Skybox/skybox)"s);
-Texture tempTexture2(Texture::eTEXTURE_TYPE::n2D, R"(newport-loft-ref)"s);
-u32 temp_tex;
+u32 rt_depth, equirectangular_tex;
 
-u32 envmap_fbo, envmap_rt_depth;
-u64 envmap_rt_0_handle, envmap_tex_handle;
-u32 envmap_tex, envmap_rt_0;
+#if RENDER_TO_CUBEMAP
+u32 rt_cubemap;
+#else
+u32 rt_2D;
+#endif
 
-u32 envmap_width = 1024, envmap_height = 1024;
+u32 width = 1024, height = 1024;
 
+u32 cube_vao, cube_ibo;
 
 auto captureProjection = glm::perspective(glm::radians(90.f), 1.f, 0.1f, 10.f);
 
@@ -106,11 +101,217 @@ auto captureViews = make_array(
 );
 
 
-auto matrices = make_array(
-    math::Matrix::Identity(),
-    math::Matrix::Identity(),
-    math::Matrix::Identity()
-);
+void initFramebuffer()
+{
+    glCreateFramebuffers(1, &fbo);
+
+#if !RENDER_TO_CUBEMAP
+    width = app::width;
+    height = app::height;
+#endif
+
+    Render::inst().CreateTBO(GL_TEXTURE_2D, rt_depth);
+
+    glTextureParameteri(rt_depth, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTextureParameteri(rt_depth, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTextureParameteri(rt_depth, GL_TEXTURE_MAX_LEVEL, 0);
+    glTextureParameteri(rt_depth, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTextureParameteri(rt_depth, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+    glTextureStorage2D(rt_depth, 1, GL_DEPTH_COMPONENT32F, width, height);
+
+    glNamedFramebufferTexture(fbo, GL_DEPTH_ATTACHMENT, rt_depth, 0);
+
+#if RENDER_TO_CUBEMAP
+    Render::inst().CreateTBO(GL_TEXTURE_CUBE_MAP, rt_cubemap);
+
+    glTextureParameteri(rt_cubemap, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTextureParameteri(rt_cubemap, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTextureParameteri(rt_cubemap, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTextureParameteri(rt_cubemap, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+    glTextureParameteri(rt_cubemap, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+
+    glTextureStorage2D(rt_cubemap, 1, GL_RGB16F, width, height);
+
+    std::vector<float> buffer(width * height * 3, .25f);
+
+    for (auto face : {0, 1, 2, 3, 4, 5})
+        glTextureSubImage3D(rt_cubemap, 0, 0, 0, face, width, height, 1, GL_RGB, GL_FLOAT, std::data(buffer));
+
+    glNamedFramebufferTextureLayer(fbo, GL_COLOR_ATTACHMENT0, rt_cubemap, 0, 0);
+
+#else
+    Render::inst().CreateTBO(GL_TEXTURE_2D, rt_2D);
+
+    glTextureParameteri(rt_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTextureParameteri(rt_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTextureParameteri(rt_2D, GL_TEXTURE_MAX_LEVEL, 0);
+    glTextureParameteri(rt_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTextureParameteri(rt_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+    glTextureStorage2D(rt_2D, 1, GL_RGBA8, width, height);
+    //glTextureSubImage2D(rt_2D, 0, 0, 0, width, height, GL_RGBA, GL_RGBA8, nullptr);
+
+    glNamedFramebufferTexture(fbo, GL_COLOR_ATTACHMENT0, rt_2D, 0);
+#endif
+
+    auto constexpr drawBuffers = make_array<u32>(GL_COLOR_ATTACHMENT0);
+    glNamedFramebufferDrawBuffers(fbo, static_cast<i32>(std::size(drawBuffers)), std::data(drawBuffers));
+
+    if (auto result = glCheckNamedFramebufferStatus(fbo, GL_FRAMEBUFFER); result != GL_FRAMEBUFFER_COMPLETE)
+        log::Fatal() << "framebuffer error:" << std::hex << result;
+
+    if (auto const code = glGetError(); code != GL_NO_ERROR)
+        log::Error() << __FUNCTION__ << ": " << std::hex << code;
+
+    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+
+    glDisablei(GL_BLEND, 0);
+    glBlendFunci(0, GL_ONE, GL_ONE);
+    /*glEnablei(GL_BLEND, 0);
+    glBlendFunci(0, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);*/
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void init()
+{
+    stbi_set_flip_vertically_on_load(true);
+
+    i32 width, height, nrComponents;
+
+    auto const path = R"(../contents/textures/newport-loft-ref.hdr)"s;
+
+    auto data = stbi_loadf(path.c_str(), &width, &height, &nrComponents, 0);
+
+    if (data == nullptr)
+        return;
+
+    Render::inst().CreateTBO(GL_TEXTURE_2D, equirectangular_tex);
+
+    glTextureParameteri(equirectangular_tex, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTextureParameteri(equirectangular_tex, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTextureParameteri(equirectangular_tex, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTextureParameteri(equirectangular_tex, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+    glTextureStorage2D(equirectangular_tex, 1, GL_RGB16F, width, height);
+    glTextureSubImage2D(equirectangular_tex, 0, 0, 0, width, height, GL_RGB, GL_FLOAT, data);
+
+    glGenerateTextureMipmap(equirectangular_tex);
+
+    stbi_image_free(data);
+
+
+    program.AssignNew({R"(Defaults/Radiance-Cube-Map.glsl)"s});
+
+    auto constexpr vertices = make_array(
+        Position{+.5f, +.5f, +.5f},
+        Position{-.5f, +.5f, +.5f},
+        Position{+.5f, +.5f, -.5f},
+        Position{-.5f, +.5f, -.5f},
+
+        Position{-.5f, +.5f, -.5f},
+        Position{-.5f, +.5f, -.5f},
+
+        Position{-.5f, +.5f, -.5f},
+        Position{-.5f, -.5f, -.5f},
+        Position{+.5f, +.5f, -.5f},
+        Position{+.5f, -.5f, -.5f},
+
+        Position{+.5f, +.5f, -.5f},
+        Position{+.5f, -.5f, -.5f},
+        Position{+.5f, +.5f, +.5f},
+        Position{+.5f, -.5f, +.5f},
+
+        Position{+.5f, +.5f, +.5f},
+        Position{+.5f, -.5f, +.5f},
+        Position{-.5f, +.5f, +.5f},
+        Position{-.5f, -.5f, +.5f},
+
+        Position{-.5f, +.5f, +.5f},
+        Position{-.5f, -.5f, +.5f},
+        Position{-.5f, +.5f, -.5f},
+        Position{-.5f, -.5f, -.5f},
+
+        Position{-.5f, -.5f, -.5f},
+        Position{-.5f, -.5f, -.5f},
+
+        Position{-.5f, -.5f, -.5f},
+        Position{-.5f, -.5f, +.5f},
+        Position{+.5f, -.5f, -.5f},
+        Position{+.5f, -.5f, +.5f}
+    );
+
+    Render::inst().CreateBO(cube_ibo);
+
+    struct command_t {
+        u32  count;
+        u32  instanceCount;
+        u32  first;
+        u32  baseInstance;
+    };
+
+    command_t constexpr command = {
+        static_cast<u32>(std::size(vertices)), 1, 0, 0
+    };
+
+    glNamedBufferStorage(cube_ibo, sizeof(command), &command, GL_DYNAMIC_STORAGE_BIT);
+
+
+    Render::inst().CreateVAO(cube_vao);
+
+    auto bo = 0u;
+    Render::inst().CreateBO(bo);
+
+    glNamedBufferStorage(bo, sizeof(vertices), std::data(vertices), GL_DYNAMIC_STORAGE_BIT);
+
+    glVertexArrayAttribBinding(cube_vao, Render::eVERTEX_IN::nPOSITION, 0);
+    glVertexArrayAttribFormat(cube_vao, Render::eVERTEX_IN::nPOSITION, 3, GL_FLOAT, GL_FALSE, 0);
+    glVertexArrayVertexBuffer(cube_vao, 0, bo, 0, sizeof(Position));
+
+    glEnableVertexArrayAttrib(cube_vao, Render::eVERTEX_IN::nPOSITION);
+
+    initFramebuffer();
+}
+
+void render()
+{
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo);
+
+    glViewport(0, 0, width, height);
+
+    glClearNamedFramebufferfv(fbo, GL_COLOR, 0, std::data(colors::kPOWDERBLUE.rgba));
+    glClearNamedFramebufferfv(fbo, GL_DEPTH, 0, &clear_colors[Render::kREVERSED_DEPTH ? 0 : 1]);
+
+    program.UseThis();
+
+    glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, &index0);
+    glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &index0);
+
+    //glProgramUniformMatrix4fv(program.program(), 8, 1, GL_FALSE, &captureProjection[0][0]);
+
+    glBindTextureUnit(Render::eSAMPLERS_BINDING::nALBEDO, equirectangular_tex);
+
+#if RENDER_TO_CUBEMAP
+    std::for_each(std::begin(captureViews), std::end(captureViews), [face = 0] (auto &&captureView) mutable
+    {
+        glProgramUniformMatrix4fv(program.program(), 9, 1, GL_FALSE, &captureView[0][0]);
+
+        glNamedFramebufferTextureLayer(fbo, GL_COLOR_ATTACHMENT0, rt_cubemap, 0, face++);
+
+        glBindVertexArray(cube_vao);
+        glBindBuffer(GL_DRAW_INDIRECT_BUFFER, cube_ibo);
+        glDrawArraysIndirect(GL_TRIANGLE_STRIP, nullptr);
+    });
+#else
+    glBindVertexArray(cube_vao);
+    glBindBuffer(GL_DRAW_INDIRECT_BUFFER, cube_ibo);
+    glDrawArraysIndirect(GL_TRIANGLE_STRIP, nullptr);
+#endif
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+}
 
 struct Vertex {
     Position pos;
@@ -139,75 +340,27 @@ std::ostream &operator<< (std::ostream &_stream, Vertex const &v)
     return _stream << v.pos << " " << v.normal << " " << v.uv;
 }
 
-void InitSSAO()
+namespace ssao
 {
-    std::uniform_real_distribution<float> floats(.1f, 1.f);
-    std::default_random_engine generator;
+u32 main_fbo;
+u32 rt_0, rt_1, rt_depth;
+u64 rt_0_handle, rt_1_handle, rt_depth_handle;
 
-    // The seed.
-    std::random_device rd;
+u32 out_fbo;
+u64 out_rt0_handle, out_rt1_handle;
+u32 out_rt0, out_rt1;// , out_depth;
 
-    // Mersenne-Twister engine.
-    std::mt19937_64 mt(rd());
+u32 ms_fbo;
+u64 ms_rt_0_handle, ms_rt_1_handle, ms_rt_depth_handle;
 
-    auto constexpr kernel_size = 64u;
+Program hemisphere_program;
+u32 hemisphere_vao, hemisphere_count;
 
-    std::array<math::Vector, kernel_size> kernel;
-    std::generate(kernel.begin(), kernel.end(), [&floats, &mt, size = std::size(kernel), i = 0] () mutable
-    {
-        math::Vector sample(floats(mt) * 2 - 1, floats(mt) * 2 - 1, floats(mt));
+Program program;
+u32 noise_tex;
+u64 noise_tex_handle;
 
-        sample.Normalize();
-        sample *= floats(mt);
-
-        auto scale = static_cast<float>(++i) / static_cast<float>(size);
-        scale = math::lerp(.1f, 1.f, scale * scale);
-
-        sample *= scale;
-
-        return sample;
-    });
-
-    glProgramUniform3fv(ssao_program.program(), 20, kernel_size, &std::data(kernel)->x);
-
-    if (hemisphere_program.AssignNew({R"(Defaults/Unlit-Simple.glsl)"})) {
-        Render::inst().CreateVAO(hemisphere_vao);
-
-        auto bo = 0u;
-        Render::inst().CreateBO(bo);
-
-        hemisphere_count = static_cast<decltype(hemisphere_count)>(std::size(kernel));
-
-        glNamedBufferStorage(bo, sizeof(decltype(kernel)::value_type) * std::size(kernel), std::data(kernel), 0);
-
-        glVertexArrayAttribBinding(hemisphere_vao, Render::eVERTEX_IN::nPOSITION, 0);
-        glVertexArrayAttribFormat(hemisphere_vao, Render::eVERTEX_IN::nPOSITION, 3, GL_FLOAT, GL_FALSE, 0);
-        glEnableVertexArrayAttrib(hemisphere_vao, Render::eVERTEX_IN::nPOSITION);
-
-        glVertexArrayVertexBuffer(hemisphere_vao, 0, bo, 0, sizeof(math::Vector));
-    }
-
-    {
-        std::array<math::Vector, 16> noise;
-        std::generate(noise.begin(), noise.end(), [&floats, &mt] ()
-        {
-            return math::Vector(floats(mt) * 2 - 1, floats(mt) * 2 - 1, 0).Normalize();
-        });
-
-        Render::inst().CreateTBO(GL_TEXTURE_2D, noise_tex);
-
-        glTextureParameteri(noise_tex, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTextureParameteri(noise_tex, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glTextureParameteri(noise_tex, GL_TEXTURE_MAX_LEVEL, 0);
-        glTextureParameteri(noise_tex, GL_TEXTURE_WRAP_S, GL_REPEAT);
-        glTextureParameteri(noise_tex, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-        glTextureStorage2D(noise_tex, 1, GL_RGB32F, 4, 4);
-        glTextureSubImage2D(noise_tex, 0, 0, 0, 4, 4, GL_RGB, GL_FLOAT, std::data(noise));
-    }
-}
-
-void InitMultisampledFramebuffers()
+void initMultisampledFramebuffers()
 {
     auto constexpr samples = 16;
 
@@ -275,10 +428,10 @@ void InitMultisampledFramebuffers()
         log::Fatal() << "unexpected framebuffer samples count";
 }
 
-void InitFramebuffer()
+void initFramebuffer()
 {
     if constexpr (kUSE_MS)
-        InitMultisampledFramebuffers();
+        initMultisampledFramebuffers();
 
     glCreateFramebuffers(1, &main_fbo);
 
@@ -392,10 +545,10 @@ void InitFramebuffer()
         log::Fatal() << "framebuffer error:" << result;
 
     if (auto const code = glGetError(); code != GL_NO_ERROR)
-        log::Error() << __FUNCTION__ << ": " << code;
+        log::Error() << __FUNCTION__ << ": " << std::hex << code;
 }
 
-void InitGaussFilter(Program &program)
+void initGaussFilter(Program &program)
 {
     using namespace math;
 
@@ -485,255 +638,202 @@ void InitGaussFilter(Program &program)
     }
 }
 
-void InitCubeMap()
+void init()
 {
-    glCreateFramebuffers(1, &envmap_fbo);
-    //glBindFramebuffer(GL_FRAMEBUFFER, envmap_fbo);
+    initFramebuffer();
 
-    Render::inst().CreateTBO(GL_TEXTURE_2D, envmap_rt_depth);
+    initGaussFilter(ssao::program);
 
-    glTextureParameteri(envmap_rt_depth, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTextureParameteri(envmap_rt_depth, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTextureParameteri(envmap_rt_depth, GL_TEXTURE_MAX_LEVEL, 0);
-    glTextureParameteri(envmap_rt_depth, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTextureParameteri(envmap_rt_depth, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    std::uniform_real_distribution<float> floats(.1f, 1.f);
+    std::default_random_engine generator;
 
-    glTextureStorage2D(envmap_rt_depth, 1, GL_DEPTH_COMPONENT32F, envmap_width, envmap_height);
+    // The seed.
+    std::random_device rd;
 
-    Render::inst().CreateTBO(GL_TEXTURE_2D, envmap_rt_0);
+    // Mersenne-Twister engine.
+    std::mt19937_64 mt(rd());
 
-    glTextureParameteri(envmap_rt_0, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTextureParameteri(envmap_rt_0, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTextureParameteri(envmap_rt_0, GL_TEXTURE_MAX_LEVEL, 0);
-    glTextureParameteri(envmap_rt_0, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTextureParameteri(envmap_rt_0, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    auto constexpr kernel_size = 64u;
 
-    glTextureStorage2D(envmap_rt_0, 1, GL_RGBA8, envmap_width, envmap_height);
-
-    envmap_rt_0_handle = glGetTextureHandleARB(envmap_rt_0);
-    glMakeTextureHandleResidentARB(envmap_rt_0_handle);
-
-#if 0
-    Render::inst().CreateTBO(GL_TEXTURE_CUBE_MAP, envmap_tex);
-
-    glTextureParameteri(envmap_tex, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTextureParameteri(envmap_tex, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    //glTextureParameteri(envmap_tex, GL_TEXTURE_MAX_LEVEL, 0);
-    glTextureParameteri(envmap_tex, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTextureParameteri(envmap_tex, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-    glTextureParameteri(envmap_tex, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-
-    glTextureStorage2D(envmap_tex, 1, GL_RGB16F, envmap_width, envmap_height);
-
-    std::vector<float> buffer(envmap_width * envmap_height * 3, .15f);
-
-    for (auto face : {0, 1, 2, 3, 4, 5})
-        glTextureSubImage3D(envmap_tex, 0, 0, 0, face,
-                            envmap_width, envmap_height, 1, GL_RGB, GL_FLOAT, std::data(buffer));
-
-    envmap_tex_handle = glGetTextureHandleARB(envmap_tex);
-    glMakeTextureHandleResidentARB(envmap_tex_handle);
-#endif
-
-    glNamedFramebufferTexture(envmap_fbo, GL_DEPTH_ATTACHMENT, envmap_rt_depth, 0);
-    glNamedFramebufferTexture(envmap_fbo, GL_COLOR_ATTACHMENT0, envmap_rt_0, 0);
-    //glNamedFramebufferTexture(envmap_fbo, GL_COLOR_ATTACHMENT0, envmap_tex, 0);
-    //glNamedFramebufferTextureLayer(envmap_fbo, GL_COLOR_ATTACHMENT0, envmap_tex, 0, 0);
-    //glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X, envmap_tex, 0);
-
+    std::array<math::Vector, kernel_size> kernel;
+    std::generate(kernel.begin(), kernel.end(), [&floats, &mt, size = std::size(kernel), i = 0]() mutable
     {
-        auto constexpr drawBuffers = make_array<u32>(GL_COLOR_ATTACHMENT0);
-        glNamedFramebufferDrawBuffers(envmap_fbo, static_cast<i32>(std::size(drawBuffers)), std::data(drawBuffers));
+        math::Vector sample(floats(mt) * 2 - 1, floats(mt) * 2 - 1, floats(mt));
+
+        sample.Normalize();
+        sample *= floats(mt);
+
+        auto scale = static_cast<float>(++i) / static_cast<float>(size);
+        scale = math::lerp(.1f, 1.f, scale * scale);
+
+        sample *= scale;
+
+        return sample;
+    });
+
+    glProgramUniform3fv(program.program(), 20, kernel_size, &std::data(kernel)->x);
+
+    if (hemisphere_program.AssignNew({R"(Defaults/Unlit-Simple.glsl)"})) {
+        Render::inst().CreateVAO(hemisphere_vao);
+
+        auto bo = 0u;
+        Render::inst().CreateBO(bo);
+
+        hemisphere_count = static_cast<decltype(hemisphere_count)>(std::size(kernel));
+
+        glNamedBufferStorage(bo, sizeof(decltype(kernel)::value_type) * std::size(kernel), std::data(kernel), 0);
+
+        glVertexArrayAttribBinding(hemisphere_vao, Render::eVERTEX_IN::nPOSITION, 0);
+        glVertexArrayAttribFormat(hemisphere_vao, Render::eVERTEX_IN::nPOSITION, 3, GL_FLOAT, GL_FALSE, 0);
+        glEnableVertexArrayAttrib(hemisphere_vao, Render::eVERTEX_IN::nPOSITION);
+
+        glVertexArrayVertexBuffer(hemisphere_vao, 0, bo, 0, sizeof(math::Vector));
     }
 
-    if (auto result = glCheckNamedFramebufferStatus(envmap_fbo, GL_FRAMEBUFFER); result != GL_FRAMEBUFFER_COMPLETE)
-        log::Fatal() << "framebuffer error:" << result;
+    {
+        std::array<math::Vector, 16> noise;
+        std::generate(noise.begin(), noise.end(), [&floats, &mt] () {
+            return math::Vector(floats(mt) * 2 - 1, floats(mt) * 2 - 1, 0).Normalize();
+        });
 
-    if (auto const code = glGetError(); code != GL_NO_ERROR)
-        log::Error() << __FUNCTION__ << ": " << std::hex << code;
+        Render::inst().CreateTBO(GL_TEXTURE_2D, noise_tex);
 
-    //glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glTextureParameteri(noise_tex, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTextureParameteri(noise_tex, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTextureParameteri(noise_tex, GL_TEXTURE_MAX_LEVEL, 0);
+        glTextureParameteri(noise_tex, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTextureParameteri(noise_tex, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+        glTextureStorage2D(noise_tex, 1, GL_RGB32F, 4, 4);
+        glTextureSubImage2D(noise_tex, 0, 0, 0, 4, 4, GL_RGB, GL_FLOAT, std::data(noise));
+    }
 }
 
-void RenderCubeMap()
+void render()
 {
-    glBindFramebuffer(GL_FRAMEBUFFER, envmap_fbo);
-    //glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, kUSE_MS ? ms_fbo : main_fbo);
 
-    glClearNamedFramebufferfv(envmap_fbo, GL_COLOR, 0, std::data(colors::kPOWDERBLUE.rgba));
-    glClearNamedFramebufferfv(envmap_fbo, GL_DEPTH, 0, &clear_colors[Render::kREVERSED_DEPTH ? 0 : 1]);
+    glViewport(0, 0, width, height);
 
-    glViewport(0, 0, envmap_width, envmap_height);
+    glClearNamedFramebufferfv(kUSE_MS ? ms_fbo : main_fbo, GL_COLOR, 0, std::data(colors::kPOWDERBLUE.rgba));
+    glClearNamedFramebufferfv(kUSE_MS ? ms_fbo : main_fbo, GL_COLOR, 1, std::data(colors::kBLACK.rgba));
+    glClearNamedFramebufferfv(kUSE_MS ? ms_fbo : main_fbo, GL_DEPTH, 0, &clear_colors[Render::kREVERSED_DEPTH ? 0 : 1]);
 
-    radiance_program.UseThis();
+    program.UseThis();
 
     glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, &index0);
     glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &index0);
 
-    //glProgramUniformMatrix4fv(radiance_program.program(), 8, 1, GL_FALSE, &captureProjection[0][0]);
+    glBindVertexArray(mesh_vao);
+    glDrawArrays(GL_TRIANGLES, 0, 3 * mesh_count);
 
-    glProgramUniformHandleui64ARB(radiance_program.program(), Render::eSAMPLERS_BINDING::nALBEDO, radiance_tex_handle);
+    glFinish();
 
-    //std::for_each(std::begin(captureViews), std::end(captureViews), [face = 0] (auto &&captureView) mutable
-    //{
-    //    glProgramUniformMatrix4fv(radiance_program.program(), 9, 1, GL_FALSE, &captureView[0][0]);
+    if constexpr (kUSE_MS)
+        glBlitNamedFramebuffer(ms_fbo, main_fbo, 0, 0, width, height, 0, 0, width, height, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST);
 
-    //    glNamedFramebufferTextureLayer(envmap_fbo, GL_COLOR_ATTACHMENT0, envmap_tex, 0, 0);
-    //    //glNamedFramebufferTexture(envmap_fbo, GL_COLOR_ATTACHMENT0, envmap_rt_0, 0);
+    glBindFramebuffer(GL_FRAMEBUFFER, out_fbo);
+    glViewport(0, 0, width, height);
 
-    //    glBindVertexArray(radiance_vao);
-    //    glBindBuffer(GL_DRAW_INDIRECT_BUFFER, radiance_indirect_buffer);
-    //    glDrawArraysIndirect(GL_TRIANGLE_STRIP, nullptr);
+    glNamedFramebufferTexture(out_fbo, GL_COLOR_ATTACHMENT0, out_rt0, 0);
 
-    //    ++face;
-    //});
+    glClearNamedFramebufferfv(out_fbo, GL_COLOR, 0, std::data(colors::kPOWDERBLUE.rgba));
+    glClearNamedFramebufferfv(out_fbo, GL_DEPTH, 0, &clear_colors[Render::kREVERSED_DEPTH ? 0 : 1]);
 
+    glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, &index1);
+    glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &index1);
+
+    glProgramUniformHandleui64ARB(program.program(), Render::eSAMPLERS_BINDING::nALBEDO, rt_0_handle);
+    glProgramUniformHandleui64ARB(program.program(), Render::eSAMPLERS_BINDING::nNORMAL_MAP, rt_1_handle);
+    glProgramUniformHandleui64ARB(program.program(), Render::eSAMPLERS_BINDING::nDEPTH, rt_depth_handle);
+    //glProgramUniformHandleui64ARB(ssao_program.program(), 4, noise_tex_handle);
+
+    //glBindTextureUnit(Render::eSAMPLERS_BINDING::nALBEDO, rt_0);
+    //glBindTextureUnit(Render::eSAMPLERS_BINDING::nNORMAL_MAP, rt_1);
+    //glBindTextureUnit(Render::nDEPTH, rt_depth);
+    glBindTextureUnit(4, noise_tex);
+
+    glBindVertexArray(quad_vao);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 8);
+
+#ifndef BLUR
+    glFinish();
+
+    glNamedFramebufferTexture(out_fbo, GL_COLOR_ATTACHMENT0, out_rt1, 0);
+
+    /*glClearNamedFramebufferfv(out_fbo, GL_COLOR, 0, colors::kPOWDERBLUE.rgba.data());
+    glClearNamedFramebufferfv(out_fbo, GL_DEPTH, 0, &clear_colors[Render::kREVERSED_DEPTH ? 0 : 1]);*/
+
+    glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, &index1);
+    glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &index3);
+
+    glProgramUniformHandleui64ARB(program.program(), Render::eSAMPLERS_BINDING::nALBEDO, out_rt0_handle);
+    glProgramUniformHandleui64ARB(program.program(), Render::eSAMPLERS_BINDING::nNORMAL_MAP, rt_1_handle);
+    glProgramUniformHandleui64ARB(program.program(), Render::eSAMPLERS_BINDING::nDEPTH, rt_depth_handle);
+    //glBindTextureUnit(Render::eSAMPLERS_BINDING::nALBEDO, out_rt0);
+
+    glBindVertexArray(quad_vao);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 8);
 #if 1
-    glBindVertexArray(radiance_vao);
-    glBindBuffer(GL_DRAW_INDIRECT_BUFFER, radiance_indirect_buffer);
-    glDrawArraysIndirect(GL_TRIANGLE_STRIP, nullptr);
-#else
+
+    glNamedFramebufferTexture(out_fbo, GL_COLOR_ATTACHMENT0, out_rt0, 0);
+    glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &index4);
+
+    glProgramUniformHandleui64ARB(program.program(), Render::eSAMPLERS_BINDING::nALBEDO, out_rt1_handle);
+    //glBindTextureUnit(Render::eSAMPLERS_BINDING::nALBEDO, out_rt1);
+
     glBindVertexArray(quad_vao);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 8);
 #endif
+#endif
 
+    glBlitNamedFramebuffer(out_fbo, 0, 0, 0, width, height, 0, 0, width, height, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+
+#if 0
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    hemisphere_program.UseThis();
+    matrices[1].Scale(1, 1, 1);
+    matrices[0] = Render::inst().vp_.projView() * matrices[1];
+    Render::inst().UpdateTransform(0, 2, matrices.data());
+
+    glBindVertexArray(hemisphere_vao);
+    glDrawArrays(GL_POINTS, 0, hemisphere_count);
+#endif
+
+#if 0
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    test_program.UseThis();
+    matrices[1].Scale(1, 1, 1);
+    matrices[0] = Render::inst().vp_.projView() * matrices[1];
+    Render::inst().UpdateTransform(0, 2, matrices.data());
+
+    glBindVertexArray(test_vao);
+    glDrawArrays(GL_LINE_STRIP, 0, test_count);
+#endif
 }
-
-void InitIBL()
-{
-    stbi_set_flip_vertically_on_load(true);
-
-    i32 width, height, nrComponents;
-
-    auto const path = R"(../contents/textures/newport-loft-ref.hdr)"s;
-
-    auto data = stbi_loadf(path.c_str(), &width, &height, &nrComponents, 0);
-
-    if (data == nullptr)
-        return;
-
-    Render::inst().CreateTBO(GL_TEXTURE_2D, radiance_tex);
-
-    glTextureParameteri(radiance_tex, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTextureParameteri(radiance_tex, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTextureParameteri(radiance_tex, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTextureParameteri(radiance_tex, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-    glTextureStorage2D(radiance_tex, 1, GL_RGB16F, width, height);
-    glTextureSubImage2D(radiance_tex, 0, 0, 0, width, height, GL_RGB, GL_FLOAT, data);
-
-    glGenerateTextureMipmap(radiance_tex);
-
-    stbi_image_free(data);
-
-    radiance_tex_handle = glGetTextureHandleARB(radiance_tex);
-    glMakeTextureHandleResidentARB(radiance_tex_handle);
-
-
-    if (!tempTexture.Init())
-        return;
-
-    /*if (!tempTexture2.Init())
-        return;*/
-
-
-    radiance_program.AssignNew({R"(Defaults/Radiance-Cube-Map.glsl)"s});
-
-    auto constexpr vertices = make_array(
-        Position{+.5f, +.5f, +.5f},
-        Position{-.5f, +.5f, +.5f},
-        Position{+.5f, +.5f, -.5f},
-        Position{-.5f, +.5f, -.5f},
-
-        Position{-.5f, +.5f, -.5f},
-        Position{-.5f, +.5f, -.5f},
-
-        Position{-.5f, +.5f, -.5f},
-        Position{-.5f, -.5f, -.5f},
-        Position{+.5f, +.5f, -.5f},
-        Position{+.5f, -.5f, -.5f},
-
-        Position{+.5f, +.5f, -.5f},
-        Position{+.5f, -.5f, -.5f},
-        Position{+.5f, +.5f, +.5f},
-        Position{+.5f, -.5f, +.5f},
-
-        Position{+.5f, +.5f, +.5f},
-        Position{+.5f, -.5f, +.5f},
-        Position{-.5f, +.5f, +.5f},
-        Position{-.5f, -.5f, +.5f},
-
-        Position{-.5f, +.5f, +.5f},
-        Position{-.5f, -.5f, +.5f},
-        Position{-.5f, +.5f, -.5f},
-        Position{-.5f, -.5f, -.5f},
-
-        Position{-.5f, -.5f, -.5f},
-        Position{-.5f, -.5f, -.5f},
-
-        Position{-.5f, -.5f, -.5f},
-        Position{-.5f, -.5f, +.5f},
-        Position{+.5f, -.5f, -.5f},
-        Position{+.5f, -.5f, +.5f}
-    );
-
-    Render::inst().CreateBO(radiance_indirect_buffer);
-
-    struct command_t {
-        u32  count;
-        u32  instanceCount;
-        u32  first;
-        u32  baseInstance;
-    };
-    
-    command_t constexpr command = {
-        static_cast<u32>(std::size(vertices)), 1, 0, 0
-    };
-
-    glNamedBufferStorage(radiance_indirect_buffer, sizeof(command), &command, GL_DYNAMIC_STORAGE_BIT);
-
-
-    Render::inst().CreateVAO(radiance_vao);
-
-    auto bo = 0u;
-    Render::inst().CreateBO(bo);
-
-    glNamedBufferStorage(bo, sizeof(vertices), vertices.data(), GL_DYNAMIC_STORAGE_BIT);
-
-    glVertexArrayAttribBinding(radiance_vao, Render::eVERTEX_IN::nPOSITION, 0);
-    glVertexArrayAttribFormat(radiance_vao, Render::eVERTEX_IN::nPOSITION, 3, GL_FLOAT, GL_FALSE, 0);
-    glVertexArrayVertexBuffer(radiance_vao, 0, bo, 0, sizeof(Position));
-
-    glEnableVertexArrayAttrib(radiance_vao, Render::eVERTEX_IN::nPOSITION);
-
-    InitCubeMap();
 }
 
 void Init()
 {
     std::vector<Vertex> vertex_buffer;
 
-    //auto future = std::async(std::launch::async, LoadModel<Vertex>, "chalet.obj", std::ref(geom_count), std::ref(vertex_buffer));
-    LoadModel<Vertex>("Hebe.obj"sv, std::ref(geom_count), std::ref(vertex_buffer));
+    auto future = std::async(std::launch::async, LoadModel<Vertex>, "Hebe.obj"sv, std::ref(mesh_count), std::ref(vertex_buffer));
 
     Camera::inst().Create(Camera::eCAM_BEHAVIOR::nFREE);
     Camera::inst().SetPos(-1, 3, 1);
     Camera::inst().LookAt(0, 2, 0);
     //Camera::inst().LookAt(math::Vector{0z, 7, -0}, math::Vector{0, 0, 0});
 
-    grid.Update(15, 1, 5);
+    //grid.Update(15, 1, 5);
 
-    cubemap::InitCubemap();
+    //cubemap::InitCubemap();
 
-    InitFramebuffer();
+    //ssao::init();
 
-    if (!geom_program.AssignNew({ R"(Defaults/Diffuse-Lambert.glsl)" }))
+    if (!mesh_program.AssignNew({ R"(Defaults/Diffuse-Lambert.glsl)"s }))
         return;
-
-	InitGaussFilter(ssao_program);
-
-    InitSSAO();
 
     {
 		Render::inst().CreateVAO(quad_vao);
@@ -757,30 +857,30 @@ void Init()
         glVertexArrayVertexBuffer(quad_vao, 0, bo, 0, sizeof(Position));
     }
 
-    InitIBL();
+    ibl::init();
 
-    //if (future.get()) {
-        Render::inst().CreateVAO(geom_vao);
+    if (future.get()) {
+        Render::inst().CreateVAO(mesh_vao);
 
         auto bo = 0u;
         Render::inst().CreateBO(bo);
 
         glNamedBufferStorage(bo, sizeof(decltype(vertex_buffer)::value_type) * std::size(vertex_buffer), std::data(vertex_buffer), 0);
 
-        glVertexArrayAttribBinding(geom_vao, Render::eVERTEX_IN::nPOSITION, 0);
-        glVertexArrayAttribFormat(geom_vao, Render::eVERTEX_IN::nPOSITION, 3, GL_FLOAT, GL_FALSE, offsetof(Vertex, pos));
-        glEnableVertexArrayAttrib(geom_vao, Render::eVERTEX_IN::nPOSITION);
+        glVertexArrayAttribBinding(mesh_vao, Render::eVERTEX_IN::nPOSITION, 0);
+        glVertexArrayAttribFormat(mesh_vao, Render::eVERTEX_IN::nPOSITION, 3, GL_FLOAT, GL_FALSE, offsetof(Vertex, pos));
+        glEnableVertexArrayAttrib(mesh_vao, Render::eVERTEX_IN::nPOSITION);
 
-        glVertexArrayAttribBinding(geom_vao, Render::eVERTEX_IN::nNORMAL, 0);
-        glVertexArrayAttribFormat(geom_vao, Render::eVERTEX_IN::nNORMAL, 3, GL_FLOAT, GL_TRUE, offsetof(Vertex, normal));
-        glEnableVertexArrayAttrib(geom_vao, Render::eVERTEX_IN::nNORMAL);
+        glVertexArrayAttribBinding(mesh_vao, Render::eVERTEX_IN::nNORMAL, 0);
+        glVertexArrayAttribFormat(mesh_vao, Render::eVERTEX_IN::nNORMAL, 3, GL_FLOAT, GL_TRUE, offsetof(Vertex, normal));
+        glEnableVertexArrayAttrib(mesh_vao, Render::eVERTEX_IN::nNORMAL);
 
-        glVertexArrayAttribBinding(geom_vao, Render::eVERTEX_IN::nTEX_COORD, 0);
-        glVertexArrayAttribFormat(geom_vao, Render::eVERTEX_IN::nTEX_COORD, 2, GL_FLOAT, GL_FALSE, offsetof(Vertex, uv));
-        glEnableVertexArrayAttrib(geom_vao, Render::eVERTEX_IN::nTEX_COORD);
+        glVertexArrayAttribBinding(mesh_vao, Render::eVERTEX_IN::nTEX_COORD, 0);
+        glVertexArrayAttribFormat(mesh_vao, Render::eVERTEX_IN::nTEX_COORD, 2, GL_FLOAT, GL_FALSE, offsetof(Vertex, uv));
+        glEnableVertexArrayAttrib(mesh_vao, Render::eVERTEX_IN::nTEX_COORD);
 
-        glVertexArrayVertexBuffer(geom_vao, 0, bo, 0, sizeof(decltype(vertex_buffer)::value_type));
-    //}
+        glVertexArrayVertexBuffer(mesh_vao, 0, bo, 0, sizeof(decltype(vertex_buffer)::value_type));
+    }
 }
 
 void Update()
@@ -795,13 +895,21 @@ void DrawFrame()
     Render::inst().UpdateTransform(0, 3, std::data(matrices));
     Render::inst().UpdateViewport(1, 1, &Render::inst().vp_.proj());
 
-    RenderCubeMap();
+    ibl::render();
+
+    //cubemap::DrawCubemap();
+    //grid.Draw();
+
+    /*mesh_program.UseThis();
+
+    glBindVertexArray(mesh_vao);
+    glDrawArrays(GL_TRIANGLES, 0, 3 * mesh_count);*/
 
     /*glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);*/
     //glClearNamedFramebufferfv(0, GL_COLOR | GL_DEPTH, 0, std::data(colors::kPOWDERBLUE.rgba));
 
-    glViewport(0, 0, width, height);
+    //glViewport(0, 0, width, height);
 
 #if 0
     radiance_program.UseThis();
@@ -811,140 +919,29 @@ void DrawFrame()
 
     //glBindTextureUnit(Render::eSAMPLERS_BINDING::nALBEDO, radiance_tex);
     glProgramUniformHandleui64ARB(radiance_program.program(), Render::eSAMPLERS_BINDING::nALBEDO, radiance_tex_handle);
-    glBindTextureUnit(Render::eSAMPLERS_BINDING::nNORMAL_MAP, tempTexture.id());
 
     glBindVertexArray(radiance_vao);
-    glBindBuffer(GL_DRAW_INDIRECT_BUFFER, radiance_indirect_buffer);
+    glBindBuffer(GL_DRAW_INDIRECT_BUFFER, cube_indirect_buffer);
     glDrawArraysIndirect(GL_TRIANGLE_STRIP, nullptr);
 
 #else
     //cubemap::DrawCubemap();
 
-    //radiance_program.UseThis();
+    /*ibl::program.UseThis();
 
-    //glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, &index2);
-    //glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &index2);
+    glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, &index2);
+    glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &index2);
 
-    ////glProgramUniformHandleui64ARB(radiance_program.program(), 3, envmap_rt_0_handle);
-    //glBindTextureUnit(3, envmap_rt_0);
+    glBindTextureUnit(3, ibl::rt_2D);
 
-    //glBindVertexArray(quad_vao);
-    //glDrawArrays(GL_TRIANGLE_STRIP, 0, 8);
+    glBindVertexArray(quad_vao);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 8);*/
 #endif
-    glBlitNamedFramebuffer(envmap_fbo, 0, 0, 0, envmap_width, envmap_height, 0, 0, width, height, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+    glBlitNamedFramebuffer(ibl::fbo, 0, 0, 0, ibl::width, ibl::height, 0, 0, width, height, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST);
 
 
-
-#if 0
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, kUSE_MS ? ms_fbo : main_fbo);
-
-    glViewport(0, 0, width, height);
-
-    glClearNamedFramebufferfv(kUSE_MS ? ms_fbo : main_fbo, GL_COLOR, 0, std::data(colors::kPOWDERBLUE.rgba));
-    glClearNamedFramebufferfv(kUSE_MS ? ms_fbo : main_fbo, GL_COLOR, 1, std::data(colors::kBLACK.rgba));
-    glClearNamedFramebufferfv(kUSE_MS ? ms_fbo : main_fbo, GL_DEPTH, 0, &clear_colors[Render::kREVERSED_DEPTH ? 0 : 1]);
 
     //cubemap::DrawCubemap();
-    //grid.Draw();
-
-    //geom_program.UseThis();
-
-    ssao_program.UseThis();
-
-    glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, &index0);
-    glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &index0);
-
-    glBindVertexArray(geom_vao);
-    glDrawArrays(GL_TRIANGLES, 0, 3 * geom_count);
-
-    glFinish();
-
-    if constexpr (kUSE_MS)
-        glBlitNamedFramebuffer(ms_fbo, main_fbo, 0, 0, width, height, 0, 0, width, height, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST);
-
-    glBindFramebuffer(GL_FRAMEBUFFER, out_fbo);
-    glViewport(0, 0, width, height);
-
-    glNamedFramebufferTexture(out_fbo, GL_COLOR_ATTACHMENT0, out_rt0, 0);
-
-    glClearNamedFramebufferfv(out_fbo, GL_COLOR, 0, std::data(colors::kPOWDERBLUE.rgba));
-    glClearNamedFramebufferfv(out_fbo, GL_DEPTH, 0, &clear_colors[Render::kREVERSED_DEPTH ? 0 : 1]);
-
-    glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, &index1);
-    glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &index1);
-
-    glProgramUniformHandleui64ARB(ssao_program.program(), Render::eSAMPLERS_BINDING::nALBEDO, rt_0_handle);
-    glProgramUniformHandleui64ARB(ssao_program.program(), Render::eSAMPLERS_BINDING::nNORMAL_MAP, rt_1_handle);
-    glProgramUniformHandleui64ARB(ssao_program.program(), Render::eSAMPLERS_BINDING::nDEPTH, rt_depth_handle);
-    //glProgramUniformHandleui64ARB(ssao_program.program(), 4, noise_tex_handle);
-
-    //glBindTextureUnit(Render::eSAMPLERS_BINDING::nALBEDO, rt_0);
-    //glBindTextureUnit(Render::eSAMPLERS_BINDING::nNORMAL_MAP, rt_1);
-    //glBindTextureUnit(Render::nDEPTH, rt_depth);
-    glBindTextureUnit(4, noise_tex);
-    glBindTextureUnit(5, radiance_tex);
-
-    glBindVertexArray(quad_vao);
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, 8);
-
-#ifndef BLUR
-    glFinish();
-
-    glNamedFramebufferTexture(out_fbo, GL_COLOR_ATTACHMENT0, out_rt1, 0);
-
-    /*glClearNamedFramebufferfv(out_fbo, GL_COLOR, 0, colors::kPOWDERBLUE.rgba.data());
-    glClearNamedFramebufferfv(out_fbo, GL_DEPTH, 0, &clear_colors[Render::kREVERSED_DEPTH ? 0 : 1]);*/
-
-    glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, &index1);
-    glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &index3);
-
-    glProgramUniformHandleui64ARB(ssao_program.program(), Render::eSAMPLERS_BINDING::nALBEDO, out_rt0_handle);
-    glProgramUniformHandleui64ARB(ssao_program.program(), Render::eSAMPLERS_BINDING::nNORMAL_MAP, rt_1_handle);
-    glProgramUniformHandleui64ARB(ssao_program.program(), Render::eSAMPLERS_BINDING::nDEPTH, rt_depth_handle);
-    //glBindTextureUnit(Render::eSAMPLERS_BINDING::nALBEDO, out_rt0);
-
-    glBindVertexArray(quad_vao);
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, 8);
-#if 1
-
-    glNamedFramebufferTexture(out_fbo, GL_COLOR_ATTACHMENT0, out_rt0, 0);
-    glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &index4);
-
-    glProgramUniformHandleui64ARB(ssao_program.program(), Render::eSAMPLERS_BINDING::nALBEDO, out_rt1_handle);
-    //glBindTextureUnit(Render::eSAMPLERS_BINDING::nALBEDO, out_rt1);
-
-    glBindVertexArray(quad_vao);
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, 8);
-#endif
-#endif
-
-    glBlitNamedFramebuffer(out_fbo, 0, 0, 0, width, height, 0, 0, width, height, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST);
-#endif
-    //cubemap::DrawCubemap();
-
-#if 0
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-    hemisphere_program.UseThis();
-    matrices[1].Scale(1, 1, 1);
-    matrices[0] = Render::inst().vp_.projView() * matrices[1];
-    Render::inst().UpdateTransform(0, 2, matrices.data());
-
-    glBindVertexArray(hemisphere_vao);
-    glDrawArrays(GL_POINTS, 0, hemisphere_count);
-#endif
-
-#if 0
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-	test_program.UseThis();
-	matrices[1].Scale(1, 1, 1);
-	matrices[0] = Render::inst().vp_.projView() * matrices[1];
-	Render::inst().UpdateTransform(0, 2, matrices.data());
-
-	glBindVertexArray(test_vao);
-	glDrawArrays(GL_LINE_STRIP, 0, test_count);
-#endif
 }
 };
 

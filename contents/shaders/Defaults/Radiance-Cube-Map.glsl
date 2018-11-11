@@ -79,7 +79,7 @@ layout(early_fragment_tests) in;
 
 layout(location = nBASE_COLOR) out vec4 fragColor;
 
-layout(bindless_sampler, location = nALBEDO) uniform sampler2D equirectangularMap;
+layout(binding = nALBEDO) uniform sampler2D equirectangularMap;
 layout(binding = nNORMAL_MAP) uniform samplerCube cubeMap;
 //layout(bindless_sampler, location = nNORMAL_MAP) uniform samplerCube cubeMap;
 layout(binding = 3) uniform sampler2D map;
