@@ -51,7 +51,7 @@ void equirectangularMapRender()
 layout(index = 1) subroutine(RenderPassType)
 void cubeMapRender()
 {
-    gl_Position = TransformFromWorldToClip(vec4(inVertex, 0));
+    gl_Position = projectionMatrix * viewMatrix * vec4(inVertex, 0);
 
     // You can just assign w component to z,
     // but then you have to change depth comprasion function to GL_LEQUAL(GL_GEQUAL).
@@ -62,7 +62,7 @@ void cubeMapRender()
     gl_Position.z = gl_Position.w * 0.999999;
 #endif
 
-    texCoord = -inVertex;
+    texCoord = inVertex;
 }
 
 

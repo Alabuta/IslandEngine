@@ -26,7 +26,7 @@
 #include <glm/gtx/hash.hpp>
 #pragma warning(pop)
 
-#define RENDER_TO_CUBEMAP 0
+#define RENDER_TO_CUBEMAP 1
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb/stb_image.h"
@@ -41,6 +41,7 @@ using namespace std::string_view_literals;
 namespace cubemap {
 bool InitCubemap();
 void DrawCubemap();
+isle::Texture const &texture();
 }
 
 namespace app {
@@ -62,7 +63,6 @@ Program mesh_program;
 u32 mesh_vao, mesh_count;
 
 u32 quad_vao;
-
 
 
 
@@ -89,9 +89,9 @@ u32 width = 1024, height = 1024;
 
 u32 cube_vao, cube_ibo;
 
-auto captureProjection = glm::perspective(glm::radians(90.f), 1.f, 0.1f, 10.f);
+auto projection = glm::perspective(glm::radians(90.f), 1.f, 0.1f, 10.f);
 
-auto captureViews = make_array(
+auto views = make_array(
     glm::lookAt(glm::vec3(0.f, 0.f, 0.f), glm::vec3(+1.f, +0.f, +0.f), glm::vec3(0.f, -1.f, +0.f)),
     glm::lookAt(glm::vec3(0.f, 0.f, 0.f), glm::vec3(-1.f, +0.f, +0.f), glm::vec3(0.f, -1.f, +0.f)),
     glm::lookAt(glm::vec3(0.f, 0.f, 0.f), glm::vec3(+0.f, +1.f, +0.f), glm::vec3(0.f, +0.f, +1.f)),
@@ -270,24 +270,29 @@ void render()
 
     glViewport(0, 0, width, height);
 
+#if !RENDER_TO_CUBEMAP
     glClearNamedFramebufferfv(fbo, GL_COLOR, 0, std::data(colors::kPOWDERBLUE.rgba));
     glClearNamedFramebufferfv(fbo, GL_DEPTH, 0, &clear_colors[Render::kREVERSED_DEPTH ? 0 : 1]);
+#endif
 
     program.bind();
 
-    glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, &index0);
+    glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, &index1);
     glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &index0);
 
-    glProgramUniformMatrix4fv(program.handle(), 8, 1, GL_FALSE, &captureProjection[0][0]);
+    glProgramUniformMatrix4fv(program.handle(), 8, 1, GL_FALSE, &projection[0][0]);
 
     glBindTextureUnit(Render::eSAMPLERS_BINDING::nALBEDO, equirectangular_tex);
 
 #if RENDER_TO_CUBEMAP
-    std::for_each(std::begin(captureViews), std::end(captureViews), [face = 0] (auto &&captureView) mutable
+    std::for_each(std::begin(views), std::end(views), [face = 0] (auto &&view) mutable
     {
-        glProgramUniformMatrix4fv(program.program(), 9, 1, GL_FALSE, &captureView[0][0]);
+        glProgramUniformMatrix4fv(program.handle(), 9, 1, GL_FALSE, &view[0][0]);
 
         glNamedFramebufferTextureLayer(fbo, GL_COLOR_ATTACHMENT0, rt_cubemap, 0, face++);
+
+        glClearNamedFramebufferfv(fbo, GL_COLOR, 0, std::data(colors::kPOWDERBLUE.rgba));
+        glClearNamedFramebufferfv(fbo, GL_DEPTH, 0, &clear_colors[Render::kREVERSED_DEPTH ? 0 : 1]);
 
         glBindVertexArray(cube_vao);
         glBindBuffer(GL_DRAW_INDIRECT_BUFFER, cube_ibo);
@@ -890,48 +895,33 @@ void DrawFrame()
     //cubemap::DrawCubemap();
     //grid.Draw();
 
-    /*mesh_program.UseThis();
+    glViewport(0, 0, width, height);
 
-    glBindVertexArray(mesh_vao);
-    glDrawArrays(GL_TRIANGLES, 0, 3 * mesh_count);*/
 
-    /*glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);*/
-    //glClearNamedFramebufferfv(0, GL_COLOR | GL_DEPTH, 0, std::data(colors::kPOWDERBLUE.rgba));
-
-    //glViewport(0, 0, width, height);
-
-#if 0
-    radiance_program.UseThis();
+    ibl::program.bind();
 
     glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, &index0);
-    glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &index0);
+    glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &index1);
 
-    //glBindTextureUnit(Render::eSAMPLERS_BINDING::nALBEDO, radiance_tex);
-    glProgramUniformHandleui64ARB(radiance_program.program(), Render::eSAMPLERS_BINDING::nALBEDO, radiance_tex_handle);
+#if RENDER_TO_CUBEMAP
+    glBindTextureUnit(Render::eSAMPLERS_BINDING::nNORMAL_MAP, ibl::rt_cubemap);
 
-    glBindVertexArray(radiance_vao);
-    glBindBuffer(GL_DRAW_INDIRECT_BUFFER, cube_indirect_buffer);
+    glBindVertexArray(ibl::cube_vao);
+    glBindBuffer(GL_DRAW_INDIRECT_BUFFER, ibl::cube_ibo);
     glDrawArraysIndirect(GL_TRIANGLE_STRIP, nullptr);
-
 #else
-    //cubemap::DrawCubemap();
-
-    /*ibl::program.UseThis();
-
-    glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, &index2);
-    glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &index2);
-
     glBindTextureUnit(3, ibl::rt_2D);
 
     glBindVertexArray(quad_vao);
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, 8);*/
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 8);
 #endif
-    glBlitNamedFramebuffer(ibl::fbo, 0, 0, 0, ibl::width, ibl::height, 0, 0, width, height, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST);
 
+    mesh_program.bind();
 
+    glBindVertexArray(mesh_vao);
+    glDrawArrays(GL_TRIANGLES, 0, 3 * mesh_count);
 
-    //cubemap::DrawCubemap();
+    //glBlitNamedFramebuffer(ibl::fbo, 0, 0, 0, ibl::width, ibl::height, 0, 0, width, height, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST);
 }
 };
 
