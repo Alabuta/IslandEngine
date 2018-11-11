@@ -36,6 +36,15 @@ void equirectangularMapRender()
 {
     gl_Position = TransformFromWorldToClip(vec4(inVertex, 0));
 
+    // You can just assign w component to z,
+    // but then you have to change depth comprasion function to GL_LEQUAL(GL_GEQUAL).
+    // Instead, consider code example below.
+#if CRUS_REVERSED_DEPTH
+    gl_Position.z = gl_Position.w * 0.000001;
+#else
+    gl_Position.z = gl_Position.w * 0.999999;
+#endif
+
     texCoord = inVertex;
 }
 

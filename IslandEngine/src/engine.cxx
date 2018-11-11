@@ -150,7 +150,6 @@ void initFramebuffer()
     glTextureParameteri(rt_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
     glTextureStorage2D(rt_2D, 1, GL_RGBA8, width, height);
-    //glTextureSubImage2D(rt_2D, 0, 0, 0, width, height, GL_RGBA, GL_RGBA8, nullptr);
 
     glNamedFramebufferTexture(fbo, GL_COLOR_ATTACHMENT0, rt_2D, 0);
 #endif
@@ -163,15 +162,6 @@ void initFramebuffer()
 
     if (auto const code = glGetError(); code != GL_NO_ERROR)
         log::Error() << __FUNCTION__ << ": " << std::hex << code;
-
-    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-
-    glDisablei(GL_BLEND, 0);
-    glBlendFunci(0, GL_ONE, GL_ONE);
-    /*glEnablei(GL_BLEND, 0);
-    glBlendFunci(0, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);*/
-
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void init()
