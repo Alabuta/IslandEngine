@@ -157,6 +157,12 @@
     <ClCompile Include="src\Manager\CrusMeshLoader.cxx">
       <Filter>Core\Manager</Filter>
     </ClCompile>
+    <ClCompile Include="src\Camera\CameraController.cxx">
+      <Filter>Core\Camera</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Camera\MouseHandler.cxx">
+      <Filter>Core\Camera</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\engine.h">
@@ -284,6 +290,12 @@
     </ClInclude>
     <ClInclude Include="include\Math\GaussRoutines.h">
       <Filter>Core\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Camera\CameraController.h">
+      <Filter>Core\Camera</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Camera\MouseHandler.h">
+      <Filter>Core\Camera</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
