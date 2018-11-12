@@ -91,15 +91,15 @@ u32 width = 1024, height = 1024;
 
 u32 cube_vao, cube_ibo;
 
-auto projection = glm::perspective(glm::radians(90.f), 1.f, 0.1f, 10.f);
+auto projection = glm::perspective(glm::radians(90.f), 1.f, .1f, 10.f);
 
 auto views = make_array(
-    glm::lookAt(glm::vec3(0.f, 0.f, 0.f), glm::vec3(+1.f, +0.f, +0.f), glm::vec3(0.f, -1.f, +0.f)),
-    glm::lookAt(glm::vec3(0.f, 0.f, 0.f), glm::vec3(-1.f, +0.f, +0.f), glm::vec3(0.f, -1.f, +0.f)),
-    glm::lookAt(glm::vec3(0.f, 0.f, 0.f), glm::vec3(+0.f, +1.f, +0.f), glm::vec3(0.f, +0.f, +1.f)),
-    glm::lookAt(glm::vec3(0.f, 0.f, 0.f), glm::vec3(+0.f, -1.f, +0.f), glm::vec3(0.f, +0.f, -1.f)),
-    glm::lookAt(glm::vec3(0.f, 0.f, 0.f), glm::vec3(+0.f, +0.f, +1.f), glm::vec3(0.f, -1.f, +0.f)),
-    glm::lookAt(glm::vec3(0.f, 0.f, 0.f), glm::vec3(+0.f, +0.f, -1.f), glm::vec3(0.f, -1.f, +0.f))
+    glm::lookAt(glm::vec3(0), glm::vec3(+1, +0, +0), glm::vec3(0, -1, +0)),
+    glm::lookAt(glm::vec3(0), glm::vec3(-1, +0, +0), glm::vec3(0, -1, +0)),
+    glm::lookAt(glm::vec3(0), glm::vec3(+0, +1, +0), glm::vec3(0, +0, +1)),
+    glm::lookAt(glm::vec3(0), glm::vec3(+0, -1, +0), glm::vec3(0, +0, -1)),
+    glm::lookAt(glm::vec3(0), glm::vec3(+0, +0, +1), glm::vec3(0, -1, +0)),
+    glm::lookAt(glm::vec3(0), glm::vec3(+0, +0, -1), glm::vec3(0, -1, +0))
 );
 
 
@@ -245,7 +245,6 @@ void render()
         glBindBuffer(GL_DRAW_INDIRECT_BUFFER, cube_ibo);
         glDrawArraysIndirect(GL_TRIANGLE_STRIP, nullptr);
     });
-
 #else
     glBindVertexArray(cube_vao);
     glBindBuffer(GL_DRAW_INDIRECT_BUFFER, cube_ibo);
