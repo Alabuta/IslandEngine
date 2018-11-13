@@ -2,9 +2,3 @@
 
 
 
-CameraController::CameraController()
-{ }
-
-
-CameraController::~CameraController()
-{ }

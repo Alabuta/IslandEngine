@@ -1,11 +1,8 @@
 #pragma once
 
-#include "Math\CrusMath.h"
-#include "Math\CrusVector.h"
-#include "Math\CrusMatrix.h"
-#include "Math\CrusQuaternion.h"
+#include <memory>
+#include <execution>
 
-#include "System\CrusSystem.h"
 
 #define GLM_FORCE_CXX17
 #define GLM_ENABLE_EXPERIMENTAL
@@ -20,22 +17,12 @@
 #include <glm/gtx/hash.hpp>
 #pragma warning(pop)
 
-#include "MouseHandler.h"
+#include "System\CrusSystem.h"
 
-class CameraSystem {
-public:
+#include "Camera/MouseHandler.h"
 
+struct Camera {
 
-};
-
-class Camera {
-public:
-    Camera()
-    {
-        ;
-    }
-
-//private:
     float yFOV{glm::radians(75.f)};
     float near{.01f}, far{100.f};
     float aspect{1.f};
@@ -47,11 +34,33 @@ public:
     glm::mat4 world{1.f};
 };
 
+class CameraSystem {
+public:
+
+    std::shared_ptr<Camera> CreateCamera()
+    {
+        return cameras_.emplace_back();
+    }
+
+    void Update()
+    {
+        std::for_each(std::execution::par_unseq, std::begin(cameras_), std::end(cameras_), [] (auto &&camera)
+        {
+            camera->projectionView = camera->projection * camera->view;
+        });
+    }
+
+private:
+
+    std::vector<std::shared_ptr<Camera>> cameras_;
+};
+
 
 class CameraController {
 public:
-    CameraController();
+    CameraController(std::shared_ptr<Camera> camera) : camera_{camera} { }
 
-    ~CameraController();
+private:
+    std::shared_ptr<Camera> camera_;
 };
 
