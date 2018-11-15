@@ -11,6 +11,9 @@
 #include <bitset>
 #include <iomanip>
 #include <regex>
+#include <iostream>
+
+#include <boost/signals2.hpp>
 
 
 #define GLM_FORCE_CXX17
@@ -25,6 +28,21 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/hash.hpp>
 #pragma warning(pop)
+
+
+template<class T, std::enable_if_t<std::is_same_v<std::decay_t<T>, glm::mat4>>...>
+std::ostream &operator<< (std::ostream &stream, T &&m)
+{
+    stream << std::setprecision(0) << std::fixed;
+
+    stream << m[0][0] << ' ' << m[0][1] << ' ' << m[0][2] << ' ' << m[0][3] << ' ';
+    stream << m[1][0] << ' ' << m[1][1] << ' ' << m[1][2] << ' ' << m[1][3] << ' ';
+    stream << m[2][0] << ' ' << m[2][1] << ' ' << m[2][2] << ' ' << m[2][3] << ' ';
+    stream << m[3][0] << ' ' << m[3][1] << ' ' << m[3][2] << ' ' << m[3][3];
+
+    return stream;
+}
+
 
 #define RENDER_TO_CUBEMAP 1
 
@@ -951,7 +969,7 @@ void DrawFrame()
     glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &index1);
 
 #if RENDER_TO_CUBEMAP
-    glBindTextureUnit(Render::eSAMPLERS_BINDING::nNORMAL_MAP, ibl::rt_irradiance);
+    glBindTextureUnit(Render::eSAMPLERS_BINDING::nNORMAL_MAP, ibl::rt_cubemap);
 
     glBindVertexArray(ibl::cube_vao);
     glBindBuffer(GL_DRAW_INDIRECT_BUFFER, ibl::cube_ibo);
@@ -973,10 +991,89 @@ void DrawFrame()
 };
 
 
+class DeviceInput {
+public:
+
+    virtual ~DeviceInput() = default;
+
+    virtual void update() = 0;
+};
+
+
+class MouseInput final : public DeviceInput {
+public:
+
+    class IHandler {
+    public:
+
+        virtual ~IHandler() = default;
+
+        virtual void onMove(i32 x, i32 y) = 0;
+        virtual void onWheel(i32 delta) = 0;
+    };
+
+    //void addListener(std::weak_ptr<IHandler> slot)
+    void addListener(IHandler *slot)
+    {
+        //onMove_.connect(decltype(onMove_)::slot_type(&IHandler::onMove, slot, _1).track(slot));
+        onMove_.connect(&slot->onMove);
+    }
+
+    void update() override
+    {
+        onMove_(4, 8);
+        onWheel_(-1);
+    }
+
+private:
+
+    enum class eSTATE {
+        nVISIBLE = 0x01, nACTIVE = 0x02,
+        nSHIFT = 0x04, nCTRL = 0x08, nMENU = 0x10,
+        nLEFT = 0x20, nMIDDLE = 0x40, nRIGHT = 0x80, nWHEEL = 0x100,
+        nMAX_VALUE = std::numeric_limits<i32>::max()
+    };
+
+    boost::signals2::signal<void(i32, i32)> onMove_;
+    boost::signals2::signal<void(i32)> onWheel_;
+};
+
+class MouseHandler final : public MouseInput::IHandler {
+public:
+
+
+    void onMove(i32 x, i32 y) override
+    {
+        isle::log::Debug() << x << y;
+    }
+
+    void onWheel(i32 delta) override
+    {
+        isle::log::Debug() << delta;
+    }
+
+private:
+
+    ;
+} handler;
+
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int)
 {
     isle::Window window(crus::names::kMAIN_WINDOW_NAME, hInstance, app::width, app::height);
+
+    auto slot = [] (i32 x, i32 y) { isle::log::Debug() << "slot#1 "s << x << y; return x; };
+
+    boost::signals2::signal<void(i32, i32)> signal;
+    auto connection = signal.connect(slot);
+
+    signal.connect([] (i32 x, i32 y) { isle::log::Debug() << "slot#2 "s << x << y; });
+
+    signal(4, 8);
+
+    connection.disconnect();
+
+    signal(4, 8);
 
     return isle::System::Loop();
 }
