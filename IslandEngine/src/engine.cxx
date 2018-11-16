@@ -1013,10 +1013,24 @@ public:
     };
 
     //void addListener(std::weak_ptr<IHandler> slot)
-    void addListener(IHandler *slot)
+    void addListener(boost::shared_ptr<IHandler> slot)
     {
-        //onMove_.connect(decltype(onMove_)::slot_type(&IHandler::onMove, slot, _1).track(slot));
-        onMove_.connect(&slot->onMove);
+        //onMove_.connect(boost::bind(&IHandler::onMove, *slot, _1));
+        /*using signal_t = boost::signals2::signal<void(i32, i32)>;
+        auto x = signal_t::slot_type(&IHandler::onMove, slot.get(), _1).track(slot);*/
+
+        onMove_.connect(decltype(onMove_)::slot_type([&] (i32 x, i32 y) {
+            slot->onMove(x, y);
+        }).track(slot));
+
+        /*IHandler x;
+        auto func = std::bind(&IHandler::onMove, &x, 2, std::placeholders::_1, 4, std::placeholders::_2);
+        func();*/
+        //onMove_.connect(decltype(onMove_)::slot_type().track(slot));
+
+        /*onMove_.connect([&] (i32 x, i32 y) {
+            slot->onMove(x, y);
+        });*/
     }
 
     void update() override
@@ -1062,18 +1076,18 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int)
 {
     isle::Window window(crus::names::kMAIN_WINDOW_NAME, hInstance, app::width, app::height);
 
-    auto slot = [] (i32 x, i32 y) { isle::log::Debug() << "slot#1 "s << x << y; return x; };
 
-    boost::signals2::signal<void(i32, i32)> signal;
-    auto connection = signal.connect(slot);
+    MouseInput mouse;
 
-    signal.connect([] (i32 x, i32 y) { isle::log::Debug() << "slot#2 "s << x << y; });
+    {
+        auto mouseHandler = boost::shared_ptr<MouseHandler>(new MouseHandler{});
+        mouse.addListener(mouseHandler);
 
-    signal(4, 8);
+        mouse.update();
+        mouse.update();
+    }
 
-    connection.disconnect();
-
-    signal(4, 8);
+    mouse.update();
 
     return isle::System::Loop();
 }
