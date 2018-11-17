@@ -1098,16 +1098,16 @@ private:
 };
 
 
-class DeviceInput {
+class IDeviceInput {
 public:
 
-    virtual ~DeviceInput() = default;
+    virtual ~IDeviceInput() = default;
 
     virtual void update() = 0;
 };
 
 
-class MouseInput final : public DeviceInput {
+class MouseInput final : public IDeviceInput {
 public:
 
     class IHandler {
@@ -1117,80 +1117,93 @@ public:
 
         virtual void onMove(i32 x, i32 y) = 0;
         virtual void onWheel(i32 delta) = 0;
+        virtual void onDown(i32 button) = 0;
+        virtual void onUp(i32 button) = 0;
     };
 
-    //void addListener(std::weak_ptr<IHandler> slot)
-    void addListener(boost::shared_ptr<IHandler> slot)
+    void connect(std::weak_ptr<IHandler> slot)
     {
-        //onMove_.connect(boost::bind(&IHandler::onMove, *slot, _1));
-        /*using signal_t = boost::signals2::signal<void(i32, i32)>;
-        auto x = signal_t::slot_type(&IHandler::onMove, slot.get(), _1).track(slot);*/
+        onMove_.connect(decltype(onMove_)::slot_type([&] (auto x, auto y) {
+            if (auto ptr = slot.lock(); ptr)
+                ptr->onMove(x, y);
+        }).track_foreign(slot));
 
-        onMove_.connect(decltype(onMove_)::slot_type([&] (i32 x, i32 y) {
-            slot->onMove(x, y);
-        }).track(slot));
+        onWheel_.connect(decltype(onWheel_)::slot_type([&] (auto wheel) {
+            if (auto ptr = slot.lock(); ptr)
+                ptr->onWheel(wheel);
+        }).track_foreign(slot));
 
-        /*IHandler x;
-        auto func = std::bind(&IHandler::onMove, &x, 2, std::placeholders::_1, 4, std::placeholders::_2);
-        func();*/
-        //onMove_.connect(decltype(onMove_)::slot_type().track(slot));
+        onDown_.connect(decltype(onDown_)::slot_type([&] (auto button) {
+            if (auto ptr = slot.lock(); ptr)
+                ptr->onDown(button);
+        }).track_foreign(slot));
 
-        /*onMove_.connect([&] (i32 x, i32 y) {
-            slot->onMove(x, y);
-        });*/
+        onUp_.connect(decltype(onUp_)::slot_type([&] (auto button) {
+            if (auto ptr = slot.lock(); ptr)
+                ptr->onUp(button);
+        }).track_foreign(slot));
     }
 
     void update() override
     {
         onMove_(4, 8);
         onWheel_(-1);
+        onDown_(8);
+        onUp_(2);
     }
 
 private:
 
-    enum class eSTATE {
+    enum class eSTATE : u32 {
         nVISIBLE = 0x01, nACTIVE = 0x02,
         nSHIFT = 0x04, nCTRL = 0x08, nMENU = 0x10,
         nLEFT = 0x20, nMIDDLE = 0x40, nRIGHT = 0x80, nWHEEL = 0x100,
-        nMAX_VALUE = std::numeric_limits<i32>::max()
+        nMAX_VALUE = std::numeric_limits<u32>::max()
     };
 
     boost::signals2::signal<void(i32, i32)> onMove_;
     boost::signals2::signal<void(i32)> onWheel_;
+    boost::signals2::signal<void(i32)> onDown_;
+    boost::signals2::signal<void(i32)> onUp_;
 };
 
 class MouseHandler final : public MouseInput::IHandler {
-public:
-
+private:
 
     void onMove(i32 x, i32 y) override
     {
-        isle::log::Debug() << x << y;
+        isle::log::Debug() << __FUNCTION__ << ' ' << x << '\t' << y;
     }
 
     void onWheel(i32 delta) override
     {
-        isle::log::Debug() << delta;
+        isle::log::Debug() << __FUNCTION__ << ' ' << delta;
     }
 
-private:
+    void onDown(i32 button) override
+    {
+        isle::log::Debug() << __FUNCTION__ << ' ' << button;
+    }
 
-    ;
-} handler;
+    void onUp(i32 button) override
+    {
+        isle::log::Debug() << __FUNCTION__ << ' ' << button;
+    }
+};
 
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int)
 {
     isle::Window window(crus::names::kMAIN_WINDOW_NAME, hInstance, app::width, app::height);
 
+    InputManager inputManager{nullptr};
 
     MouseInput mouse;
 
     {
-        auto mouseHandler = boost::shared_ptr<MouseHandler>(new MouseHandler{});
-        mouse.addListener(mouseHandler);
+        auto mouseHandler = std::make_shared<MouseHandler>();
+        mouse.connect(mouseHandler);
 
-        mouse.update();
         mouse.update();
     }
 
