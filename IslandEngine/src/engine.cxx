@@ -16,6 +16,25 @@
 #include <boost/signals2.hpp>
 
 
+#ifndef _UNICODE
+#define _UNICODE
+#endif
+
+#ifndef  UNICODE
+#define  UNICODE
+#endif
+
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#endif
+
+extern "C" {
+#include <HIDsdi.h>
+#pragma comment(lib, "HID.lib")
+}
+
+
 #define GLM_FORCE_CXX17
 #define GLM_ENABLE_EXPERIMENTAL
 #define GLM_FORCE_RADIANS
@@ -988,6 +1007,94 @@ void DrawFrame()
 
     //glBlitNamedFramebuffer(ibl::fbo, 0, 0, 0, ibl::width, ibl::height, 0, 0, width, height, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST);
 }
+};
+
+class InputManager final {
+public:
+
+    InputManager(HWND hTargetWnd)
+    {
+        u32 numDevices{0};
+
+        if (GetRawInputDeviceList(nullptr, &numDevices, sizeof(RAWINPUTDEVICELIST)) == (UINT)-1)
+            throw std::runtime_error("failed to get number of devices"s);
+
+        std::vector<RAWINPUTDEVICELIST> list(numDevices);
+
+        if (GetRawInputDeviceList(std::data(list), &numDevices, sizeof(RAWINPUTDEVICELIST)) != numDevices)
+            throw std::runtime_error("failed to get device list"s);
+
+        std::map<std::string_view, RAWINPUTDEVICE> const map{
+            {
+                "mouse"sv,
+                RAWINPUTDEVICE{
+                    HID_USAGE_PAGE_GENERIC, HID_USAGE_GENERIC_MOUSE,
+                    RIDEV_NOLEGACY | RIDEV_DEVNOTIFY, hTargetWnd
+                }
+            },
+            {
+                "keyboard"sv,
+                RAWINPUTDEVICE{
+                    HID_USAGE_PAGE_GENERIC, HID_USAGE_GENERIC_KEYBOARD,
+                    RIDEV_NOLEGACY | RIDEV_DEVNOTIFY, hTargetWnd
+                }
+            }
+        };
+
+        RID_DEVICE_INFO deviceInfo{ sizeof(RID_DEVICE_INFO) };
+        u32 size{deviceInfo.cbSize};
+
+        std::vector<RAWINPUTDEVICE> devices;
+
+        for (auto &&device : list) {
+            GetRawInputDeviceInfoW(device.hDevice, RIDI_DEVICEINFO, &deviceInfo, &size);
+
+            switch (device.dwType) {
+                case RIM_TYPEMOUSE:
+                    if (deviceInfo.mouse.dwNumberOfButtons > 1)
+                        devices.push_back(map.at("mouse"sv));
+                    break;
+
+                default:
+                    break;
+            }
+        }
+
+        if (RegisterRawInputDevices(std::data(devices), static_cast<u32>(std::size(devices)), sizeof(RAWINPUTDEVICE)) == FALSE)
+            throw std::runtime_error("failed to register input devices"s);
+    }
+
+    ~InputManager()
+    {
+        u32 numDevices{0};
+
+        if (GetRegisteredRawInputDevices(nullptr, &numDevices, sizeof(RAWINPUTDEVICELIST)) == (UINT)-1) {
+            isle::log::Error() << "failed to get number of registered devices"s;
+            return;
+        }
+
+        if (numDevices < 1)
+            return;
+
+        std::vector<RAWINPUTDEVICE> list(numDevices);
+
+        if (GetRegisteredRawInputDevices(std::data(list), &numDevices, sizeof(RAWINPUTDEVICELIST)) != numDevices)
+            isle::log::Error() << "failed to get registered device list"s;
+
+        else {
+            for (auto &&device : list) {
+                device.dwFlags = RIDEV_REMOVE;
+                device.hwndTarget = nullptr;
+            }
+
+            if (RegisterRawInputDevices(std::data(list), static_cast<u32>(std::size(list)),
+                sizeof(RAWINPUTDEVICE)) == FALSE)
+                isle::log::Fatal() << "failed to unregister of input devices"s;
+        }
+    }
+
+private:
+    ;
 };
 
 
