@@ -163,6 +163,9 @@
     <ClCompile Include="src\Camera\MouseHandler.cxx">
       <Filter>Core\Camera</Filter>
     </ClCompile>
+    <ClCompile Include="src\System\InputManager.cxx">
+      <Filter>Core\System\Input</Filter>
+    </ClCompile>
     <ClCompile Include="src\System\MouseInput.cxx">
       <Filter>Core\System\Input</Filter>
     </ClCompile>
@@ -299,6 +302,9 @@
     </ClInclude>
     <ClInclude Include="src\Camera\MouseHandler.h">
       <Filter>Core\Camera</Filter>
+    </ClInclude>
+    <ClInclude Include="src\System\InputManager.hxx">
+      <Filter>Core\System\Input</Filter>
     </ClInclude>
     <ClInclude Include="src\System\MouseInput.hxx">
       <Filter>Core\System\Input</Filter>
