@@ -164,6 +164,7 @@
     <ClCompile Include="src\System\CrusUSBIDs.cxx" />
     <ClCompile Include="src\System\CrusWindow.cxx" />
     <ClCompile Include="src\engine.cxx" />
+    <ClCompile Include="src\System\MouseInput.cxx" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resources\resource.rc" />
@@ -235,6 +236,7 @@
     <ClInclude Include="resources\resource.h" />
     <ClInclude Include="src\Camera\CameraController.h" />
     <ClInclude Include="src\Camera\MouseHandler.h" />
+    <ClInclude Include="src\System\MouseInput.hxx" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="..\book.log" />

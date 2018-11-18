@@ -163,6 +163,9 @@
     <ClCompile Include="src\Camera\MouseHandler.cxx">
       <Filter>Core\Camera</Filter>
     </ClCompile>
+    <ClCompile Include="src\System\MouseInput.cxx">
+      <Filter>Core\System\Input</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\engine.h">
@@ -296,6 +299,9 @@
     </ClInclude>
     <ClInclude Include="src\Camera\MouseHandler.h">
       <Filter>Core\Camera</Filter>
+    </ClInclude>
+    <ClInclude Include="src\System\MouseInput.hxx">
+      <Filter>Core\System\Input</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
