@@ -73,7 +73,7 @@ intf::Grid grid;
 
 auto constexpr kUSE_MS = false;
 
-auto constexpr width = 1920;
+auto constexpr width = 800;
 auto constexpr height = 1080;
 
 auto constexpr clear_colors = isle::make_array(0.f, 1.f);

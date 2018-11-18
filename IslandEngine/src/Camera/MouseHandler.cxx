@@ -2,9 +2,9 @@
 
 
 
-MouseHandler::MouseHandler()
+MouseHandler1::MouseHandler1()
 { }
 
 
-MouseHandler::~MouseHandler()
+MouseHandler1::~MouseHandler1()
 { }

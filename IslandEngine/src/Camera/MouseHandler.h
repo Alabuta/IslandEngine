@@ -1,9 +1,9 @@
 #pragma once
 
-class MouseHandler {
+class MouseHandler1 {
 public:
-    MouseHandler();
+    MouseHandler1();
 
-    ~MouseHandler();
+    ~MouseHandler1();
 };
 
