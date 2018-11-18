@@ -232,7 +232,8 @@ LRESULT Window::Process(HWND _hWnd, UINT _msg, WPARAM _wParam, LPARAM _lParam)
             return 0L;
 
         case WM_INPUT:
-            //Input::Process(_wParam, _lParam);
+            inputProcessCallback_(_wParam, _lParam);
+            DefWindowProcW(_hWnd, _msg, _wParam, _lParam);
             return 0L;
 
         case WM_INPUT_DEVICE_CHANGE:

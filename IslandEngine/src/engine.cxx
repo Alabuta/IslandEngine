@@ -16,25 +16,6 @@
 #include <boost/signals2.hpp>
 
 
-#ifndef _UNICODE
-#define _UNICODE
-#endif
-
-#ifndef  UNICODE
-#define  UNICODE
-#endif
-
-#ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-#endif
-
-extern "C" {
-#include <HIDsdi.h>
-#pragma comment(lib, "HID.lib")
-}
-
-
 #define GLM_FORCE_CXX17
 #define GLM_ENABLE_EXPERIMENTAL
 #define GLM_FORCE_RADIANS
@@ -47,6 +28,9 @@ extern "C" {
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/hash.hpp>
 #pragma warning(pop)
+
+#include "System/InputManager.hxx"
+
 
 
 template<class T, std::enable_if_t<std::is_same_v<std::decay_t<T>, glm::mat4>>...>
@@ -1009,93 +993,6 @@ void DrawFrame()
 }
 };
 
-class InputManager final {
-public:
-
-    InputManager(HWND hTargetWnd)
-    {
-        u32 numDevices{0};
-
-        if (GetRawInputDeviceList(nullptr, &numDevices, sizeof(RAWINPUTDEVICELIST)) == (UINT)-1)
-            throw std::runtime_error("failed to get number of devices"s);
-
-        std::vector<RAWINPUTDEVICELIST> list(numDevices);
-
-        if (GetRawInputDeviceList(std::data(list), &numDevices, sizeof(RAWINPUTDEVICELIST)) != numDevices)
-            throw std::runtime_error("failed to get device list"s);
-
-        std::map<std::string_view, RAWINPUTDEVICE> const map{
-            {
-                "mouse"sv,
-                RAWINPUTDEVICE{
-                    HID_USAGE_PAGE_GENERIC, HID_USAGE_GENERIC_MOUSE,
-                    RIDEV_NOLEGACY | RIDEV_DEVNOTIFY, hTargetWnd
-                }
-            },
-            {
-                "keyboard"sv,
-                RAWINPUTDEVICE{
-                    HID_USAGE_PAGE_GENERIC, HID_USAGE_GENERIC_KEYBOARD,
-                    RIDEV_NOLEGACY | RIDEV_DEVNOTIFY, hTargetWnd
-                }
-            }
-        };
-
-        RID_DEVICE_INFO deviceInfo{ sizeof(RID_DEVICE_INFO) };
-        u32 size{deviceInfo.cbSize};
-
-        std::vector<RAWINPUTDEVICE> devices;
-
-        for (auto &&device : list) {
-            GetRawInputDeviceInfoW(device.hDevice, RIDI_DEVICEINFO, &deviceInfo, &size);
-
-            switch (device.dwType) {
-                case RIM_TYPEMOUSE:
-                    if (deviceInfo.mouse.dwNumberOfButtons > 1)
-                        devices.push_back(map.at("mouse"sv));
-                    break;
-
-                default:
-                    break;
-            }
-        }
-
-        if (RegisterRawInputDevices(std::data(devices), static_cast<u32>(std::size(devices)), sizeof(RAWINPUTDEVICE)) == FALSE)
-            throw std::runtime_error("failed to register input devices"s);
-    }
-
-    ~InputManager()
-    {
-        u32 numDevices{0};
-
-        if (GetRegisteredRawInputDevices(nullptr, &numDevices, sizeof(RAWINPUTDEVICELIST)) == (UINT)-1) {
-            isle::log::Error() << "failed to get number of registered devices"s;
-            return;
-        }
-
-        if (numDevices < 1)
-            return;
-
-        std::vector<RAWINPUTDEVICE> list(numDevices);
-
-        if (GetRegisteredRawInputDevices(std::data(list), &numDevices, sizeof(RAWINPUTDEVICELIST)) != numDevices)
-            isle::log::Error() << "failed to get registered device list"s;
-
-        else {
-            for (auto &&device : list) {
-                device.dwFlags = RIDEV_REMOVE;
-                device.hwndTarget = nullptr;
-            }
-
-            if (RegisterRawInputDevices(std::data(list), static_cast<u32>(std::size(list)),
-                sizeof(RAWINPUTDEVICE)) == FALSE)
-                isle::log::Fatal() << "failed to unregister of input devices"s;
-        }
-    }
-
-private:
-    ;
-};
 
 
 class IDeviceInput {
@@ -1107,67 +1004,8 @@ public:
 };
 
 
-class MouseInput final : public IDeviceInput {
-public:
 
-    class IHandler {
-    public:
-
-        virtual ~IHandler() = default;
-
-        virtual void onMove(i32 x, i32 y) = 0;
-        virtual void onWheel(i32 delta) = 0;
-        virtual void onDown(i32 button) = 0;
-        virtual void onUp(i32 button) = 0;
-    };
-
-    void connect(std::weak_ptr<IHandler> slot)
-    {
-        onMove_.connect(decltype(onMove_)::slot_type([&] (auto x, auto y) {
-            if (auto ptr = slot.lock(); ptr)
-                ptr->onMove(x, y);
-        }).track_foreign(slot));
-
-        onWheel_.connect(decltype(onWheel_)::slot_type([&] (auto wheel) {
-            if (auto ptr = slot.lock(); ptr)
-                ptr->onWheel(wheel);
-        }).track_foreign(slot));
-
-        onDown_.connect(decltype(onDown_)::slot_type([&] (auto button) {
-            if (auto ptr = slot.lock(); ptr)
-                ptr->onDown(button);
-        }).track_foreign(slot));
-
-        onUp_.connect(decltype(onUp_)::slot_type([&] (auto button) {
-            if (auto ptr = slot.lock(); ptr)
-                ptr->onUp(button);
-        }).track_foreign(slot));
-    }
-
-    void update() override
-    {
-        onMove_(4, 8);
-        onWheel_(-1);
-        onDown_(8);
-        onUp_(2);
-    }
-
-private:
-
-    enum class eSTATE : u32 {
-        nVISIBLE = 0x01, nACTIVE = 0x02,
-        nSHIFT = 0x04, nCTRL = 0x08, nMENU = 0x10,
-        nLEFT = 0x20, nMIDDLE = 0x40, nRIGHT = 0x80, nWHEEL = 0x100,
-        nMAX_VALUE = std::numeric_limits<u32>::max()
-    };
-
-    boost::signals2::signal<void(i32, i32)> onMove_;
-    boost::signals2::signal<void(i32)> onWheel_;
-    boost::signals2::signal<void(i32)> onDown_;
-    boost::signals2::signal<void(i32)> onUp_;
-};
-
-class MouseHandler final : public MouseInput::IHandler {
+class MouseHandler final : public isle::MouseInput::IHandler {
 private:
 
     void onMove(i32 x, i32 y) override
@@ -1180,14 +1018,14 @@ private:
         isle::log::Debug() << __FUNCTION__ << ' ' << delta;
     }
 
-    void onDown(i32 button) override
+    void onDown(IHandler::buttons_t buttons) override
     {
-        isle::log::Debug() << __FUNCTION__ << ' ' << button;
+        isle::log::Debug() << __FUNCTION__ << ' ' << buttons.to_string();
     }
 
-    void onUp(i32 button) override
+    void onUp(IHandler::buttons_t buttons) override
     {
-        isle::log::Debug() << __FUNCTION__ << ' ' << button;
+        isle::log::Debug() << __FUNCTION__ << ' ' << buttons.to_string();
     }
 };
 
@@ -1196,18 +1034,16 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int)
 {
     isle::Window window(crus::names::kMAIN_WINDOW_NAME, hInstance, app::width, app::height);
 
-    InputManager inputManager{nullptr};
+    isle::InputManager inputManager{window.hWnd()};
 
-    MouseInput mouse;
-
+    window.AddInputProcessCallback([&inputManager] (auto wParam, auto lParam)
     {
-        auto mouseHandler = std::make_shared<MouseHandler>();
-        mouse.connect(mouseHandler);
+        return inputManager.Process(wParam, lParam);
+    });
 
-        mouse.update();
-    }
+    auto mouseHandler = std::make_shared<MouseHandler>();
+    inputManager.mouse().connect(mouseHandler);
 
-    mouse.update();
 
     return isle::System::Loop();
 }

@@ -12,6 +12,7 @@
 #define CRUS_WINDOW_H
 
 #include <unordered_map>
+#include <functional>
 
 #ifndef _UNICODE
 #define _UNICODE
@@ -44,6 +45,11 @@ public:
     bool IsZoomed() const;
     bool IsWindowed() const;
 
+    void AddInputProcessCallback(std::function<void(WPARAM, LPARAM)> callback)
+    {
+        inputProcessCallback_ = callback;
+    }
+
     static Window &main();
 
     static Window &GetWindowFromHandle(HWND const &hWnd);
@@ -74,6 +80,8 @@ private:
     static void ChangeDisplayMode();
 
     LRESULT Process(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+
+    std::function<void(WPARAM, LPARAM)> inputProcessCallback_;
 
     static LRESULT CALLBACK ProcessAllWindows(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 };
