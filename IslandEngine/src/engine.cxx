@@ -1020,12 +1020,12 @@ private:
 
     void onDown(IHandler::buttons_t buttons) override
     {
-        isle::log::Debug() << __FUNCTION__ << ' ' << buttons.to_string();
+        isle::log::Debug() << __FUNCTION__ << ' ' << std::hex << buttons.to_ulong();
     }
 
     void onUp(IHandler::buttons_t buttons) override
     {
-        isle::log::Debug() << __FUNCTION__ << ' ' << buttons.to_string();
+        isle::log::Debug() << __FUNCTION__ << ' ' << std::hex << buttons.to_ulong();
     }
 };
 

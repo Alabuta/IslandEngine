@@ -23,7 +23,7 @@ public:
     class IHandler {
     public:
 
-        using buttons_t = std::bitset<5>;
+        using buttons_t = std::bitset<8>;
 
         virtual ~IHandler() = default;
 
@@ -39,7 +39,7 @@ public:
 
 private:
 
-    std::bitset<5> buttonsDown_, buttonsUp_;
+    IHandler::buttons_t pressed_, depressed_;
 
     boost::signals2::signal<void(i32, i32)> onMove_;
     boost::signals2::signal<void(i32)> onWheel_;

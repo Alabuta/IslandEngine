@@ -1,30 +1,5 @@
 #include "System/MouseInput.hxx"
 
-namespace
-{
-template<class T, typename std::enable_if_t<std::is_enum_v<std::decay_t<T>>>...>
-struct bitflag {
-    constexpr bitflag<T> operator&= (T const &flag) const noexcept
-    {
-        using U = std::underlying_type_t<std::decay_t<T>>;
-
-        *this = static_cast<U>(*this) | static_cast<U>(flag);
-
-        return *this;
-    }
-};
-
-namespace bittest
-{
-template<class T, typename std::enable_if_t<std::is_enum_v<T>>...>
-T constexpr operator| (T lhs, T rhs)
-{
-    using U = typename std::underlying_type_t<T>;
-
-    return static_cast<U>(lhs) | static_cast<U>(rhs);
-}
-}
-}
 
 namespace isle
 {
@@ -55,8 +30,8 @@ void MouseInput::update(RAWMOUSE &&data)
 {
     switch (data.usFlags) {
         case MOUSE_MOVE_RELATIVE:
-            /*relat_x_ = -static_cast<i16>(_data->lLastX) * sense_x_;
-            relat_y_ = -static_cast<i16>(_data->lLastY) * sense_y_;*/
+            if (data.lLastX || data.lLastY)
+                onMove_(static_cast<i32>(data.lLastX), static_cast<i32>(data.lLastY));
             break;
 
         case MOUSE_MOVE_ABSOLUTE:
@@ -70,40 +45,36 @@ void MouseInput::update(RAWMOUSE &&data)
         case MOUSE_ATTRIBUTES_CHANGED:          // Needs to query the attributes.
             log::Warning() << "MOUSE_ATTRIBUTES_CHANGED";
             break;
+    }    
+    
+    if (data.usButtonFlags) {
+        pressed_.reset();
+        depressed_.reset();
+
+        std::bitset<16> bitset{data.usButtonFlags};
+
+        for (std::size_t i = 0; i < bitset.size(); i += 2) {
+            auto down = bitset[i];
+            auto up = bitset[i + 1];
+
+            pressed_[i / 2] = down;
+            depressed_[i / 2] = up;
+        }
+
+        if (pressed_.any())
+            onDown_(pressed_);
+
+        if (depressed_.any())
+            onUp_(depressed_);
     }
 
-    buttonsDown_.reset();
-    buttonsUp_.reset();
-
     switch (data.usButtonFlags) {
-        case RI_MOUSE_BUTTON_1_DOWN:
-        case RI_MOUSE_BUTTON_2_DOWN:
-        case RI_MOUSE_BUTTON_3_DOWN:
-            buttonsDown_.set(data.usButtonFlags - 1);
+        case RI_MOUSE_WHEEL:
+            onWheel_(static_cast<i32>(data.usButtonFlags));
             break;
-
-        case RI_MOUSE_BUTTON_1_UP:
-        case RI_MOUSE_BUTTON_2_UP:
-        case RI_MOUSE_BUTTON_3_UP:
-            buttonsUp_.set(data.usButtonFlags / 2 - 1);
-            break;
-
-        /*case RI_MOUSE_WHEEL:
-            //wheel_ = _data->usButtonFlags;
-            state_ ^= nSTATE::WHEEL;
-            break;*/
 
         default:
             break;
     }
-
-    if (buttonsDown_.any())
-        onDown_(8);
-
-    if (buttonsUp_.any())
-        onUp_(2);
-
-    /*onMove_(4, 8);
-    onWheel_(-1);*/
 }
 }
