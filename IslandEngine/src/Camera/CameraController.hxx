@@ -8,6 +8,7 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
+#define GLM_GTC_MATRIX_INVERSE
 
 #pragma warning(push, 3)
 #pragma warning(disable: 4201)
@@ -17,14 +18,13 @@
 #include <glm/gtx/hash.hpp>
 #pragma warning(pop)
 
-#include "System\CrusSystem.h"
+#include "System/CrusSystem.h"
 
-#include "Camera/MouseHandler.h"
+#include "Camera/MouseHandler.hxx"
 
 struct Camera {
-
     float yFOV{glm::radians(75.f)};
-    float near{.01f}, far{100.f};
+    float znear{.01f}, zfar{100.f};
     float aspect{1.f};
 
     glm::mat4 view{1.f};
@@ -37,15 +37,21 @@ struct Camera {
 class CameraSystem {
 public:
 
-    std::shared_ptr<Camera> CreateCamera()
+    std::shared_ptr<Camera> createCamera()
     {
-        return cameras_.emplace_back();
+        auto camera = std::make_shared<Camera>();
+        camera->projection = glm::infinitePerspective(camera->yFOV, camera->aspect, camera->znear);
+
+        cameras_.push_back(std::move(camera));
+
+        return cameras_.back();
     }
 
-    void Update()
+    void update()
     {
         std::for_each(std::execution::par_unseq, std::begin(cameras_), std::end(cameras_), [] (auto &&camera)
         {
+            camera->view = glm::inverse(camera->world);
             camera->projectionView = camera->projection * camera->view;
         });
     }
@@ -54,13 +60,3 @@ private:
 
     std::vector<std::shared_ptr<Camera>> cameras_;
 };
-
-
-class CameraController {
-public:
-    CameraController(std::shared_ptr<Camera> camera) : camera_{camera} { }
-
-private:
-    std::shared_ptr<Camera> camera_;
-};
-

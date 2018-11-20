@@ -30,6 +30,7 @@
 #pragma warning(pop)
 
 #include "System/InputManager.hxx"
+#include "Camera/CameraController.hxx"
 
 
 
@@ -57,6 +58,12 @@ std::ostream &operator<< (std::ostream &stream, T &&m)
 
 using namespace std::string_literals;
 using namespace std::string_view_literals;
+
+struct application_t {
+    CameraSystem cameraSystem;
+    std::shared_ptr<Camera> camera;
+
+} application;
 
 
 namespace cubemap {
@@ -886,9 +893,9 @@ void Init()
 
     auto future = std::async(std::launch::async, LoadModel<Vertex>, "Hebe.obj"sv, std::ref(mesh_count), std::ref(vertex_buffer));
 
-    Camera::inst().Create(Camera::eCAM_BEHAVIOR::nFREE);
-    Camera::inst().SetPos(-1, 3, 1);
-    Camera::inst().LookAt(0, 2, 0);
+    isle::Camera::inst().Create(isle::Camera::eCAM_BEHAVIOR::nFREE);
+    isle::Camera::inst().SetPos(-1, 3, 1);
+    isle::Camera::inst().LookAt(0, 2, 0);
     //Camera::inst().LookAt(math::Vector{0z, 7, -0}, math::Vector{0, 0, 0});
 
     //grid.Update(15, 1, 5);
@@ -949,7 +956,9 @@ void Init()
 }
 
 void Update()
-{ }
+{
+    application.cameraSystem.update();
+}
 
 void DrawFrame()
 {
@@ -994,15 +1003,30 @@ void DrawFrame()
 };
 
 
+//class Camera final {
+//public:
+//
+//    Camera
+//};
 
-class IDeviceInput {
+
+class OrbitController final {
 public:
 
-    virtual ~IDeviceInput() = default;
+    OrbitController(std::shared_ptr<Camera> camera) : camera_{camera}
+    {
+        ;
+    }
 
-    virtual void update() = 0;
+    void update()
+    {
+        ;
+    }
+
+private:
+    std::shared_ptr<Camera> camera_;
+
 };
-
 
 
 class MouseHandler final : public isle::MouseInput::IHandler {
@@ -1040,6 +1064,15 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int)
     {
         return inputManager.Process(wParam, lParam);
     });
+
+    application.camera = application.cameraSystem.createCamera();
+
+    auto &&cameraWorldMatrix = application.camera->world;
+
+    auto cameraPosition = glm::vec3{4, 4, 4};
+
+    cameraWorldMatrix = glm::lookAt(glm::vec3{0, 2, 0}, cameraPosition, glm::vec3{0, 1, 0});
+    cameraWorldMatrix = glm::translate(cameraWorldMatrix, cameraPosition);
 
     auto mouseHandler = std::make_shared<MouseHandler>();
     inputManager.mouse().connect(mouseHandler);
