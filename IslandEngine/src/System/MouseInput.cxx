@@ -1,5 +1,23 @@
 #include "System/MouseInput.hxx"
 
+namespace
+{
+std::bitset<16> constexpr kPRESSED_MASK{
+    RI_MOUSE_BUTTON_1_DOWN |
+    RI_MOUSE_BUTTON_2_DOWN |
+    RI_MOUSE_BUTTON_3_DOWN |
+    RI_MOUSE_BUTTON_4_DOWN |
+    RI_MOUSE_BUTTON_5_DOWN
+};
+
+std::bitset<16> constexpr kDEPRESSED_MASK{
+    RI_MOUSE_BUTTON_1_UP |
+    RI_MOUSE_BUTTON_2_UP |
+    RI_MOUSE_BUTTON_3_UP |
+    RI_MOUSE_BUTTON_4_UP |
+    RI_MOUSE_BUTTON_5_UP
+};
+}
 
 namespace isle
 {
@@ -31,7 +49,7 @@ void MouseInput::update(RAWMOUSE &&data)
     switch (data.usFlags) {
         case MOUSE_MOVE_RELATIVE:
             if (data.lLastX || data.lLastY)
-                onMove_(static_cast<i32>(data.lLastX), static_cast<i32>(data.lLastY));
+                onMove_(data.lLastX, data.lLastY);
             break;
 
         case MOUSE_MOVE_ABSOLUTE:
@@ -48,29 +66,25 @@ void MouseInput::update(RAWMOUSE &&data)
     }    
     
     if (data.usButtonFlags) {
-        pressed_.reset();
-        depressed_.reset();
-
         std::bitset<16> bitset{data.usButtonFlags};
 
-        for (std::size_t i = 0; i < bitset.size(); i += 2) {
-            auto down = bitset[i];
-            auto up = bitset[i + 1];
+        for (std::size_t i = 0; i < bitset.size(); ++i) {
+            auto const pressed = bitset[i];
+            auto const depressed = bitset[++i];
 
-            pressed_[i / 2] = down;
-            depressed_[i / 2] = up;
+            buttons_[i / 2] = (buttons_[i / 2] | pressed) & ~depressed;
         }
 
-        if (pressed_.any())
-            onDown_(pressed_);
+        if ((bitset & kPRESSED_MASK).any())
+            onDown_(buttons_);
 
-        if (depressed_.any())
-            onUp_(depressed_);
+        if ((bitset & kDEPRESSED_MASK).any())
+            onUp_(buttons_);
     }
 
     switch (data.usButtonFlags) {
         case RI_MOUSE_WHEEL:
-            onWheel_(static_cast<i32>(data.usButtonFlags));
+            onWheel_(static_cast<i16>(data.usButtonData));
             break;
 
         default:

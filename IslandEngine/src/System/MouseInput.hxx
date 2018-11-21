@@ -27,8 +27,8 @@ public:
 
         virtual ~IHandler() = default;
 
-        virtual void onMove(i32 x, i32 y) = 0;
-        virtual void onWheel(i32 delta) = 0;
+        virtual void onMove(i64 x, i64 y) = 0;
+        virtual void onWheel(i16 delta) = 0;
         virtual void onDown(buttons_t buttons) = 0;
         virtual void onUp(buttons_t buttons) = 0;
     };
@@ -39,7 +39,7 @@ public:
 
 private:
 
-    IHandler::buttons_t pressed_, depressed_;
+    IHandler::buttons_t buttons_;
 
     boost::signals2::signal<void(i32, i32)> onMove_;
     boost::signals2::signal<void(i32)> onWheel_;

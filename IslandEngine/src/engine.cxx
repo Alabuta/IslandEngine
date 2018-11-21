@@ -1032,12 +1032,12 @@ private:
 class MouseHandler final : public isle::MouseInput::IHandler {
 private:
 
-    void onMove(i32 x, i32 y) override
+    void onMove(i64 x, i64 y) override
     {
         isle::log::Debug() << __FUNCTION__ << ' ' << x << '\t' << y;
     }
 
-    void onWheel(i32 delta) override
+    void onWheel(i16 delta) override
     {
         isle::log::Debug() << __FUNCTION__ << ' ' << delta;
     }
