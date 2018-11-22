@@ -1,5 +1,9 @@
 #pragma once
 
+#define GLM_FORCE_CXX17
+#include <glm/glm.hpp>
+
+
 #include "System/InputManager.hxx"
 #include "System/MouseInput.hxx"
 
@@ -15,6 +19,13 @@ public:
 private:
 
     OrbitController &controller_;
+
+    std::function<void()> updateHandler_{[] { }};
+
+    glm::vec2 delta{0.f, 0.f};
+    glm::vec2 last{0.f, 0.f};
+
+    glm::vec2 dollyDirection{0, -1};
 
     void onMove(i64 x, i64 y) override;
     void onWheel(i16 delta) override;

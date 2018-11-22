@@ -14,6 +14,7 @@
 #pragma warning(disable: 4201)
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/matrix_decompose.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/hash.hpp>
 #pragma warning(pop)
@@ -71,6 +72,10 @@ class OrbitController final {
 public:
 
     OrbitController(std::shared_ptr<Camera> camera, InputManager &inputManager);
+
+    void rotate(float x, float y);
+    void pan(float x, float y);
+    void dolly(float delta);
 
     void update();
 
