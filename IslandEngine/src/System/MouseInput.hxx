@@ -33,7 +33,7 @@ public:
         virtual void onUp(buttons_t buttons) = 0;
     };
 
-    void connect(std::weak_ptr<IHandler> slot);
+    void connect(std::shared_ptr<IHandler> slot);
 
     void update(RAWMOUSE &&data);
 
