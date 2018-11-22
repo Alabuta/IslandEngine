@@ -79,7 +79,7 @@ void Viewport::SetViewport(i16 _x, i16 _y, i16 _w, i16 _h)
     );
 }
 
-void Viewport::SetCamera(Camera *const _cam)
+void Viewport::SetCamera(Camera2 *const _cam)
 {
     cam_ = _cam;
 

@@ -18,10 +18,10 @@ extern isle::Input::Controller controller;
 
 namespace isle {
 
-Camera::Camera() : pitch_{0.0f}, yaw_{0.0f}, view_{math::Matrix::Identity()} { }
-Camera::~Camera() { };
+Camera2::Camera2() : pitch_{0.0f}, yaw_{0.0f}, view_{math::Matrix::Identity()} { }
+Camera2::~Camera2() { };
 
-void Camera::Create(Camera::eCAM_BEHAVIOR _behavior)
+void Camera2::Create(Camera2::eCAM_BEHAVIOR _behavior)
 {
     switch (_behavior) {
         case eCAM_BEHAVIOR::nFIRST:
@@ -44,7 +44,7 @@ void Camera::Create(Camera::eCAM_BEHAVIOR _behavior)
     behavior_ = _behavior;
 }
 
-void Camera::SetBehavior(Camera::eCAM_BEHAVIOR _behavior)
+void Camera2::SetBehavior(Camera2::eCAM_BEHAVIOR _behavior)
 {
     if (behavior_ == _behavior)
         return;
@@ -69,7 +69,7 @@ void Camera::SetBehavior(Camera::eCAM_BEHAVIOR _behavior)
 }
 
 
-void isle::Camera::LookAt(math::Vector const &eye, math::Vector const &target)
+void isle::Camera2::LookAt(math::Vector const &eye, math::Vector const &target)
 {
     aim_ = target;
 
@@ -103,7 +103,7 @@ void isle::Camera::LookAt(math::Vector const &eye, math::Vector const &target)
     //view_.pos = eye;
 }
 
-void Camera::LookAt(math::Vector const &_aim)
+void Camera2::LookAt(math::Vector const &_aim)
 {
     LookAt(pos_, _aim);
     return;
@@ -130,13 +130,13 @@ void Camera::LookAt(math::Vector const &_aim)
 }
 
 // :TODO: temporary solution - must be deleted.
-/*static*/ __declspec(noinline) Camera &Camera::inst()
+/*static*/ __declspec(noinline) Camera2 &Camera2::inst()
 {
-    static Camera camera;
+    static Camera2 camera;
     return camera;
 }
 
-float Camera::RestricPitch(float _pitch)
+float Camera2::RestricPitch(float _pitch)
 {
     pitch_ += _pitch;
 
@@ -149,7 +149,7 @@ float Camera::RestricPitch(float _pitch)
     return pitch_;
 }
 
-float Camera::RestricYaw(float _yaw)
+float Camera2::RestricYaw(float _yaw)
 {
     yaw_ += _yaw;
 
@@ -162,7 +162,7 @@ float Camera::RestricYaw(float _yaw)
     return yaw_;
 }
 
-void Camera::UpdateView()
+void Camera2::UpdateView()
 {
     RECT ws;
     GetWindowRect(Window::main().hWnd(), &ws);
@@ -222,7 +222,7 @@ void Camera::UpdateView()
     view_.z = -zAxis * pos_;
 }
 
-void Camera::Update()
+void Camera2::Update()
 {
     UpdateView();
 }

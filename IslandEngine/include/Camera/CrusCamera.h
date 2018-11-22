@@ -24,10 +24,10 @@ class ICameraBehaviour;
 
 namespace isle {
 /**
-@brief Camera class for camera creation and control
+@brief Camera2 class for camera creation and control
 @detailed »спользуетс€ дл€ создани€ нескольких видов камер
 */
-class Camera {
+class Camera2 {
 public:
     // The basis world unit vectors.
     static math::Vector constexpr kWORLD_AXIS_X{1.0f, 0.0f, 0.0f};
@@ -38,11 +38,11 @@ public:
         nNIL = 0x00, nFIRST, nFREE, nTHIRD, nSDK
     };
 
-    Camera();
-    ~Camera();
+    Camera2();
+    ~Camera2();
 
-    void Create(Camera::eCAM_BEHAVIOR behavior);
-    void SetBehavior(Camera::eCAM_BEHAVIOR behavior);
+    void Create(Camera2::eCAM_BEHAVIOR behavior);
+    void SetBehavior(Camera2::eCAM_BEHAVIOR behavior);
 
     void Update();
 
@@ -63,7 +63,7 @@ public:
     math::Vector const &SetPos(float x, float y, float z);
 
     // :TODO: temporary solution - must be deleted.
-    static Camera &inst();
+    static Camera2 &inst();
 
 private:
     math::Matrix view_;
@@ -78,8 +78,8 @@ private:
 
     eCAM_BEHAVIOR behavior_{eCAM_BEHAVIOR::nNIL};
 
-    Camera(Camera const &cam);
-    //Camera const &operator= (Camera const &cam);
+    Camera2(Camera2 const &cam);
+    //Camera2 const &operator= (Camera2 const &cam);
 
     float RestricPitch(float pitch);
     float RestricYaw(float yaw);
@@ -87,42 +87,42 @@ private:
     void UpdateView();
 };
 
-inline math::Vector const &Camera::aim() const
+inline math::Vector const &Camera2::aim() const
 {
     return aim_;
 }
 
-inline math::Vector const &Camera::SetAim(math::Vector const &_aim)
+inline math::Vector const &Camera2::SetAim(math::Vector const &_aim)
 {
     return aim_ = _aim;
 }
 
-inline math::Vector const &Camera::SetAim(float _x, float _y, float _z)
+inline math::Vector const &Camera2::SetAim(float _x, float _y, float _z)
 {
     return SetAim(math::Vector(_x, _y, _z));
 }
 
-inline math::Vector const &Camera::pos() const
+inline math::Vector const &Camera2::pos() const
 {
     return pos_;
 }
 
-inline math::Vector const &Camera::SetPos(math::Vector const &_pos)
+inline math::Vector const &Camera2::SetPos(math::Vector const &_pos)
 {
     return pos_ = _pos;
 }
 
-inline math::Vector const &Camera::SetPos(float _x, float _y, float _z)
+inline math::Vector const &Camera2::SetPos(float _x, float _y, float _z)
 {
     return SetPos(math::Vector(_x, _y, _z));
 }
 
-inline void Camera::LookAt(float _x, float _y, float _z)
+inline void Camera2::LookAt(float _x, float _y, float _z)
 {
     LookAt(math::Vector(_x, _y, _z));
 }
 
-inline math::Matrix const &Camera::view() const
+inline math::Matrix const &Camera2::view() const
 {
     return view_;
 }

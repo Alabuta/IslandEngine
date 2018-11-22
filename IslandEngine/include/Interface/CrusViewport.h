@@ -27,11 +27,11 @@ public:
     void Create(Viewport::eVIEWPORT_TYPE type);
 
     void SetViewport(i16 x, i16 y, i16 w, i16 h);
-    void SetCamera(Camera *const cam);
+    void SetCamera(Camera2 *const cam);
 
     void MakeCurrent() const;
 
-    Camera &cam();
+    Camera2 &cam();
 
     math::Matrix const &proj() const;
     math::Matrix projView() const;
@@ -47,7 +47,7 @@ public:
 
     math::Matrix proj_, viewport_;
     math::Matrix invProj_;
-    Camera *cam_;
+    Camera2 *cam_;
 
     struct {
         bool IsActive_ : 1;
@@ -77,7 +77,7 @@ inline math::Matrix const &Viewport::invProj() const
     return invProj_;
 }
 
-inline Camera &Viewport::cam()
+inline Camera2 &Viewport::cam()
 {
     return *cam_;
 }

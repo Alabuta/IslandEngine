@@ -67,7 +67,7 @@ void Render::Init()
     glClearColor(kCLEARGRAY.r, kCLEARGRAY.g, kCLEARGRAY.b, 1.0f);
 
     vp_.Create(intf::Viewport::eVIEWPORT_TYPE::nPERSPECTIVE);
-    vp_.SetCamera(&Camera::inst());
+    vp_.SetCamera(&Camera2::inst());
 }
 
 void Render::DeleteContext()

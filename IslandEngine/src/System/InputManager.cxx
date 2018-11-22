@@ -108,7 +108,7 @@ InputManager::~InputManager()
     u32 numDevices{0};
 
     if (GetRegisteredRawInputDevices(nullptr, &numDevices, sizeof(RAWINPUTDEVICELIST)) == static_cast<UINT>(-1)) {
-        isle::log::Error() << "failed to get number of registered devices"s;
+        log::Error() << "failed to get number of registered devices"s;
         return;
     }
 
@@ -118,7 +118,7 @@ InputManager::~InputManager()
     std::vector<RAWINPUTDEVICE> list(numDevices);
 
     if (GetRegisteredRawInputDevices(std::data(list), &numDevices, sizeof(RAWINPUTDEVICELIST)) != numDevices)
-        isle::log::Error() << "failed to get registered device list"s;
+        log::Error() << "failed to get registered device list"s;
 
     else {
         for (auto &&device : list) {
@@ -128,7 +128,7 @@ InputManager::~InputManager()
 
         if (RegisterRawInputDevices(std::data(list), static_cast<u32>(std::size(list)),
                                     sizeof(RAWINPUTDEVICE)) == FALSE)
-            isle::log::Error() << "failed to unregister of input devices"s;
+            log::Error() << "failed to unregister of input devices"s;
     }
 }
 
@@ -141,7 +141,7 @@ void InputManager::Process(WPARAM wParam, LPARAM lParam)
 
     if (GetRawInputData(reinterpret_cast<HRAWINPUT>(lParam), RID_INPUT,
                         nullptr, &size, sizeof(RAWINPUTHEADER)) == static_cast<UINT>(-1)) {
-        isle::log::Error() << "failed to get input raw data buffer size"s;
+        log::Error() << "failed to get input raw data buffer size"s;
         return;
     }
 
@@ -149,7 +149,7 @@ void InputManager::Process(WPARAM wParam, LPARAM lParam)
 
     if (GetRawInputData(reinterpret_cast<HRAWINPUT>(lParam), RID_INPUT,
                         std::data(rawData_), &size, sizeof(RAWINPUTHEADER)) == static_cast<UINT>(-1)) {
-        isle::log::Error() << "failed to get input data"s;
+        log::Error() << "failed to get input data"s;
         return;
     }
 
@@ -161,11 +161,11 @@ void InputManager::Process(WPARAM wParam, LPARAM lParam)
             break;
 
         case RIM_TYPEKEYBOARD:
-            isle::log::Debug() << "keyboard: "s << rawInput->header.hDevice;
+            log::Debug() << "keyboard: "s << rawInput->header.hDevice;
             break;
 
         case RIM_TYPEHID:
-            isle::log::Debug() << "HID: "s << rawInput->header.hDevice;
+            log::Debug() << "HID: "s << rawInput->header.hDevice;
             break;
     }
 }
