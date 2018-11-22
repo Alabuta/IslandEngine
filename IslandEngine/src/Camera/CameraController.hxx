@@ -20,8 +20,12 @@
 
 #include "System/CrusSystem.h"
 
-#include "Camera/MouseHandler.hxx"
+#include "System/InputManager.hxx"
+//#include "Camera/MouseHandler.hxx"
 
+
+namespace isle
+{
 struct Camera {
     float yFOV{glm::radians(75.f)};
     float znear{.01f}, zfar{100.f};
@@ -60,3 +64,19 @@ private:
 
     std::vector<std::shared_ptr<Camera>> cameras_;
 };
+
+class MouseHandler;
+
+class OrbitController final {
+public:
+
+    OrbitController(std::shared_ptr<Camera> camera, InputManager &inputManager);
+
+    void update();
+
+private:
+    std::shared_ptr<Camera> camera_;
+
+    std::shared_ptr<MouseHandler> mouseHandler_;
+};
+}

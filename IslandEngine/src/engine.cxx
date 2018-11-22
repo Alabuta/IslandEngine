@@ -60,8 +60,10 @@ using namespace std::string_literals;
 using namespace std::string_view_literals;
 
 struct application_t {
-    CameraSystem cameraSystem;
-    std::shared_ptr<Camera> camera;
+    isle::CameraSystem cameraSystem;
+    std::shared_ptr<isle::Camera> camera;
+
+    std::unique_ptr<isle::OrbitController> cameraController;
 
 } application;
 
@@ -957,6 +959,7 @@ void Init()
 
 void Update()
 {
+    application.cameraController->update();
     application.cameraSystem.update();
 }
 
@@ -1010,49 +1013,6 @@ void DrawFrame()
 //};
 
 
-class OrbitController final {
-public:
-
-    OrbitController(std::shared_ptr<Camera> camera) : camera_{camera}
-    {
-        ;
-    }
-
-    void update()
-    {
-        ;
-    }
-
-private:
-    std::shared_ptr<Camera> camera_;
-
-};
-
-
-class MouseHandler final : public isle::MouseInput::IHandler {
-private:
-
-    void onMove(i64 x, i64 y) override
-    {
-        isle::log::Debug() << __FUNCTION__ << ' ' << x << '\t' << y;
-    }
-
-    void onWheel(i16 delta) override
-    {
-        isle::log::Debug() << __FUNCTION__ << ' ' << delta;
-    }
-
-    void onDown(IHandler::buttons_t buttons) override
-    {
-        isle::log::Debug() << __FUNCTION__ << ' ' << std::hex << buttons.to_ulong();
-    }
-
-    void onUp(IHandler::buttons_t buttons) override
-    {
-        isle::log::Debug() << __FUNCTION__ << ' ' << std::hex << buttons.to_ulong();
-    }
-};
-
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int)
 {
@@ -1074,9 +1034,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int)
     cameraWorldMatrix = glm::lookAt(glm::vec3{0, 2, 0}, cameraPosition, glm::vec3{0, 1, 0});
     cameraWorldMatrix = glm::translate(cameraWorldMatrix, cameraPosition);
 
-    auto mouseHandler = std::make_shared<MouseHandler>();
-    inputManager.mouse().connect(mouseHandler);
-
+    application.cameraController = std::make_unique<isle::OrbitController>(application.camera, inputManager);
 
     return isle::System::Loop();
 }
