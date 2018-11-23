@@ -13,7 +13,7 @@ void MouseHandler::onMove(i64 x, i64 y)
     delta = glm::vec2{x, y};
     delta = last - delta;
 
-    updateHandler_();
+    updateHandler_(*this);
 
     last = glm::vec2{x, y};
 }
@@ -28,25 +28,32 @@ void MouseHandler::onDown(IHandler::buttons_t buttons)
     switch (buttons.to_ulong()) {
         case 0x02:
         case 0x04:
-            updateHandler_ = [&] { controller_.pan(delta.x, delta.y); };
-            break;
+            updateHandler_ = [] (auto &handler)
+            {
+                handler.controller_.pan(handler.delta.x, handler.delta.y);
+            }; break;
 
         case (0x01 | 0x02):
-            updateHandler_ = [&] { controller_.dolly(glm::length(delta) * glm::dot(delta, dollyDirection)); };
-            break;
+            updateHandler_ = [] (auto &handler)
+            {
+                auto direction = glm::dot(handler.delta, handler.dollyDirection);
+                handler.controller_.dolly(glm::length(handler.delta) * direction);
+            }; break;
 
         case 0x01:
-            updateHandler_ = [&] { controller_.rotate(delta.x, delta.y); };
-            break;
+            updateHandler_ = [] (auto &handler)
+            {
+                handler.controller_.rotate(handler.delta.x, handler.delta.y);
+            }; break;
 
         default:
-            updateHandler_ = [] { };
+            updateHandler_ = [] (auto &&) { };
             break;
     }
 }
 
 void MouseHandler::onUp(IHandler::buttons_t buttons)
 {
-    updateHandler_ = [] { };
+    updateHandler_ = [] (auto &&) { };
 }
 }

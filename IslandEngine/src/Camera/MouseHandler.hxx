@@ -20,7 +20,7 @@ private:
 
     OrbitController &controller_;
 
-    std::function<void()> updateHandler_{[] { }};
+    std::function<void(MouseHandler &)> updateHandler_{[] (auto &&) { }};
 
     glm::vec2 delta{0.f, 0.f};
     glm::vec2 last{0.f, 0.f};

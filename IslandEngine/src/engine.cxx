@@ -234,14 +234,14 @@ void render()
     glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, &index1);
     glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &index0);
 
-    glProgramUniformMatrix4fv(program.handle(), 8, 1, GL_FALSE, &projection[0][0]);
+    glProgramUniformMatrix4fv(program.handle(), 8, 1, GL_FALSE, glm::value_ptr(projection));
 
     glBindTextureUnit(Render::eSAMPLERS_BINDING::nALBEDO, equirectangular_tex);
 
 #if RENDER_TO_CUBEMAP
     std::for_each(std::begin(views), std::end(views), [face = 0] (auto &&view) mutable
     {
-        glProgramUniformMatrix4fv(program.handle(), 9, 1, GL_FALSE, &view[0][0]);
+        glProgramUniformMatrix4fv(program.handle(), 9, 1, GL_FALSE, glm::value_ptr(view));
 
         glNamedFramebufferTextureLayer(fbo, GL_COLOR_ATTACHMENT0, rt_cubemap, 0, face++);
 
@@ -264,7 +264,7 @@ void render()
 
     std::for_each(std::begin(views), std::end(views), [face = 0] (auto &&view) mutable
     {
-        glProgramUniformMatrix4fv(program.handle(), 9, 1, GL_FALSE, &view[0][0]);
+        glProgramUniformMatrix4fv(program.handle(), 9, 1, GL_FALSE, glm::value_ptr(view));
 
         glNamedFramebufferTextureLayer(fbo, GL_COLOR_ATTACHMENT0, rt_irradiance, 0, face++);
 
@@ -961,6 +961,15 @@ void Update()
 {
     application.cameraController->update();
     application.cameraSystem.update();
+
+    /*glm::vec3 pos, scale, skew;
+    glm::vec4 persp;
+    glm::quat rot;
+
+    glm::decompose(application.camera->world, scale, rot, pos, skew, persp);
+
+    isle::log::Debug() << pos.x << ' ' << pos.y << ' ' << pos.z;
+    isle::log::Debug() << rot.x << ' ' << rot.y << ' ' << rot.z << ' ' << rot.w;*/
 }
 
 void DrawFrame()
@@ -1004,14 +1013,6 @@ void DrawFrame()
     //glBlitNamedFramebuffer(ibl::fbo, 0, 0, 0, ibl::width, ibl::height, 0, 0, width, height, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST);
 }
 };
-
-
-//class Camera final {
-//public:
-//
-//    Camera
-//};
-
 
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int)
