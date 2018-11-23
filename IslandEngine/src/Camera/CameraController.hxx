@@ -9,12 +9,16 @@
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #define GLM_GTC_MATRIX_INVERSE
+#define GLM_GTX_polar_coordinates
+#define GLM_GTX_quaternion
+#define GLM_GTX_transform
 
 #pragma warning(push, 3)
 #pragma warning(disable: 4201)
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
+#include <glm/gtx/polar_coordinates.hpp> 
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/hash.hpp>
 #pragma warning(pop)
@@ -31,6 +35,8 @@ struct Camera {
     float yFOV{glm::radians(75.f)};
     float znear{.01f}, zfar{100.f};
     float aspect{1.f};
+
+    glm::vec3 up{0, 1, 0};
 
     glm::mat4 view{1.f};
     glm::mat4 projection{1.f};
@@ -83,5 +89,10 @@ private:
     std::shared_ptr<Camera> camera_;
 
     std::shared_ptr<MouseHandler> mouseHandler_;
+
+    glm::vec3 target_{0}, offset_{0};
+    glm::vec3 spherical_{1, 0, 0}, sphDelta_{1, 0, 0};
+    glm::vec3 panOffset_{0}, panDelta_{0};
+    glm::vec3 direction_{0}, dirLerped_{0};
 };
 }
