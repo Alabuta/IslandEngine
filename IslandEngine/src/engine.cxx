@@ -59,6 +59,21 @@ std::ostream &operator<< (std::ostream &stream, T &&m)
 using namespace std::string_literals;
 using namespace std::string_view_literals;
 
+struct per_object_t {
+    glm::mat4 model;
+    glm::mat4 normal;  // Transposed of the inversed of the upper left 3x3 sub-matrix of model(world)-view matrix.
+};
+
+//struct per_camera_t {
+//    glm::mat4 view;
+//    glm::mat4 projection;
+//
+//    glm::mat4 invertedView;
+//    glm::mat4 invertedProjection;
+//
+//    glm::mat4 projectionView;
+//};
+
 struct application_t {
     isle::CameraSystem cameraSystem;
     std::shared_ptr<isle::Camera> camera;
@@ -910,6 +925,9 @@ void Init()
     if (!mesh_program.AssignNew({ R"(Defaults/Diffuse-Lambert.glsl)"s }))
         return;
 
+    Render::inst().CreateSSBO<per_object_t>(mesh_program.handle(), 2, "PER_OBJECT"s);
+    Render::inst().CreateSSBO<Camera::data_t>(mesh_program.handle(), 3, "PER_CAMERA"s);
+
     {
 		Render::inst().CreateVAO(quad_vao);
 
@@ -973,6 +991,30 @@ void DrawFrame()
     Render::inst().UpdateTransform(0, 3, std::data(matrices));
     Render::inst().UpdateViewport(1, 1, &Render::inst().vp_.proj());
 
+#if 0
+
+    auto const &view = application.camera->view;
+    auto const &projection = application.camera->projection;
+    auto const &projectionView = application.camera->projectionView;
+
+    auto viewModel = view * model;
+    auto projectionViewModel = projectionView * model;
+
+    auto normal = glm::mat4{glm::inverseTranspose(glm::mat3{viewModel})};
+
+    auto transform = make_array(
+        projectionViewModel, model, normal
+    );
+
+    Render::inst().UpdateTransform(0, transform);
+
+    auto viewport = make_array(
+        projectionViewModel, projection, view, glm::inverse(projection)
+    );
+
+    Render::inst().UpdateViewport(0, viewport);
+#endif
+
     //cubemap::DrawCubemap();
     //grid.Draw();
 
@@ -999,6 +1041,13 @@ void DrawFrame()
 
     mesh_program.bind();
 
+    app.object.model = glm::scale(glm::mat4{1}, glm::vec3{.01f});
+    app.object.normal = glm::inverseTranspose(app.object.model);
+
+    Render::inst().UpdateSSBO("PER_OBJECT"s, app.object);
+
+    Render::inst().UpdateSSBO("PER_CAMERA"s, app.camera->data);
+
     glBindVertexArray(mesh_vao);
     glDrawArrays(GL_TRIANGLES, 0, 3 * mesh_count);
 
@@ -1018,14 +1067,22 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int)
         return inputManager.Process(wParam, lParam);
     });
 
+    window.AddResizeCallback([] (auto width, auto height)
+    {
+        app.camera->aspect = static_cast<float>(width) / static_cast<float>(height);
+    });
+
     app.camera = app.cameraSystem.createCamera();
+    app.camera->aspect = static_cast<float>(application::width) / static_cast<float>(application::height);
 
     auto &&cameraWorldMatrix = app.camera->world;
 
-    auto cameraPosition = glm::vec3{4, 4, 4};
+    glm::vec3 cameraPosition{0, 0, -4};
 
-    cameraWorldMatrix = glm::lookAt(glm::vec3{0, 2, 0}, cameraPosition, glm::vec3{0, 1, 0});
-    cameraWorldMatrix = glm::translate(cameraWorldMatrix, cameraPosition);
+    //cameraWorldMatrix = glm::translate(glm::mat4{1}, cameraPosition);
+    cameraWorldMatrix = glm::lookAt(cameraPosition, glm::vec3{0}, glm::vec3{0, 1, 0});
+    //cameraWorldMatrix[3] = glm::vec4{cameraPosition, 1};
+    //cameraWorldMatrix = glm::translate(cameraWorldMatrix, cameraPosition);
 
     app.cameraController = std::make_unique<isle::OrbitController>(app.camera, inputManager);
 

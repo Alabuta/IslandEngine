@@ -18,6 +18,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
+#include <glm/gtc/matrix_inverse.hpp>
 #include <glm/gtx/polar_coordinates.hpp> 
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/hash.hpp>
@@ -38,9 +39,15 @@ struct Camera {
 
     glm::vec3 up{0, 1, 0};
 
-    glm::mat4 view{1.f};
-    glm::mat4 projection{1.f};
-    glm::mat4 projectionView{1.f};
+    struct data_t {
+        glm::mat4 view{1.f};
+        glm::mat4 projection{1.f};
+
+        glm::mat4 projectionView{1.f};
+
+        glm::mat4 invertedView{1.f};
+        glm::mat4 invertedProjection{1.f};
+    } data;
 
     glm::mat4 world{1.f};
 };
@@ -51,7 +58,6 @@ public:
     std::shared_ptr<Camera> createCamera()
     {
         auto camera = std::make_shared<Camera>();
-        camera->projection = glm::infinitePerspective(camera->yFOV, camera->aspect, camera->znear);
 
         cameras_.push_back(std::move(camera));
 
@@ -62,8 +68,13 @@ public:
     {
         std::for_each(std::execution::par_unseq, std::begin(cameras_), std::end(cameras_), [] (auto &&camera)
         {
-            camera->view = glm::inverse(camera->world);
-            camera->projectionView = camera->projection * camera->view;
+            camera->data.projection = glm::infinitePerspective(camera->yFOV, camera->aspect, camera->znear);
+            camera->data.invertedProjection = glm::inverse(camera->data.projection);
+
+            camera->data.view = glm::inverse(camera->world);
+            camera->data.invertedView = glm::inverse(camera->data.view);
+
+            camera->data.projectionView = camera->data.projection * camera->data.view;
         });
     }
 
