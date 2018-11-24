@@ -50,6 +50,11 @@ public:
         inputProcessCallback_ = callback;
     }
 
+    void AddResizeCallback(std::function<void(u16, u16)> callback)
+    {
+        resizeCallback_ = callback;
+    }
+
     static Window &main();
 
     static Window &GetWindowFromHandle(HWND const &hWnd);
@@ -81,7 +86,9 @@ private:
 
     LRESULT Process(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
-    std::function<void(WPARAM, LPARAM)> inputProcessCallback_;
+    std::function<void(WPARAM, LPARAM)> inputProcessCallback_{[] (auto, auto) { }};
+
+    std::function<void(u16, u16)> resizeCallback_{[] (auto, auto) { }};
 
     static LRESULT CALLBACK ProcessAllWindows(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 };
