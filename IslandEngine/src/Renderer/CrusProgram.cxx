@@ -22,7 +22,7 @@
 #undef max
 
 namespace {
-auto constexpr kGLSL_VERSION = R"(#version 450 core)";
+auto constexpr kGLSL_VERSION = R"(#version 460 core)";
 auto constexpr kSHADERS_PATH = R"(../contents/shaders/)";
 };
 

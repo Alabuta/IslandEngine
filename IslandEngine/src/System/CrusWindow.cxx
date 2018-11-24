@@ -65,7 +65,7 @@ Window::Window(std::wstring const &_name, HINSTANCE _hInstance, int _w, int _h) 
 
     Render::inst().Init();
 
-    app::Init();
+    application::Init();
 
 #if _CRUS_DEBUG_CONSOLE
     ShowWindow(GetConsoleWindow(), SW_HIDE);

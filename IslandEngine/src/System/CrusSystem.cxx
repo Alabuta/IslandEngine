@@ -484,6 +484,6 @@ Time System::time;
 {
     time.Update();
 
-    app::Update();
+    application::Update();
 }
 };

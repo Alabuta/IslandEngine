@@ -65,8 +65,9 @@ struct application_t {
 
     std::unique_ptr<isle::OrbitController> cameraController;
 
-} application;
+    per_object_t object;
 
+} app;
 
 namespace cubemap {
 bool InitCubemap();
@@ -74,7 +75,7 @@ void DrawCubemap();
 isle::Texture const &texture();
 }
 
-namespace app {
+namespace application {
 using namespace std::string_literals;
 using namespace std::string_view_literals;
 
@@ -959,17 +960,8 @@ void Init()
 
 void Update()
 {
-    application.cameraController->update();
-    application.cameraSystem.update();
-
-    /*glm::vec3 pos, scale, skew;
-    glm::vec4 persp;
-    glm::quat rot;
-
-    glm::decompose(application.camera->world, scale, rot, pos, skew, persp);
-
-    isle::log::Debug() << pos.x << ' ' << pos.y << ' ' << pos.z;
-    isle::log::Debug() << rot.x << ' ' << rot.y << ' ' << rot.z << ' ' << rot.w;*/
+    app.cameraController->update();
+    app.cameraSystem.update();
 }
 
 void DrawFrame()
@@ -1017,7 +1009,7 @@ void DrawFrame()
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int)
 {
-    isle::Window window(crus::names::kMAIN_WINDOW_NAME, hInstance, app::width, app::height);
+    isle::Window window(crus::names::kMAIN_WINDOW_NAME, hInstance, application::width, application::height);
 
     isle::InputManager inputManager{window.hWnd()};
 
@@ -1026,16 +1018,16 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int)
         return inputManager.Process(wParam, lParam);
     });
 
-    application.camera = application.cameraSystem.createCamera();
+    app.camera = app.cameraSystem.createCamera();
 
-    auto &&cameraWorldMatrix = application.camera->world;
+    auto &&cameraWorldMatrix = app.camera->world;
 
     auto cameraPosition = glm::vec3{4, 4, 4};
 
     cameraWorldMatrix = glm::lookAt(glm::vec3{0, 2, 0}, cameraPosition, glm::vec3{0, 1, 0});
     cameraWorldMatrix = glm::translate(cameraWorldMatrix, cameraPosition);
 
-    application.cameraController = std::make_unique<isle::OrbitController>(application.camera, inputManager);
+    app.cameraController = std::make_unique<isle::OrbitController>(app.camera, inputManager);
 
     return isle::System::Loop();
 }

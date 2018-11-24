@@ -58,7 +58,7 @@ auto constexpr kMAIN_WINDOW_NAME = "Crusoe's Island Engine";
 namespace isle {
 }
 
-namespace app {
+namespace application {
 using namespace isle;
 
 void Init();
