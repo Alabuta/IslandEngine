@@ -11,7 +11,18 @@
 #ifndef CRUS_RENDERER_H             // Include guard "CrusRenderer.h"
 #define CRUS_RENDERER_H
 
+
+#pragma warning(push, 3)
+#pragma warning(disable: 4201)
+#define GLM_FORCE_CXX17
+#include <glm/glm.hpp>
+#pragma warning(pop)
+
+
+#include <unordered_map>
 #include <vector>
+#include <string>
+#include <string_view>
 #include <mutex>
 
 #include "Math\CrusMatrix.h"
@@ -71,9 +82,63 @@ public:
     void UpdateViewport(size_t offset, size_t count, math::Matrix const *const matrices) const;
     void UpdateTransform(size_t offset, size_t count, math::Matrix const *const matrices) const;
 
+    template<class T, typename std::enable_if_t<is_container_v<std::decay_t<T>>>...>
+    void UpdateViewport(std::size_t offset, T &&matrices) const
+    {
+        static_assert(
+            std::is_same_v<typename std::decay_t<T>::value_type, glm::mat4>,
+            "container object has to contain glm::mat4 elements"
+            );
+
+        auto constexpr bytes = sizeof(glm::mat4);
+
+        glNamedBufferSubData(VIEWPORT_, offset * bytes, std::size(matrices) * bytes, std::data(matrices));
+    }
+
+    template<class T, typename std::enable_if_t<is_container_v<std::decay_t<T>>>...>
+    void UpdateTransform(std::size_t offset, T &&matrices) const
+    {
+        static_assert(
+            std::is_same_v<typename std::decay_t<T>::value_type, glm::mat4>,
+            "container object has to contain glm::mat4 elements"
+            );
+
+        auto constexpr bytes = sizeof(glm::mat4);
+
+        glNamedBufferSubData(TRANSFORM_, offset * bytes, std::size(matrices) * bytes, std::data(matrices));
+    }
+
+    template<class T>
+    void CreateSSBO(u32 programHandle, u32 binding, std::string name)
+    {
+        auto const index = glGetProgramResourceIndex(programHandle, GL_SHADER_STORAGE_BLOCK, name.c_str());
+
+        if (index == GL_INVALID_INDEX)
+            log::Fatal() << "can't init the SSBO: invalid index param: PER_OBJECT"s;
+
+        u32 objectBuffer{0};
+        Render::inst().CreateBO(objectBuffer);
+
+        glNamedBufferStorage(objectBuffer, sizeof(T), nullptr, GL_DYNAMIC_STORAGE_BIT);
+
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, binding, objectBuffer);
+        glShaderStorageBlockBinding(programHandle, index, binding);
+
+        namedSSBOs_[name] = objectBuffer;
+    }
+
+    template<class D>
+    void UpdateSSBO(std::string &&name, D &&data) const
+    {
+        using T = std::decay_t<D>;
+
+        glNamedBufferSubData(namedSSBOs_.at(name), 0, sizeof(T), &data);
+    }
+
     static Render &inst();
 
 private:
+    std::unordered_map<std::string, u32> namedSSBOs_;
     //std::mutex mutex_;
 
     //HDC hDC_{nullptr};
