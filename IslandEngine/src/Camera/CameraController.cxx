@@ -1,6 +1,11 @@
 #include "Camera/CameraController.hxx"
 #include "Camera/MouseHandler.hxx"
 
+namespace
+{
+auto constexpr kPI = 3.14159265358979323846f;
+}
+
 template<class U, class V>
 glm::quat from_two_vec3(U &&u, V &&v)
 {
@@ -29,9 +34,18 @@ OrbitController::OrbitController(std::shared_ptr<Camera> camera, InputManager &i
     inputManager.mouse().connect(mouseHandler_);
 }
 
-void OrbitController::rotate(float x, float y)
+void OrbitController::rotate(float latitude, float longitude)
 {
-    log::Debug() << __FUNCTION__ << ' ' << x << '\t' << y;
+    auto speed = (1.f - inertia) * 4.f;
+
+    sphDelta_.y += latitude * speed;
+    sphDelta_.z += longitude * speed;
+
+    // azimuth ands polar
+    glm::vec2 constexpr min{0, -kPI};
+    glm::vec2 constexpr max{kPI, kPI};
+
+    spherical_.yz = glm::clamp(glm::vec2{spherical_.yz}, min, max);
 }
 
 void OrbitController::pan(float x, float y)
@@ -46,6 +60,8 @@ void OrbitController::dolly(float delta)
 
 void OrbitController::update()
 {
+    damping();
+
     auto &&world = camera_->world;
 
     auto const translation = glm::vec3{world[3]};
@@ -66,6 +82,15 @@ void OrbitController::update()
 
     panOffset_ = xAxis + yAxis;
 
-    //offset_ = glm::quat::rotate(, )
-    
+    //offset_ = glm::quat::rot
+}
+
+void OrbitController::damping()
+{
+    sphDelta_.yz = sphDelta_.yz * inertia;
+
+    panDelta_ *= inertia;
+
+    dirLerped_ = glm::mix(dirLerped_, direction_, 1.f - inertia);
+}
 }

@@ -8,7 +8,7 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
-#define GLM_GTC_MATRIX_INVERSE
+#define GLM_FORCE_SWIZZLE
 #define GLM_GTX_polar_coordinates
 #define GLM_GTX_quaternion
 #define GLM_GTX_transform
@@ -94,5 +94,9 @@ private:
     glm::vec3 spherical_{1, 0, 0}, sphDelta_{1, 0, 0};
     glm::vec3 panOffset_{0}, panDelta_{0};
     glm::vec3 direction_{0}, dirLerped_{0};
+
+    float inertia{.5f};
+
+    void damping();
 };
 }
