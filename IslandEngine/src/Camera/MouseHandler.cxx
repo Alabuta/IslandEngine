@@ -11,7 +11,7 @@ MouseHandler::MouseHandler(OrbitController &controller) : controller_{controller
 void MouseHandler::onMove(i64 x, i64 y)
 {
     delta = glm::vec2{x, y};
-    delta = last - delta;
+    //delta = last - delta;
 
     updateHandler_(*this);
 

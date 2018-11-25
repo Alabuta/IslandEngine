@@ -1,10 +1,7 @@
+#include <iomanip>
 #include "Camera/CameraController.hxx"
 #include "Camera/MouseHandler.hxx"
 
-namespace
-{
-auto constexpr kPI = 3.14159265358979323846f;
-}
 
 template<class U, class V>
 glm::quat from_two_vec3(U &&u, V &&v)
@@ -32,20 +29,22 @@ OrbitController::OrbitController(std::shared_ptr<Camera> camera, InputManager &i
 {
     mouseHandler_ = std::make_shared<MouseHandler>(*this);
     inputManager.mouse().connect(mouseHandler_);
+
+    /*auto &&world = camera_->world;
+
+    auto position = glm::vec3{world[3]};
+
+    offset_ = position - target;
+
+    distance_ = glm::length(offset_);*/
 }
 
-void OrbitController::rotate(float latitude, float longitude)
+void OrbitController::rotate(float longitude, float latitude)
 {
-    auto speed = (1.f - inertia) * 4.f;
+    auto speed = (1.f - inertia) * .01f;
 
-    sphDelta_.y += latitude * speed;
-    sphDelta_.z += longitude * speed;
-
-    // azimuth ands polar
-    glm::vec2 constexpr min{0, -kPI};
-    glm::vec2 constexpr max{kPI, kPI};
-
-    spherical_.yz = glm::clamp(glm::vec2{spherical_.yz}, min, max);
+    sphDelta_.x += latitude * speed;
+    sphDelta_.y -= longitude * speed;
 }
 
 void OrbitController::pan(float x, float y)
@@ -60,13 +59,26 @@ void OrbitController::dolly(float delta)
 
 void OrbitController::update()
 {
-    damping();
-
     auto &&world = camera_->world;
 
-    auto const translation = glm::vec3{world[3]};
+    auto position = glm::vec3{world[3]};
 
-    offset_ = translation - target_;
+    offset_ = position - target;
+
+    spherical_ = glm::polar(offset_);
+
+    spherical_ = glm::clamp(spherical_ + sphDelta_, min, max);
+
+    offset_ = glm::euclidean(spherical_) * distance_;
+
+    target += panOffset_;
+
+    position = target + offset_;
+
+    world = glm::inverse(glm::lookAt(position, target, up_));
+
+
+#if 0
 
     auto orientation = from_two_vec3(camera_->up, glm::vec3{0, 1, 0});
 
@@ -83,11 +95,14 @@ void OrbitController::update()
     panOffset_ = xAxis + yAxis;
 
     //offset_ = glm::quat::rot
+#endif
+
+    damping();
 }
 
 void OrbitController::damping()
 {
-    sphDelta_.yz = sphDelta_.yz * inertia;
+    sphDelta_ *= inertia;
 
     panDelta_ *= inertia;
 

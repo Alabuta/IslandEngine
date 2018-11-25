@@ -33,20 +33,21 @@
 #include "Camera/CameraController.hxx"
 
 
-
+namespace glm
+{
 template<class T, std::enable_if_t<std::is_same_v<std::decay_t<T>, glm::mat4>>...>
 std::ostream &operator<< (std::ostream &stream, T &&m)
 {
     stream << std::setprecision(0) << std::fixed;
 
-    stream << m[0][0] << ' ' << m[0][1] << ' ' << m[0][2] << ' ' << m[0][3] << ' ';
-    stream << m[1][0] << ' ' << m[1][1] << ' ' << m[1][2] << ' ' << m[1][3] << ' ';
-    stream << m[2][0] << ' ' << m[2][1] << ' ' << m[2][2] << ' ' << m[2][3] << ' ';
+    stream << m[0][0] << ' ' << m[0][1] << ' ' << m[0][2] << ' ' << m[0][3] << '\n';
+    stream << m[1][0] << ' ' << m[1][1] << ' ' << m[1][2] << ' ' << m[1][3] << '\n';
+    stream << m[2][0] << ' ' << m[2][1] << ' ' << m[2][2] << ' ' << m[2][3] << '\n';
     stream << m[3][0] << ' ' << m[3][1] << ' ' << m[3][2] << ' ' << m[3][3];
 
     return stream;
 }
-
+}
 
 #define RENDER_TO_CUBEMAP 1
 
@@ -1075,16 +1076,13 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int)
     app.camera = app.cameraSystem.createCamera();
     app.camera->aspect = static_cast<float>(application::width) / static_cast<float>(application::height);
 
-    auto &&cameraWorldMatrix = app.camera->world;
-
-    glm::vec3 cameraPosition{0, 0, -4};
-
-    //cameraWorldMatrix = glm::translate(glm::mat4{1}, cameraPosition);
-    cameraWorldMatrix = glm::lookAt(cameraPosition, glm::vec3{0}, glm::vec3{0, 1, 0});
-    //cameraWorldMatrix[3] = glm::vec4{cameraPosition, 1};
-    //cameraWorldMatrix = glm::translate(cameraWorldMatrix, cameraPosition);
-
     app.cameraController = std::make_unique<isle::OrbitController>(app.camera, inputManager);
+
+    app.cameraController->target = glm::vec3{0, 2, 0};
+
+    //app.camera->world = glm::translate(glm::mat4{1}, glm::vec3{0, 4, 4});
+    auto &&cameraWorldMatrix = app.camera->world;
+    cameraWorldMatrix = glm::inverse(glm::lookAt(glm::vec3{0, 4, 4}, {0, 2, 0}, {0, 1, 0}));
 
     return isle::System::Loop();
 }

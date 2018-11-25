@@ -1,5 +1,8 @@
 #pragma once
 
+auto constexpr kPI = 3.14159265358979323846f;
+
+
 #include <memory>
 #include <execution>
 
@@ -88,6 +91,10 @@ class MouseHandler;
 class OrbitController final {
 public:
 
+    glm::vec3 target{0};
+
+    float inertia{.5f};
+
     OrbitController(std::shared_ptr<Camera> camera, InputManager &inputManager);
 
     void rotate(float x, float y);
@@ -101,12 +108,18 @@ private:
 
     std::shared_ptr<MouseHandler> mouseHandler_;
 
-    glm::vec3 target_{0}, offset_{0};
-    glm::vec3 spherical_{1, 0, 0}, sphDelta_{1, 0, 0};
+    glm::vec3 offset_{0};
+    glm::vec2 spherical_{0, 0}, sphDelta_{0, 0};
     glm::vec3 panOffset_{0}, panDelta_{0};
     glm::vec3 direction_{0}, dirLerped_{0};
 
-    float inertia{.5f};
+    float distance_{4.f};
+
+    // latitude ands longitude
+    glm::vec2 const min{-kPI * .49f, -kPI};
+    glm::vec2 const max{+kPI * .49f, +kPI};
+
+    glm::vec3 up_{0, 1, 0};
 
     void damping();
 };
