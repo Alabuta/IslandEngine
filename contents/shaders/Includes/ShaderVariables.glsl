@@ -33,3 +33,21 @@ layout(binding = nTRANSFORM, std430) readonly buffer TRANSFORM
     layout(row_major) readonly mat4 mModel;
     layout(row_major) readonly mat4 mNormal; // Transpose of the inversed of the upper left 3x3 sub-matrix of model(world)-view matrix.
 };
+
+
+layout(binding = 2, std430) readonly buffer PER_OBJECT
+{
+	mat4 world;
+	mat4 normal;  // Transposed of the inversed of the upper left 3x3 sub-matrix of world matrix.
+} object;
+
+layout(binding = 3, std430) readonly buffer PER_CAMERA
+{
+	mat4 view;
+	mat4 projection;
+
+	mat4 projectionView;
+
+	mat4 invertedView;
+	mat4 invertedProjection;
+} camera;

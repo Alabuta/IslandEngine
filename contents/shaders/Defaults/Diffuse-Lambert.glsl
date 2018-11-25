@@ -20,22 +20,6 @@ layout(location = nTEX_COORD) in vec2 inTexCoord;
 
 
 
-layout(binding = 2, std430) readonly buffer PER_OBJECT
-{
-	mat4 model;
-	mat4 normal;  // Transposed of the inversed of the upper left 3x3 sub-matrix of model(world)-view matrix.
-} object;
-
-layout(binding = 3, std430) readonly buffer PER_CAMERA
-{
-	mat4 view;
-	mat4 projection;
-
-	mat4 projectionView;
-
-	mat4 invertedView;
-	mat4 invertedProjection;
-} camera;
 
 out vec4 light;
 out vec4 normal;
@@ -45,20 +29,14 @@ void main()
 {
     texCoord = inTexCoord;
 
-//    normal = normalize(camera.invertedView * object.normal * vec4(inNormal, 0));
-	normal = normalize(mNormal * vec4(inNormal, 0));
+    normal = normalize(object.normal * transpose(camera.invertedView) * vec4(inNormal, 0));
 
-    vec4 position = camera.view * object.model * vec4(inVertex, 1);
-
-//    if (lightPosition.w == 0)
-//        light.xyz = normalize((camera.view * lightPosition).xyz);
-//
-//    else light.xyz = normalize((camera.view * lightPosition).xyz - position.xyz);
+    vec4 position = camera.view * object.world * vec4(inVertex, 1);
 
     if (lightPosition.w == 0)
-        light.xyz = normalize(TransformFromWorldToView(lightPosition).xyz);
+        light.xyz = normalize((camera.view * lightPosition).xyz);
 
-    else light.xyz = normalize(TransformFromWorldToView(lightPosition).xyz - position.xyz);
+    else light.xyz = normalize((camera.view * lightPosition).xyz - position.xyz);
 
     gl_Position = camera.projection * position;
 }

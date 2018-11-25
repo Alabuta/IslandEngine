@@ -61,7 +61,7 @@ using namespace std::string_literals;
 using namespace std::string_view_literals;
 
 struct per_object_t {
-    glm::mat4 model{1};
+    glm::mat4 world{1};
     glm::mat4 normal{1};  // Transposed of the inversed of the upper left 3x3 sub-matrix of model(world)-view matrix.
 };
 
@@ -83,6 +83,8 @@ struct application_t {
 
     per_object_t object;
 
+    i32 width{800}, height{1080};
+
 } app;
 
 namespace cubemap {
@@ -98,9 +100,6 @@ using namespace std::string_view_literals;
 intf::Grid grid;
 
 auto constexpr kUSE_MS = false;
-
-auto constexpr width = 800;
-auto constexpr height = 1080;
 
 auto constexpr clear_colors = isle::make_array(0.f, 1.f);
 
@@ -467,7 +466,7 @@ void initMultisampledFramebuffers()
     glTextureParameteri(ms_rt_depth, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTextureParameteri(ms_rt_depth, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-    glTextureStorage2DMultisample(ms_rt_depth, samples, GL_DEPTH_COMPONENT32F, width, height, GL_TRUE);
+    glTextureStorage2DMultisample(ms_rt_depth, samples, GL_DEPTH_COMPONENT32F, app.width, app.height, GL_TRUE);
 
     ms_rt_depth_handle = glGetTextureHandleARB(ms_rt_depth);
     glMakeTextureHandleResidentARB(ms_rt_depth_handle);
@@ -482,7 +481,7 @@ void initMultisampledFramebuffers()
     glTextureParameteri(ms_rt_0, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTextureParameteri(ms_rt_0, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-    glTextureStorage2DMultisample(ms_rt_0, samples, GL_RGBA8, width, height, GL_TRUE);
+    glTextureStorage2DMultisample(ms_rt_0, samples, GL_RGBA8, app.width, app.height, GL_TRUE);
     //glTextureSubImage2D(quad_tid, 0, 0, 0, width, height, GL_RGBA, GL_RGBA8, nullptr);
 
     ms_rt_0_handle = glGetTextureHandleARB(ms_rt_0);
@@ -496,7 +495,7 @@ void initMultisampledFramebuffers()
     glTextureParameteri(ms_rt_1, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTextureParameteri(ms_rt_1, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-    glTextureStorage2DMultisample(ms_rt_1, samples, GL_RG16F, width, height, GL_TRUE);
+    glTextureStorage2DMultisample(ms_rt_1, samples, GL_RG16F, app.width, app.height, GL_TRUE);
 
     ms_rt_1_handle = glGetTextureHandleARB(ms_rt_1);
     glMakeTextureHandleResidentARB(ms_rt_1_handle);
@@ -534,7 +533,7 @@ void initFramebuffer()
     glTextureParameteri(rt_depth, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTextureParameteri(rt_depth, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-    glTextureStorage2D(rt_depth, 1, GL_DEPTH_COMPONENT32F, width, height);
+    glTextureStorage2D(rt_depth, 1, GL_DEPTH_COMPONENT32F, app.width, app.height);
 
     rt_depth_handle = glGetTextureHandleARB(rt_depth);
     glMakeTextureHandleResidentARB(rt_depth_handle);
@@ -549,7 +548,7 @@ void initFramebuffer()
     glTextureParameteri(rt_0, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTextureParameteri(rt_0, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-    glTextureStorage2D(rt_0, 1, GL_RGBA8, width, height);
+    glTextureStorage2D(rt_0, 1, GL_RGBA8, app.width, app.height);
     //glTextureSubImage2D(quad_tid, 0, 0, 0, width, height, GL_RGBA, GL_RGBA8, nullptr);
 
     rt_0_handle = glGetTextureHandleARB(rt_0);
@@ -563,7 +562,7 @@ void initFramebuffer()
     glTextureParameteri(rt_1, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTextureParameteri(rt_1, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-    glTextureStorage2D(rt_1, 1, GL_RG16F, width, height);
+    glTextureStorage2D(rt_1, 1, GL_RG16F, app.width, app.height);
 
     rt_1_handle = glGetTextureHandleARB(rt_1);
     glMakeTextureHandleResidentARB(rt_1_handle);
@@ -603,7 +602,7 @@ void initFramebuffer()
     glTextureParameteri(out_rt0, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTextureParameteri(out_rt0, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-    glTextureStorage2D(out_rt0, 1, GL_RGBA8, width, height);
+    glTextureStorage2D(out_rt0, 1, GL_RGBA8, app.width, app.height);
 
     out_rt0_handle = glGetTextureHandleARB(out_rt0);
     glMakeTextureHandleResidentARB(out_rt0_handle);
@@ -616,7 +615,7 @@ void initFramebuffer()
     glTextureParameteri(out_rt1, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTextureParameteri(out_rt1, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-    glTextureStorage2D(out_rt1, 1, GL_RGBA8, width, height);
+    glTextureStorage2D(out_rt1, 1, GL_RGBA8, app.width, app.height);
 
     out_rt1_handle = glGetTextureHandleARB(out_rt1);
     glMakeTextureHandleResidentARB(out_rt1_handle);
@@ -804,7 +803,7 @@ void render()
 {
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, kUSE_MS ? ms_fbo : main_fbo);
 
-    glViewport(0, 0, width, height);
+    glViewport(0, 0, app.width, app.height);
 
     glClearNamedFramebufferfv(kUSE_MS ? ms_fbo : main_fbo, GL_COLOR, 0, std::data(colors::kPOWDERBLUE.rgba));
     glClearNamedFramebufferfv(kUSE_MS ? ms_fbo : main_fbo, GL_COLOR, 1, std::data(colors::kBLACK.rgba));
@@ -821,10 +820,10 @@ void render()
     glFinish();
 
     if constexpr (kUSE_MS)
-        glBlitNamedFramebuffer(ms_fbo, main_fbo, 0, 0, width, height, 0, 0, width, height, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+        glBlitNamedFramebuffer(ms_fbo, main_fbo, 0, 0, app.width, app.height, 0, 0, app.width, app.height, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST);
 
     glBindFramebuffer(GL_FRAMEBUFFER, out_fbo);
-    glViewport(0, 0, width, height);
+    glViewport(0, 0, app.width, app.height);
 
     glNamedFramebufferTexture(out_fbo, GL_COLOR_ATTACHMENT0, out_rt0, 0);
 
@@ -878,7 +877,7 @@ void render()
 #endif
 #endif
 
-    glBlitNamedFramebuffer(out_fbo, 0, 0, 0, width, height, 0, 0, width, height, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+    glBlitNamedFramebuffer(out_fbo, 0, 0, 0, app.width, app.height, 0, 0, app.width, app.height, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST);
 
 #if 0
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -981,48 +980,21 @@ void Update()
 {
     app.cameraController->update();
     app.cameraSystem.update();
+
+    Render::inst().UpdateSSBO("PER_CAMERA"s, app.camera->data);
 }
 
 void DrawFrame()
 {
-    matrices[0] = Render::inst().vp_.projView() * matrices[1];
-    matrices[1].Scale(.01f, .01f, .01f);
-    matrices[2] = math::Matrix::GetNormalMatrix(Render::inst().vp_.cam().view() * matrices[1]);
-
-    Render::inst().UpdateTransform(0, 3, std::data(matrices));
-    Render::inst().UpdateViewport(1, 1, &Render::inst().vp_.proj());
-
-#if 0
-
-    auto const &view = application.camera->view;
-    auto const &projection = application.camera->projection;
-    auto const &projectionView = application.camera->projectionView;
-
-    auto viewModel = view * model;
-    auto projectionViewModel = projectionView * model;
-
-    auto normal = glm::mat4{glm::inverseTranspose(glm::mat3{viewModel})};
-
-    auto transform = make_array(
-        projectionViewModel, model, normal
-    );
-
-    Render::inst().UpdateTransform(0, transform);
-
-    auto viewport = make_array(
-        projectionViewModel, projection, view, glm::inverse(projection)
-    );
-
-    Render::inst().UpdateViewport(0, viewport);
-#endif
-
-    //cubemap::DrawCubemap();
-    //grid.Draw();
-
-    glViewport(0, 0, width, height);
+    glViewport(0, 0, app.width, app.height);
 
 
     ibl::program.bind();
+
+    app.object.world = glm::mat4{1};
+    app.object.normal = app.object.world;
+
+    Render::inst().UpdateSSBO("PER_OBJECT"s, app.object);
 
     glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, &index0);
     glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &index1);
@@ -1042,12 +1014,10 @@ void DrawFrame()
 
     mesh_program.bind();
 
-    app.object.model = glm::scale(glm::mat4{1}, glm::vec3{.01f});
-    app.object.normal = glm::inverseTranspose(app.object.model);
+    app.object.world = glm::scale(glm::mat4{1}, glm::vec3{.01f});
+    app.object.normal = glm::inverseTranspose(app.object.world);
 
     Render::inst().UpdateSSBO("PER_OBJECT"s, app.object);
-
-    Render::inst().UpdateSSBO("PER_CAMERA"s, app.camera->data);
 
     glBindVertexArray(mesh_vao);
     glDrawArrays(GL_TRIANGLES, 0, 3 * mesh_count);
@@ -1059,10 +1029,10 @@ void DrawFrame()
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int)
 {
-    isle::Window window(crus::names::kMAIN_WINDOW_NAME, hInstance, application::width, application::height);
+    isle::Window window(crus::names::kMAIN_WINDOW_NAME, hInstance, app.width, app.height);
 
     isle::InputManager inputManager{window.hWnd()};
-
+    
     window.AddInputProcessCallback([&inputManager] (auto wParam, auto lParam)
     {
         return inputManager.Process(wParam, lParam);
@@ -1070,11 +1040,14 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int)
 
     window.AddResizeCallback([] (auto width, auto height)
     {
+        app.width = width;
+        app.height = height;
+
         app.camera->aspect = static_cast<float>(width) / static_cast<float>(height);
     });
 
     app.camera = app.cameraSystem.createCamera();
-    app.camera->aspect = static_cast<float>(application::width) / static_cast<float>(application::height);
+    app.camera->aspect = static_cast<float>(app.width) / static_cast<float>(app.height);
 
     app.cameraController = std::make_unique<isle::OrbitController>(app.camera, inputManager);
 

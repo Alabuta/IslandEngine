@@ -34,7 +34,7 @@ layout(location = 0) subroutine uniform RenderPassType RenderPass;
 layout(index = 0) subroutine(RenderPassType)
 void equirectangularMapRender()
 {
-    gl_Position = TransformFromWorldToClip(vec4(inVertex, 0));
+    gl_Position = camera.projectionView * object.world * vec4(inVertex, 0.);
 
     // You can just assign w component to z,
     // but then you have to change depth comprasion function to GL_LEQUAL(GL_GEQUAL).
