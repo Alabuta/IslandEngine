@@ -1078,11 +1078,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int)
 
     app.cameraController = std::make_unique<isle::OrbitController>(app.camera, inputManager);
 
-    app.cameraController->target = glm::vec3{0, 2, 0};
-
-    //app.camera->world = glm::translate(glm::mat4{1}, glm::vec3{0, 4, 4});
-    auto &&cameraWorldMatrix = app.camera->world;
-    cameraWorldMatrix = glm::inverse(glm::lookAt(glm::vec3{0, 4, 4}, {0, 2, 0}, {0, 1, 0}));
+    app.cameraController->lookAt(glm::vec3{0, 4, 4}, {0, 2, 0});
 
     return isle::System::Loop();
 }

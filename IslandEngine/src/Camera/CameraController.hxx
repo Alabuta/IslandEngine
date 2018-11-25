@@ -91,11 +91,9 @@ class MouseHandler;
 class OrbitController final {
 public:
 
-    glm::vec3 target{0};
-
-    float inertia{.5f};
-
     OrbitController(std::shared_ptr<Camera> camera, InputManager &inputManager);
+
+    void lookAt(glm::vec3 &&eye, glm::vec3 &&target);
 
     void rotate(float x, float y);
     void pan(float x, float y);
@@ -108,19 +106,27 @@ private:
 
     std::shared_ptr<MouseHandler> mouseHandler_;
 
-    glm::vec3 offset_{0};
-    glm::vec2 spherical_{0, 0}, sphDelta_{0, 0};
+    glm::vec3 offset_{4};
+    glm::vec2 polar_{0, 0}, polarDelta_{0, 0};
     glm::vec3 panOffset_{0}, panDelta_{0};
-    glm::vec3 direction_{0}, dirLerped_{0};
+    glm::vec3 direction_{0}, directionLerped_{0};
 
-    float distance_{4.f};
+    glm::vec3 target_{0};
+
+    float damping_{.5f};
+
+    glm::quat orientation_;
+
+    float scale_{1.f};
 
     // latitude ands longitude
-    glm::vec2 const min{-kPI * .49f, -kPI};
-    glm::vec2 const max{+kPI * .49f, +kPI};
+    glm::vec2 minPolar{-kPI * .49f, -kPI};
+    glm::vec2 maxPolar{+kPI * .49f, +kPI};
 
-    glm::vec3 up_{0, 1, 0};
+    float minZ{.01f}, maxZ{10.f};
 
-    void damping();
+    glm::vec3 const up_{0, 1, 0};
+
+    void applyDamping();
 };
 }
