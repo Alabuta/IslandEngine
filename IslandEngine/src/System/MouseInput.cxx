@@ -56,7 +56,9 @@ void MouseInput::update(RAWMOUSE &&data)
     if (data.usButtonFlags) {
         std::bitset<16> bitset{data.usButtonFlags};
 
-        for (std::size_t i = 0; i < bitset.size(); ++i) {
+        auto const buttonsBitCount = kPRESSED_MASK.count();
+
+        for (std::size_t i = 0; i < buttonsBitCount; ++i) {
             auto const pressed = bitset[i];
             auto const depressed = bitset[++i];
 
