@@ -160,7 +160,7 @@ math::Matrix identity = math::Matrix::Identity().Translate(0, 1, 0);
 void Render::DrawFrame()
 {
     //vp_.MakeCurrent();
-    vp_.cam().Update();
+    //vp_.cam().Update();
 
     math::Matrix const matrices[] = {vp_.projView(), vp_.proj(), vp_.cam().view(), vp_.invProj()};
 

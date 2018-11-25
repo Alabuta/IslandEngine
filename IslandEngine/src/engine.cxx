@@ -61,8 +61,8 @@ using namespace std::string_literals;
 using namespace std::string_view_literals;
 
 struct per_object_t {
-    glm::mat4 model;
-    glm::mat4 normal;  // Transposed of the inversed of the upper left 3x3 sub-matrix of model(world)-view matrix.
+    glm::mat4 model{1};
+    glm::mat4 normal{1};  // Transposed of the inversed of the upper left 3x3 sub-matrix of model(world)-view matrix.
 };
 
 //struct per_camera_t {

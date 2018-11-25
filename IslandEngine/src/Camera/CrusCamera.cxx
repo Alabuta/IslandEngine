@@ -29,7 +29,7 @@ void Camera2::Create(Camera2::eCAM_BEHAVIOR _behavior)
 
         case eCAM_BEHAVIOR::nFREE:
             //Input::Mouse::main().HideCursor();
-            ::ShowCursor(FALSE);
+            //::ShowCursor(FALSE);
             break;
 
         case eCAM_BEHAVIOR::nTHIRD:
