@@ -25,6 +25,20 @@ glm::quat fromTwoVec3(U &&u, V &&v)
 
 namespace isle
 {
+void CameraSystem::update()
+{
+    std::for_each(std::execution::par_unseq, std::begin(cameras_), std::end(cameras_), [] (auto &&camera)
+    {
+        camera->data.projection = glm::infinitePerspective(camera->yFOV, camera->aspect, camera->znear);
+        camera->data.invertedProjection = glm::inverse(camera->data.projection);
+
+        camera->data.view = glm::inverse(camera->world);
+        camera->data.invertedView = glm::inverse(camera->data.view);
+
+        camera->data.projectionView = camera->data.projection * camera->data.view;
+    });
+}
+
 OrbitController::OrbitController(std::shared_ptr<Camera> camera, InputManager &inputManager) : camera_{camera}
 {
     mouseHandler_ = std::make_shared<MouseHandler>(*this);
