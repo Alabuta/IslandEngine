@@ -912,11 +912,6 @@ void Init()
 
     auto future = std::async(std::launch::async, LoadModel<Vertex>, meshName, std::ref(mesh_count), std::ref(vertex_buffer));
 
-    isle::Camera2::inst().Create(isle::Camera2::eCAM_BEHAVIOR::nFREE);
-    isle::Camera2::inst().SetPos(-1, 3, 1);
-    isle::Camera2::inst().LookAt(0, 2, 0);
-    //Camera2::inst().LookAt(math::Vector{0z, 7, -0}, math::Vector{0, 0, 0});
-
     //grid.Update(15, 1, 5);
 
     //cubemap::InitCubemap();

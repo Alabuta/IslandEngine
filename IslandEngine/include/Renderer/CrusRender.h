@@ -62,8 +62,6 @@ public:
         nALBEDO = 0, nNORMAL_MAP, nTEMP, nDEPTH
     };
 
-    intf::Viewport vp_;
-
     void Init();
     void DeleteContext();
 
@@ -72,8 +70,6 @@ public:
     bool CreateBO(u32 &vbo);
     bool CreateVAO(u32 &vao);
     bool CreateTBO(u32 target, u32 &tbo);
-
-    void SetViewport(i16 x, i16 y, i16 w, i16 h);
 
     void Update();
     void DrawFrame();
@@ -149,8 +145,6 @@ private:
 
     // Transform-scale-rotate matrices and color values UBOs indices.
     u32 VIEWPORT_{0}, CMTS_{0}, TRANSFORM_{0};
-
-    //intf::Viewport vp_;
 
     Render() = default;
     ~Render();

@@ -65,9 +65,6 @@ void Render::Init()
 
     using namespace colors;
     glClearColor(kCLEARGRAY.r, kCLEARGRAY.g, kCLEARGRAY.b, 1.0f);
-
-    vp_.Create(intf::Viewport::eVIEWPORT_TYPE::nPERSPECTIVE);
-    vp_.SetCamera(&Camera2::inst());
 }
 
 void Render::DeleteContext()
@@ -147,10 +144,6 @@ bool Render::CreateTBO(u32 _target, u32 &_tbo)
     return true;
 }
 
-void Render::SetViewport(i16 _x, i16 _y, i16 _w, i16 _h)
-{
-    vp_.SetViewport(_x, _y, _w, _h);
-}
 
 void Render::Update()
 { }
@@ -159,13 +152,6 @@ math::Matrix identity = math::Matrix::Identity().Translate(0, 1, 0);
 
 void Render::DrawFrame()
 {
-    //vp_.MakeCurrent();
-    //vp_.cam().Update();
-
-    math::Matrix const matrices[] = {vp_.projView(), vp_.proj(), vp_.cam().view(), vp_.invProj()};
-
-    UpdateViewport(0, std::size(matrices), matrices);
-
     //glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 1, -1, "[Frame]");
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

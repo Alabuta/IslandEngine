@@ -298,8 +298,6 @@ LRESULT Window::Process(HWND _hWnd, UINT _msg, WPARAM _wParam, LPARAM _lParam)
 
         case WM_SIZE:
             resizeCallback_(LOWORD(_lParam), HIWORD(_lParam));
-
-            Render::inst().SetViewport(0, 0, LOWORD(_lParam), HIWORD(_lParam));
             return 0L;
 
         case WM_CLOSE:
