@@ -94,6 +94,7 @@ isle::Texture const &texture();
 }
 
 namespace application {
+auto constexpr meshName = "Hebe.obj"sv;
 using namespace std::string_literals;
 using namespace std::string_view_literals;
 
@@ -909,7 +910,7 @@ void Init()
 {
     std::vector<Vertex> vertex_buffer;
 
-    auto future = std::async(std::launch::async, LoadModel<Vertex>, "Hebe.obj"sv, std::ref(mesh_count), std::ref(vertex_buffer));
+    auto future = std::async(std::launch::async, LoadModel<Vertex>, meshName, std::ref(mesh_count), std::ref(vertex_buffer));
 
     isle::Camera2::inst().Create(isle::Camera2::eCAM_BEHAVIOR::nFREE);
     isle::Camera2::inst().SetPos(-1, 3, 1);

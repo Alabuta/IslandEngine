@@ -43,32 +43,32 @@ float HyperbolicDepthToLinear(float hyperbolicDepth)
 
 vec4 TransformFromModelToClip(vec4 position)
 {
-    return mProjViewModel * position;
+    return camera.projectionView * object.world * position;
 }
 
 vec4 TransformFromWorldToClip(vec4 position)
 {
-    return viewport.projView * position;
+    return camera.projectionView * position;
 }
 
 vec4 TransformFromViewToClip(vec4 position)
 {
-    return viewport.proj * position;
+    return camera.projection * position;
 }
 
 vec4 TransformFromWorldToView(vec4 position)
 {
-    return viewport.view * position;
+    return camera.view * position;
 }
 
 vec4 TransformFromModelToView(vec4 position)
 {
-    return viewport.view * mModel * position;
+    return camera.view * object.world * position;
 }
 
 vec4 TransformFromModelToWorld(vec4 position)
 {
-    return mModel * position;
+    return object.world * position;
 }
 
 // Lambert Azimuthal Equal-Area projection

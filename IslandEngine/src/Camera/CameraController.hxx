@@ -16,8 +16,8 @@ auto constexpr kPI = 3.14159265358979323846f;
 #define GLM_GTX_quaternion
 #define GLM_GTX_transform
 
-#pragma warning(push, 3)
-#pragma warning(disable: 4201)
+//#pragma warning(push, 3)
+//#pragma warning(disable: 4201)
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
@@ -25,7 +25,7 @@ auto constexpr kPI = 3.14159265358979323846f;
 #include <glm/gtx/polar_coordinates.hpp> 
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/hash.hpp>
-#pragma warning(pop)
+//#pragma warning(pop)
 
 #include "System/CrusSystem.h"
 
@@ -123,7 +123,7 @@ private:
     glm::vec2 minPolar{-kPI * .49f, -kPI};
     glm::vec2 maxPolar{+kPI * .49f, +kPI};
 
-    float minZ{.01f}, maxZ{10.f};
+    float minZ{.01f}, maxZ{1000.f};
 
     glm::vec3 const up_{0, 1, 0};
 

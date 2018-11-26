@@ -88,7 +88,7 @@ InputManager::InputManager(HWND hTargetWnd) : hTargetWnd_{hTargetWnd}
                 break;
 
             case RIM_TYPEKEYBOARD:
-                devices.emplace(map.at("keyboard"sv));
+                //devices.emplace(map.at("keyboard"sv));
                 break;
 
             default:
