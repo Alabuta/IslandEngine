@@ -27,7 +27,9 @@ auto constexpr kPI = 3.14159265358979323846f;
 #include <glm/gtx/hash.hpp>
 //#pragma warning(pop)
 
-#include "System/CrusSystem.h"
+#include "System/CrusIsland.h"
+#include "System/CrusTypes.h"
+#include "System/CrusBook.h"
 
 #include "System/InputManager.hxx"
 //#include "Camera/MouseHandler.hxx"

@@ -84,7 +84,7 @@ public:
         static_assert(
             std::is_same_v<typename std::decay_t<T>::value_type, glm::mat4>,
             "container object has to contain glm::mat4 elements"
-            );
+        );
 
         auto constexpr bytes = sizeof(glm::mat4);
 
@@ -97,7 +97,7 @@ public:
         static_assert(
             std::is_same_v<typename std::decay_t<T>::value_type, glm::mat4>,
             "container object has to contain glm::mat4 elements"
-            );
+        );
 
         auto constexpr bytes = sizeof(glm::mat4);
 
