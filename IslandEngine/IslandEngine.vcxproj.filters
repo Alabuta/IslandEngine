@@ -61,6 +61,9 @@
     <Filter Include="Samples">
       <UniqueIdentifier>{2ca0c804-22ae-4071-bc7c-b45777b2bac9}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Core\Loaders">
+      <UniqueIdentifier>{9535c2ab-19e4-424d-808c-5640a73a1781}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\engine.cxx" />
@@ -168,6 +171,9 @@
     </ClCompile>
     <ClCompile Include="src\System\MouseInput.cxx">
       <Filter>Core\System\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="src\glTF.cxx">
+      <Filter>Core\Loaders</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -308,6 +314,9 @@
     </ClInclude>
     <ClInclude Include="src\Camera\MouseHandler.hxx">
       <Filter>Core\Camera</Filter>
+    </ClInclude>
+    <ClInclude Include="src\glTF.hxx">
+      <Filter>Core\Loaders</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

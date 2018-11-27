@@ -82,9 +82,9 @@ bool LoadModel(std::string_view _name, u32 &count, std::vector<T> &vertex_buffer
 {
     using namespace std::string_literals;
 
-    std::vector<Position> positions;
-    std::vector<math::Vector> normals;
-    std::vector<UV> uvs;
+    std::vector<decltype(glTF::Vertex::pos)> positions;
+    std::vector<decltype(glTF::Vertex::normal)> normals;
+    std::vector<decltype(glTF::Vertex::uv)> uvs;
 
     std::vector<std::vector<std::size_t>> faces;
 
@@ -96,7 +96,7 @@ bool LoadModel(std::string_view _name, u32 &count, std::vector<T> &vertex_buffer
     auto const path = directory / name;
 
     if (!LoadBinaryModel(path, vertex_buffer)) {
-        if (LoadOBJ(path, positions, normals, uvs, faces)) {
+        /*if (LoadOBJ(path, positions, normals, uvs, faces)) {
             for (auto &&face : faces) {
                 std::transform(face.begin(), face.end(), face.begin(), [] (auto &&a) { return a - 1; });
 
@@ -112,7 +112,7 @@ bool LoadModel(std::string_view _name, u32 &count, std::vector<T> &vertex_buffer
             SaveBinaryModel(path, vertex_buffer);
         }
 
-        else return false;
+        else*/ return false;
     }
 
     count = static_cast<std::decay_t<decltype(count)>>(std::size(vertex_buffer) / 3);

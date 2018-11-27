@@ -32,6 +32,8 @@
 #include "System/InputManager.hxx"
 #include "Camera/CameraController.hxx"
 
+#include "glTF.hxx"
+
 
 namespace glm
 {
@@ -402,33 +404,6 @@ void init()
 
     render();
 }
-}
-
-struct Vertex {
-    Position pos;
-    math::Vector normal;
-    UV uv;
-
-    Vertex() = default;
-
-    template<class P, class C, class U, typename std::enable_if_t<std::is_same_v<Position, std::decay_t<P>> && std::is_same_v<math::Vector, std::decay_t<C>> && std::is_same_v<UV, std::decay_t<U>>>...>
-    constexpr Vertex(P &&position, C &&color, U &&uv)
-    {
-        pos = std::forward<P>(position);
-        color = std::forward<C>(color);
-        uv = std::forward<UV>(uv);
-    }
-
-    template<class T, typename std::enable_if_t<std::is_same_v<Vertex, std::decay_t<T>>>...>
-    constexpr bool operator== (T &&rhs) const
-    {
-        return pos == rhs.pos && color == rhs.color && uv == rhs.uv;
-    }
-};
-
-std::ostream &operator<< (std::ostream &_stream, Vertex const &v)
-{
-    return _stream << v.pos << " " << v.normal << " " << v.uv;
 }
 
 namespace ssao
@@ -908,9 +883,9 @@ void render()
 
 void Init()
 {
-    std::vector<Vertex> vertex_buffer;
+    std::vector<glTF::Vertex> vertex_buffer;
 
-    auto future = std::async(std::launch::async, LoadModel<Vertex>, meshName, std::ref(mesh_count), std::ref(vertex_buffer));
+    auto future = std::async(std::launch::async, LoadModel<glTF::Vertex>, meshName, std::ref(mesh_count), std::ref(vertex_buffer));
 
     //grid.Update(15, 1, 5);
 
@@ -957,15 +932,15 @@ void Init()
         glNamedBufferStorage(bo, sizeof(decltype(vertex_buffer)::value_type) * std::size(vertex_buffer), std::data(vertex_buffer), 0);
 
         glVertexArrayAttribBinding(mesh_vao, Render::eVERTEX_IN::nPOSITION, 0);
-        glVertexArrayAttribFormat(mesh_vao, Render::eVERTEX_IN::nPOSITION, 3, GL_FLOAT, GL_FALSE, offsetof(Vertex, pos));
+        glVertexArrayAttribFormat(mesh_vao, Render::eVERTEX_IN::nPOSITION, 3, GL_FLOAT, GL_FALSE, offsetof(glTF::Vertex, pos));
         glEnableVertexArrayAttrib(mesh_vao, Render::eVERTEX_IN::nPOSITION);
 
         glVertexArrayAttribBinding(mesh_vao, Render::eVERTEX_IN::nNORMAL, 0);
-        glVertexArrayAttribFormat(mesh_vao, Render::eVERTEX_IN::nNORMAL, 3, GL_FLOAT, GL_TRUE, offsetof(Vertex, normal));
+        glVertexArrayAttribFormat(mesh_vao, Render::eVERTEX_IN::nNORMAL, 3, GL_FLOAT, GL_TRUE, offsetof(glTF::Vertex, normal));
         glEnableVertexArrayAttrib(mesh_vao, Render::eVERTEX_IN::nNORMAL);
 
         glVertexArrayAttribBinding(mesh_vao, Render::eVERTEX_IN::nTEX_COORD, 0);
-        glVertexArrayAttribFormat(mesh_vao, Render::eVERTEX_IN::nTEX_COORD, 2, GL_FLOAT, GL_FALSE, offsetof(Vertex, uv));
+        glVertexArrayAttribFormat(mesh_vao, Render::eVERTEX_IN::nTEX_COORD, 2, GL_FLOAT, GL_FALSE, offsetof(glTF::Vertex, uv));
         glEnableVertexArrayAttrib(mesh_vao, Render::eVERTEX_IN::nTEX_COORD);
 
         glVertexArrayVertexBuffer(mesh_vao, 0, bo, 0, sizeof(decltype(vertex_buffer)::value_type));
