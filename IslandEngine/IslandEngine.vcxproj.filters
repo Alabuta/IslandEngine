@@ -318,6 +318,9 @@
     <ClInclude Include="src\glTF.hxx">
       <Filter>Core\Loaders</Filter>
     </ClInclude>
+    <ClInclude Include="src\vertex_format.hxx">
+      <Filter>Core\Renderer</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="resources\resource.aps">
