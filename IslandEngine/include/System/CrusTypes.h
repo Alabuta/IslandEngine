@@ -16,6 +16,8 @@
 #include <cmath>
 #include <iterator>
 #include <type_traits>
+#include <variant>
+#include <vector>
 
 // Engine types.
 using astr  = char const *;
@@ -157,7 +159,6 @@ constexpr std::size_t get_type_instances_number()
     else return 0;
 }
 
-#if _CRUS_TEMP_DISABLED
 template<class V>
 struct wrap_variant_by_vector;
 
@@ -165,7 +166,6 @@ template<class... Ts>
 struct wrap_variant_by_vector<std::variant<Ts...>> {
     using type = std::variant<std::vector<Ts>...>;
 };
-#endif
 
 #if _CRUS_TEMP_DISABLED
 template<class C, std::enable_if_t<!is_printable_t<std::decay_t<C>> && is_iterable_t<std::decay_t<C>>>...>

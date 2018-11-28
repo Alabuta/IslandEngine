@@ -15,6 +15,8 @@
 
 #include <boost/signals2.hpp>
 
+using namespace std::string_literals;
+using namespace std::string_view_literals;
 
 #define GLM_FORCE_CXX17
 #define GLM_ENABLE_EXPERIMENTAL
@@ -59,8 +61,6 @@ std::ostream &operator<< (std::ostream &stream, T &&m)
 #include "engine.h"
 #include "Math/GaussRoutines.h"
 
-using namespace std::string_literals;
-using namespace std::string_view_literals;
 
 struct per_object_t {
     glm::mat4 world{1};
@@ -76,6 +76,7 @@ struct per_object_t {
 //
 //    glm::mat4 projectionView;
 //};
+
 
 struct application_t {
     isle::CameraSystem cameraSystem;
@@ -97,10 +98,8 @@ isle::Texture const &texture();
 
 namespace application {
 auto constexpr meshName = "Hebe.obj"sv;
-using namespace std::string_literals;
-using namespace std::string_view_literals;
 
-intf::Grid grid;
+//intf::Grid grid;
 
 auto constexpr kUSE_MS = false;
 

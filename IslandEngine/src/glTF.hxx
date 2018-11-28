@@ -6,9 +6,9 @@
 #include <glm/glm.hpp>
 
 
-#include "System\CrusIsland.h"
-#include "System\CrusTypes.h"
-#include "System\CrusBook.h"
+#include "System/CrusIsland.h"
+#include "System/CrusTypes.h"
+#include "System/CrusBook.h"
 
 namespace isle::glTF
 {
