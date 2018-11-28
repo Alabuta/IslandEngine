@@ -23,7 +23,24 @@ namespace fs = boost::filesystem;
 
 #include "glTF.hxx"
 
+namespace
+{
+enum class GL {
+    BYTE = 0x1400, UNSIGNED_BYTE,
+    SHORT, UNSIGNED_SHORT,
+    INT, UNSIGNED_INT,
+    FLOAT
+};
+
+//auto constexpr kARRAY_BUFFER         = 0x8892;
+//auto constexpr kELEMENT_ARRAY_BUFFER = 0x8893;
+}
+
 namespace isle::glTF
 {
+bool load(std::string_view name, vertex_buffer_t &vertices, index_buffer_t &indices)
+{
+    return false;
+}
 ;
 }

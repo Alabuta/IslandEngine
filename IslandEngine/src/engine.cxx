@@ -996,10 +996,29 @@ void DrawFrame()
 }
 };
 
+auto loadScene(std::string_view name, isle::vertex_buffer_t &vertices, isle::index_buffer_t &indices)
+{
+    return std::async(std::launch::async, isle::glTF::load, name, std::ref(vertices), std::ref(indices));
+}
+
+void loadAtributes(isle::vertex_buffer_t &vertices, isle::index_buffer_t &indices)
+{
+    using namespace isle;
+
+    Render::inst().CreateVAO(mesh_vao);
+
+    auto bo = 0u;
+    Render::inst().CreateBO(bo);
+}
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int)
 {
     isle::Window window(crus::names::kMAIN_WINDOW_NAME, hInstance, app.width, app.height);
+
+    isle::vertex_buffer_t vertices;
+    isle::index_buffer_t indices;
+
+    auto sceneLoaded = loadScene("Hebe"sv, vertices, indices);
 
     isle::InputManager inputManager{window.hWnd()};
     
@@ -1022,6 +1041,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int)
     app.cameraController = std::make_unique<isle::OrbitController>(app.camera, inputManager);
 
     app.cameraController->lookAt(glm::vec3{0, 4, 4}, {0, 2, 0});
+
+    if (sceneLoaded.get())
+        loadAtributes(vertices, indices);
 
     return isle::System::Loop();
 }

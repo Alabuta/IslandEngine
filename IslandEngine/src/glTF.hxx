@@ -10,6 +10,9 @@
 #include "System/CrusTypes.h"
 #include "System/CrusBook.h"
 
+#include "vertex_format.hxx"
+#include "mesh.hxx"
+
 namespace isle::glTF
 {
 struct Vertex {
@@ -49,5 +52,5 @@ struct Vertex {
 //    return _stream << v.pos << " " << v.normal << " " << v.uv;
 //}
 
-bool load(std::string_view name, std::vector<Vertex> &vertices, std::vector<std::uint32_t> &indices);
+bool load(std::string_view name, vertex_buffer_t &vertices, index_buffer_t &indices);
 }
