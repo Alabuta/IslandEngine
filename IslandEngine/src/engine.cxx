@@ -125,10 +125,10 @@ namespace ibl
 u32 fbo;
 Program program;
 
-u32 rt_depth, equirectangular_tex;
+u32 equirectangular_tex;
 
 #if RENDER_TO_CUBEMAP
-u32 rt_cubemap, rt_irradiance, rt_depth_irradiance;
+u32 rt_cubemap, rt_irradiance;
 
 u32 irradiance_width = 32, irradiance_height = 32;
 #else
@@ -160,17 +160,6 @@ void initFramebuffer()
     height = app::height;
 #endif
 
-    Render::inst().CreateTBO(GL_TEXTURE_2D, rt_depth);
-
-    glTextureParameteri(rt_depth, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTextureParameteri(rt_depth, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTextureParameteri(rt_depth, GL_TEXTURE_MAX_LEVEL, 0);
-    glTextureParameteri(rt_depth, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTextureParameteri(rt_depth, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-    glTextureStorage2D(rt_depth, 1, GL_DEPTH_COMPONENT32F, width, height);
-
-    glNamedFramebufferTexture(fbo, GL_DEPTH_ATTACHMENT, rt_depth, 0);
 
 #if RENDER_TO_CUBEMAP
     Render::inst().CreateTBO(GL_TEXTURE_CUBE_MAP, rt_cubemap);
@@ -189,18 +178,6 @@ void initFramebuffer()
         glTextureSubImage3D(rt_cubemap, 0, 0, 0, face, width, height, 1, GL_RGB, GL_FLOAT, std::data(buffer));
 
     glNamedFramebufferTextureLayer(fbo, GL_COLOR_ATTACHMENT0, rt_cubemap, 0, 0);
-
-
-
-    Render::inst().CreateTBO(GL_TEXTURE_2D, rt_depth_irradiance);
-
-    glTextureParameteri(rt_depth_irradiance, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTextureParameteri(rt_depth_irradiance, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTextureParameteri(rt_depth_irradiance, GL_TEXTURE_MAX_LEVEL, 0);
-    glTextureParameteri(rt_depth_irradiance, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTextureParameteri(rt_depth_irradiance, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-    glTextureStorage2D(rt_depth_irradiance, 1, GL_DEPTH_COMPONENT32F, irradiance_width, irradiance_height);*/
 
 
     Render::inst().CreateTBO(GL_TEXTURE_CUBE_MAP, rt_irradiance);
@@ -274,7 +251,6 @@ void render()
 
     glViewport(0, 0, irradiance_width, irradiance_height);
 
-    glNamedFramebufferTexture(fbo, GL_DEPTH_ATTACHMENT, rt_depth_irradiance, 0);
 
     glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &index3);
 
