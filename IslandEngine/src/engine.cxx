@@ -308,7 +308,7 @@ void init()
 
     i32 width, height, nrComponents;
 
-    auto const path = R"(../contents/textures/newport-loft-ref.hdr)"s;
+    auto const path = R"(../contents/textures/paper-mill.hdr)"s;
 
     auto data = stbi_loadf(path.c_str(), &width, &height, &nrComponents, 0);
 
@@ -958,13 +958,12 @@ void DrawFrame()
 {
     glViewport(0, 0, app.width, app.height);
 
-
-    ibl::program.bind();
-
     app.object.world = glm::mat4{1};
     app.object.normal = app.object.world;
 
     Render::inst().UpdateSSBO("PER_OBJECT"s, app.object);
+
+    ibl::program.bind();
 
     glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, &index0);
     glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &index1);
