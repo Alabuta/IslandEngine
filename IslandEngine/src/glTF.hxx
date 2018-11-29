@@ -3,6 +3,11 @@
 
 
 
+#define GLM_FORCE_CXX17
+#define GLM_ENABLE_EXPERIMENTAL
+#define GLM_FORCE_RADIANS
+#define GLM_GTX_transform
+#define GLM_GTX_quaternion
 #include <glm/glm.hpp>
 
 
