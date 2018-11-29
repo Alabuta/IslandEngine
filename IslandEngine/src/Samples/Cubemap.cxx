@@ -59,10 +59,10 @@ bool InitCubemap()
         Position{+1, -1, +1}
     );
 
-    Render::inst().CreateVAO(cubemapVAO);
+    cubemapVAO = Render::inst().createVAO();
 
     {
-        Render::inst().CreateBO(cubemapIndirectBO);
+        cubemapIndirectBO = Render::inst().createBO();
 
         struct {
             u32  count;
@@ -77,8 +77,7 @@ bool InitCubemap()
     }
 
     {
-        auto bo = 0u;
-        Render::inst().CreateBO(bo);
+        auto bo = Render::inst().createBO();
 
         glNamedBufferStorage(bo, sizeof(vertices), vertices.data(), GL_DYNAMIC_STORAGE_BIT);
 

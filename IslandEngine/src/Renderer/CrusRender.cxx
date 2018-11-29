@@ -90,40 +90,36 @@ bool Render::CreateProgram(u32 &_program)
     return true;
 }
 
-bool Render::CreateBO(u32 &_bo)
+u32 Render::createBO()
 {
-    if (_bo != 0 && glIsBuffer(_bo) == GL_TRUE) {
-        log::Warning() << "already used buffer object index: " << _bo;
-        return false;
-    }
+    u32 bo;
 
-    glCreateBuffers(1, &_bo);
+    glCreateBuffers(1, &bo);
 
-    glObjectLabel(GL_BUFFER, _bo, -1, "[BO]");
+    glObjectLabel(GL_BUFFER, bo, -1, "[BO]");
 
-    if (glGetError() != GL_NO_ERROR)
-        return false;
+    if (auto error = glGetError(); error != GL_NO_ERROR)
+        log::Warning() << "an error was encoutered in: " << __FUNCTION__ << std::hex << error;
 
-    BOs_ = _bo;
-    return true;
+    BOs_ = bo;
+
+    return bo;
 }
 
-bool Render::CreateVAO(u32 &_vao)
+u32 Render::createVAO()
 {
-    if (glIsVertexArray(_vao) == GL_TRUE) {
-        log::Warning() << "already used VAO index: " << _vao;
-        return false;
-    }
+    u32 vao = 0;
 
-    glCreateVertexArrays(1, &_vao);
+    glCreateVertexArrays(1, &vao);
 
-    glObjectLabel(GL_VERTEX_ARRAY, _vao, -1, "[VAO]");
+    glObjectLabel(GL_VERTEX_ARRAY, vao, -1, "[VAO]");
 
-    if (glGetError() != GL_NO_ERROR)
-        return false;
+    if (auto error = glGetError(); error != GL_NO_ERROR)
+        log::Warning() << "an error was encoutered in: " << __FUNCTION__ << std::hex << error;
 
-    VAOs_ = _vao;
-    return true;
+    VAOs_ = vao;
+
+    return vao;
 }
 
 bool Render::CreateTBO(u32 _target, u32 &_tbo)
@@ -186,7 +182,7 @@ void Render::InitBufferObjects()
         if (index == GL_INVALID_INDEX || size < 1)
             log::Fatal() << "can't init the UBO: invalid index param: " << "VIEWPORT";
 
-        CreateBO(VIEWPORT_);
+        VIEWPORT_ = createBO();
         glNamedBufferStorage(VIEWPORT_, size, nullptr, GL_DYNAMIC_STORAGE_BIT);
 
         glBindBufferBase(GL_UNIFORM_BUFFER, Render::eBUFFERS_BINDING::nVIEWPORT, VIEWPORT_);
@@ -200,7 +196,7 @@ void Render::InitBufferObjects()
         if (index == GL_INVALID_INDEX)
             log::Fatal() << "can't init the SSBO: invalid index param: " << "VIEWPORT";
 
-        CreateBO(VIEWPORT_);
+        VIEWPORT_ = CreateBO();
         glNamedBufferStorage(VIEWPORT_, sizeof(math::Matrix) * 3, nullptr, GL_DYNAMIC_STORAGE_BIT);
 
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, Render::eBUFFERS_BINDING::nVIEWPORT), VIEWPORT_;
@@ -214,7 +210,7 @@ void Render::InitBufferObjects()
         if (index == GL_INVALID_INDEX)
             log::Fatal() << "can't init the SSBO: invalid index param: " << "TRANSFORM";
 
-        CreateBO(TRANSFORM_);
+        TRANSFORM_ = createBO();
         glNamedBufferStorage(TRANSFORM_, sizeof(math::Matrix) * 4, nullptr, GL_DYNAMIC_STORAGE_BIT);
 
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, Render::eBUFFERS_BINDING::nTRANSFORM, TRANSFORM_);

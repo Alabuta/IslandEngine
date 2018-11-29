@@ -200,7 +200,7 @@ void initFramebuffer()
     glTextureParameteri(rt_depth_irradiance, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTextureParameteri(rt_depth_irradiance, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-    glTextureStorage2D(rt_depth_irradiance, 1, GL_DEPTH_COMPONENT32F, irradiance_width, irradiance_height);
+    glTextureStorage2D(rt_depth_irradiance, 1, GL_DEPTH_COMPONENT32F, irradiance_width, irradiance_height);*/
 
 
     Render::inst().CreateTBO(GL_TEXTURE_CUBE_MAP, rt_irradiance);
@@ -370,7 +370,7 @@ void init()
         Position{+.5f, -.5f, +.5f}
     );
 
-    Render::inst().CreateBO(cube_ibo);
+    cube_ibo = Render::inst().createBO();
 
     struct command_t {
         u32  count;
@@ -386,10 +386,9 @@ void init()
     glNamedBufferStorage(cube_ibo, sizeof(command), &command, GL_DYNAMIC_STORAGE_BIT);
 
 
-    Render::inst().CreateVAO(cube_vao);
+    cube_vao = Render::inst().createVAO();
 
-    auto bo = 0u;
-    Render::inst().CreateBO(bo);
+    auto bo = Render::inst().createBO();
 
     glNamedBufferStorage(bo, sizeof(vertices), std::data(vertices), GL_DYNAMIC_STORAGE_BIT);
 
@@ -675,7 +674,7 @@ void initGaussFilter(Program &program)
         if (index != GL_INVALID_INDEX) {
             u32 GAUSS_FILTER_COLOR_WEIGHTS = 0;
 
-            Render::inst().CreateBO(GAUSS_FILTER_COLOR_WEIGHTS);
+            GAUSS_FILTER_COLOR_WEIGHTS = Render::inst().createBO();
             glNamedBufferStorage(GAUSS_FILTER_COLOR_WEIGHTS, sizeof(decltype(weights)::value_type) * std::size(weights), std::data(weights), 0);
 
             glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 5, GAUSS_FILTER_COLOR_WEIGHTS);
@@ -692,7 +691,7 @@ void initGaussFilter(Program &program)
         if (index != GL_INVALID_INDEX) {
             u32 GAUSS_FILTER_OFFSETS = 0;
 
-            Render::inst().CreateBO(GAUSS_FILTER_OFFSETS);
+            GAUSS_FILTER_OFFSETS = Render::inst().createBO();
             glNamedBufferStorage(GAUSS_FILTER_OFFSETS, sizeof(decltype(offsets)::value_type) * std::size(offsets), std::data(offsets), 0);
 
             glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 6, GAUSS_FILTER_OFFSETS);
@@ -739,10 +738,9 @@ void init()
     glProgramUniform3fv(program.handle(), 20, kernel_size, &std::data(kernel)->x);
 
     if (hemisphere_program.AssignNew({R"(Defaults/Unlit-Simple.glsl)"})) {
-        Render::inst().CreateVAO(hemisphere_vao);
+        hemisphere_vao = Render::inst().createVAO();
 
-        auto bo = 0u;
-        Render::inst().CreateBO(bo);
+        auto bo = Render::inst().createBO();
 
         hemisphere_count = static_cast<decltype(hemisphere_count)>(std::size(kernel));
 
@@ -899,7 +897,7 @@ void Init()
     Render::inst().CreateSSBO<Camera::data_t>(mesh_program.handle(), 3, "PER_CAMERA"s);
 
     {
-		Render::inst().CreateVAO(quad_vao);
+		quad_vao = Render::inst().createVAO();
 
         auto constexpr vertices = make_array(
             Position{-1, +1, 0},
@@ -908,8 +906,7 @@ void Init()
             Position{+1, -1, 0}
         );
 
-        auto bo = 0u;
-        Render::inst().CreateBO(bo);
+        auto bo = Render::inst().createBO();
 
         glNamedBufferStorage(bo, sizeof(decltype(vertices)::value_type) * std::size(vertices), std::data(vertices), 0);
 
@@ -923,10 +920,9 @@ void Init()
     ibl::init();
 
     if (future.get()) {
-        Render::inst().CreateVAO(mesh_vao);
+        mesh_vao = Render::inst().createVAO();
 
-        auto bo = 0u;
-        Render::inst().CreateBO(bo);
+        auto bo = Render::inst().createBO();
 
         glNamedBufferStorage(bo, sizeof(decltype(vertex_buffer)::value_type) * std::size(vertex_buffer), std::data(vertex_buffer), 0);
 
@@ -1004,10 +1000,9 @@ void loadAtributes(isle::vertex_buffer_t &vertices, isle::index_buffer_t &indice
 {
     using namespace isle;
 
-    Render::inst().CreateVAO(mesh_vao);
+    auto vao = Render::inst().createVAO();
 
-    auto bo = 0u;
-    Render::inst().CreateBO(bo);
+    auto bo = Render::inst().createBO();
 }
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int)

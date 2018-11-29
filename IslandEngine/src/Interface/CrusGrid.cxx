@@ -101,11 +101,10 @@ void Grid::Update(float _side, float _step, u16 _subdivs)
     if (glIsVertexArray(vao_) == GL_TRUE)
         glDeleteVertexArrays(1, &vao_);
 
-    Render::inst().CreateVAO(vao_);
+    vao_ = Render::inst().createVAO();
 
     {
-        auto bo = 0u;
-        Render::inst().CreateBO(bo);
+        auto bo = Render::inst().createBO();
         glNamedBufferStorage(bo, sizeof(data[0]) * data.size(), data.data(), GL_DYNAMIC_STORAGE_BIT);
 
         glVertexArrayAttribBinding(vao_, Render::eVERTEX_IN::nPOSITION, 0);

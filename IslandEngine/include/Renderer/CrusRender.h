@@ -67,8 +67,8 @@ public:
 
     bool CreateProgram(u32 &program);
 
-    bool CreateBO(u32 &vbo);
-    bool CreateVAO(u32 &vao);
+    u32 createBO();
+    u32 createVAO();
     bool CreateTBO(u32 target, u32 &tbo);
 
     void Update();
@@ -112,8 +112,7 @@ public:
         if (index == GL_INVALID_INDEX)
             log::Fatal() << "can't init the SSBO: invalid index param: PER_OBJECT"s;
 
-        u32 objectBuffer{0};
-        Render::inst().CreateBO(objectBuffer);
+        auto objectBuffer = Render::inst().createBO();
 
         glNamedBufferStorage(objectBuffer, sizeof(T), nullptr, GL_DYNAMIC_STORAGE_BIT);
 
