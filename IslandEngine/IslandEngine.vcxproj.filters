@@ -321,6 +321,9 @@
     <ClInclude Include="src\vertex_format.hxx">
       <Filter>Core\Renderer</Filter>
     </ClInclude>
+    <ClInclude Include="src\mesh.hxx">
+      <Filter>Core\Renderer</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="resources\resource.aps">

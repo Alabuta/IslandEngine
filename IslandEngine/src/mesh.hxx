@@ -2,11 +2,11 @@
 
 #include <vector>
 
-#include <GL/GLcoreARB.h>
 
 
 #include "System/CrusIsland.h"
 #include "System/CrusTypes.h"
+#include "Renderer\CrusOpenGLExts.h"
 
 #include "vertex_format.hxx"
 

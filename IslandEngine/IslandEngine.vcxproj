@@ -239,6 +239,7 @@
     <ClInclude Include="src\Camera\CameraController.hxx" />
     <ClInclude Include="src\Camera\MouseHandler.hxx" />
     <ClInclude Include="src\glTF.hxx" />
+    <ClInclude Include="src\mesh.hxx" />
     <ClInclude Include="src\System\InputManager.hxx" />
     <ClInclude Include="src\System\MouseInput.hxx" />
     <ClInclude Include="src\vertex_format.hxx" />
