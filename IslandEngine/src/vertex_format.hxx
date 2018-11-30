@@ -3,6 +3,11 @@
 #include <variant>
 #include <tuple>
 
+#define GLM_FORCE_CXX17
+#define GLM_ENABLE_EXPERIMENTAL
+#define GLM_FORCE_RADIANS
+#define GLM_GTX_quaternion
+#define GLM_GTX_transform
 #include <glm/glm.hpp>
 
 #include "System/CrusIsland.h"

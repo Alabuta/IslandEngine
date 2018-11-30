@@ -6,7 +6,7 @@
 
 #include "System/CrusIsland.h"
 #include "System/CrusTypes.h"
-#include "Renderer\CrusOpenGLExts.h"
+#include "Renderer/CrusOpenGLExts.h"
 
 #include "vertex_format.hxx"
 

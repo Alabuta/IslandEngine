@@ -22,15 +22,55 @@ namespace fs = std::experimental::filesystem;
 namespace fs = boost::filesystem;
 #endif
 
-#include "System\CrusSystem.h"
+#define GLM_FORCE_CXX17
+#define GLM_ENABLE_EXPERIMENTAL
+#define GLM_FORCE_RADIANS
+#define GLM_GTX_quaternion
+#define GLM_GTX_transform
+#include <glm/glm.hpp>
 
-#include "Math\CrusVector.h"
-#include "Renderer\CrusPosition.h"
-#include "Renderer\CrusUV.h"
+#include "System/CrusSystem.h"
 
-namespace isle {
 
-bool LoadOBJ(fs::path const &path, std::vector<Position> &positions, std::vector<math::Vector> &normals, std::vector<UV> &uvs, std::vector<std::vector<std::size_t>> &faces);
+namespace isle
+{
+struct Vertex {
+    glm::vec3 pos;
+    glm::vec3 normal;
+    glm::vec2 uv;
+
+
+    Vertex() = default;
+
+    template<class P, class N, class UV, typename std::enable_if_t<are_same_v<glm::vec3, std::decay_t<P>, std::decay_t<N>> && std::is_same_v<glm::vec2, std::decay_t<UV>>>...>
+    constexpr Vertex(P &&_position, N &&_normal, UV &&_uv)
+    {
+        pos = std::forward<P>(_position);
+        normal = std::forward<N>(_normal);
+        uv = std::forward<UV>(_uv);
+    }
+
+    template<class P, class N, class UV,
+        typename std::enable_if_t<are_same_v<std::array<float, 3>, std::decay_t<P>, std::decay_t<N>> && std::is_same_v<std::array<float, 2>, std::decay_t<UV>>>...>
+        constexpr Vertex(P &&_position, N &&_normal, UV &&_uv)
+    {
+        pos = vec3{std::forward<P>(_position)};
+        normal = vec3{std::forward<N>(_normal)};
+        uv = vec2{std::forward<UV>(_uv)};
+    }
+
+    template<class T, typename std::enable_if_t<std::is_same_v<Vertex, std::decay_t<T>>>...>
+    constexpr bool operator== (T &&rhs) const
+    {
+        return pos == rhs.pos && normal == rhs.normal && uv == rhs.uv;
+    }
+};
+
+//std::ostream &operator<< (std::ostream &_stream, Vertex const &v)
+//{
+//    return _stream << v.pos << " " << v.normal << " " << v.uv;
+//}
+bool LoadOBJ(fs::path const &path, std::vector<glm::vec3> &positions, std::vector<glm::vec3> &normals, std::vector<glm::vec2> &uvs, std::vector<std::vector<std::size_t>> &faces);
 
 
 template<typename T>
@@ -82,9 +122,9 @@ bool LoadModel(std::string_view _name, u32 &count, std::vector<T> &vertex_buffer
 {
     using namespace std::string_literals;
 
-    std::vector<decltype(glTF::Vertex::pos)> positions;
-    std::vector<decltype(glTF::Vertex::normal)> normals;
-    std::vector<decltype(glTF::Vertex::uv)> uvs;
+    std::vector<decltype(Vertex::pos)> positions;
+    std::vector<decltype(Vertex::normal)> normals;
+    std::vector<decltype(Vertex::uv)> uvs;
 
     std::vector<std::vector<std::size_t>> faces;
 

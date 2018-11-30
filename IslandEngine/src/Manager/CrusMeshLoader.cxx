@@ -6,12 +6,15 @@
 ****	Description: a simple mesh loader header file.
 ****
 ********************************************************************************************************************************/
-#include "Manager\CrusMeshLoader.h"
+#include <array>
+#include <vector>
+
+#include "Manager/CrusMeshLoader.h"
 
 namespace isle {
 
 
-bool LoadOBJ(fs::path const &path, std::vector<Position> &positions, std::vector<math::Vector> &normals, std::vector<UV> &uvs, std::vector<std::vector<std::size_t>> &faces)
+bool LoadOBJ(fs::path const &path, std::vector<glm::vec3> &positions, std::vector<glm::vec3> &normals, std::vector<glm::vec2> &uvs, std::vector<std::vector<std::size_t>> &faces)
 {
     using namespace std::string_literals;
 

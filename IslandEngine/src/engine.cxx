@@ -856,9 +856,9 @@ void render()
 
 void Init()
 {
-    std::vector<glTF::Vertex> vertex_buffer;
+    std::vector<Vertex> vertex_buffer;
 
-    auto future = std::async(std::launch::async, LoadModel<glTF::Vertex>, meshName, std::ref(mesh_count), std::ref(vertex_buffer));
+    auto future = std::async(std::launch::async, LoadModel<Vertex>, meshName, std::ref(mesh_count), std::ref(vertex_buffer));
 
     //grid.Update(15, 1, 5);
 
@@ -903,15 +903,15 @@ void Init()
         glNamedBufferStorage(bo, sizeof(decltype(vertex_buffer)::value_type) * std::size(vertex_buffer), std::data(vertex_buffer), 0);
 
         glVertexArrayAttribBinding(mesh_vao, Render::eVERTEX_IN::nPOSITION, 0);
-        glVertexArrayAttribFormat(mesh_vao, Render::eVERTEX_IN::nPOSITION, 3, GL_FLOAT, GL_FALSE, offsetof(glTF::Vertex, pos));
+        glVertexArrayAttribFormat(mesh_vao, Render::eVERTEX_IN::nPOSITION, 3, GL_FLOAT, GL_FALSE, offsetof(Vertex, pos));
         glEnableVertexArrayAttrib(mesh_vao, Render::eVERTEX_IN::nPOSITION);
 
         glVertexArrayAttribBinding(mesh_vao, Render::eVERTEX_IN::nNORMAL, 0);
-        glVertexArrayAttribFormat(mesh_vao, Render::eVERTEX_IN::nNORMAL, 3, GL_FLOAT, GL_TRUE, offsetof(glTF::Vertex, normal));
+        glVertexArrayAttribFormat(mesh_vao, Render::eVERTEX_IN::nNORMAL, 3, GL_FLOAT, GL_TRUE, offsetof(Vertex, normal));
         glEnableVertexArrayAttrib(mesh_vao, Render::eVERTEX_IN::nNORMAL);
 
         glVertexArrayAttribBinding(mesh_vao, Render::eVERTEX_IN::nTEX_COORD, 0);
-        glVertexArrayAttribFormat(mesh_vao, Render::eVERTEX_IN::nTEX_COORD, 2, GL_FLOAT, GL_FALSE, offsetof(glTF::Vertex, uv));
+        glVertexArrayAttribFormat(mesh_vao, Render::eVERTEX_IN::nTEX_COORD, 2, GL_FLOAT, GL_FALSE, offsetof(Vertex, uv));
         glEnableVertexArrayAttrib(mesh_vao, Render::eVERTEX_IN::nTEX_COORD);
 
         glVertexArrayVertexBuffer(mesh_vao, 0, bo, 0, sizeof(decltype(vertex_buffer)::value_type));
