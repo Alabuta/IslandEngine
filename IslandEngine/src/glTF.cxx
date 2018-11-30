@@ -14,6 +14,27 @@ namespace fs = std::filesystem;
 namespace fs = boost::filesystem;
 #endif
 
+
+#define GLM_FORCE_CXX17
+#define GLM_ENABLE_EXPERIMENTAL
+#define GLM_FORCE_RADIANS
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE
+#define GLM_FORCE_SWIZZLE
+#define GLM_GTX_polar_coordinates
+#define GLM_GTX_quaternion
+#define GLM_GTX_transform
+
+//#pragma warning(push, 3)
+//#pragma warning(disable: 4201)
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/matrix_decompose.hpp>
+#include <glm/gtc/matrix_inverse.hpp>
+#include <glm/gtx/polar_coordinates.hpp> 
+#include <glm/gtc/type_ptr.hpp>
+#include <glm/gtx/hash.hpp>
+//#pragma warning(pop)
+
 #ifdef _MSC_VER
 #pragma warning(push, 3)
 #pragma warning(disable: 4127)
@@ -118,9 +139,9 @@ std::optional<isle::semantics_t> get_semantic(std::string_view name)
 
 }
 
-namespace
-{
 
+namespace isle::glTF
+{
 struct scene_t {
     std::string name;
     std::vector<std::size_t> nodes;
@@ -317,7 +338,7 @@ void from_json(nlohmann::json const &j, node_t &node)
         // If the determinant of the transform is a negative value,
         // the winding order of the mesh triangle faces should be reversed.
         // This supports negative scales for mirroring geometry.
-        node.transform = glm::mat4(std::move(matrix));
+        node.transform = glm::make_mat4(std::data(matrix));
     }
 
     else {
@@ -334,9 +355,8 @@ void from_json(nlohmann::json const &j, node_t &node)
         if (j.count("scale"s))
             scale = j.at("scale"s).get<std::decay_t<decltype(scale)>>();
 
-
         node.transform = std::make_tuple(
-            glm::vec3{std::move(translation)}, glm::quat{std::move(rotation)}, glm::vec3{std::move(scale)}
+            glm::make_vec3(std::data(translation)), glm::make_quat(std::data(rotation)), glm::make_vec3(std::data(scale))
         );
     }
 
@@ -593,8 +613,8 @@ bool load(std::string_view name, vertex_buffer_t &vertices, index_buffer_t &indi
     nlohmann::json json;
     glTFFile >> json;
 
-    /*auto scenes = json.at("scenes"s).get<std::vector<glTF::scene_t>>();
-    auto nodes = json.at("nodes"s).get<std::vector<glTF::node_t>>();*/
+    auto scenes = json.at("scenes"s).get<std::vector<glTF::scene_t>>();
+    auto nodes = json.at("nodes"s).get<std::vector<glTF::node_t>>();
 
     return false;
 }
