@@ -1,6 +1,7 @@
 #include <string>
 #include <string_view>
 #include <optional>
+#include <variant>
 #include <set>
 
 using namespace std::string_literals;
@@ -100,11 +101,19 @@ using attribute_buffer_t = isle::wrap_variant_by_vector<attribute_t>::type;
 
 namespace
 {
+template<class S, class T>
+struct variant_has_type;
 
+template<class S, class... Ts>
+struct variant_has_type<S, std::variant<Ts...>> {
+    static auto constexpr value = isle::is_one_of_v<S, Ts...>;
+};
+}
+
+namespace
+{
 using accessor_t = std::pair<isle::semantics_t, std::size_t>;
-
 using accessors_set_t = std::set<accessor_t>;
-
 
 std::optional<isle::semantics_t> get_semantic(std::string_view name)
 {
@@ -136,7 +145,6 @@ std::optional<isle::semantics_t> get_semantic(std::string_view name)
 
     return { };
 }
-
 }
 
 
@@ -291,11 +299,14 @@ struct accessor_t {
 
     std::vector<float> min, max;
 
-    std::uint32_t componentType;
+    GL componentType;
 
     std::string type;
 };
+}
 
+namespace isle::glTF
+{
 void from_json(nlohmann::json const &j, buffer_t &buffer)
 {
     buffer.byteLength = j.at("byteLength"s).get<decltype(buffer_t::byteLength)>();
@@ -392,31 +403,6 @@ void from_json(nlohmann::json const &j, mesh_t &mesh)
                 primitive.attributeAccessors.emplace(semantic.value(), index);
             }
         }
-
-        // TODO: remove
-        if (json_attributes.count("POSITION"s))
-            primitive.attributes.position = json_attributes.at("POSITION"s).get<decltype(mesh_t::primitive_t::attributes_t::position)::value_type>();
-
-        if (json_attributes.count("NORMAL"s))
-            primitive.attributes.normal = json_attributes.at("NORMAL"s).get<decltype(mesh_t::primitive_t::attributes_t::normal)::value_type>();
-
-        if (json_attributes.count("TANGENT"s))
-            primitive.attributes.tangent = json_attributes.at("TANGENT"s).get<decltype(mesh_t::primitive_t::attributes_t::tangent)::value_type>();
-
-        if (json_attributes.count("TEXCOORD_0"s))
-            primitive.attributes.texCoord0 = json_attributes.at("TEXCOORD_0"s).get<decltype(mesh_t::primitive_t::attributes_t::texCoord0)::value_type>();
-
-        if (json_attributes.count("TEXCOORD_1"s))
-            primitive.attributes.texCoord1 = json_attributes.at("TEXCOORD_1"s).get<decltype(mesh_t::primitive_t::attributes_t::texCoord1)::value_type>();
-
-        if (json_attributes.count("COLOR_0"s))
-            primitive.attributes.color0 = json_attributes.at("COLOR_0"s).get<decltype(mesh_t::primitive_t::attributes_t::color0)::value_type>();
-
-        if (json_attributes.count("JOINTS_0"s))
-            primitive.attributes.joints0 = json_attributes.at("JOINTS_0"s).get<decltype(mesh_t::primitive_t::attributes_t::joints0)::value_type>();
-
-        if (json_attributes.count("WEIGHTS_0"s))
-            primitive.attributes.weights0 = json_attributes.at("WEIGHTS_0"s).get<decltype(mesh_t::primitive_t::attributes_t::weights0)::value_type>();
 
         if (json_primitive.count("mode"s))
             primitive.mode = json_primitive.at("mode"s).get<decltype(mesh_t::primitive_t::mode)>();
@@ -587,34 +573,254 @@ void from_json(nlohmann::json const &j, accessor_t &accessor)
     accessor.type = j.at("type"s).get<decltype(accessor_t::type)>();
     accessor.componentType = j.at("componentType"s).get<decltype(accessor_t::componentType)>();
 }
-
 }
+
+namespace isle::glTF
+{
+template<std::size_t N>
+std::optional<attribute_buffer_t> instantiate_attribute_buffer(GL componentType)
+{
+    switch (componentType) {
+        case GL::BYTE:
+            return std::vector<glm::vec<N, std::int8_t>>{};
+
+        case GL::UNSIGNED_BYTE:
+            return std::vector<glm::vec<N, std::uint8_t>>{};
+
+        case GL::SHORT:
+            return std::vector<glm::vec<N, std::int16_t>>{};
+
+        case GL::UNSIGNED_SHORT:
+            return std::vector<glm::vec<N, std::uint16_t>>{};
+
+        case GL::INT:
+            return std::vector<glm::vec<N, std::int32_t>>{};
+
+        case GL::UNSIGNED_INT:
+            return std::vector<glm::vec<N, std::uint32_t>>{};
+
+        case GL::FLOAT:
+            return std::vector<glm::vec<N, std::float_t>>{};
+
+        default:
+            return { };
+    }
+}
+
+std::optional<attribute_buffer_t> instantiate_attribute_buffer(std::string_view type, GL componentType)
+{
+    if (type == "SCALAR"sv)
+        return glTF::instantiate_attribute_buffer<1>(componentType);
+
+    else if (type == "VEC2"sv)
+        return glTF::instantiate_attribute_buffer<2>(componentType);
+
+    else if (type == "VEC3"sv)
+        return glTF::instantiate_attribute_buffer<3>(componentType);
+
+    else if (type == "VEC4"sv)
+        return glTF::instantiate_attribute_buffer<4>(componentType);
+
+    return std::nullopt;
+}
+
+template<std::size_t N>
+std::optional<attribute_t> try_to_get_attribute_type(GL componentType)
+{
+    switch (componentType) {
+        case GL::BYTE:
+            return glm::vec<N, std::int8_t>{};
+
+        case GL::UNSIGNED_BYTE:
+            return glm::vec<N, std::uint8_t>{};
+
+        case GL::SHORT:
+            return glm::vec<N, std::int16_t>{};
+
+        case GL::UNSIGNED_SHORT:
+            return glm::vec<N, std::uint16_t>{};
+
+        case GL::INT:
+            return glm::vec<N, std::int32_t>{};
+
+        case GL::UNSIGNED_INT:
+            return glm::vec<N, std::uint32_t>{};
+
+        case GL::FLOAT:
+            return glm::vec<N, std::float_t>{};
+
+        default:
+            return { };
+    }
+}
+
+std::optional<attribute_t> try_to_get_attribute_type(std::string_view type, GL componentType)
+{
+    if (type == "SCALAR"sv)
+        return glTF::try_to_get_attribute_type<1>(componentType);
+
+    else if (type == "VEC2"sv)
+        return glTF::try_to_get_attribute_type<2>(componentType);
+
+    else if (type == "VEC3"sv)
+        return glTF::try_to_get_attribute_type<3>(componentType);
+
+    else if (type == "VEC4"sv)
+        return glTF::try_to_get_attribute_type<4>(componentType);
+
+    return std::nullopt;
+}
+}
+
 
 namespace isle::glTF
 {
 bool load(std::string_view name, vertex_buffer_t &vertices, index_buffer_t &indices)
 {
-    auto current_path = fs::current_path();
-
     fs::path contents{"contents/scenes"s};
 
-    if (!fs::exists(current_path / contents))
-        contents = current_path / fs::path{"../"s} / contents;
+    if (!fs::exists(fs::current_path() / contents))
+        contents = fs::current_path() / fs::path{"../"s} / contents;
 
-    auto glTF_path = contents / name / fs::path{"scene.gltf"s};
-
-    std::ifstream glTFFile(glTF_path.native(), std::ios::in);
-
-    if (glTFFile.bad() || glTFFile.fail()) {
-        log::Error() << "failed to open file: "s << glTF_path;
-        return false;
-    }
+    auto folder = contents / name;
 
     nlohmann::json json;
-    glTFFile >> json;
+
+    {
+        auto path = folder / fs::path{"scene.gltf"s};
+
+        std::ifstream file{path.native(), std::ios::in};
+
+        if (file.bad() || file.fail()) {
+            log::Error() << "failed to open file: "s << path;
+            return false;
+        }
+
+        file >> json;
+    }
 
     auto scenes = json.at("scenes"s).get<std::vector<glTF::scene_t>>();
     auto nodes = json.at("nodes"s).get<std::vector<glTF::node_t>>();
+
+    ;
+
+    auto meshes = json.at("meshes"s).get<std::vector<glTF::mesh_t>>();
+
+    auto buffers = json.at("buffers"s).get<std::vector<glTF::buffer_t>>();
+    auto bufferViews = json.at("bufferViews"s).get<std::vector<glTF::buffer_view_t>>();
+    auto accessors = json.at("accessors"s).get<std::vector<glTF::accessor_t>>();
+
+    auto images = ([&json] {
+        if (json.count("images"s))
+            return json.at("images"s).get<std::vector<glTF::image_t>>();
+
+        return std::vector<glTF::image_t>{};
+    })();
+
+    auto textures = ([&json] {
+        if (json.count("textures"s))
+            return json.at("textures"s).get<std::vector<glTF::texture_t>>();
+
+        return std::vector<glTF::texture_t>{};
+    })();
+
+    auto samplers = ([&json] {
+        if (json.count("samplers"s))
+            return json.at("samplers"s).get<std::vector<glTF::sampler_t>>();
+
+        return std::vector<glTF::sampler_t>{};
+    })();
+
+    auto materials = json.at("materials"s).get<std::vector<glTF::material_t>>();
+
+    auto cameras = ([&json] {
+        if (json.count("cameras"s))
+            return json.at("cameras"s).get<std::vector<glTF::camera_t>>();
+
+        return std::vector<glTF::camera_t>{};
+    })();
+
+    std::vector<std::vector<std::byte>> bin_buffers;
+    bin_buffers.reserve(std::size(buffers));
+
+    for (auto &&buffer : buffers) {
+        auto path = folder / fs::path{buffer.uri};
+
+        std::ifstream file{path.native(), std::ios::in | std::ios::binary};
+
+        if (file.bad() || file.fail()) {
+            log::Debug() << "failed to open file: "s << path;
+            return false;
+        }
+
+        std::vector<std::byte> byte_code(buffer.byteLength);
+
+        if (!byte_code.empty())
+            file.read(reinterpret_cast<char *>(std::data(byte_code)), std::size(byte_code));
+
+        bin_buffers.emplace_back(std::move(byte_code));
+    }
+
+    std::vector<attribute_buffer_t> attribute_buffers;
+    attribute_buffers.reserve(std::size(accessors));
+
+    for (auto &&accessor : accessors) {
+        if (auto buffer = instantiate_attribute_buffer(accessor.type, accessor.componentType); buffer) {
+            auto &&buffer_view = bufferViews.at(accessor.bufferView);
+            auto &&bin_buffer = bin_buffers.at(buffer_view.buffer);
+
+            std::visit([&accessor, &buffer_view, &bin_buffer, &attribute_buffers] (auto &&buffer) {
+                auto const size = sizeof(typename std::decay_t<decltype(buffer)>::value_type);
+
+                std::size_t const begin = accessor.byteOffset + buffer_view.byteOffset;
+                std::size_t const end = begin + accessor.count * size;
+
+                buffer.resize(accessor.count);
+
+                if (buffer_view.byteStride != 0) {
+                    std::size_t src_index = begin, dst_index = 0u;
+
+                    for (; src_index < end; src_index += buffer_view.byteStride, ++dst_index)
+                        memmove(&buffer.at(dst_index), &bin_buffer.at(src_index), size);
+                }
+
+                else memmove(std::data(buffer), &bin_buffer.at(begin), end - begin);
+
+                attribute_buffers.emplace_back(std::move(buffer));
+
+            }, std::move(buffer.value()));
+        }
+    }
+
+    for (auto &&mesh : meshes) {
+        for (auto &&primitive : mesh.primitives) {
+            std::visit([&indices] (auto &&source)
+            {
+                using T = std::decay_t<decltype(source)>;
+
+                if constexpr (variant_has_type<T, index_buffer_t>::value)
+                    indices = std::forward<T>(source);
+
+            }, attribute_buffers.at(primitive.indices));
+
+            std::tuple<
+                std::pair<
+                    std::tuple<semantic::position>,
+                    std::vector<std::tuple<glm::vec<3, std::float_t>>>
+                >
+            > f;
+
+            std::variant<decltype(f)> v = f;
+
+            std::visit([&vertices] (auto &&source) {
+                using T = std::decay_t<decltype(source)>;
+
+                if constexpr (variant_has_type<T, vertex_buffer_t>::value)
+                    vertices = std::forward<T>(source);
+
+            }, v);
+        }
+    }
 
     return false;
 }

@@ -116,7 +116,12 @@ template<class T>
 constexpr bool is_vertex_format_v = is_vertex_format<T, vertex_format_t>::value;
 
 using indices_t = std::variant<
-    std::int8_t, std::uint8_t, std::int16_t, std::uint16_t, std::int32_t, std::uint32_t
+    glm::vec<1, std::int8_t>,
+    glm::vec<1, std::uint8_t>,
+    glm::vec<1, std::int16_t>,
+    glm::vec<1, std::uint16_t>,
+    glm::vec<1, std::int32_t>,
+    glm::vec<1, std::uint32_t>
 >;
 
 using index_buffer_t = wrap_variant_by_vector<indices_t>::type;
