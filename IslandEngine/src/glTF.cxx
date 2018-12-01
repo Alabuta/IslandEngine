@@ -137,6 +137,12 @@ std::optional<isle::semantics_t> get_semantic(std::string_view name)
 }
 }
 
+namespace
+{
+// semantic_attributes_types<S, VF>
+// type = std::variant<std::vector<if semantic == S then std::alternative<I, VF>>...>
+}
+
 
 namespace isle::glTF
 {
@@ -175,8 +181,7 @@ struct mesh_t {
         std::optional<std::size_t> material;
         std::size_t indices;
 
-        accessors_set_t attributeAccessors;
-
+        accessors_set_t attribute_accessors;
 
         std::uint32_t mode{4};
     };
@@ -380,7 +385,7 @@ void from_json(nlohmann::json const &j, mesh_t &mesh)
             if (auto semantic = get_semantic(it.key()); semantic) {
                 auto index = it->get<std::size_t>();
 
-                primitive.attributeAccessors.emplace(semantic.value(), index);
+                primitive.attribute_accessors.emplace(semantic.value(), index);
             }
         }
 
@@ -687,7 +692,7 @@ bool load(std::string_view name, vertex_buffer_t &vertices, index_buffer_t &indi
     auto meshes = json.at("meshes"s).get<std::vector<glTF::mesh_t>>();
 
     auto buffers = json.at("buffers"s).get<std::vector<glTF::buffer_t>>();
-    auto bufferViews = json.at("bufferViews"s).get<std::vector<glTF::buffer_view_t>>();
+    auto buffer_views = json.at("bufferViews"s).get<std::vector<glTF::buffer_view_t>>();
     auto accessors = json.at("accessors"s).get<std::vector<glTF::accessor_t>>();
 
     auto images = ([&json] {
@@ -746,7 +751,7 @@ bool load(std::string_view name, vertex_buffer_t &vertices, index_buffer_t &indi
 
     for (auto &&accessor : accessors) {
         if (auto buffer = instantiate_attribute_buffer(accessor.type, accessor.componentType); buffer) {
-            auto &&buffer_view = bufferViews.at(accessor.bufferView);
+            auto &&buffer_view = buffer_views.at(accessor.bufferView);
             auto &&bin_buffer = bin_buffers.at(buffer_view.buffer);
 
             std::visit([&accessor, &buffer_view, &bin_buffer, &attribute_buffers] (auto &&buffer) {
@@ -778,10 +783,28 @@ bool load(std::string_view name, vertex_buffer_t &vertices, index_buffer_t &indi
             {
                 using T = std::decay_t<decltype(source)>;
 
-                if constexpr (variant_has_type<T, index_buffer_t>::value)
+                if constexpr (is_variant_has_type<T, index_buffer_t>::value)
                     indices = std::forward<T>(source);
 
             }, attribute_buffers.at(primitive.indices));
+
+            for (auto &&attribute_accessor : primitive.attribute_accessors) {
+                auto [semantic, accessor] = attribute_accessor;
+
+                std::visit([] (auto semantic)
+                {
+                    // using T = decltype(attribute_buffers.at(accessor))::value_type;
+
+                    // using semantic_attribute_types_t = semantic_attributes_types<T, vertex_format_t>::type
+                    // if constexpr (is_variant_has_type<T, semantic_attribute_types_t>::value)
+                    //      vertices = 
+                    //              std::pair<
+                    //                  std::tuple<semantic>,
+                    //                  std::tuple<glm::vec<3, std::float_t>>
+                    //              >;
+
+                }, semantic);
+            }
 
             std::tuple<
                 std::pair<
@@ -795,12 +818,33 @@ bool load(std::string_view name, vertex_buffer_t &vertices, index_buffer_t &indi
             std::visit([&vertices] (auto &&source) {
                 using T = std::decay_t<decltype(source)>;
 
-                if constexpr (variant_has_type<T, vertex_buffer_t>::value)
+                if constexpr (is_variant_has_type<T, vertex_buffer_t>::value)
                     vertices = std::forward<T>(source);
 
             }, v);
         }
     }
+
+    std::vector<glm::vec3> v0(4, {1, 2, 3});
+    std::variant<
+        std::vector<std::tuple<glm::vec3>>,
+        std::vector<std::tuple<glm::vec3, glm::vec2>>
+    > v1;
+
+    v1 = std::vector<std::tuple<glm::vec3>>(std::size(v0));
+    //v1.resize(std::size(v0));
+
+    std::visit([&v0] (auto &&dst)
+    {
+        using T = std::decay_t<decltype(v0)>::value_type;
+        using T0 = std::tuple<T>;
+        using T1 = std::decay_t<decltype(dst)>::value_type;
+
+        if constexpr (std::is_same_v<T0, T1>)
+            //std::uninitialized_copy(std::begin(v0), std::end(v0), reinterpret_cast<T *>(dst));
+            memmove(std::data(dst), std::data(v0), std::size(v0) * sizeof(T));
+
+    }, v1);
 
     return false;
 }
