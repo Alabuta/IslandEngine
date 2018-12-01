@@ -99,16 +99,6 @@ using attribute_t = std::variant<
 using attribute_buffer_t = isle::wrap_variant_by_vector<attribute_t>::type;
 }
 
-namespace
-{
-template<class S, class T>
-struct variant_has_type;
-
-template<class S, class... Ts>
-struct variant_has_type<S, std::variant<Ts...>> {
-    static auto constexpr value = isle::is_one_of_v<S, Ts...>;
-};
-}
 
 namespace
 {
@@ -187,16 +177,6 @@ struct mesh_t {
 
         accessors_set_t attributeAccessors;
 
-        struct attributes_t {
-            std::optional<std::size_t> position;
-            std::optional<std::size_t> normal;
-            std::optional<std::size_t> tangent;
-            std::optional<std::size_t> texCoord0;
-            std::optional<std::size_t> texCoord1;
-            std::optional<std::size_t> color0;
-            std::optional<std::size_t> joints0;
-            std::optional<std::size_t> weights0;
-        } attributes;
 
         std::uint32_t mode{4};
     };

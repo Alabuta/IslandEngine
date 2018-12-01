@@ -167,6 +167,14 @@ struct wrap_variant_by_vector<std::variant<Ts...>> {
     using type = std::variant<std::vector<Ts>...>;
 };
 
+template<class S, class T>
+struct is_variant_has_type;
+
+template<class S, class... Ts>
+struct is_variant_has_type<S, std::variant<Ts...>> {
+    static auto constexpr value = isle::is_one_of_v<S, Ts...>;
+};
+
 #if _CRUS_TEMP_DISABLED
 template<class C, std::enable_if_t<!is_printable_t<std::decay_t<C>> && is_iterable_t<std::decay_t<C>>>...>
 std::ostream &operator<< (std::ostream &stream, C &&container)
