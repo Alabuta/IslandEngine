@@ -64,7 +64,7 @@
       <AdditionalIncludeDirectories>$(BOOST_ROOT);$(ProjectDir)include;$(ProjectDir)src</AdditionalIncludeDirectories>
       <StringPooling>true</StringPooling>
       <AssemblerOutput>AssemblyAndSourceCode</AssemblerOutput>
-      <AdditionalOptions>/std:c++latest %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/std:c++latest /bigobj %(AdditionalOptions)</AdditionalOptions>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <EnableModules>true</EnableModules>
     </ClCompile>

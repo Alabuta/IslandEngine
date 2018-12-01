@@ -30,6 +30,8 @@ namespace semantic
 
     template<eSEMANTIC_INDEX SI>
     struct attribute {
+        static auto constexpr I = SI;
+
         template<eSEMANTIC_INDEX si>
         auto constexpr operator< (attribute<si>) const noexcept
         {
@@ -59,7 +61,6 @@ using semantics_t = std::variant<
 >;
 
 
-
 using vertex_format_t = std::variant<
     std::pair<
         std::tuple<semantic::position>,
@@ -84,19 +85,21 @@ using vertex_format_t = std::variant<
     std::pair<
         std::tuple<semantic::position, semantic::normal, semantic::tex_coord_0, semantic::tangent>,
         std::tuple<glm::vec<3, std::float_t>, glm::vec<3, std::float_t>, glm::vec<2, std::float_t>, glm::vec<4, std::float_t>>
-    >
+    >,
+
+    std::false_type
 >;
 
 
-template<class V>
+template<class V, typename = std::make_index_sequence<std::variant_size_v<V> - 1>>
 struct to_vertex_format_buffer;
 
-template<class... Ts>
-struct to_vertex_format_buffer<std::variant<Ts...>> {
+template<class V, std::size_t... I>
+struct to_vertex_format_buffer<V, std::index_sequence<I...>> {
     using type = std::variant<
         std::pair<
-            std::tuple_element_t<0, Ts>,
-            std::vector<std::tuple_element_t<1, Ts>>
+            std::tuple_element_t<0, std::variant_alternative_t<I, V>>,
+            std::vector<std::tuple_element_t<1, std::variant_alternative_t<I, V>>>
         >...
     >;
 };

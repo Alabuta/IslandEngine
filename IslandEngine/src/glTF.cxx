@@ -141,6 +141,8 @@ namespace
 {
 // semantic_attributes_types<S, VF>
 // type = std::variant<std::vector<if semantic == S then std::alternative<I, VF>>...>
+template<class... Ts>
+using concat_tuples_types = decltype(std::tuple_cat(std::declval<Ts>()...));
 }
 
 
@@ -788,13 +790,13 @@ bool load(std::string_view name, vertex_buffer_t &vertices, index_buffer_t &indi
 
             }, attribute_buffers.at(primitive.indices));
 
+            vertex_format_t vertex_format;
+
             for (auto &&attribute_accessor : primitive.attribute_accessors) {
                 auto [semantic, accessor] = attribute_accessor;
 
-                std::visit([] (auto semantic)
+                std::visit([&vertex_format, accessor, &attribute_buffers] (auto semantic)
                 {
-                    // using T = decltype(attribute_buffers.at(accessor))::value_type;
-
                     // using semantic_attribute_types_t = semantic_attributes_types<T, vertex_format_t>::type
                     // if constexpr (is_variant_has_type<T, semantic_attribute_types_t>::value)
                     //      vertices = 
@@ -802,6 +804,53 @@ bool load(std::string_view name, vertex_buffer_t &vertices, index_buffer_t &indi
                     //                  std::tuple<semantic>,
                     //                  std::tuple<glm::vec<3, std::float_t>>
                     //              >;
+
+                    using S = std::decay_t<decltype(semantic)>;
+
+                    std::visit([&vertex_format] (auto &&attribute)
+                    {
+                        using A = std::decay_t<decltype(attribute)>::value_type;
+                        using P = std::pair<std::tuple<S>, std::tuple<A>>;
+
+                        std::visit([] (auto &&vertex_format)
+                        {
+                            using VF = std::decay_t<decltype(vertex_format)>;
+
+                            if constexpr (std::is_same_v<VF, std::false_type>)
+                                vertex_format = std::false_type{};
+
+                            else if constexpr (std::is_same_v<VF, P>)
+                                vertex_format = P{};
+
+                            else {
+                                using S0 = std::tuple_element_t<0, VF>;
+                                using A0 = std::tuple_element_t<1, VF>;
+
+                                S0 x{};
+                                A0 y{};
+                                log::Debug() << sizeof(x) << sizeof(y);
+
+                                std::tuple_element_t<0, S0> z{};
+                                log::Debug() << sizeof(z);
+
+                                using S1 = concat_tuples_types<S0, std::tuple_element_t<0, P>>;
+                                using A1 = concat_tuples_types<A0, std::tuple_element_t<1, P>>;
+
+                                S1 a{};
+
+                                using P1 = std::pair<S1, A1>;
+
+                                P1 p{};
+
+                                if constexpr (is_vertex_format<P1, vertex_format_t>::value)
+                                    vertex_format = P1{};
+
+                                /*else vertex_format = std::false_type{};*/
+                            }
+
+                        }, vertex_format);
+
+                    }, attribute_buffers.at(accessor));
 
                 }, semantic);
             }
@@ -832,7 +881,6 @@ bool load(std::string_view name, vertex_buffer_t &vertices, index_buffer_t &indi
     > v1;
 
     v1 = std::vector<std::tuple<glm::vec3>>(std::size(v0));
-    //v1.resize(std::size(v0));
 
     std::visit([&v0] (auto &&dst)
     {
@@ -841,8 +889,8 @@ bool load(std::string_view name, vertex_buffer_t &vertices, index_buffer_t &indi
         using T1 = std::decay_t<decltype(dst)>::value_type;
 
         if constexpr (std::is_same_v<T0, T1>)
-            //std::uninitialized_copy(std::begin(v0), std::end(v0), reinterpret_cast<T *>(dst));
-            memmove(std::data(dst), std::data(v0), std::size(v0) * sizeof(T));
+            std::uninitialized_copy_n(std::begin(v0), std::size(v0), reinterpret_cast<T *>(std::data(dst)));
+            //memmove(std::data(dst), std::data(v0), std::size(v0) * sizeof(T));
 
     }, v1);
 
