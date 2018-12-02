@@ -30,7 +30,7 @@ namespace semantic
 
     template<eSEMANTIC_INDEX SI>
     struct attribute {
-        static auto constexpr I = SI;
+        static auto constexpr I = static_cast<std::size_t>(SI);
 
         template<eSEMANTIC_INDEX si>
         auto constexpr operator< (attribute<si>) const noexcept
@@ -85,6 +85,10 @@ using vertex_format_t = std::variant<
     std::pair<
         std::tuple<semantic::position, semantic::normal, semantic::tex_coord_0, semantic::tangent>,
         std::tuple<glm::vec<3, std::float_t>, glm::vec<3, std::float_t>, glm::vec<2, std::float_t>, glm::vec<4, std::float_t>>
+    >,
+    std::pair<
+        std::tuple<semantic::position, semantic::normal, semantic::tex_coord_0, semantic::tex_coord_1, semantic::tangent>,
+        std::tuple<glm::vec<3, std::float_t>, glm::vec<3, std::float_t>, glm::vec<2, std::float_t>, glm::vec<2, std::float_t>, glm::vec<4, std::float_t>>
     >,
 
     std::false_type

@@ -80,7 +80,8 @@ inline auto constexpr are_same_v = are_same<T, Ts...>::value_type;
 
 template<class T, class... Ts>
 struct is_one_of {
-    static auto constexpr value = std::disjunction_v<std::is_same<T, Ts>...>;
+    using type = std::disjunction<std::is_same<T, Ts>...>;
+    static auto constexpr value = type::value;
 };
 
 template<class T, class... Ts>

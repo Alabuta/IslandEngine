@@ -794,17 +794,45 @@ bool load(std::string_view name, vertex_buffer_t &vertices, index_buffer_t &indi
 
             for (auto &&attribute_accessor : primitive.attribute_accessors) {
                 auto [semantic, accessor] = attribute_accessor;
+                auto &&attribute = attribute_buffers.at(accessor);
 
-                std::visit([&vertex_format, accessor, &attribute_buffers] (auto semantic)
+                vertex_format = std::visit([semantic, &attribute] (auto &&vertex_format) -> vertex_format_t
                 {
-                    // using semantic_attribute_types_t = semantic_attributes_types<T, vertex_format_t>::type
-                    // if constexpr (is_variant_has_type<T, semantic_attribute_types_t>::value)
-                    //      vertices = 
-                    //              std::pair<
-                    //                  std::tuple<semantic>,
-                    //                  std::tuple<glm::vec<3, std::float_t>>
-                    //              >;
+                    using VF = std::decay_t<decltype(vertex_format)>;
 
+                    if constexpr (std::is_same_v<VF, std::false_type>)
+                        return std::false_type{};
+
+                    return std::visit([&attribute] (auto semantic) -> vertex_format_t
+                    {
+                        using S = std::decay_t<decltype(semantic)>;
+
+                        return std::visit([] (auto &&attribute) -> vertex_format_t
+                        {
+                            using A = std::decay_t<decltype(attribute)>::value_type;
+                            using P = std::pair<std::tuple<S>, std::tuple<A>>;
+
+                            if constexpr (std::is_same_v<VF, P>)
+                                return P{};
+
+#if 0
+                            if constexpr (std::is_same_v<VF, std::monostate>) {
+                                if constexpr (is_vertex_format<P, vertex_format_t>::value)
+                                    return P{};
+
+                                else return std::false_type{};
+                            }
+#endif
+
+                            return std::false_type{};
+                        }, attribute);
+
+                    }, semantic);
+
+                }, vertex_format);
+
+                /*std::visit([&vertex_format, &attribute] (auto semantic)
+                {
                     using S = std::decay_t<decltype(semantic)>;
 
                     std::visit([&vertex_format] (auto &&attribute)
@@ -812,9 +840,9 @@ bool load(std::string_view name, vertex_buffer_t &vertices, index_buffer_t &indi
                         using A = std::decay_t<decltype(attribute)>::value_type;
                         using P = std::pair<std::tuple<S>, std::tuple<A>>;
 
-                        std::visit([] (auto &&vertex_format)
+                        std::visit([&vertex_format] (auto &&vf)
                         {
-                            using VF = std::decay_t<decltype(vertex_format)>;
+                            using VF = std::decay_t<decltype(vf)>;
 
                             if constexpr (std::is_same_v<VF, std::false_type>)
                                 vertex_format = std::false_type{};
@@ -826,36 +854,33 @@ bool load(std::string_view name, vertex_buffer_t &vertices, index_buffer_t &indi
                                 using S0 = std::tuple_element_t<0, VF>;
                                 using A0 = std::tuple_element_t<1, VF>;
 
-                                S0 x{};
-                                A0 y{};
-                                log::Debug() << sizeof(x) << sizeof(y);
-
-                                std::tuple_element_t<0, S0> z{};
-                                log::Debug() << sizeof(z);
-
                                 using S1 = concat_tuples_types<S0, std::tuple_element_t<0, P>>;
                                 using A1 = concat_tuples_types<A0, std::tuple_element_t<1, P>>;
 
-                                S1 a{};
-
                                 using P1 = std::pair<S1, A1>;
-
-                                P1 p{};
 
                                 if constexpr (is_vertex_format<P1, vertex_format_t>::value)
                                     vertex_format = P1{};
 
-                                /*else vertex_format = std::false_type{};*/
+                                else {
+                                    if constexpr (false)
+                                        ;
+
+                                    else vertex_format = std::false_type{};
+                                }
+
                             }
 
                         }, vertex_format);
 
-                    }, attribute_buffers.at(accessor));
+                    }, attribute);
 
-                }, semantic);
+                }, semantic);*/
             }
 
-            std::tuple<
+            log::Debug() << sizeof(vertex_format);
+
+            /*std::tuple<
                 std::pair<
                     std::tuple<semantic::position>,
                     std::vector<std::tuple<glm::vec<3, std::float_t>>>
@@ -892,7 +917,7 @@ bool load(std::string_view name, vertex_buffer_t &vertices, index_buffer_t &indi
             std::uninitialized_copy_n(std::begin(v0), std::size(v0), reinterpret_cast<T *>(std::data(dst)));
             //memmove(std::data(dst), std::data(v0), std::size(v0) * sizeof(T));
 
-    }, v1);
+    }, v1);*/
 
     return false;
 }
