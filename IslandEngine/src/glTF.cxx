@@ -135,6 +135,39 @@ std::optional<isle::semantics_t> get_semantic(std::string_view name)
 
     return { };
 }
+
+#if NOT_YET_IMPLEMENTED
+isle::semantics_t get_semantic2(std::string_view name)
+{
+    using namespace isle;
+
+    if (name == "POSITION"sv)
+        return semantic::position{ };
+
+    else if (name == "NORMAL"sv)
+        return semantic::normal{ };
+
+    else if (name == "TEXCOORD_0"sv)
+        return semantic::tex_coord_0{ };
+
+    else if (name == "TEXCOORD_1"sv)
+        return semantic::tex_coord_1{ };
+
+    else if (name == "TANGENT"sv)
+        return semantic::tangent{ };
+
+    else if (name == "COLOR_0"sv)
+        return semantic::color_0{ };
+
+    else if (name == "JOINTS_0"sv)
+        return semantic::joints_0{ };
+
+    else if (name == "WEIGHTS_0"sv)
+        return semantic::weights_0{ };
+
+    return std::monostate{};
+}
+#endif
 }
 
 namespace
@@ -143,7 +176,146 @@ namespace
 // type = std::variant<std::vector<if semantic == S then std::alternative<I, VF>>...>
 template<class... Ts>
 using concat_tuples_types = decltype(std::tuple_cat(std::declval<Ts>()...));
+
+
+template<class VF, std::size_t I = 0>
+auto constexpr get_vertex_format_index()
+{
+    using vf_t = std::variant_alternative_t<I, isle::vertex_format_t>;
+
+    if constexpr (std::is_same_v<VF, vf_t>)
+        return I;
+
+    else if constexpr (I + 1 < std::variant_size_v<isle::vertex_format_t>)
+        return get_vertex_format_index<VF, I + 1>();
+
+    else return -1;
 }
+}
+
+#if NOT_YET_IMPLEMENTED
+namespace
+{
+auto constexpr kSEMANTICS_NUMBER = std::variant_size_v<isle::semantics_t> -1;
+using el_t = std::pair<accessor_t, attribute_t>;
+using saa_t = std::array<el_t, kSEMANTICS_NUMBER>;
+
+
+template<std::size_t I, class T, std::false_type>
+struct xxxx {
+    using type = typename std::tuple_element<I, T>;
+};
+
+template<std::size_t I, class T>
+struct xxxx<I, T, isle::is_one_of<T, std::monostate, std::false_type>::type> {
+    using type = typename T;
+};
+
+template<std::size_t I, class V>
+struct aggregation;
+
+template<std::size_t I, class... Ts>
+struct aggregation<I, std::variant<Ts...>> {
+    using type = std::variant<typename xxxx<I, Ts>::type...>;
+};
+
+using semantics_aggregation_t = aggregation<0, isle::vertex_format_t>::type;
+using attributes_aggregation_t = aggregation<1, isle::vertex_format_t>::type;
+
+template<std::size_t N, std::size_t I = 0, std::size_t J = 0>
+semantics_aggregation_t constexpr bake_semantics(std::array<el_t, N> &array)
+{
+    static_assert(J < std::variant_size_v<semantics_aggregation_t>);
+
+    using S = std::variant_alternative_t<J, semantics_aggregation_t>;
+
+    if constexpr (std::is_same_v<S, std::false_type>)
+        return std::false_type{};
+
+    if constexpr (I < N)
+        return S{};
+
+    auto &&[accessor, attribute] = array[I];
+
+    auto [semantic, index] = accessor;
+
+    return std::false_type{};
+}
+}
+#endif
+
+#if NOT_YET_IMPLEMENTED
+namespace
+{
+auto constexpr kSEMANTICS_NUMBER = 1;// std::variant_size_v<isle::semantics_t> -1;
+using el_t = std::pair<accessor_t, attribute_t>;
+using saa_t = std::array<el_t, kSEMANTICS_NUMBER>;
+
+
+template<std::size_t N, std::size_t I = 0, std::size_t VI = 0>
+isle::vertex_format_t constexpr bake(std::array<el_t, N> &array)
+{
+    static_assert(VI < std::variant_size_v<isle::vertex_format_t>);
+
+    using vf_t = std::variant_alternative_t<VI, isle::vertex_format_t>;
+
+    if constexpr (std::is_same_v<vf_t, std::false_type>)
+        return std::false_type{};
+
+    if constexpr (I < N)
+        return vf_t{};
+
+    auto &&[accessor, attribute] = array[I];
+
+    auto [semantic, index] = accessor;
+
+    return std::visit([&array, &attribute] (auto semantic) -> isle::vertex_format_t
+    {
+        using S = decltype(semantic);
+
+        if constexpr (std::is_same_v<S, std::monostate>)
+            return bake<N, I + 1, VI>(array);
+
+        else return std::visit([&array] (auto &&attribute) -> isle::vertex_format_t
+        {
+            using A = std::decay_t<decltype(attribute)>;
+
+            using P = std::pair<std::tuple<S>, std::tuple<A>>;
+
+            if constexpr (std::is_same_v<A, std::monostate>)
+                return bake<N, I + 1, VI>(array);
+
+            /*else if constexpr (std::is_same_v<vf_t, std::monostate>)
+            {
+                if constexpr (isle::is_vertex_format<P, isle::vertex_format_t>::value)
+                    return bake<N, I + 1, get_vertex_format_index<P>()>(array);
+
+                else return std::false_type{};
+            }
+
+            else {
+                using S0 = std::tuple_element_t<0, vf_t>;
+                using A0 = std::tuple_element_t<1, vf_t>;
+
+                using S1 = concat_tuples_types<S0, std::tuple<S>>;
+                using A1 = concat_tuples_types<A0, std::tuple<A>>;
+
+                using P1 = std::pair<S1, A1>;
+
+                if constexpr (isle::is_vertex_format<P1, isle::vertex_format_t>::value)
+                    return bake<N, I + 1, get_vertex_format_index<P1>()>(array);
+
+                else {
+                    return std::false_type{};
+                }
+            }*/
+
+            return std::false_type{};
+        }, attribute);
+    }, semantic);
+}
+}
+#endif
 
 
 namespace isle::glTF
@@ -918,6 +1090,17 @@ bool load(std::string_view name, vertex_buffer_t &vertices, index_buffer_t &indi
             //memmove(std::data(dst), std::data(v0), std::size(v0) * sizeof(T));
 
     }, v1);*/
+
+
+#if NOT_YET_IMPLEMENTED
+    saa_t accessors_set;
+    accessors_set[semantic::position::I] = std::make_pair(std::make_pair(semantic::position{}, 0), glm::vec<3, float>{});
+    //accessors_set[semantic::tex_coord_0::I] = std::make_pair(std::make_pair(semantic::tex_coord_0{}, 1), glm::vec<2, float>{});
+
+    auto s = bake_semantics(accessors_set);
+    //auto vf = bake(accessors_set);
+    log::Debug() << s.index();
+#endif
 
     return false;
 }
