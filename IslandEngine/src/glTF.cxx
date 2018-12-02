@@ -3,6 +3,7 @@
 #include <optional>
 #include <variant>
 #include <set>
+#include <execution>
 
 using namespace std::string_literals;
 using namespace std::string_view_literals;
@@ -253,7 +254,7 @@ using saa_t = std::array<el_t, kSEMANTICS_NUMBER>;
 
 
 template<std::size_t N, std::size_t I = 0, std::size_t VI = 0>
-isle::vertex_format_t constexpr bake(std::array<el_t, N> &array)
+void constexpr bake(std::array<el_t, N> &array, isle::vertex_format_t &vf)
 {
     static_assert(VI < std::variant_size_v<isle::vertex_format_t>);
 
@@ -263,34 +264,34 @@ isle::vertex_format_t constexpr bake(std::array<el_t, N> &array)
         return std::false_type{};
 
     if constexpr (I < N)
-        return vf_t{};
+        vf = vf_t{};
 
     auto &&[accessor, attribute] = array[I];
 
     auto [semantic, index] = accessor;
 
-    return std::visit([&array, &attribute] (auto semantic) -> isle::vertex_format_t
+    std::visit([&vf, &array, &attribute] (auto semantic)
     {
         using S = decltype(semantic);
 
         if constexpr (std::is_same_v<S, std::monostate>)
-            return bake<N, I + 1, VI>(array);
+            bake<N, I + 1, VI>(array, vf);
 
-        else return std::visit([&array] (auto &&attribute) -> isle::vertex_format_t
+        else std::visit([&vf, &array] (auto &&attribute)
         {
             using A = std::decay_t<decltype(attribute)>;
 
             using P = std::pair<std::tuple<S>, std::tuple<A>>;
 
-            if constexpr (std::is_same_v<A, std::monostate>)
-                return bake<N, I + 1, VI>(array);
+            /*if constexpr (std::is_same_v<A, std::monostate>)
+                bake<N, I + 1, VI>(array, vf);*/
 
-            /*else if constexpr (std::is_same_v<vf_t, std::monostate>)
+            if constexpr (std::is_same_v<vf_t, std::monostate>)
             {
                 if constexpr (isle::is_vertex_format<P, isle::vertex_format_t>::value)
-                    return bake<N, I + 1, get_vertex_format_index<P>()>(array);
+                    bake<N, I + 1, get_vertex_format_index<P>()>(array);
 
-                else return std::false_type{};
+                else vf = std::false_type{};
             }
 
             else {
@@ -303,14 +304,14 @@ isle::vertex_format_t constexpr bake(std::array<el_t, N> &array)
                 using P1 = std::pair<S1, A1>;
 
                 if constexpr (isle::is_vertex_format<P1, isle::vertex_format_t>::value)
-                    return bake<N, I + 1, get_vertex_format_index<P1>()>(array);
+                    bake<N, I + 1, get_vertex_format_index<P1>()>(array, vf);
 
                 else {
-                    return std::false_type{};
+                    vf = std::false_type{};
                 }
-            }*/
+            }
 
-            return std::false_type{};
+            vf = std::false_type{};
         }, attribute);
     }, semantic);
 }
@@ -356,7 +357,9 @@ struct mesh_t {
         std::size_t indices;
 
         accessors_set_t attribute_accessors;
-
+#if NOT_YET_IMPLEMENTED
+        saa_t attribute_accessors2;
+#endif
         std::uint32_t mode{4};
     };
 
@@ -561,6 +564,15 @@ void from_json(nlohmann::json const &j, mesh_t &mesh)
 
                 primitive.attribute_accessors.emplace(semantic.value(), index);
             }
+
+            /*std::visit([&primitive, index = it->get<std::size_t>()] (auto semantic)
+            {
+                using s_t = decltype(semantic);
+
+                if constexpr (!std::is_same_v<s_t, std::monostate>)
+                    primitive.attribute_accessors2[s_t::I] = std::make_pair(std::make_pair(semantic, index), std::monostate{});
+
+            }, get_semantic2(it.key()));*/
         }
 
         if (json_primitive.count("mode"s))
@@ -869,6 +881,7 @@ bool load(std::string_view name, vertex_buffer_t &vertices, index_buffer_t &indi
     auto buffer_views = json.at("bufferViews"s).get<std::vector<glTF::buffer_view_t>>();
     auto accessors = json.at("accessors"s).get<std::vector<glTF::accessor_t>>();
 
+#if TEMPORARILY_DISABLED
     auto images = ([&json] {
         if (json.count("images"s))
             return json.at("images"s).get<std::vector<glTF::image_t>>();
@@ -898,6 +911,7 @@ bool load(std::string_view name, vertex_buffer_t &vertices, index_buffer_t &indi
 
         return std::vector<glTF::camera_t>{};
     })();
+#endif
 
     std::vector<std::vector<std::byte>> bin_buffers;
     bin_buffers.reserve(std::size(buffers));
@@ -968,35 +982,40 @@ bool load(std::string_view name, vertex_buffer_t &vertices, index_buffer_t &indi
                 auto [semantic, accessor] = attribute_accessor;
                 auto &&attribute = attribute_buffers.at(accessor);
 
-                vertex_format = std::visit([semantic, &attribute] (auto &&vertex_format) -> vertex_format_t
+                std::visit([&vertex_format, semantic, &attribute] (auto &&vf)
                 {
-                    using VF = std::decay_t<decltype(vertex_format)>;
+                    using VF = std::decay_t<decltype(vf)>;
 
                     if constexpr (std::is_same_v<VF, std::false_type>)
-                        return std::false_type{};
+                        vertex_format = std::false_type{};
 
-                    return std::visit([&attribute] (auto semantic) -> vertex_format_t
+                    else std::visit([&vertex_format, &attribute] (auto semantic)
                     {
                         using S = std::decay_t<decltype(semantic)>;
 
-                        return std::visit([] (auto &&attribute) -> vertex_format_t
+                        std::visit([&vertex_format] (auto &&attribute)
                         {
-                            using A = std::decay_t<decltype(attribute)>::value_type;
+                            using A = typename std::decay_t<decltype(attribute)>::value_type;
                             using P = std::pair<std::tuple<S>, std::tuple<A>>;
 
                             if constexpr (std::is_same_v<VF, P>)
-                                return P{};
+                                vertex_format = P{};
 
-#if 0
-                            if constexpr (std::is_same_v<VF, std::monostate>) {
-                                if constexpr (is_vertex_format<P, vertex_format_t>::value)
-                                    return P{};
+                            else {
+                                using S0 = std::tuple_element_t<0, VF>;
+                                using A0 = std::tuple_element_t<1, VF>;
 
-                                else return std::false_type{};
+                                using S1 = concat_tuples_types<S0, std::tuple_element_t<0, P>>;
+                                using A1 = concat_tuples_types<A0, std::tuple_element_t<1, P>>;
+
+                                using P1 = std::pair<S1, A1>;
+
+                                if constexpr (is_vertex_format<P1, vertex_format_t>::value)
+                                    vertex_format = P1{};
+
+                                else vertex_format = std::false_type{};
                             }
-#endif
 
-                            return std::false_type{};
                         }, attribute);
 
                     }, semantic);
@@ -1051,6 +1070,60 @@ bool load(std::string_view name, vertex_buffer_t &vertices, index_buffer_t &indi
             }
 
             log::Debug() << sizeof(vertex_format);
+            log::Debug() << vertex_format.index();
+
+            std::size_t size = 0;
+
+            auto &&atrb_accessors = primitive.attribute_accessors;
+
+            std::visit([&atrb_accessors, &attribute_buffers, &vertices] (auto &&vertex_format)
+            {
+                using VF = std::decay_t<decltype(vertex_format)>;
+
+                if constexpr (!std::is_same_v<VF, std::false_type>) {
+                    using S = std::tuple_element_t<0, VF>;
+                    using A = std::tuple_element_t<1, VF>;
+
+                    vertices = std::pair<S, std::vector<A>>{};
+
+                    std::visit([&atrb_accessors, &attribute_buffers] (auto &&vertices)
+                    {
+                        auto &&[semantics, attributes] = vertices;
+
+                        std::size_t n = 0;
+                        std::size_t byte_offset = 0;
+
+                        /*std::for_each(//std::execution::par_unseq,
+                                      std::begin(atrb_accessors), std::end(atrb_accessors),
+                                      [i = 0, &attribute_buffers, &attributes] (auto &&attribute_accessor) mutable*/
+                        for (auto &&attribute_accessor : atrb_accessors) {
+                            auto [semantic, accessor] = attribute_accessor;
+                            auto &&attribute = attribute_buffers.at(accessor);
+
+                            std::visit([&a = attributes, &byte_offset] (auto &&attribute)
+                            {
+                                auto const size = std::size(attribute);
+
+                                if (std::size(a) < size)
+                                    a.resize(size);
+
+                                using T = typename std::decay_t<decltype(attribute)>::value_type;
+
+                                for (std::size_t i = 0; i < size; ++i) {
+                                    memmove(std::data(a) + i + byte_offset, &attribute.at(i), sizeof(T));
+                                }
+
+                                byte_offset += sizeof(T);
+
+                            }, attribute);
+
+                            ++n;
+                        }
+
+                    }, vertices);
+                }
+
+            }, vertex_format);
 
             /*std::tuple<
                 std::pair<
@@ -1067,11 +1140,11 @@ bool load(std::string_view name, vertex_buffer_t &vertices, index_buffer_t &indi
                 if constexpr (is_variant_has_type<T, vertex_buffer_t>::value)
                     vertices = std::forward<T>(source);
 
-            }, v);
+            }, v);*/
         }
     }
 
-    std::vector<glm::vec3> v0(4, {1, 2, 3});
+    /*std::vector<glm::vec3> v0(4, {1, 2, 3});
     std::variant<
         std::vector<std::tuple<glm::vec3>>,
         std::vector<std::tuple<glm::vec3, glm::vec2>>
@@ -1097,9 +1170,10 @@ bool load(std::string_view name, vertex_buffer_t &vertices, index_buffer_t &indi
     accessors_set[semantic::position::I] = std::make_pair(std::make_pair(semantic::position{}, 0), glm::vec<3, float>{});
     //accessors_set[semantic::tex_coord_0::I] = std::make_pair(std::make_pair(semantic::tex_coord_0{}, 1), glm::vec<2, float>{});
 
-    auto s = bake_semantics(accessors_set);
-    //auto vf = bake(accessors_set);
-    log::Debug() << s.index();
+    //auto s = bake_semantics(accessors_set);
+    vertex_format_t vf;
+    bake(accessors_set, vf);
+    log::Debug() << vf.index();
 #endif
 
     return false;

@@ -79,6 +79,10 @@ using vertex_format_t = std::variant<
         std::tuple<glm::vec<3, std::float_t>, glm::vec<3, std::float_t>, glm::vec<2, std::float_t>>
     >,
     std::pair<
+        std::tuple<semantic::position, semantic::normal, semantic::tex_coord_0, semantic::tex_coord_1>,
+        std::tuple<glm::vec<3, std::float_t>, glm::vec<3, std::float_t>, glm::vec<2, std::float_t>, glm::vec<2, std::float_t>>
+    >,
+    std::pair<
         std::tuple<semantic::position, semantic::normal, semantic::tangent>,
         std::tuple<glm::vec<3, std::float_t>, glm::vec<3, std::float_t>, glm::vec<4, std::float_t>>
     >,
