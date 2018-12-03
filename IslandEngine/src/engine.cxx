@@ -36,6 +36,7 @@ using namespace std::string_view_literals;
 
 #include "glTF.hxx"
 
+#include <cstddef>
 
 namespace glm
 {
@@ -978,17 +979,126 @@ void loadAtributes(isle::vertex_buffer_t &vertices, isle::index_buffer_t &indice
 
     auto vao = Render::inst().createVAO();
 
-    auto bo = Render::inst().createBO();
+    auto vbo = Render::inst().createBO();
+
+    //glNamedBufferStorage(vbo, sizeof(decltype(vertices)::value_type) * std::size(vertices), std::data(vertices), 0);
+
+    glVertexArrayAttribBinding(vao, Render::eVERTEX_IN::nPOSITION, 0);
+    glEnableVertexArrayAttrib(vao, Render::eVERTEX_IN::nPOSITION);
+    glVertexArrayAttribFormat(vao, Render::eVERTEX_IN::nPOSITION, 3, GL_FLOAT, GL_FALSE, offsetof(Vertex, pos));
+
+    //glVertexArrayVertexBuffer(vao, 0, vbo, 0, sizeof(decltype(vertices)::value_type));
+}
+
+
+namespace isle
+{
+template<std::size_t N, class T>
+struct vec {
+    static auto constexpr size = N;
+    using value_type = T;
+
+    std::array<T, N> array;
+
+    vec() = default;
+
+    template<class... Ts, typename = std::enable_if_t<std::conjunction_v<std::is_arithmetic<Ts>...> && sizeof...(Ts) == size>>
+    constexpr vec(Ts... values) noexcept : array{static_cast<typename std::decay_t<decltype(array)>::value_type>(values)...} { }
+};
+
+using attribute_t = std::variant<
+    vec<1, std::int8_t>,
+    vec<2, std::int8_t>,
+    vec<3, std::int8_t>,
+    vec<4, std::int8_t>,
+
+    vec<1, std::uint8_t>,
+    vec<2, std::uint8_t>,
+    vec<3, std::uint8_t>,
+    vec<4, std::uint8_t>,
+
+    vec<1, std::int16_t>,
+    vec<2, std::int16_t>,
+    vec<3, std::int16_t>,
+    vec<4, std::int16_t>,
+
+    vec<1, std::uint16_t>,
+    vec<2, std::uint16_t>,
+    vec<3, std::uint16_t>,
+    vec<4, std::uint16_t>,
+
+    vec<1, std::int32_t>,
+    vec<2, std::int32_t>,
+    vec<3, std::int32_t>,
+    vec<4, std::int32_t>,
+
+    vec<1, std::uint32_t>,
+    vec<2, std::uint32_t>,
+    vec<3, std::uint32_t>,
+    vec<4, std::uint32_t>,
+
+    vec<1, std::float_t>,
+    vec<2, std::float_t>,
+    vec<3, std::float_t>,
+    vec<4, std::float_t>
+>;
+
+using sub_vertex_format_t = std::tuple<semantics_t, attribute_t, std::size_t>;
+using x_vertex_format_t = std::set<sub_vertex_format_t>;
+
+template<class T>
+auto constexpr get_type()
+{
+    if constexpr (std::is_same_v<T, std::int8_t>) return GL_BYTE;
+    else if constexpr (std::is_same_v<T, std::uint8_t>) return GL_UNSIGNED_BYTE;
+    else if constexpr (std::is_same_v<T, std::int16_t>) return GL_SHORT;
+    else if constexpr (std::is_same_v<T, std::uint16_t>) return GL_UNSIGNED_SHORT;
+    else if constexpr (std::is_same_v<T, std::int32_t>) return GL_INT;
+    else if constexpr (std::is_same_v<T, std::uint32_t>) return GL_UNSIGNED_INT;
+    else if constexpr (std::is_same_v<T, std::float_t>) return GL_FLOAT;
+
+    else return GL_FALSE;
+}
+
+template<class S, class A>
+auto constexpr normalize()
+{
+    ;
+}
+
+void foo(x_vertex_format_t &vertex_format, std::vector<std::byte> &vertices)
+{
+    auto vao = Render::inst().createVAO();
+
+    for (auto &&[semantic, attribute, stride] : vertex_format) {
+        std::visit([vao, &attribute, stride] (auto semantic)
+        {
+            using S = decltype(semantic);
+
+            std::visit([vao] (auto &&attribute)
+            {
+                using A = std::decay_t<decltype(attribute)>;
+
+                glVertexArrayAttribFormat(vao, S::I, A::size, get_type<A::value_type>(), GL_FALSE, offsetof(Vertex, pos));
+
+
+            }, attribute);
+
+        }, semantic);
+    }
+}
 }
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int)
 {
     isle::Window window(crus::names::kMAIN_WINDOW_NAME, hInstance, app.width, app.height);
 
+    isle::foo(isle::x_vertex_format_t{}, std::vector<std::byte>{});
+
     isle::vertex_buffer_t vertices;
     isle::index_buffer_t indices;
 
-    auto sceneLoaded = loadScene("Hebe"sv, vertices, indices);
+    auto sceneLoaded = loadScene("cube"sv, vertices, indices);
 
     isle::InputManager inputManager{window.hWnd()};
     

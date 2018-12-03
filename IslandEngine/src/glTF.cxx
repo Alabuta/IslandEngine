@@ -1093,6 +1093,9 @@ bool load(std::string_view name, vertex_buffer_t &vertices, index_buffer_t &indi
                         std::size_t n = 0;
                         std::size_t byte_offset = 0;
 
+                        std::decay_t<decltype(attributes)> a;
+                        using VT = typename std::decay_t<decltype(a)>::value_type;
+
                         /*std::for_each(//std::execution::par_unseq,
                                       std::begin(atrb_accessors), std::end(atrb_accessors),
                                       [i = 0, &attribute_buffers, &attributes] (auto &&attribute_accessor) mutable*/
@@ -1100,7 +1103,7 @@ bool load(std::string_view name, vertex_buffer_t &vertices, index_buffer_t &indi
                             auto [semantic, accessor] = attribute_accessor;
                             auto &&attribute = attribute_buffers.at(accessor);
 
-                            std::visit([&a = attributes, &byte_offset] (auto &&attribute)
+                            std::visit([&a, &byte_offset] (auto &&attribute)
                             {
                                 auto const size = std::size(attribute);
 
@@ -1114,7 +1117,7 @@ bool load(std::string_view name, vertex_buffer_t &vertices, index_buffer_t &indi
 
                                 for (std::size_t i = 0; i < size; ++i) {
                                     auto &&att = attribute.at(i);
-                                    auto _dst = dst + i * byte_offset;
+                                    auto _dst = dst + i * sizeof(VT) + byte_offset;
                                     memmove(_dst, &att, sizeof(T));
                                 }
 
