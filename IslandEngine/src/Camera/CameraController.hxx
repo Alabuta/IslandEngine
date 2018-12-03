@@ -4,7 +4,6 @@ auto constexpr kPI = 3.14159265358979323846f;
 
 
 #include <memory>
-#include <execution>
 
 
 #define GLM_FORCE_CXX17

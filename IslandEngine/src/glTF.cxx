@@ -1108,9 +1108,14 @@ bool load(std::string_view name, vertex_buffer_t &vertices, index_buffer_t &indi
                                     a.resize(size);
 
                                 using T = typename std::decay_t<decltype(attribute)>::value_type;
+                                T tttt{};
+                                tttt;
+                                auto dst = reinterpret_cast<std::byte *>(std::data(a));
 
                                 for (std::size_t i = 0; i < size; ++i) {
-                                    memmove(std::data(a) + i + byte_offset, &attribute.at(i), sizeof(T));
+                                    auto &&att = attribute.at(i);
+                                    auto _dst = dst + i * byte_offset;
+                                    memmove(_dst, &att, sizeof(T));
                                 }
 
                                 byte_offset += sizeof(T);
