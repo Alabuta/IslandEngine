@@ -48,6 +48,10 @@ namespace fs = boost::filesystem;
 
 #include "glTF.hxx"
 
+#ifdef max
+#undef max
+#endif
+
 namespace
 {
 enum class GL {
@@ -318,6 +322,55 @@ void constexpr bake(std::array<el_t, N> &array, isle::vertex_format_t &vf)
 }
 #endif
 
+namespace isle::glTF
+{
+template<std::size_t N>
+std::size_t constexpr attribute_size(GL componentType)
+{
+    switch (componentType) {
+        case GL::BYTE:
+            return N * sizeof(std::int8_t);
+
+        case GL::UNSIGNED_BYTE:
+            return N * sizeof(std::uint8_t);
+
+        case GL::SHORT:
+            return N * sizeof(std::int16_t);
+
+        case GL::UNSIGNED_SHORT:
+            return N * sizeof(std::uint16_t);
+
+        case GL::INT:
+            return N * sizeof(std::int32_t);
+
+        case GL::UNSIGNED_INT:
+            return N * sizeof(std::uint32_t);
+
+        case GL::FLOAT:
+            return N * sizeof(std::float_t);
+
+        default:
+            return 0;
+    }
+}
+
+std::size_t attribute_size(std::string_view type, GL componentType)
+{
+    if (type == "SCALAR"sv)
+        return attribute_size<1>(componentType);
+
+    else if (type == "VEC2"sv)
+        return attribute_size<2>(componentType);
+
+    else if (type == "VEC3"sv)
+        return attribute_size<3>(componentType);
+
+    else if (type == "VEC4"sv)
+        return attribute_size<4>(componentType);
+
+    return 0;
+}
+}
 
 namespace isle::glTF
 {
@@ -355,6 +408,8 @@ struct mesh_t {
     struct primitive_t {
         std::optional<std::size_t> material;
         std::size_t indices;
+
+        std::vector<accessor_t> attributes;
 
         accessors_set_t attribute_accessors;
 #if NOT_YET_IMPLEMENTED
@@ -563,6 +618,12 @@ void from_json(nlohmann::json const &j, mesh_t &mesh)
                 auto index = it->get<std::size_t>();
 
                 primitive.attribute_accessors.emplace(semantic.value(), index);
+            }
+
+            if (auto semantic = get_semantic(it.key()); semantic) {
+                auto index = it->get<std::size_t>();
+
+                primitive.attributes.emplace_back(semantic.value(), index);
             }
 
             /*std::visit([&primitive, index = it->get<std::size_t>()] (auto semantic)
@@ -796,6 +857,53 @@ std::optional<attribute_buffer_t> instantiate_attribute_buffer(std::string_view 
 }
 
 template<std::size_t N>
+std::optional<attribute_t> constexpr get_attribute(GL componentType)
+{
+    switch (componentType) {
+        case GL::BYTE:
+            return glm::vec<N, std::int8_t>{};
+
+        case GL::UNSIGNED_BYTE:
+            return glm::vec<N, std::uint8_t>{};
+
+        case GL::SHORT:
+            return glm::vec<N, std::int16_t>{};
+
+        case GL::UNSIGNED_SHORT:
+            return glm::vec<N, std::uint16_t>{};
+
+        case GL::INT:
+            return glm::vec<N, std::int32_t>{};
+
+        case GL::UNSIGNED_INT:
+            return glm::vec<N, std::uint32_t>{};
+
+        case GL::FLOAT:
+            return glm::vec<N, std::float_t>{};
+
+        default:
+            return { };
+    }
+}
+
+std::optional<attribute_t> get_attribute(std::string_view type, GL componentType)
+{
+    if (type == "SCALAR"sv)
+        return glTF::get_attribute<1>(componentType);
+
+    else if (type == "VEC2"sv)
+        return glTF::get_attribute<2>(componentType);
+
+    else if (type == "VEC3"sv)
+        return glTF::get_attribute<3>(componentType);
+
+    else if (type == "VEC4"sv)
+        return glTF::get_attribute<4>(componentType);
+
+    return { };
+}
+
+template<std::size_t N>
 std::optional<attribute_t> try_to_get_attribute_type(GL componentType)
 {
     switch (componentType) {
@@ -976,6 +1084,30 @@ bool load(std::string_view name, vertex_buffer_t &vertices, index_buffer_t &indi
 
             }, attribute_buffers.at(primitive.indices));
 
+            std::size_t vertex_size = 0;
+            std::size_t vertex_number = 0;
+
+            for (auto &&attribute : primitive.attribute_accessors) {
+                auto [semantic, accessor_index] = attribute;
+
+                auto &&accessor = accessors.at(accessor_index);
+
+                auto attribute_size = glTF::attribute_size(accessor.type, accessor.componentType);
+
+                if (attribute_size == 0) {
+                    log::Error() << "unsupported attribute type"s;
+                    continue;
+                }
+
+                vertex_size += attribute_size;
+                vertex_number = std::max(vertex_number, accessor.count);
+            }
+
+            std::vector<std::byte> stage(vertex_number * vertex_size);
+
+            log::Debug() << vertex_size << ' ' << vertex_number;
+
+#if 0
             vertex_format_t vertex_format;
 
             for (auto &&attribute_accessor : primitive.attribute_accessors) {
@@ -1132,6 +1264,8 @@ bool load(std::string_view name, vertex_buffer_t &vertices, index_buffer_t &indi
                 }
 
             }, vertex_format);
+
+#endif
 
             /*std::tuple<
                 std::pair<

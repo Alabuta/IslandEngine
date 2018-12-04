@@ -1006,7 +1006,7 @@ struct vec {
     constexpr vec(Ts... values) noexcept : array{static_cast<typename std::decay_t<decltype(array)>::value_type>(values)...} { }
 };
 
-using attribute_t = std::variant<
+using attribute_t = std::variant <
     vec<1, std::int8_t>,
     vec<2, std::int8_t>,
     vec<3, std::int8_t>,
@@ -1041,9 +1041,23 @@ using attribute_t = std::variant<
     vec<2, std::float_t>,
     vec<3, std::float_t>,
     vec<4, std::float_t>
->;
+> ;
 
-using sub_vertex_format_t = std::tuple<semantics_t, attribute_t, std::size_t>;
+//using sub_vertex_format_t = std::tuple<std::size_t, semantics_t, attribute_t>;
+struct sub_vertex_format_t {
+    std::size_t offset;
+    semantics_t semantic;
+    attribute_t attribute;
+
+    sub_vertex_format_t(std::size_t byte_stride, semantics_t semantic, attribute_t &&attribute)
+        : offset{offset}, semantic{semantic}, attribute{attribute} { }
+
+    template<class T>
+    auto constexpr operator< (T &&rhs) const noexcept
+    {
+        return offset < rhs.offset;
+    }
+};
 using x_vertex_format_t = std::set<sub_vertex_format_t>;
 
 template<class T>
@@ -1065,27 +1079,44 @@ auto constexpr normalize()
 {
     ;
 }
+}
 
-void foo(x_vertex_format_t &vertex_format, std::vector<std::byte> &vertices)
+namespace isle {
+
+
+void foo(x_vertex_format_t &vertex_format, std::vector<std::byte> &vertices, std::size_t stride)
 {
     auto vao = Render::inst().createVAO();
 
-    for (auto &&[semantic, attribute, stride] : vertex_format) {
-        std::visit([vao, &attribute, stride] (auto semantic)
+    auto vbo = Render::inst().createBO();
+    glNamedBufferStorage(vbo, std::size(vertices), std::data(vertices), 0);
+
+
+    std::size_t vertex_size = 0;
+
+    for (auto &&[offset, semantic, attribute] : vertex_format) {
+        auto index = std::visit([] (auto semantic)
         {
-            using S = decltype(semantic);
-
-            std::visit([vao] (auto &&attribute)
-            {
-                using A = std::decay_t<decltype(attribute)>;
-
-                glVertexArrayAttribFormat(vao, S::I, A::size, get_type<A::value_type>(), GL_FALSE, offsetof(Vertex, pos));
-
-
-            }, attribute);
+            return decltype(semantic)::I;
 
         }, semantic);
+
+        auto [size, number, type] = std::visit([] (auto &&attribute)
+        {
+            using A = std::decay_t<decltype(attribute)>;
+
+            return std::tuple(sizeof(A), A::size, get_type<A::value_type>());
+
+        }, attribute);
+
+        vertex_size += size;
+
+        glVertexArrayAttribBinding(vao, static_cast<u32>(index), 0);
+        glEnableVertexArrayAttrib(vao, static_cast<u32>(index));
+        glVertexArrayAttribFormat(vao, static_cast<u32>(index), static_cast<i32>(number), type, GL_FALSE, static_cast<u32>(offset));
     }
+
+    glVertexArrayVertexBuffer(vao, 0, vbo, 0, static_cast<i32>(stride));
 }
 }
 
@@ -1093,7 +1124,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int)
 {
     isle::Window window(crus::names::kMAIN_WINDOW_NAME, hInstance, app.width, app.height);
 
-    isle::foo(isle::x_vertex_format_t{}, std::vector<std::byte>{});
+    isle::x_vertex_format_t x;
+    x.emplace(12, isle::semantic::normal{}, isle::vec<3, std::float_t>{});
+    x.emplace(0, isle::semantic::position{}, isle::vec<3, std::float_t>{});
+    x.emplace(24, isle::semantic::tex_coord_0{}, isle::vec<2, std::float_t>{});
+    
+    isle::foo(x, std::vector<std::byte>{}, 0);
 
     isle::vertex_buffer_t vertices;
     isle::index_buffer_t indices;
