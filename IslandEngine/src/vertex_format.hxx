@@ -3,13 +3,6 @@
 #include <variant>
 #include <tuple>
 
-#define GLM_FORCE_CXX17
-#define GLM_ENABLE_EXPERIMENTAL
-#define GLM_FORCE_RADIANS
-#define GLM_GTX_quaternion
-#define GLM_GTX_transform
-#include <glm/glm.hpp>
-
 #include "System/CrusIsland.h"
 #include "System/CrusTypes.h"
 
@@ -30,7 +23,7 @@ namespace semantic
 
     template<eSEMANTIC_INDEX SI>
     struct attribute {
-        static auto constexpr I = static_cast<std::size_t>(SI);
+        static auto constexpr index{static_cast<std::size_t>(SI)};
 
         template<eSEMANTIC_INDEX si>
         auto constexpr operator< (attribute<si>) const noexcept
@@ -61,78 +54,75 @@ using semantics_t = std::variant<
 >;
 
 
-using vertex_format_t = std::variant<
-    std::pair<
-        std::tuple<semantic::position>,
-        std::tuple<glm::vec<3, std::float_t>>
-    >,
-    std::pair<
-        std::tuple<semantic::position, semantic::normal>,
-        std::tuple<glm::vec<3, std::float_t>, glm::vec<3, std::float_t>>
-    >,
-    std::pair<
-        std::tuple<semantic::position, semantic::tex_coord_0>,
-        std::tuple<glm::vec<3, std::float_t>, glm::vec<2, std::float_t>>
-    >,
-    std::pair<
-        std::tuple<semantic::position, semantic::normal, semantic::tex_coord_0>,
-        std::tuple<glm::vec<3, std::float_t>, glm::vec<3, std::float_t>, glm::vec<2, std::float_t>>
-    >,
-    std::pair<
-        std::tuple<semantic::position, semantic::normal, semantic::tex_coord_0, semantic::tex_coord_1>,
-        std::tuple<glm::vec<3, std::float_t>, glm::vec<3, std::float_t>, glm::vec<2, std::float_t>, glm::vec<2, std::float_t>>
-    >,
-    std::pair<
-        std::tuple<semantic::position, semantic::normal, semantic::tangent>,
-        std::tuple<glm::vec<3, std::float_t>, glm::vec<3, std::float_t>, glm::vec<4, std::float_t>>
-    >,
-    std::pair<
-        std::tuple<semantic::position, semantic::normal, semantic::tex_coord_0, semantic::tangent>,
-        std::tuple<glm::vec<3, std::float_t>, glm::vec<3, std::float_t>, glm::vec<2, std::float_t>, glm::vec<4, std::float_t>>
-    >,
-    std::pair<
-        std::tuple<semantic::position, semantic::normal, semantic::tex_coord_0, semantic::tex_coord_1, semantic::tangent>,
-        std::tuple<glm::vec<3, std::float_t>, glm::vec<3, std::float_t>, glm::vec<2, std::float_t>, glm::vec<2, std::float_t>, glm::vec<4, std::float_t>>
-    >,
+template<std::size_t N, class T>
+struct vec {
+    using type = T;
+    static auto constexpr number{N};
 
-    std::false_type
+    std::array<T, N> array;
+};
+
+using attribute_t = std::variant<
+    vec<1, std::int8_t>,
+    vec<2, std::int8_t>,
+    vec<3, std::int8_t>,
+    vec<4, std::int8_t>,
+
+    vec<1, std::uint8_t>,
+    vec<2, std::uint8_t>,
+    vec<3, std::uint8_t>,
+    vec<4, std::uint8_t>,
+
+    vec<1, std::int16_t>,
+    vec<2, std::int16_t>,
+    vec<3, std::int16_t>,
+    vec<4, std::int16_t>,
+
+    vec<1, std::uint16_t>,
+    vec<2, std::uint16_t>,
+    vec<3, std::uint16_t>,
+    vec<4, std::uint16_t>,
+
+    vec<1, std::int32_t>,
+    vec<2, std::int32_t>,
+    vec<3, std::int32_t>,
+    vec<4, std::int32_t>,
+
+    vec<1, std::uint32_t>,
+    vec<2, std::uint32_t>,
+    vec<3, std::uint32_t>,
+    vec<4, std::uint32_t>,
+
+    vec<1, std::float_t>,
+    vec<2, std::float_t>,
+    vec<3, std::float_t>,
+    vec<4, std::float_t>
 >;
 
+struct vertex_buffer_t {
+    struct attribute_description_t {
+        std::size_t offset;
+        semantics_t semantic;
+        attribute_t attribute;
+        bool normalized;
 
-template<class V, typename = std::make_index_sequence<std::variant_size_v<V> - 1>>
-struct to_vertex_format_buffer;
+        attribute_description_t(std::size_t offset, semantics_t semantic, attribute_t &&attribute, bool normalized)
+            : offset{offset}, semantic{semantic}, attribute{attribute}, normalized{normalized} { }
+    };
 
-template<class V, std::size_t... I>
-struct to_vertex_format_buffer<V, std::index_sequence<I...>> {
-    using type = std::variant<
-        std::pair<
-            std::tuple_element_t<0, std::variant_alternative_t<I, V>>,
-            std::vector<std::tuple_element_t<1, std::variant_alternative_t<I, V>>>
-        >...
-    >;
+    std::vector<attribute_description_t> layout;
+
+    std::vector<std::byte> buffer;
 };
 
-using vertex_buffer_t = to_vertex_format_buffer<vertex_format_t>::type;
-
-
-template<class T, class V>
-struct is_vertex_format;
-
-template<class T, class... Ts>
-struct is_vertex_format<T, std::variant<Ts...>> {
-    static auto constexpr value = is_one_of_v<T, Ts...>;
-};
-
-template<class T>
-constexpr bool is_vertex_format_v = is_vertex_format<T, vertex_format_t>::value;
 
 using indices_t = std::variant<
-    glm::vec<1, std::int8_t>,
-    glm::vec<1, std::uint8_t>,
-    glm::vec<1, std::int16_t>,
-    glm::vec<1, std::uint16_t>,
-    glm::vec<1, std::int32_t>,
-    glm::vec<1, std::uint32_t>
+    std::int8_t,
+    std::uint8_t,
+    std::int16_t,
+    std::uint16_t,
+    std::int32_t,
+    std::uint32_t
 >;
 
 using index_buffer_t = wrap_variant_by_vector<indices_t>::type;

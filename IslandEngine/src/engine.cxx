@@ -993,55 +993,6 @@ void loadAtributes(isle::vertex_buffer_t &vertices, isle::index_buffer_t &indice
 
 namespace isle
 {
-template<std::size_t N, class T>
-struct vec {
-    static auto constexpr size = N;
-    using value_type = T;
-
-    std::array<T, N> array;
-
-    vec() = default;
-
-    template<class... Ts, typename = std::enable_if_t<std::conjunction_v<std::is_arithmetic<Ts>...> && sizeof...(Ts) == size>>
-    constexpr vec(Ts... values) noexcept : array{static_cast<typename std::decay_t<decltype(array)>::value_type>(values)...} { }
-};
-
-using attribute_t = std::variant <
-    vec<1, std::int8_t>,
-    vec<2, std::int8_t>,
-    vec<3, std::int8_t>,
-    vec<4, std::int8_t>,
-
-    vec<1, std::uint8_t>,
-    vec<2, std::uint8_t>,
-    vec<3, std::uint8_t>,
-    vec<4, std::uint8_t>,
-
-    vec<1, std::int16_t>,
-    vec<2, std::int16_t>,
-    vec<3, std::int16_t>,
-    vec<4, std::int16_t>,
-
-    vec<1, std::uint16_t>,
-    vec<2, std::uint16_t>,
-    vec<3, std::uint16_t>,
-    vec<4, std::uint16_t>,
-
-    vec<1, std::int32_t>,
-    vec<2, std::int32_t>,
-    vec<3, std::int32_t>,
-    vec<4, std::int32_t>,
-
-    vec<1, std::uint32_t>,
-    vec<2, std::uint32_t>,
-    vec<3, std::uint32_t>,
-    vec<4, std::uint32_t>,
-
-    vec<1, std::float_t>,
-    vec<2, std::float_t>,
-    vec<3, std::float_t>,
-    vec<4, std::float_t>
-> ;
 
 //using sub_vertex_format_t = std::tuple<std::size_t, semantics_t, attribute_t>;
 struct sub_vertex_format_t {
@@ -1097,7 +1048,7 @@ void foo(x_vertex_format_t &vertex_format, std::vector<std::byte> &vertices, std
     for (auto &&[offset, semantic, attribute] : vertex_format) {
         auto index = std::visit([] (auto semantic)
         {
-            return decltype(semantic)::I;
+            return decltype(semantic)::index;
 
         }, semantic);
 
@@ -1105,7 +1056,7 @@ void foo(x_vertex_format_t &vertex_format, std::vector<std::byte> &vertices, std
         {
             using A = std::decay_t<decltype(attribute)>;
 
-            return std::tuple(sizeof(A), A::size, get_type<A::value_type>());
+            return std::tuple(sizeof(A), A::number, get_type<A::type>());
 
         }, attribute);
 
