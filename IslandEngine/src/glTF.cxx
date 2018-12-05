@@ -1087,6 +1087,8 @@ bool load(std::string_view name, vertex_buffer_t &vertices, index_buffer_t &indi
             std::size_t vertex_size = 0;
             std::size_t vertex_number = 0;
 
+            std::vector<accessor_t> accessor;
+
             for (auto &&attribute : primitive.attribute_accessors) {
                 auto [semantic, accessor_index] = attribute;
 
@@ -1101,11 +1103,26 @@ bool load(std::string_view name, vertex_buffer_t &vertices, index_buffer_t &indi
 
                 vertex_size += attribute_size;
                 vertex_number = std::max(vertex_number, accessor.count);
+
+                accessor.push_back(accessor);
             }
 
             std::vector<std::byte> stage(vertex_number * vertex_size);
 
             log::Debug() << vertex_size << ' ' << vertex_number;
+
+            for (auto &&accessor : accessors) {
+                auto &&bufferView = buffer_views.at(accessor.bufferView);
+                auto &&binBuffer = bin_buffers.at(bufferView.buffer);
+
+                std::size_t const begin = accessor.byteOffset + bufferView.byteOffset;
+                std::size_t const end = begin + accessor.count * size;
+
+                std::size_t src_index = begin, dst_index = 0u;
+
+                for (; src_index < end; src_index += buffer_view.byteStride, ++dst_index)
+                    memmove(&buffer.at(dst_index), &bin_buffer.at(src_index), size);
+            }
 
 #if 0
             vertex_format_t vertex_format;
