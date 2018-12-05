@@ -175,28 +175,6 @@ isle::semantics_t get_semantic2(std::string_view name)
 #endif
 }
 
-namespace
-{
-// semantic_attributes_types<S, VF>
-// type = std::variant<std::vector<if semantic == S then std::alternative<I, VF>>...>
-template<class... Ts>
-using concat_tuples_types = decltype(std::tuple_cat(std::declval<Ts>()...));
-
-
-template<class VF, std::size_t I = 0>
-auto constexpr get_vertex_format_index()
-{
-    using vf_t = std::variant_alternative_t<I, isle::vertex_format_t>;
-
-    if constexpr (std::is_same_v<VF, vf_t>)
-        return I;
-
-    else if constexpr (I + 1 < std::variant_size_v<isle::vertex_format_t>)
-        return get_vertex_format_index<VF, I + 1>();
-
-    else return -1;
-}
-}
 
 #if NOT_YET_IMPLEMENTED
 namespace
@@ -493,15 +471,15 @@ struct sampler_t {
 
 struct buffer_view_t {
     std::size_t buffer;
-    std::size_t byteOffset;
+    std::size_t byteOffset{0};
     std::size_t byteLength;
     std::size_t byteStride;
     std::uint32_t target;
 };
 
 struct accessor_t {
-    std::size_t bufferView;
-    std::size_t byteOffset;
+    std::size_t bufferView{0};
+    std::size_t byteOffset{0};
     std::size_t count;
 
     struct sparse_t {
@@ -519,6 +497,8 @@ struct accessor_t {
     GL componentType;
 
     std::string type;
+
+    bool normalized{false};
 };
 }
 
@@ -861,25 +841,25 @@ std::optional<attribute_t> constexpr get_attribute(GL componentType)
 {
     switch (componentType) {
         case GL::BYTE:
-            return glm::vec<N, std::int8_t>{};
+            return vec<N, std::int8_t>{};
 
         case GL::UNSIGNED_BYTE:
-            return glm::vec<N, std::uint8_t>{};
+            return vec<N, std::uint8_t>{};
 
         case GL::SHORT:
-            return glm::vec<N, std::int16_t>{};
+            return vec<N, std::int16_t>{};
 
         case GL::UNSIGNED_SHORT:
-            return glm::vec<N, std::uint16_t>{};
+            return vec<N, std::uint16_t>{};
 
         case GL::INT:
-            return glm::vec<N, std::int32_t>{};
+            return vec<N, std::int32_t>{};
 
         case GL::UNSIGNED_INT:
-            return glm::vec<N, std::uint32_t>{};
+            return vec<N, std::uint32_t>{};
 
         case GL::FLOAT:
-            return glm::vec<N, std::float_t>{};
+            return vec<N, std::float_t>{};
 
         default:
             return { };
@@ -901,53 +881,6 @@ std::optional<attribute_t> get_attribute(std::string_view type, GL componentType
         return glTF::get_attribute<4>(componentType);
 
     return { };
-}
-
-template<std::size_t N>
-std::optional<attribute_t> try_to_get_attribute_type(GL componentType)
-{
-    switch (componentType) {
-        case GL::BYTE:
-            return glm::vec<N, std::int8_t>{};
-
-        case GL::UNSIGNED_BYTE:
-            return glm::vec<N, std::uint8_t>{};
-
-        case GL::SHORT:
-            return glm::vec<N, std::int16_t>{};
-
-        case GL::UNSIGNED_SHORT:
-            return glm::vec<N, std::uint16_t>{};
-
-        case GL::INT:
-            return glm::vec<N, std::int32_t>{};
-
-        case GL::UNSIGNED_INT:
-            return glm::vec<N, std::uint32_t>{};
-
-        case GL::FLOAT:
-            return glm::vec<N, std::float_t>{};
-
-        default:
-            return { };
-    }
-}
-
-std::optional<attribute_t> try_to_get_attribute_type(std::string_view type, GL componentType)
-{
-    if (type == "SCALAR"sv)
-        return glTF::try_to_get_attribute_type<1>(componentType);
-
-    else if (type == "VEC2"sv)
-        return glTF::try_to_get_attribute_type<2>(componentType);
-
-    else if (type == "VEC3"sv)
-        return glTF::try_to_get_attribute_type<3>(componentType);
-
-    else if (type == "VEC4"sv)
-        return glTF::try_to_get_attribute_type<4>(componentType);
-
-    return std::nullopt;
 }
 }
 
@@ -986,7 +919,7 @@ bool load(std::string_view name, vertex_buffer_t &vertices, index_buffer_t &indi
     auto meshes = json.at("meshes"s).get<std::vector<glTF::mesh_t>>();
 
     auto buffers = json.at("buffers"s).get<std::vector<glTF::buffer_t>>();
-    auto buffer_views = json.at("bufferViews"s).get<std::vector<glTF::buffer_view_t>>();
+    auto bufferViews = json.at("bufferViews"s).get<std::vector<glTF::buffer_view_t>>();
     auto accessors = json.at("accessors"s).get<std::vector<glTF::accessor_t>>();
 
 #if TEMPORARILY_DISABLED
@@ -1042,12 +975,13 @@ bool load(std::string_view name, vertex_buffer_t &vertices, index_buffer_t &indi
         bin_buffers.emplace_back(std::move(byte_code));
     }
 
+#if OBSOLETE
     std::vector<attribute_buffer_t> attribute_buffers;
     attribute_buffers.reserve(std::size(accessors));
 
     for (auto &&accessor : accessors) {
         if (auto buffer = instantiate_attribute_buffer(accessor.type, accessor.componentType); buffer) {
-            auto &&buffer_view = buffer_views.at(accessor.bufferView);
+            auto &&buffer_view = bufferViews.at(accessor.bufferView);
             auto &&bin_buffer = bin_buffers.at(buffer_view.buffer);
 
             std::visit([&accessor, &buffer_view, &bin_buffer, &attribute_buffers] (auto &&buffer) {
@@ -1072,268 +1006,80 @@ bool load(std::string_view name, vertex_buffer_t &vertices, index_buffer_t &indi
             }, std::move(buffer.value()));
         }
     }
+#endif
 
     for (auto &&mesh : meshes) {
         for (auto &&primitive : mesh.primitives) {
-            std::visit([&indices] (auto &&source)
+            /*std::visit([&indices] (auto &&source)
             {
                 using T = std::decay_t<decltype(source)>;
 
                 if constexpr (is_variant_has_type<T, index_buffer_t>::value)
                     indices = std::forward<T>(source);
 
-            }, attribute_buffers.at(primitive.indices));
+            }, attribute_buffers.at(primitive.indices));*/
 
-            std::size_t vertex_size = 0;
-            std::size_t vertex_number = 0;
+            std::size_t vertexSize = 0;
+            std::size_t verticesNumber = 0;
+            std::size_t attributeOffset = 0;
 
-            std::vector<accessor_t> accessor;
+            for (auto &&attribute : primitive.attribute_accessors) {
+                auto [semantic, accessorIndex] = attribute;
+
+                auto &&accessor = accessors.at(accessorIndex);
+
+                auto attributeSize = glTF::attribute_size(accessor.type, accessor.componentType);
+
+                if (attributeSize == 0) {
+                    log::Warning() << "unsupported attribute type"s;
+                    continue;
+                }
+
+                vertexSize += attributeSize;
+                verticesNumber = std::max(verticesNumber, accessor.count);
+            }
+
+            std::vector<std::byte> stageBuffer(verticesNumber * vertexSize);
+
+            std::size_t dstOffset = 0;
 
             for (auto &&attribute : primitive.attribute_accessors) {
                 auto [semantic, accessor_index] = attribute;
 
                 auto &&accessor = accessors.at(accessor_index);
+                auto &&bufferView = bufferViews.at(accessor.bufferView);
+                auto &&binBuffer = bin_buffers.at(bufferView.buffer);
 
-                auto attribute_size = glTF::attribute_size(accessor.type, accessor.componentType);
+                if (auto attribute = glTF::get_attribute(accessor.type, accessor.componentType); attribute) {
+                    ;
+                }
 
-                if (attribute_size == 0) {
-                    log::Error() << "unsupported attribute type"s;
+                auto attributeSize = glTF::attribute_size(accessor.type, accessor.componentType);
+
+                if (attributeSize == 0) {
+                    log::Warning() << "unsupported attribute type"s;
                     continue;
                 }
 
-                vertex_size += attribute_size;
-                vertex_number = std::max(vertex_number, accessor.count);
-
-                accessor.push_back(accessor);
-            }
-
-            std::vector<std::byte> stage(vertex_number * vertex_size);
-
-            log::Debug() << vertex_size << ' ' << vertex_number;
-
-            for (auto &&accessor : accessors) {
-                auto &&bufferView = buffer_views.at(accessor.bufferView);
-                auto &&binBuffer = bin_buffers.at(bufferView.buffer);
-
                 std::size_t const begin = accessor.byteOffset + bufferView.byteOffset;
-                std::size_t const end = begin + accessor.count * size;
+                std::size_t const end = begin + accessor.count * attributeSize;
 
-                std::size_t src_index = begin, dst_index = 0u;
+                std::size_t srcIndex = begin, dstIndex = dstOffset;
 
-                for (; src_index < end; src_index += buffer_view.byteStride, ++dst_index)
-                    memmove(&buffer.at(dst_index), &bin_buffer.at(src_index), size);
+                vertices.layout.emplace_back(dstIndex, semantic, );
+
+                for (; srcIndex < end; srcIndex += bufferView.byteStride, dstIndex += vertexSize)
+                    memmove(&stageBuffer.at(dstIndex), &binBuffer.at(srcIndex), attributeSize);
+
+                dstOffset += attributeSize;
             }
 
-#if 0
-            vertex_format_t vertex_format;
+            log::Debug() << vertexSize << ' ' << verticesNumber;
 
-            for (auto &&attribute_accessor : primitive.attribute_accessors) {
-                auto [semantic, accessor] = attribute_accessor;
-                auto &&attribute = attribute_buffers.at(accessor);
-
-                std::visit([&vertex_format, semantic, &attribute] (auto &&vf)
-                {
-                    using VF = std::decay_t<decltype(vf)>;
-
-                    if constexpr (std::is_same_v<VF, std::false_type>)
-                        vertex_format = std::false_type{};
-
-                    else std::visit([&vertex_format, &attribute] (auto semantic)
-                    {
-                        using S = std::decay_t<decltype(semantic)>;
-
-                        std::visit([&vertex_format] (auto &&attribute)
-                        {
-                            using A = typename std::decay_t<decltype(attribute)>::value_type;
-                            using P = std::pair<std::tuple<S>, std::tuple<A>>;
-
-                            if constexpr (std::is_same_v<VF, P>)
-                                vertex_format = P{};
-
-                            else {
-                                using S0 = std::tuple_element_t<0, VF>;
-                                using A0 = std::tuple_element_t<1, VF>;
-
-                                using S1 = concat_tuples_types<S0, std::tuple_element_t<0, P>>;
-                                using A1 = concat_tuples_types<A0, std::tuple_element_t<1, P>>;
-
-                                using P1 = std::pair<S1, A1>;
-
-                                if constexpr (is_vertex_format<P1, vertex_format_t>::value)
-                                    vertex_format = P1{};
-
-                                else vertex_format = std::false_type{};
-                            }
-
-                        }, attribute);
-
-                    }, semantic);
-
-                }, vertex_format);
-
-                /*std::visit([&vertex_format, &attribute] (auto semantic)
-                {
-                    using S = std::decay_t<decltype(semantic)>;
-
-                    std::visit([&vertex_format] (auto &&attribute)
-                    {
-                        using A = std::decay_t<decltype(attribute)>::value_type;
-                        using P = std::pair<std::tuple<S>, std::tuple<A>>;
-
-                        std::visit([&vertex_format] (auto &&vf)
-                        {
-                            using VF = std::decay_t<decltype(vf)>;
-
-                            if constexpr (std::is_same_v<VF, std::false_type>)
-                                vertex_format = std::false_type{};
-
-                            else if constexpr (std::is_same_v<VF, P>)
-                                vertex_format = P{};
-
-                            else {
-                                using S0 = std::tuple_element_t<0, VF>;
-                                using A0 = std::tuple_element_t<1, VF>;
-
-                                using S1 = concat_tuples_types<S0, std::tuple_element_t<0, P>>;
-                                using A1 = concat_tuples_types<A0, std::tuple_element_t<1, P>>;
-
-                                using P1 = std::pair<S1, A1>;
-
-                                if constexpr (is_vertex_format<P1, vertex_format_t>::value)
-                                    vertex_format = P1{};
-
-                                else {
-                                    if constexpr (false)
-                                        ;
-
-                                    else vertex_format = std::false_type{};
-                                }
-
-                            }
-
-                        }, vertex_format);
-
-                    }, attribute);
-
-                }, semantic);*/
-            }
-
-            log::Debug() << sizeof(vertex_format);
-            log::Debug() << vertex_format.index();
-
-            std::size_t size = 0;
-
-            auto &&atrb_accessors = primitive.attribute_accessors;
-
-            std::visit([&atrb_accessors, &attribute_buffers, &vertices] (auto &&vertex_format)
-            {
-                using VF = std::decay_t<decltype(vertex_format)>;
-
-                if constexpr (!std::is_same_v<VF, std::false_type>) {
-                    using S = std::tuple_element_t<0, VF>;
-                    using A = std::tuple_element_t<1, VF>;
-
-                    vertices = std::pair<S, std::vector<A>>{};
-
-                    std::visit([&atrb_accessors, &attribute_buffers] (auto &&vertices)
-                    {
-                        auto &&[semantics, attributes] = vertices;
-
-                        std::size_t n = 0;
-                        std::size_t byte_offset = 0;
-
-                        std::decay_t<decltype(attributes)> a;
-                        using VT = typename std::decay_t<decltype(a)>::value_type;
-
-                        /*std::for_each(//std::execution::par_unseq,
-                                      std::begin(atrb_accessors), std::end(atrb_accessors),
-                                      [i = 0, &attribute_buffers, &attributes] (auto &&attribute_accessor) mutable*/
-                        for (auto &&attribute_accessor : atrb_accessors) {
-                            auto [semantic, accessor] = attribute_accessor;
-                            auto &&attribute = attribute_buffers.at(accessor);
-
-                            std::visit([&a, &byte_offset] (auto &&attribute)
-                            {
-                                auto const size = std::size(attribute);
-
-                                if (std::size(a) < size)
-                                    a.resize(size);
-
-                                using T = typename std::decay_t<decltype(attribute)>::value_type;
-                                T tttt{};
-                                tttt;
-                                auto dst = reinterpret_cast<std::byte *>(std::data(a));
-
-                                for (std::size_t i = 0; i < size; ++i) {
-                                    auto &&att = attribute.at(i);
-                                    auto _dst = dst + i * sizeof(VT) + byte_offset;
-                                    memmove(_dst, &att, sizeof(T));
-                                }
-
-                                byte_offset += sizeof(T);
-
-                            }, attribute);
-
-                            ++n;
-                        }
-
-                    }, vertices);
-                }
-
-            }, vertex_format);
-
-#endif
-
-            /*std::tuple<
-                std::pair<
-                    std::tuple<semantic::position>,
-                    std::vector<std::tuple<glm::vec<3, std::float_t>>>
-                >
-            > f;
-
-            std::variant<decltype(f)> v = f;
-
-            std::visit([&vertices] (auto &&source) {
-                using T = std::decay_t<decltype(source)>;
-
-                if constexpr (is_variant_has_type<T, vertex_buffer_t>::value)
-                    vertices = std::forward<T>(source);
-
-            }, v);*/
+            /*std::vector<float> xxxxx(std::size(stageBuffer) / 4);
+            std::uninitialized_copy(std::begin(stageBuffer), std::end(stageBuffer), reinterpret_cast<std::byte *>(std::data(xxxxx)));*/
         }
     }
-
-    /*std::vector<glm::vec3> v0(4, {1, 2, 3});
-    std::variant<
-        std::vector<std::tuple<glm::vec3>>,
-        std::vector<std::tuple<glm::vec3, glm::vec2>>
-    > v1;
-
-    v1 = std::vector<std::tuple<glm::vec3>>(std::size(v0));
-
-    std::visit([&v0] (auto &&dst)
-    {
-        using T = std::decay_t<decltype(v0)>::value_type;
-        using T0 = std::tuple<T>;
-        using T1 = std::decay_t<decltype(dst)>::value_type;
-
-        if constexpr (std::is_same_v<T0, T1>)
-            std::uninitialized_copy_n(std::begin(v0), std::size(v0), reinterpret_cast<T *>(std::data(dst)));
-            //memmove(std::data(dst), std::data(v0), std::size(v0) * sizeof(T));
-
-    }, v1);*/
-
-
-#if NOT_YET_IMPLEMENTED
-    saa_t accessors_set;
-    accessors_set[semantic::position::I] = std::make_pair(std::make_pair(semantic::position{}, 0), glm::vec<3, float>{});
-    //accessors_set[semantic::tex_coord_0::I] = std::make_pair(std::make_pair(semantic::tex_coord_0{}, 1), glm::vec<2, float>{});
-
-    //auto s = bake_semantics(accessors_set);
-    vertex_format_t vf;
-    bake(accessors_set, vf);
-    log::Debug() << vf.index();
-#endif
 
     return false;
 }
