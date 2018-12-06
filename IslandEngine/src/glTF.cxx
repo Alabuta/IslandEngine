@@ -200,6 +200,23 @@ std::optional<attribute_t> get_attribute(std::string_view type, GL componentType
 
     return { };
 }
+
+std::optional<index_buffer_t> instantiate_index_buffer(GL componentType)
+{
+    switch (componentType) {
+        case GL::UNSIGNED_BYTE:
+            return std::vector<std::uint8_t>{};
+
+        case GL::UNSIGNED_SHORT:
+            return std::vector<std::uint16_t>{};
+
+        case GL::UNSIGNED_INT:
+            return std::vector<std::uint32_t>{};
+
+        default:
+            return { };
+    }
+}
 }
 
 namespace isle::glTF
@@ -772,36 +789,34 @@ bool load(std::string_view name, vertex_buffer_t &vertices, index_buffer_t &indi
         for (auto &&primitive : mesh.primitives) {
             if (primitive.indices) {
                 auto &&accessor = accessors.at(primitive.indices.value());
-                
-                if (auto attribute = glTF::get_attribute<1>(accessor.componentType); attribute) {
-                    std::visit([&accessor, &bufferViews, &binBuffers, &indices] (auto &&attribute)
+
+                if (auto index_buffer = instantiate_index_buffer(accessor.componentType); index_buffer) {
+                    auto &&bufferView = bufferViews.at(accessor.bufferView);
+                    auto &&binBuffer = binBuffers.at(bufferView.buffer);
+
+                    indices = std::move(index_buffer.value());
+
+                    std::size_t const begin = accessor.byteOffset + bufferView.byteOffset;
+
+                    std::visit([begin, count = accessor.count, byteStride = bufferView.byteStride, &binBuffer] (auto &&indices)
                     {
-                        using T = std::decay_t<decltype(attribute)>::type;
-                        log::Debug() << std::decay_t<decltype(attribute)>::number;
+                        using T = std::decay_t<decltype(indices)>::value_type;
 
-                        if constexpr (is_variant_has_type<T, index_buffer_t>::value) {
-                            auto &&bufferView = bufferViews.at(accessor.bufferView);
-                            auto &&binBuffer = binBuffers.at(bufferView.buffer);
+                        auto size = sizeof(T);
+                        std::size_t const end = begin + count * size;
 
-                            auto size = sizeof(attribute);
+                        indices.resize(count);
 
-                            std::size_t const begin = accessor.byteOffset + bufferView.byteOffset;
-                            std::size_t const end = begin + accessor.count * size;
+                        if (byteStride != 0) {
+                            std::size_t src_index = begin, dst_index = 0u;
 
-                            indices = T{};
-                            indices.resize(accessor.count);
-
-                            if (bufferView.byteStride != 0) {
-                                std::size_t src_index = begin, dst_index = 0u;
-
-                                for (; src_index < end; src_index += bufferView.byteStride, ++dst_index)
-                                    memmove(&indices.at(dst_index), &binBuffer.at(src_index), size);
-                            }
-
-                            else memmove(std::data(indices), &binBuffer.at(begin), end - begin);
+                            for (; src_index < end; src_index += byteStride, ++dst_index)
+                                memcpy(&indices.at(dst_index), &binBuffer.at(src_index), size);
                         }
 
-                    }, std::move(attribute.value()));
+                        else memcpy(std::data(indices), &binBuffer.at(begin), end - begin);
+
+                    }, indices);
                 }
             }
 
