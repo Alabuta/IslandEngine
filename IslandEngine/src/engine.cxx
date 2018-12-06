@@ -1085,7 +1085,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int)
     isle::vertex_buffer_t vertices;
     isle::index_buffer_t indices;
 
-    auto sceneLoaded = loadScene("cube"sv, vertices, indices);
+    auto sceneLoaded = loadScene("Hebe"sv, vertices, indices);
 
     isle::InputManager inputManager{window.hWnd()};
     

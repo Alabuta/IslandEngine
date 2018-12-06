@@ -16,6 +16,7 @@ namespace fs = std::filesystem;
 namespace fs = boost::filesystem;
 #endif
 
+#include <chrono>
 
 #define GLM_FORCE_CXX17
 #define GLM_ENABLE_EXPERIMENTAL
@@ -1039,7 +1040,8 @@ bool load(std::string_view name, vertex_buffer_t &vertices, index_buffer_t &indi
                 verticesNumber = std::max(verticesNumber, accessor.count);
             }
 
-            std::vector<std::byte> stageBuffer(verticesNumber * vertexSize);
+            auto &&buffer = vertices.buffer;
+            buffer.resize(verticesNumber * vertexSize);
 
             std::size_t dstOffset = 0;
 
@@ -1050,34 +1052,40 @@ bool load(std::string_view name, vertex_buffer_t &vertices, index_buffer_t &indi
                 auto &&bufferView = bufferViews.at(accessor.bufferView);
                 auto &&binBuffer = bin_buffers.at(bufferView.buffer);
 
+                auto normalized = accessor.normalized;
+
                 if (auto attribute = glTF::get_attribute(accessor.type, accessor.componentType); attribute) {
-                    ;
+                    auto attributeSize = std::visit([dstOffset, semantic, normalized, &vertices] (auto &&attribute)
+                    {
+                        using A = std::decay_t<decltype(attribute)>;
+                        auto size = sizeof(A);
+
+                        vertices.layout.emplace_back(dstOffset, semantic, std::move(attribute), normalized);
+
+                        return size;
+
+                    }, std::move(attribute.value()));
+
+                    std::size_t const begin = accessor.byteOffset + bufferView.byteOffset;
+                    std::size_t const end = begin + accessor.count * attributeSize;
+
+                    auto srcIndex = begin, dstIndex = dstOffset;
+
+                    auto start = std::chrono::system_clock::now();
+                    for (; srcIndex < end; srcIndex += bufferView.byteStride, dstIndex += vertexSize)
+                        std::uninitialized_copy_n(&binBuffer.at(srcIndex), attributeSize, reinterpret_cast<std::byte *>(&buffer.at(dstIndex)));
+                        //memcpy(&buffer.at(dstIndex), &binBuffer.at(srcIndex), attributeSize);
+                    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - start);
+                    log::Debug() << duration.count();
+
+                    dstOffset += attributeSize;
                 }
-
-                auto attributeSize = glTF::attribute_size(accessor.type, accessor.componentType);
-
-                if (attributeSize == 0) {
-                    log::Warning() << "unsupported attribute type"s;
-                    continue;
-                }
-
-                std::size_t const begin = accessor.byteOffset + bufferView.byteOffset;
-                std::size_t const end = begin + accessor.count * attributeSize;
-
-                std::size_t srcIndex = begin, dstIndex = dstOffset;
-
-                vertices.layout.emplace_back(dstIndex, semantic, );
-
-                for (; srcIndex < end; srcIndex += bufferView.byteStride, dstIndex += vertexSize)
-                    memmove(&stageBuffer.at(dstIndex), &binBuffer.at(srcIndex), attributeSize);
-
-                dstOffset += attributeSize;
             }
 
             log::Debug() << vertexSize << ' ' << verticesNumber;
 
-            /*std::vector<float> xxxxx(std::size(stageBuffer) / 4);
-            std::uninitialized_copy(std::begin(stageBuffer), std::end(stageBuffer), reinterpret_cast<std::byte *>(std::data(xxxxx)));*/
+            /*std::vector<float> xxxxx(std::size(vertices.buffer) / 4);
+            std::uninitialized_copy(std::begin(vertices.buffer), std::end(vertices.buffer), reinterpret_cast<std::byte *>(std::data(xxxxx)));*/
         }
     }
 
