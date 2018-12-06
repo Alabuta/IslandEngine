@@ -64,45 +64,6 @@ enum class GL {
     ARRAY_BUFFER = 0x8892,
     ELEMENT_ARRAY_BUFFER
 };
-
-using attribute_t = std::variant<
-    glm::vec<1, std::int8_t>,
-    glm::vec<2, std::int8_t>,
-    glm::vec<3, std::int8_t>,
-    glm::vec<4, std::int8_t>,
-
-    glm::vec<1, std::uint8_t>,
-    glm::vec<2, std::uint8_t>,
-    glm::vec<3, std::uint8_t>,
-    glm::vec<4, std::uint8_t>,
-
-    glm::vec<1, std::int16_t>,
-    glm::vec<2, std::int16_t>,
-    glm::vec<3, std::int16_t>,
-    glm::vec<4, std::int16_t>,
-
-    glm::vec<1, std::uint16_t>,
-    glm::vec<2, std::uint16_t>,
-    glm::vec<3, std::uint16_t>,
-    glm::vec<4, std::uint16_t>,
-
-    glm::vec<1, std::int32_t>,
-    glm::vec<2, std::int32_t>,
-    glm::vec<3, std::int32_t>,
-    glm::vec<4, std::int32_t>,
-
-    glm::vec<1, std::uint32_t>,
-    glm::vec<2, std::uint32_t>,
-    glm::vec<3, std::uint32_t>,
-    glm::vec<4, std::uint32_t>,
-
-    glm::vec<1, std::float_t>,
-    glm::vec<2, std::float_t>,
-    glm::vec<3, std::float_t>,
-    glm::vec<4, std::float_t>
->;
-
-using attribute_buffer_t = isle::wrap_variant_by_vector<attribute_t>::type;
 }
 
 
@@ -141,165 +102,8 @@ std::optional<isle::semantics_t> get_semantic(std::string_view name)
 
     return { };
 }
-
-#if NOT_YET_IMPLEMENTED
-isle::semantics_t get_semantic2(std::string_view name)
-{
-    using namespace isle;
-
-    if (name == "POSITION"sv)
-        return semantic::position{ };
-
-    else if (name == "NORMAL"sv)
-        return semantic::normal{ };
-
-    else if (name == "TEXCOORD_0"sv)
-        return semantic::tex_coord_0{ };
-
-    else if (name == "TEXCOORD_1"sv)
-        return semantic::tex_coord_1{ };
-
-    else if (name == "TANGENT"sv)
-        return semantic::tangent{ };
-
-    else if (name == "COLOR_0"sv)
-        return semantic::color_0{ };
-
-    else if (name == "JOINTS_0"sv)
-        return semantic::joints_0{ };
-
-    else if (name == "WEIGHTS_0"sv)
-        return semantic::weights_0{ };
-
-    return std::monostate{};
-}
-#endif
 }
 
-
-#if NOT_YET_IMPLEMENTED
-namespace
-{
-auto constexpr kSEMANTICS_NUMBER = std::variant_size_v<isle::semantics_t> -1;
-using el_t = std::pair<accessor_t, attribute_t>;
-using saa_t = std::array<el_t, kSEMANTICS_NUMBER>;
-
-
-template<std::size_t I, class T, std::false_type>
-struct xxxx {
-    using type = typename std::tuple_element<I, T>;
-};
-
-template<std::size_t I, class T>
-struct xxxx<I, T, isle::is_one_of<T, std::monostate, std::false_type>::type> {
-    using type = typename T;
-};
-
-template<std::size_t I, class V>
-struct aggregation;
-
-template<std::size_t I, class... Ts>
-struct aggregation<I, std::variant<Ts...>> {
-    using type = std::variant<typename xxxx<I, Ts>::type...>;
-};
-
-using semantics_aggregation_t = aggregation<0, isle::vertex_format_t>::type;
-using attributes_aggregation_t = aggregation<1, isle::vertex_format_t>::type;
-
-template<std::size_t N, std::size_t I = 0, std::size_t J = 0>
-semantics_aggregation_t constexpr bake_semantics(std::array<el_t, N> &array)
-{
-    static_assert(J < std::variant_size_v<semantics_aggregation_t>);
-
-    using S = std::variant_alternative_t<J, semantics_aggregation_t>;
-
-    if constexpr (std::is_same_v<S, std::false_type>)
-        return std::false_type{};
-
-    if constexpr (I < N)
-        return S{};
-
-    auto &&[accessor, attribute] = array[I];
-
-    auto [semantic, index] = accessor;
-
-    return std::false_type{};
-}
-}
-#endif
-
-#if NOT_YET_IMPLEMENTED
-namespace
-{
-auto constexpr kSEMANTICS_NUMBER = 1;// std::variant_size_v<isle::semantics_t> -1;
-using el_t = std::pair<accessor_t, attribute_t>;
-using saa_t = std::array<el_t, kSEMANTICS_NUMBER>;
-
-
-template<std::size_t N, std::size_t I = 0, std::size_t VI = 0>
-void constexpr bake(std::array<el_t, N> &array, isle::vertex_format_t &vf)
-{
-    static_assert(VI < std::variant_size_v<isle::vertex_format_t>);
-
-    using vf_t = std::variant_alternative_t<VI, isle::vertex_format_t>;
-
-    if constexpr (std::is_same_v<vf_t, std::false_type>)
-        return std::false_type{};
-
-    if constexpr (I < N)
-        vf = vf_t{};
-
-    auto &&[accessor, attribute] = array[I];
-
-    auto [semantic, index] = accessor;
-
-    std::visit([&vf, &array, &attribute] (auto semantic)
-    {
-        using S = decltype(semantic);
-
-        if constexpr (std::is_same_v<S, std::monostate>)
-            bake<N, I + 1, VI>(array, vf);
-
-        else std::visit([&vf, &array] (auto &&attribute)
-        {
-            using A = std::decay_t<decltype(attribute)>;
-
-            using P = std::pair<std::tuple<S>, std::tuple<A>>;
-
-            /*if constexpr (std::is_same_v<A, std::monostate>)
-                bake<N, I + 1, VI>(array, vf);*/
-
-            if constexpr (std::is_same_v<vf_t, std::monostate>)
-            {
-                if constexpr (isle::is_vertex_format<P, isle::vertex_format_t>::value)
-                    bake<N, I + 1, get_vertex_format_index<P>()>(array);
-
-                else vf = std::false_type{};
-            }
-
-            else {
-                using S0 = std::tuple_element_t<0, vf_t>;
-                using A0 = std::tuple_element_t<1, vf_t>;
-
-                using S1 = concat_tuples_types<S0, std::tuple<S>>;
-                using A1 = concat_tuples_types<A0, std::tuple<A>>;
-
-                using P1 = std::pair<S1, A1>;
-
-                if constexpr (isle::is_vertex_format<P1, isle::vertex_format_t>::value)
-                    bake<N, I + 1, get_vertex_format_index<P1>()>(array, vf);
-
-                else {
-                    vf = std::false_type{};
-                }
-            }
-
-            vf = std::false_type{};
-        }, attribute);
-    }, semantic);
-}
-}
-#endif
 
 namespace isle::glTF
 {
@@ -348,6 +152,53 @@ std::size_t attribute_size(std::string_view type, GL componentType)
         return attribute_size<4>(componentType);
 
     return 0;
+}
+
+template<std::size_t N>
+std::optional<attribute_t> constexpr get_attribute(GL componentType)
+{
+    switch (componentType) {
+        case GL::BYTE:
+            return vec<N, std::int8_t>{};
+
+        case GL::UNSIGNED_BYTE:
+            return vec<N, std::uint8_t>{};
+
+        case GL::SHORT:
+            return vec<N, std::int16_t>{};
+
+        case GL::UNSIGNED_SHORT:
+            return vec<N, std::uint16_t>{};
+
+        case GL::INT:
+            return vec<N, std::int32_t>{};
+
+        case GL::UNSIGNED_INT:
+            return vec<N, std::uint32_t>{};
+
+        case GL::FLOAT:
+            return vec<N, std::float_t>{};
+
+        default:
+            return { };
+    }
+}
+
+std::optional<attribute_t> get_attribute(std::string_view type, GL componentType)
+{
+    if (type == "SCALAR"sv)
+        return glTF::get_attribute<1>(componentType);
+
+    else if (type == "VEC2"sv)
+        return glTF::get_attribute<2>(componentType);
+
+    else if (type == "VEC3"sv)
+        return glTF::get_attribute<3>(componentType);
+
+    else if (type == "VEC4"sv)
+        return glTF::get_attribute<4>(componentType);
+
+    return { };
 }
 }
 
@@ -790,99 +641,6 @@ void from_json(nlohmann::json const &j, accessor_t &accessor)
 
 namespace isle::glTF
 {
-template<std::size_t N>
-std::optional<attribute_buffer_t> instantiate_attribute_buffer(GL componentType)
-{
-    switch (componentType) {
-        case GL::BYTE:
-            return std::vector<glm::vec<N, std::int8_t>>{};
-
-        case GL::UNSIGNED_BYTE:
-            return std::vector<glm::vec<N, std::uint8_t>>{};
-
-        case GL::SHORT:
-            return std::vector<glm::vec<N, std::int16_t>>{};
-
-        case GL::UNSIGNED_SHORT:
-            return std::vector<glm::vec<N, std::uint16_t>>{};
-
-        case GL::INT:
-            return std::vector<glm::vec<N, std::int32_t>>{};
-
-        case GL::UNSIGNED_INT:
-            return std::vector<glm::vec<N, std::uint32_t>>{};
-
-        case GL::FLOAT:
-            return std::vector<glm::vec<N, std::float_t>>{};
-
-        default:
-            return { };
-    }
-}
-
-std::optional<attribute_buffer_t> instantiate_attribute_buffer(std::string_view type, GL componentType)
-{
-    if (type == "SCALAR"sv)
-        return glTF::instantiate_attribute_buffer<1>(componentType);
-
-    else if (type == "VEC2"sv)
-        return glTF::instantiate_attribute_buffer<2>(componentType);
-
-    else if (type == "VEC3"sv)
-        return glTF::instantiate_attribute_buffer<3>(componentType);
-
-    else if (type == "VEC4"sv)
-        return glTF::instantiate_attribute_buffer<4>(componentType);
-
-    return std::nullopt;
-}
-
-template<std::size_t N>
-std::optional<attribute_t> constexpr get_attribute(GL componentType)
-{
-    switch (componentType) {
-        case GL::BYTE:
-            return vec<N, std::int8_t>{};
-
-        case GL::UNSIGNED_BYTE:
-            return vec<N, std::uint8_t>{};
-
-        case GL::SHORT:
-            return vec<N, std::int16_t>{};
-
-        case GL::UNSIGNED_SHORT:
-            return vec<N, std::uint16_t>{};
-
-        case GL::INT:
-            return vec<N, std::int32_t>{};
-
-        case GL::UNSIGNED_INT:
-            return vec<N, std::uint32_t>{};
-
-        case GL::FLOAT:
-            return vec<N, std::float_t>{};
-
-        default:
-            return { };
-    }
-}
-
-std::optional<attribute_t> get_attribute(std::string_view type, GL componentType)
-{
-    if (type == "SCALAR"sv)
-        return glTF::get_attribute<1>(componentType);
-
-    else if (type == "VEC2"sv)
-        return glTF::get_attribute<2>(componentType);
-
-    else if (type == "VEC3"sv)
-        return glTF::get_attribute<3>(componentType);
-
-    else if (type == "VEC4"sv)
-        return glTF::get_attribute<4>(componentType);
-
-    return { };
-}
 }
 
 
