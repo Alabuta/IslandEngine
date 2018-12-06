@@ -17,6 +17,7 @@
 #include <initializer_list>
 
 #include "System\CrusSystem.h"
+#include "vertex_format.hxx"
 
 namespace isle {
 class Program {

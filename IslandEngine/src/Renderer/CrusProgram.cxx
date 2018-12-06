@@ -19,7 +19,12 @@
 #include "Renderer\CrusRender.h"
 #include "Renderer\CrusProgram.h"
 
+
 #undef max
+
+using namespace std::string_literals;
+using namespace std::string_view_literals;
+
 
 namespace {
 auto constexpr kGLSL_VERSION = R"(#version 460 core)";
@@ -216,7 +221,6 @@ void Program::Destroy()
 
 u32 Program::CreateShaderObject(std::vector<std::string> const &_includes, std::string_view _source, u32 _type, std::string _options)
 {
-    using namespace std::string_literals;
     static std::unordered_map<u32, std::string> const shaderTypes{
         {GL_VERTEX_SHADER, "vertex"s},
         {GL_FRAGMENT_SHADER, "fragment"s},
@@ -233,17 +237,19 @@ u32 Program::CreateShaderObject(std::vector<std::string> const &_includes, std::
         preprocessor_directives
             << '\n'
             << kGLSL_VERSION
-            << "\n#extension GL_ARB_bindless_texture : require";
+            << "\n#extension GL_ARB_bindless_texture : require"sv;
 
         switch (type) {
             case GL_VERTEX_SHADER:
                 preprocessor_directives
                     << '\n'
                     << "\n#define CRUS_VERTEX_STAGE 1\n"
-                    << "\n#define nPOSITION      " << Render::eVERTEX_IN::nPOSITION
-                    << "\n#define nNORMAL        " << Render::eVERTEX_IN::nNORMAL
-                    << "\n#define nTEX_COORD     " << Render::eVERTEX_IN::nTEX_COORD
+                    << "\n#define nPOSITION      " << semantic::position::index
+                    << "\n#define nNORMAL        " << semantic::normal::index
+                    << "\n#define nTEX_COORD     " << semantic::tex_coord_0::index
+
                     << "\n#define nCOLOR         " << Render::eVERTEX_IN::nCOLOR
+
 
                     << "\n#define nVIEWPORT      " << Render::eBUFFERS_BINDING::nVIEWPORT
                     << "\n#define nTRANSFORM     " << Render::eBUFFERS_BINDING::nTRANSFORM

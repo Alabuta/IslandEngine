@@ -369,11 +369,11 @@ void init()
 
     glNamedBufferStorage(bo, sizeof(vertices), std::data(vertices), GL_DYNAMIC_STORAGE_BIT);
 
-    glVertexArrayAttribBinding(cube_vao, Render::eVERTEX_IN::nPOSITION, 0);
-    glVertexArrayAttribFormat(cube_vao, Render::eVERTEX_IN::nPOSITION, 3, GL_FLOAT, GL_FALSE, 0);
+    glVertexArrayAttribBinding(cube_vao, semantic::position::index, 0);
+    glVertexArrayAttribFormat(cube_vao, semantic::position::index, 3, GL_FLOAT, GL_FALSE, 0);
     glVertexArrayVertexBuffer(cube_vao, 0, bo, 0, sizeof(Position));
 
-    glEnableVertexArrayAttrib(cube_vao, Render::eVERTEX_IN::nPOSITION);
+    glEnableVertexArrayAttrib(cube_vao, semantic::position::index);
 
     initFramebuffer();
 
@@ -723,9 +723,9 @@ void init()
 
         glNamedBufferStorage(bo, sizeof(decltype(kernel)::value_type) * std::size(kernel), std::data(kernel), 0);
 
-        glVertexArrayAttribBinding(hemisphere_vao, Render::eVERTEX_IN::nPOSITION, 0);
-        glVertexArrayAttribFormat(hemisphere_vao, Render::eVERTEX_IN::nPOSITION, 3, GL_FLOAT, GL_FALSE, 0);
-        glEnableVertexArrayAttrib(hemisphere_vao, Render::eVERTEX_IN::nPOSITION);
+        glVertexArrayAttribBinding(hemisphere_vao, semantic::position::index, 0);
+        glVertexArrayAttribFormat(hemisphere_vao, semantic::position::index, 3, GL_FLOAT, GL_FALSE, 0);
+        glEnableVertexArrayAttrib(hemisphere_vao, semantic::position::index);
 
         glVertexArrayVertexBuffer(hemisphere_vao, 0, bo, 0, sizeof(math::Vector));
     }
@@ -887,9 +887,9 @@ void Init()
 
         glNamedBufferStorage(bo, sizeof(decltype(vertices)::value_type) * std::size(vertices), std::data(vertices), 0);
 
-        glVertexArrayAttribBinding(quad_vao, Render::eVERTEX_IN::nPOSITION, 0);
-        glVertexArrayAttribFormat(quad_vao, Render::eVERTEX_IN::nPOSITION, 3, GL_FLOAT, GL_FALSE, 0);
-        glEnableVertexArrayAttrib(quad_vao, Render::eVERTEX_IN::nPOSITION);
+        glVertexArrayAttribBinding(quad_vao, semantic::position::index, 0);
+        glVertexArrayAttribFormat(quad_vao, semantic::position::index, 3, GL_FLOAT, GL_FALSE, 0);
+        glEnableVertexArrayAttrib(quad_vao, semantic::position::index);
 
         glVertexArrayVertexBuffer(quad_vao, 0, bo, 0, sizeof(Position));
     }
@@ -903,17 +903,17 @@ void Init()
 
         glNamedBufferStorage(bo, sizeof(decltype(vertex_buffer)::value_type) * std::size(vertex_buffer), std::data(vertex_buffer), 0);
 
-        glVertexArrayAttribBinding(mesh_vao, Render::eVERTEX_IN::nPOSITION, 0);
-        glVertexArrayAttribFormat(mesh_vao, Render::eVERTEX_IN::nPOSITION, 3, GL_FLOAT, GL_FALSE, offsetof(Vertex, pos));
-        glEnableVertexArrayAttrib(mesh_vao, Render::eVERTEX_IN::nPOSITION);
+        glVertexArrayAttribBinding(mesh_vao, semantic::position::index, 0);
+        glVertexArrayAttribFormat(mesh_vao, semantic::position::index, 3, GL_FLOAT, GL_FALSE, offsetof(Vertex, pos));
+        glEnableVertexArrayAttrib(mesh_vao, semantic::position::index);
 
-        glVertexArrayAttribBinding(mesh_vao, Render::eVERTEX_IN::nNORMAL, 0);
-        glVertexArrayAttribFormat(mesh_vao, Render::eVERTEX_IN::nNORMAL, 3, GL_FLOAT, GL_TRUE, offsetof(Vertex, normal));
-        glEnableVertexArrayAttrib(mesh_vao, Render::eVERTEX_IN::nNORMAL);
+        glVertexArrayAttribBinding(mesh_vao, semantic::normal::index, 0);
+        glVertexArrayAttribFormat(mesh_vao, semantic::normal::index, 3, GL_FLOAT, GL_TRUE, offsetof(Vertex, normal));
+        glEnableVertexArrayAttrib(mesh_vao, semantic::normal::index);
 
-        glVertexArrayAttribBinding(mesh_vao, Render::eVERTEX_IN::nTEX_COORD, 0);
-        glVertexArrayAttribFormat(mesh_vao, Render::eVERTEX_IN::nTEX_COORD, 2, GL_FLOAT, GL_FALSE, offsetof(Vertex, uv));
-        glEnableVertexArrayAttrib(mesh_vao, Render::eVERTEX_IN::nTEX_COORD);
+        glVertexArrayAttribBinding(mesh_vao, semantic::tex_coord_0::index, 0);
+        glVertexArrayAttribFormat(mesh_vao, semantic::tex_coord_0::index, 2, GL_FLOAT, GL_FALSE, offsetof(Vertex, uv));
+        glEnableVertexArrayAttrib(mesh_vao, semantic::tex_coord_0::index);
 
         glVertexArrayVertexBuffer(mesh_vao, 0, bo, 0, sizeof(decltype(vertex_buffer)::value_type));
     }
@@ -973,43 +973,6 @@ auto loadScene(std::string_view name, isle::vertex_buffer_t &vertices, isle::ind
     return std::async(std::launch::async, isle::glTF::load, name, std::ref(vertices), std::ref(indices));
 }
 
-void loadAtributes(isle::vertex_buffer_t &vertices, isle::index_buffer_t &indices)
-{
-    using namespace isle;
-
-    auto vao = Render::inst().createVAO();
-
-    auto vbo = Render::inst().createBO();
-
-    //glNamedBufferStorage(vbo, sizeof(decltype(vertices)::value_type) * std::size(vertices), std::data(vertices), 0);
-
-    glVertexArrayAttribBinding(vao, Render::eVERTEX_IN::nPOSITION, 0);
-    glEnableVertexArrayAttrib(vao, Render::eVERTEX_IN::nPOSITION);
-    glVertexArrayAttribFormat(vao, Render::eVERTEX_IN::nPOSITION, 3, GL_FLOAT, GL_FALSE, offsetof(Vertex, pos));
-
-    //glVertexArrayVertexBuffer(vao, 0, vbo, 0, sizeof(decltype(vertices)::value_type));
-}
-
-
-namespace isle
-{
-
-//using sub_vertex_format_t = std::tuple<std::size_t, semantics_t, attribute_t>;
-struct sub_vertex_format_t {
-    std::size_t offset;
-    semantics_t semantic;
-    attribute_t attribute;
-
-    sub_vertex_format_t(std::size_t byte_stride, semantics_t semantic, attribute_t &&attribute)
-        : offset{offset}, semantic{semantic}, attribute{attribute} { }
-
-    template<class T>
-    auto constexpr operator< (T &&rhs) const noexcept
-    {
-        return offset < rhs.offset;
-    }
-};
-using x_vertex_format_t = std::set<sub_vertex_format_t>;
 
 template<class T>
 auto constexpr get_type()
@@ -1025,62 +988,54 @@ auto constexpr get_type()
     else return GL_FALSE;
 }
 
-template<class S, class A>
-auto constexpr normalize()
+
+void loadAtributes(isle::vertex_buffer_t &vertices, isle::index_buffer_t &indices)
 {
-    ;
-}
-}
+    using namespace isle;
 
-namespace isle {
-
-
-void foo(x_vertex_format_t &vertex_format, std::vector<std::byte> &vertices, std::size_t stride)
-{
     auto vao = Render::inst().createVAO();
 
     auto vbo = Render::inst().createBO();
-    glNamedBufferStorage(vbo, std::size(vertices), std::data(vertices), 0);
+    glNamedBufferStorage(vbo, std::size(vertices.buffer), std::data(vertices.buffer), 0);
 
+    std::visit([] (auto &&indices)
+    {
+        using ;
+
+    }, indices);
 
     std::size_t vertex_size = 0;
 
-    for (auto &&[offset, semantic, attribute] : vertex_format) {
-        auto index = std::visit([] (auto semantic)
+    for (auto &&[offset, semantic, attribute, normalized] : vertices.layout) {
+        auto semanticIndex = std::visit([] (auto semantic)
         {
             return decltype(semantic)::index;
 
         }, semantic);
 
-        auto [size, number, type] = std::visit([] (auto &&attribute)
-        {
+        auto [size, number, type] = std::visit([] (auto &&attribute) {
             using A = std::decay_t<decltype(attribute)>;
 
             return std::tuple(sizeof(A), A::number, get_type<A::type>());
 
-        }, attribute);
+        }, std::move(attribute));
+
+        glVertexArrayAttribBinding(vao, semanticIndex, 0);
+        glEnableVertexArrayAttrib(vao, semanticIndex);
+        glVertexArrayAttribFormat(vao, semanticIndex, number, type, normalized, static_cast<u32>(offset));
 
         vertex_size += size;
-
-        glVertexArrayAttribBinding(vao, static_cast<u32>(index), 0);
-        glEnableVertexArrayAttrib(vao, static_cast<u32>(index));
-        glVertexArrayAttribFormat(vao, static_cast<u32>(index), static_cast<i32>(number), type, GL_FALSE, static_cast<u32>(offset));
     }
 
-    glVertexArrayVertexBuffer(vao, 0, vbo, 0, static_cast<i32>(stride));
+    glVertexArrayVertexBuffer(vao, 0, vbo, 0, static_cast<i32>(vertex_size));
 }
-}
+
+
+
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int)
 {
     isle::Window window(crus::names::kMAIN_WINDOW_NAME, hInstance, app.width, app.height);
-
-    isle::x_vertex_format_t x;
-    x.emplace(12, isle::semantic::normal{}, isle::vec<3, std::float_t>{});
-    x.emplace(0, isle::semantic::position{}, isle::vec<3, std::float_t>{});
-    x.emplace(24, isle::semantic::tex_coord_0{}, isle::vec<2, std::float_t>{});
-    
-    isle::foo(x, std::vector<std::byte>{}, 0);
 
     isle::vertex_buffer_t vertices;
     isle::index_buffer_t indices;

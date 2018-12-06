@@ -107,9 +107,9 @@ void Grid::Update(float _side, float _step, u16 _subdivs)
         auto bo = Render::inst().createBO();
         glNamedBufferStorage(bo, sizeof(data[0]) * data.size(), data.data(), GL_DYNAMIC_STORAGE_BIT);
 
-        glVertexArrayAttribBinding(vao_, Render::eVERTEX_IN::nPOSITION, 0);
-        glVertexArrayAttribFormat(vao_, Render::eVERTEX_IN::nPOSITION, 3, GL_FLOAT, GL_FALSE, 0);
-        glEnableVertexArrayAttrib(vao_, Render::eVERTEX_IN::nPOSITION);
+        glVertexArrayAttribBinding(vao_, semantic::position::index, 0);
+        glVertexArrayAttribFormat(vao_, semantic::position::index, 3, GL_FLOAT, GL_FALSE, 0);
+        glEnableVertexArrayAttrib(vao_, semantic::position::index);
 
         glVertexArrayAttribBinding(vao_, Render::eVERTEX_IN::nCOLOR, 0);
         glVertexArrayAttribFormat(vao_, Render::eVERTEX_IN::nCOLOR, 3, GL_FLOAT, GL_FALSE, sizeof(data[0].first));

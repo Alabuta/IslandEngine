@@ -10,7 +10,7 @@ namespace isle
 {
 namespace semantic
 {
-    enum class eSEMANTIC_INDEX : std::size_t {
+    enum class eSEMANTIC_INDEX : std::uint32_t {
         nPOSITION = 0,
         nNORMAL,
         nTEXCOORD_0,
@@ -23,7 +23,7 @@ namespace semantic
 
     template<eSEMANTIC_INDEX SI>
     struct attribute {
-        static auto constexpr index{static_cast<std::size_t>(SI)};
+        static auto constexpr index{static_cast<std::uint32_t>(SI)};
 
         template<eSEMANTIC_INDEX si>
         auto constexpr operator< (attribute<si>) const noexcept
@@ -54,7 +54,7 @@ using semantics_t = std::variant<
 >;
 
 
-template<std::size_t N, class T>
+template<std::uint32_t N, class T>
 struct vec {
     using type = T;
     static auto constexpr number{N};
