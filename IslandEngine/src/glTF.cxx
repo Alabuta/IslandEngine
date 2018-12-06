@@ -237,7 +237,7 @@ struct image_t {
 struct mesh_t {
     struct primitive_t {
         std::optional<std::size_t> material;
-        std::size_t indices;
+        std::optional<std::size_t> indices;
 
         std::vector<accessor_t> attributes;
 
@@ -441,7 +441,8 @@ void from_json(nlohmann::json const &j, mesh_t &mesh)
         if (json_primitive.count("material"s))
             primitive.material = json_primitive.at("material"s).get<decltype(mesh_t::primitive_t::material)::value_type>();
 
-        primitive.indices = json_primitive.at("indices"s).get<decltype(mesh_t::primitive_t::indices)>();
+        if (json_primitive.count("indices"s))
+            primitive.indices = json_primitive.at("indices"s).get<decltype(mesh_t::primitive_t::indices)::value_type>();
 
         auto const json_attributes = json_primitive.at("attributes"s);
 
@@ -713,8 +714,8 @@ bool load(std::string_view name, vertex_buffer_t &vertices, index_buffer_t &indi
     })();
 #endif
 
-    std::vector<std::vector<std::byte>> bin_buffers;
-    bin_buffers.reserve(std::size(buffers));
+    std::vector<std::vector<std::byte>> binBuffers;
+    binBuffers.reserve(std::size(buffers));
 
     for (auto &&buffer : buffers) {
         auto path = folder / fs::path{buffer.uri};
@@ -731,7 +732,7 @@ bool load(std::string_view name, vertex_buffer_t &vertices, index_buffer_t &indi
         if (!byte_code.empty())
             file.read(reinterpret_cast<char *>(std::data(byte_code)), std::size(byte_code));
 
-        bin_buffers.emplace_back(std::move(byte_code));
+        binBuffers.emplace_back(std::move(byte_code));
     }
 
 #if OBSOLETE
@@ -769,14 +770,40 @@ bool load(std::string_view name, vertex_buffer_t &vertices, index_buffer_t &indi
 
     for (auto &&mesh : meshes) {
         for (auto &&primitive : mesh.primitives) {
-            /*std::visit([&indices] (auto &&source)
-            {
-                using T = std::decay_t<decltype(source)>;
+            if (primitive.indices) {
+                auto &&accessor = accessors.at(primitive.indices.value());
+                
+                if (auto attribute = glTF::get_attribute<1>(accessor.componentType); attribute) {
+                    std::visit([&accessor, &bufferViews, &binBuffers, &indices] (auto &&attribute)
+                    {
+                        using T = std::decay_t<decltype(attribute)>::type;
+                        log::Debug() << std::decay_t<decltype(attribute)>::number;
 
-                if constexpr (is_variant_has_type<T, index_buffer_t>::value)
-                    indices = std::forward<T>(source);
+                        if constexpr (is_variant_has_type<T, index_buffer_t>::value) {
+                            auto &&bufferView = bufferViews.at(accessor.bufferView);
+                            auto &&binBuffer = binBuffers.at(bufferView.buffer);
 
-            }, attribute_buffers.at(primitive.indices));*/
+                            auto size = sizeof(attribute);
+
+                            std::size_t const begin = accessor.byteOffset + bufferView.byteOffset;
+                            std::size_t const end = begin + accessor.count * size;
+
+                            indices = T{};
+                            indices.resize(accessor.count);
+
+                            if (bufferView.byteStride != 0) {
+                                std::size_t src_index = begin, dst_index = 0u;
+
+                                for (; src_index < end; src_index += bufferView.byteStride, ++dst_index)
+                                    memmove(&indices.at(dst_index), &binBuffer.at(src_index), size);
+                            }
+
+                            else memmove(std::data(indices), &binBuffer.at(begin), end - begin);
+                        }
+
+                    }, std::move(attribute.value()));
+                }
+            }
 
             std::size_t vertexSize = 0;
             std::size_t verticesNumber = 0;
@@ -808,7 +835,7 @@ bool load(std::string_view name, vertex_buffer_t &vertices, index_buffer_t &indi
 
                 auto &&accessor = accessors.at(accessor_index);
                 auto &&bufferView = bufferViews.at(accessor.bufferView);
-                auto &&binBuffer = bin_buffers.at(bufferView.buffer);
+                auto &&binBuffer = binBuffers.at(bufferView.buffer);
 
                 auto normalized = accessor.normalized;
 

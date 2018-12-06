@@ -116,14 +116,6 @@ struct vertex_buffer_t {
 };
 
 
-using indices_t = std::variant<
-    std::int8_t,
-    std::uint8_t,
-    std::int16_t,
-    std::uint16_t,
-    std::int32_t,
-    std::uint32_t
->;
-
+using indices_t = std::variant<std::uint8_t, std::uint16_t, std::uint32_t>;
 using index_buffer_t = wrap_variant_by_vector<indices_t>::type;
 }
