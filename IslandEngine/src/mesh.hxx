@@ -13,9 +13,9 @@
 
 namespace isle
 {
-enum class PRIMITIVE_TYPE {
-    NONE,
-    POINTS = GL_POINTS,
+
+enum class TOPOLOGY {
+    POINTS = 0,
     LINES, LINE_LOOP, LINE_STRIP,
     TRIANGLES, TRIANGLE_STRIP, TRIANGLE_FAN
 };
@@ -28,7 +28,7 @@ struct submesh {
 };
 
 struct mesh {
-    PRIMITIVE_TYPE primitive_type{PRIMITIVE_TYPE::NONE};
+    TOPOLOGY primitive_type{TOPOLOGY::TRIANGLES};
 
     std::size_t primitives_count{0};
 

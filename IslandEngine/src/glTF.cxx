@@ -64,6 +64,13 @@ enum class GL {
     ARRAY_BUFFER = 0x8892,
     ELEMENT_ARRAY_BUFFER
 };
+
+
+enum class PRIMITIVE_MODE {
+    POINTS = 0,
+    LINES, LINE_LOOP, LINE_STRIP,
+    TRIANGLES, TRIANGLE_STRIP, TRIANGLE_FAN
+};
 }
 
 
@@ -262,7 +269,7 @@ struct mesh_t {
 #if NOT_YET_IMPLEMENTED
         saa_t attribute_accessors2;
 #endif
-        std::uint32_t mode{4};
+        PRIMITIVE_MODE mode{PRIMITIVE_MODE::TRIANGLES};
     };
 
     std::vector<primitive_t> primitives;
@@ -342,7 +349,7 @@ struct buffer_view_t {
     std::size_t buffer;
     std::size_t byteOffset{0};
     std::size_t byteLength;
-    std::size_t byteStride;
+    std::optional<std::size_t> byteStride;
     std::uint32_t target;
 };
 
@@ -489,8 +496,6 @@ void from_json(nlohmann::json const &j, mesh_t &mesh)
         if (json_primitive.count("mode"s))
             primitive.mode = json_primitive.at("mode"s).get<decltype(mesh_t::primitive_t::mode)>();
 
-        else primitive.mode = 4;
-
         return primitive;
     });
 }
@@ -615,9 +620,7 @@ void from_json(nlohmann::json const &j, buffer_view_t &bufferView)
     bufferView.byteLength = j.at("byteLength"s).get<decltype(buffer_view_t::byteLength)>();
 
     if (j.count("byteStride"s))
-        bufferView.byteStride = j.at("byteStride"s).get<decltype(buffer_view_t::byteStride)>();
-
-    else bufferView.byteStride = 0;
+        bufferView.byteStride = j.at("byteStride"s).get<decltype(buffer_view_t::byteStride)::value_type>();
 
     if (j.count("target"s))
         bufferView.target = j.at("target"s).get<decltype(buffer_view_t::target)>();
@@ -657,9 +660,6 @@ void from_json(nlohmann::json const &j, accessor_t &accessor)
 }
 }
 
-namespace isle::glTF
-{
-}
 
 
 namespace isle::glTF
@@ -807,10 +807,10 @@ bool load(std::string_view name, vertex_buffer_t &vertices, index_buffer_t &indi
 
                         indices.resize(count);
 
-                        if (byteStride != 0) {
+                        if (byteStride) {
                             std::size_t src_index = begin, dst_index = 0u;
 
-                            for (; src_index < end; src_index += byteStride, ++dst_index)
+                            for (; src_index < end; src_index += *byteStride, ++dst_index)
                                 memcpy(&indices.at(dst_index), &binBuffer.at(src_index), size);
                         }
 
@@ -868,13 +868,17 @@ bool load(std::string_view name, vertex_buffer_t &vertices, index_buffer_t &indi
 
                     std::size_t const begin = accessor.byteOffset + bufferView.byteOffset;
                     std::size_t const end = begin + accessor.count * attributeSize;
+                    std::size_t const step = bufferView.byteStride ? *bufferView.byteStride : attributeSize;
 
                     auto srcIndex = begin, dstIndex = dstOffset;
 
                     auto start = std::chrono::system_clock::now();
-                    for (; srcIndex < end; srcIndex += bufferView.byteStride, dstIndex += vertexSize)
-                        std::uninitialized_copy_n(&binBuffer.at(srcIndex), attributeSize, reinterpret_cast<std::byte *>(&buffer.at(dstIndex)));
+
+                    for (; srcIndex < end; srcIndex += step, dstIndex += vertexSize)
+                        std::uninitialized_copy_n(&binBuffer.at(srcIndex), attributeSize,
+                                                  reinterpret_cast<std::byte *>(&buffer.at(dstIndex)));
                         //memcpy(&buffer.at(dstIndex), &binBuffer.at(srcIndex), attributeSize);
+
                     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - start);
                     log::Debug() << duration.count();
 
@@ -889,7 +893,7 @@ bool load(std::string_view name, vertex_buffer_t &vertices, index_buffer_t &indi
         }
     }
 
-    return false;
+    return true;
 }
 ;
 }
