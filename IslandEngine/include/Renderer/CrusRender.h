@@ -32,7 +32,6 @@
 
 #include "Renderer\CrusColors.h"
 
-#include "Interface\CrusViewport.h"
 
 namespace isle {
 class Render {
