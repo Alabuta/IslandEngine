@@ -21,6 +21,17 @@ using namespace std::string_view_literals;
 #define GLFW_INCLUDE_GLEXT
 #include <GLFW/glfw3.h>
 
+struct application_t {
+    // isle::CameraSystem cameraSystem;
+    // std::shared_ptr<isle::Camera> camera;
+
+    // std::unique_ptr<isle::OrbitController> cameraController;
+
+    // per_object_t object;
+
+    // i32 width{800}, height{1080};
+
+} app;
 
 
 int main()
@@ -51,6 +62,8 @@ try {
 
     if (!window) 
         return 1;
+
+    isle::InputManager inputManager{window};
 
     glfwMakeContextCurrent(window);
 

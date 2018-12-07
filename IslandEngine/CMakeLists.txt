@@ -19,13 +19,16 @@ if(NOT WIN32)
 	find_package(X11 REQUIRED)
 endif()
 
-# find_package(Boost REQUIRED COMPONENTS
-#     filesystem
-# )
+find_package(Boost REQUIRED COMPONENTS
+    filesystem
+)
 
 include_directories(SYSTEM include)
 
 set(SOURCE_FILES
+    src/Input/InputManager.hxx              src/Input/InputManager.cxx
+    src/Input/MouseInput.hxx                src/Input/MouseInput.cxx
+
     src/Renderer/oglContext.hxx
                                             src/Renderer/oglProcedures.cxx
 
