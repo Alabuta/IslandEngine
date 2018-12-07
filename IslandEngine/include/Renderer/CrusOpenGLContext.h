@@ -32,7 +32,7 @@ using namespace std::string_view_literals;
 #include "System\CrusBook.h"
 
 namespace isle {
-class oglContext final {
+class OpenGLContext final {
 public:
 
     template<typename T>
@@ -58,7 +58,7 @@ public:
         return proc;
     }
 
-    static oglContext &ThreadLocal();
+    static OpenGLContext &ThreadLocal();
 
     static HDC hMainWndDC();
 
@@ -72,14 +72,14 @@ private:
 
     HGLRC hRC_;
 
-    explicit oglContext();
-    ~oglContext();
+    explicit OpenGLContext();
+    ~OpenGLContext();
 
     void SetupContext();
     void DeleteContext();
 };
 
-inline HDC oglContext::hMainWndDC()
+inline HDC OpenGLContext::hMainWndDC()
 {
     return hMainWndDC_;
 }
