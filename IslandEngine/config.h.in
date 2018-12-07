@@ -1,0 +1,4 @@
+#pragma once
+
+#define PROJECT_VERSION_MAJOR @IslandEngine_VERSION_MAJOR@
+#define PROJECT_VERSION_MINOR @IslandEngine_VERSION_MINOR@
