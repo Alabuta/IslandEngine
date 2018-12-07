@@ -26,7 +26,10 @@ endif()
 include_directories(SYSTEM include)
 
 set(SOURCE_FILES
-    src/main.cxx                          #src/main.cxx
+    src/Renderer/oglContext.hxx
+                                            src/Renderer/oglProcedures.cxx
+
+    src/main.hxx                            src/main.cxx
 )
 
 add_executable(${PROJECT_NAME} ${SOURCE_FILES})

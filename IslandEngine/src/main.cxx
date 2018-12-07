@@ -1,4 +1,5 @@
-#include "config.h"
+#include "main.hxx"
+
 
 #include <iostream>
 #include <string>
@@ -17,20 +18,9 @@ using namespace std::string_view_literals;
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/hash.hpp>
 
-#define GL_GLEXT_PROTOTYPES 0
-
-#include <GL/glcorearb.h>
-#include <GL/glext.h>
-
-#ifdef _MSC_VER
-#define WGL_WGLEXT_PROTOTYPES 1
-#include <GL/wglext.h>
-
-// #pragma comment(lib, "OpenGL32.lib")
-#endif
-
 #define GLFW_INCLUDE_GLEXT
 #include <GLFW/glfw3.h>
+
 
 
 int main()
