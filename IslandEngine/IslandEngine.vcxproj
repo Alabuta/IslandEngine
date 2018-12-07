@@ -138,7 +138,6 @@
     <ClCompile Include="src\Manager\CrusMeshLoader.cxx" />
     <ClCompile Include="src\Samples\Cubemap.cxx" />
     <ClCompile Include="src\Renderer\CrusOpenGLContext.cxx" />
-    <ClCompile Include="src\Camera\CrusCamera.cxx" />
     <ClCompile Include="src\Game\CrusBounds.cxx" />
     <ClCompile Include="src\Game\CrusComponent.cxx" />
     <ClCompile Include="src\Game\CrusRay.cxx" />
@@ -149,7 +148,6 @@
     <ClCompile Include="src\Game\CrusTransform.cxx" />
     <ClCompile Include="src\Game\CrusObject.cxx" />
     <ClCompile Include="src\Interface\CrusGrid.cxx" />
-    <ClCompile Include="src\Interface\CrusViewport.cxx" />
     <ClCompile Include="src\Manager\CrusTARGA.cxx" />
     <ClCompile Include="src\Math\CrusMatrix.cxx" />
     <ClCompile Include="src\Renderer\CrusOpenGLExts.cxx" />
@@ -160,7 +158,6 @@
     <ClCompile Include="src\System\CrusGamepad.cxx" />
     <ClCompile Include="src\System\CrusInput.cxx" />
     <ClCompile Include="src\System\CrusJoystick.cxx" />
-    <ClCompile Include="src\System\CrusMouse.cxx" />
     <ClCompile Include="src\System\CrusSplash.cxx" />
     <ClCompile Include="src\System\CrusSystem.cxx" />
     <ClCompile Include="src\System\CrusTime.cxx" />
@@ -199,7 +196,6 @@
     <ClInclude Include="include\Math\GaussRoutines.h" />
     <ClInclude Include="include\Manager\CrusMeshLoader.h" />
     <ClInclude Include="include\Renderer\CrusOpenGLContext.h" />
-    <ClInclude Include="include\Camera\CrusCamera.h" />
     <ClInclude Include="include\Game\CrusBounds.h" />
     <ClInclude Include="include\Game\CrusComponent.h" />
     <ClInclude Include="include\Renderer\CrusUV.h" />
@@ -228,7 +224,6 @@
     <ClInclude Include="include\System\CrusInput.h" />
     <ClInclude Include="include\System\CrusIsland.h" />
     <ClInclude Include="include\System\CrusJoystick.h" />
-    <ClInclude Include="include\System\CrusMouse.h" />
     <ClInclude Include="include\System\CrusSplash.h" />
     <ClInclude Include="include\System\CrusSystem.h" />
     <ClInclude Include="include\System\CrusTime.h" />
@@ -236,7 +231,6 @@
     <ClInclude Include="include\System\CrusWindow.h" />
     <ClInclude Include="include\engine.h" />
     <ClInclude Include="include\Interface\CrusGrid.h" />
-    <ClInclude Include="include\Interface\CrusViewport.h" />
     <ClInclude Include="resources\resource.h" />
     <ClInclude Include="src\Camera\CameraController.hxx" />
     <ClInclude Include="src\Camera\MouseHandler.hxx" />

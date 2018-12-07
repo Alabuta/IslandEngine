@@ -11,7 +11,6 @@
 #include "System\CrusWindow.h"
 
 #include "System\CrusInput.h"
-#include "System\CrusMouse.h"
 #include "System\CrusGamepad.h"
 
 extern "C" {
@@ -19,7 +18,6 @@ extern "C" {
 #pragma comment(lib, "HID.lib")
 }
 
-isle::Input::Mouse mouse;
 
 namespace {
 using namespace isle;
@@ -355,23 +353,6 @@ extern __forceinline void Input::Process(WPARAM _wParam, LPARAM _lParam)
 
 extern __forceinline void Input::Release()
 {
-    mouse.Release();
 }
 };
-};
-
-isle::Input::Controller controller;
-
-namespace isle {
-namespace Input {
-float Controller::x() const
-{
-    return mouse.x();
-}
-
-float Controller::y() const
-{
-    return mouse.y();
-}
-}
 };

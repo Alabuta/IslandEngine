@@ -73,9 +73,6 @@
     <ClCompile Include="src\System\CrusSystem.cxx">
       <Filter>Core\System</Filter>
     </ClCompile>
-    <ClCompile Include="src\Interface\CrusViewport.cxx">
-      <Filter>Core\Interface</Filter>
-    </ClCompile>
     <ClCompile Include="src\Renderer\CrusProgram.cxx">
       <Filter>Core\Renderer</Filter>
     </ClCompile>
@@ -104,9 +101,6 @@
       <Filter>Core\System\Input</Filter>
     </ClCompile>
     <ClCompile Include="src\System\CrusJoystick.cxx">
-      <Filter>Core\System\Input</Filter>
-    </ClCompile>
-    <ClCompile Include="src\System\CrusMouse.cxx">
       <Filter>Core\System\Input</Filter>
     </ClCompile>
     <ClCompile Include="src\Math\CrusMatrix.cxx">
@@ -145,9 +139,6 @@
     <ClCompile Include="src\Game\CrusTransform.cxx">
       <Filter>Game</Filter>
     </ClCompile>
-    <ClCompile Include="src\Camera\CrusCamera.cxx">
-      <Filter>Core\Camera</Filter>
-    </ClCompile>
     <ClCompile Include="src\Renderer\CrusOpenGLExts.cxx">
       <Filter>Core\Renderer</Filter>
     </ClCompile>
@@ -184,9 +175,6 @@
       <Filter>.resources</Filter>
     </ClInclude>
     <ClInclude Include="include\Interface\CrusGrid.h">
-      <Filter>Core\Interface</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Interface\CrusViewport.h">
       <Filter>Core\Interface</Filter>
     </ClInclude>
     <ClInclude Include="include\System\CrusBook.h">
@@ -232,9 +220,6 @@
       <Filter>Core\System\Input</Filter>
     </ClInclude>
     <ClInclude Include="include\System\CrusJoystick.h">
-      <Filter>Core\System\Input</Filter>
-    </ClInclude>
-    <ClInclude Include="include\System\CrusMouse.h">
       <Filter>Core\System\Input</Filter>
     </ClInclude>
     <ClInclude Include="include\Math\CrusQuaternion.h">
@@ -287,9 +272,6 @@
     </ClInclude>
     <ClInclude Include="include\Game\CrusTransform.h">
       <Filter>Game</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Camera\CrusCamera.h">
-      <Filter>Core\Camera</Filter>
     </ClInclude>
     <ClInclude Include="include\Renderer\CrusOpenGLExts.h">
       <Filter>Core\Renderer</Filter>

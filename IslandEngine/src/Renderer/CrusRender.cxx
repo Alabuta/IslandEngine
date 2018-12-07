@@ -16,7 +16,6 @@
 #include "Renderer\CrusRender.h"
 #include "Renderer\CrusProgram.h"
 
-#include "Camera\CrusCamera.h"
 
 namespace isle {
 Render::~Render()

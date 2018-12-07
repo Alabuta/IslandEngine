@@ -32,7 +32,6 @@
 #include "System\CrusInput.h"
 
 #include "Renderer\CrusRender.h"
-#include "Camera\CrusCamera.h"
 
 template<typename... Ts>
 struct overloader : Ts... {

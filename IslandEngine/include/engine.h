@@ -31,13 +31,11 @@
 #include "System\CrusSystem.h"
 #include "System\CrusWindow.h"
 
-#include "System\CrusMouse.h"
 
 #include "Renderer\CrusRender.h"
 #include "Renderer\CrusProgram.h"
 #include "Renderer\CrusTexture.h"
 
-#include "Camera\CrusCamera.h"
 #include "Interface\CrusTextOut.h"
 
 #include "Game\CrusObject.h"
