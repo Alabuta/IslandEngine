@@ -34,7 +34,7 @@ using namespace std::string_view_literals;
 #include "System/InputManager.hxx"
 #include "Camera/CameraController.hxx"
 
-#include "glTF.hxx"
+#include "Loaders/glTF.hxx"
 
 #include <cstddef>
 

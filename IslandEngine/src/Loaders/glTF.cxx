@@ -47,7 +47,7 @@ namespace fs = boost::filesystem;
 #include "nlohmann/json.hpp"
 #endif
 
-#include "glTF.hxx"
+#include "Loaders/glTF.hxx"
 
 #ifdef max
 #undef max
@@ -661,6 +661,64 @@ void from_json(nlohmann::json const &j, accessor_t &accessor)
 }
 
 
+namespace isle
+{
+struct Asset final {
+    struct Submesh {
+        PRIMITIVE_TOPOLOGY topology;
+
+        vertices_t  vertices;
+        indices_t_ indices;
+    };
+
+    struct Mesh {
+        std::vector<Submesh> submeshes;
+    };
+
+    struct Scene {
+        std::vector<Mesh> meshes;
+    };
+};
+
+
+class AssetFabric final {
+public:
+
+    AssetFabric(std::vector<std::byte> &buffer) : buffer{buffer}
+    {
+        ;
+    }
+
+    std::optional<Asset> load(std::string_view name)
+    {
+        fs::path contents{"contents/scenes"s};
+
+        if (!fs::exists(fs::current_path() / contents))
+            contents = fs::current_path() / fs::path{"../"s} / contents;
+
+        auto folder = contents / name;
+
+        nlohmann::json json;
+
+        {
+            auto path = folder / fs::path{"scene.gltf"s};
+
+            std::ifstream file{path.native(), std::ios::in};
+
+            if (file.bad() || file.fail()) {
+                log::Error() << "failed to open file: "s << path;
+                return { };
+            }
+
+            file >> json;
+        }
+    }
+
+private:
+
+    std::vector<std::byte> &buffer;
+};
+}
 
 namespace isle::glTF
 {

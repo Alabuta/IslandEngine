@@ -99,18 +99,22 @@ using attribute_t = std::variant<
     vec<4, std::float_t>
 >;
 
+
+struct attribute_description_t {
+    std::size_t offset;
+    semantics_t semantic;
+    attribute_t attribute;
+    bool normalized;
+
+    attribute_description_t(std::size_t offset, semantics_t semantic, attribute_t &&attribute, bool normalized)
+        : offset{ offset }, semantic{ semantic }, attribute{ attribute }, normalized{ normalized } { }
+};
+
+using vertex_layout_t = std::vector<attribute_description_t>;
+
 struct vertex_buffer_t {
-    struct attribute_description_t {
-        std::size_t offset;
-        semantics_t semantic;
-        attribute_t attribute;
-        bool normalized;
 
-        attribute_description_t(std::size_t offset, semantics_t semantic, attribute_t &&attribute, bool normalized)
-            : offset{offset}, semantic{semantic}, attribute{attribute}, normalized{normalized} { }
-    };
-
-    std::vector<attribute_description_t> layout;
+    vertex_layout_t layout;
 
     std::vector<std::byte> buffer;
 };
@@ -118,4 +122,16 @@ struct vertex_buffer_t {
 
 using indices_t = std::variant<std::uint8_t, std::uint16_t, std::uint32_t>;
 using index_buffer_t = wrap_variant_by_vector<indices_t>::type;
+
+struct indices_t_ {
+    std::size_t begin, end;
+
+    std::variant<std::uint8_t, std::uint16_t, std::uint32_t> type;
+};
+
+struct vertices_t {
+    std::size_t begin, end;
+
+    vertex_layout_t layout;
+};
 }

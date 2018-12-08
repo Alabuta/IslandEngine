@@ -121,7 +121,7 @@
     <ClCompile Include="src\System\MouseInput.cxx">
       <Filter>Core\System\Input</Filter>
     </ClCompile>
-    <ClCompile Include="src\glTF.cxx">
+    <ClCompile Include="src\Loaders\glTF.cxx">
       <Filter>Core\Loaders</Filter>
     </ClCompile>
   </ItemGroup>
@@ -216,14 +216,14 @@
     <ClInclude Include="src\Camera\MouseHandler.hxx">
       <Filter>Core\Camera</Filter>
     </ClInclude>
-    <ClInclude Include="src\glTF.hxx">
-      <Filter>Core\Loaders</Filter>
-    </ClInclude>
     <ClInclude Include="src\vertex_format.hxx">
       <Filter>Core\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="src\mesh.hxx">
       <Filter>Core\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Loaders\glTF.hxx">
+      <Filter>Core\Loaders</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

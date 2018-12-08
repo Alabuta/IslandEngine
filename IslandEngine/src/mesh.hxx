@@ -14,7 +14,7 @@
 namespace isle
 {
 
-enum class TOPOLOGY {
+enum class PRIMITIVE_TOPOLOGY {
     POINTS = 0,
     LINES, LINE_LOOP, LINE_STRIP,
     TRIANGLES, TRIANGLE_STRIP, TRIANGLE_FAN
@@ -22,24 +22,21 @@ enum class TOPOLOGY {
 
 namespace staging
 {
-struct submesh {
-    std::size_t begin, end;
-    std::size_t material;
+struct submesh_t {
+    PRIMITIVE_TOPOLOGY topology;
+
+    vertices_t  vertices;
+    indices_t_ indices;
 };
 
-struct mesh {
-    TOPOLOGY primitive_type{TOPOLOGY::TRIANGLES};
-
-    std::size_t primitives_count{0};
-
-    isle::vertex_buffer_t vertices;
-    isle::index_buffer_t indices;
-
-    std::vector<submesh> submeshes;
+struct mesh_t {
+    std::vector<submesh_t> submeshes;
 };
 
 struct scene_t {
-    std::vector<mesh> meshes;
+    std::vector<mesh_t> meshes;
+
+    std::vector<std::byte> buffer;
 };
 }
 }
