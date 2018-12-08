@@ -11,7 +11,6 @@
 #include "System\CrusWindow.h"
 
 #include "System\CrusInput.h"
-#include "System\CrusGamepad.h"
 
 extern "C" {
 #include <HIDsdi.h>

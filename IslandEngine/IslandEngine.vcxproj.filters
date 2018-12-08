@@ -1,9 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include=".misc">
-      <UniqueIdentifier>{70d19567-7d97-472d-8366-4b87227242f8}</UniqueIdentifier>
-    </Filter>
     <Filter Include=".resources">
       <UniqueIdentifier>{73104b32-c2e3-443b-901a-ad0e6a77ff24}</UniqueIdentifier>
     </Filter>
@@ -27,9 +24,6 @@
     </Filter>
     <Filter Include="Core\System">
       <UniqueIdentifier>{0efe883a-f560-4e12-ba56-4ee39ea4859c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Game">
-      <UniqueIdentifier>{09d285fc-068f-4c1f-94c5-4da7bdcadd88}</UniqueIdentifier>
     </Filter>
     <Filter Include="Core\System\Platform">
       <UniqueIdentifier>{83233ade-4bf8-4a05-9dce-1a9c919e59cf}</UniqueIdentifier>
@@ -85,59 +79,23 @@
     <ClCompile Include="src\Interface\CrusGrid.cxx">
       <Filter>Core\Interface</Filter>
     </ClCompile>
-    <ClCompile Include="src\Game\CrusObject.cxx">
-      <Filter>Game</Filter>
-    </ClCompile>
     <ClCompile Include="src\System\CrusWindow.cxx">
       <Filter>Core\System\Platform</Filter>
     </ClCompile>
     <ClCompile Include="src\System\CrusSplash.cxx">
       <Filter>Core\System\Platform</Filter>
     </ClCompile>
-    <ClCompile Include="src\System\CrusGamepad.cxx">
-      <Filter>Core\System\Input</Filter>
-    </ClCompile>
     <ClCompile Include="src\System\CrusInput.cxx">
-      <Filter>Core\System\Input</Filter>
-    </ClCompile>
-    <ClCompile Include="src\System\CrusJoystick.cxx">
       <Filter>Core\System\Input</Filter>
     </ClCompile>
     <ClCompile Include="src\Math\CrusMatrix.cxx">
       <Filter>Core\Math\Matrix</Filter>
     </ClCompile>
-    <ClCompile Include="src\System\CrusUSBIDs.cxx">
-      <Filter>Core\System\Input</Filter>
-    </ClCompile>
     <ClCompile Include="src\System\CrusTime.cxx">
       <Filter>Core\System</Filter>
     </ClCompile>
-    <ClCompile Include="src\Game\CrusEntity.cxx">
-      <Filter>Game</Filter>
-    </ClCompile>
     <ClCompile Include="src\Renderer\CrusRender.cxx">
       <Filter>Core\Renderer</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Game\CrusBounds.cxx">
-      <Filter>Game</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Game\CrusComponent.cxx">
-      <Filter>Game</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Game\CrusRay.cxx">
-      <Filter>Game</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Game\CrusRect.cxx">
-      <Filter>Game</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Game\CrusRenderer.cxx">
-      <Filter>Game</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Game\CrusSprite.cxx">
-      <Filter>Game</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Game\CrusTransform.cxx">
-      <Filter>Game</Filter>
     </ClCompile>
     <ClCompile Include="src\Renderer\CrusOpenGLExts.cxx">
       <Filter>Core\Renderer</Filter>
@@ -198,9 +156,6 @@
     <ClInclude Include="include\Manager\CrusTARGA.h">
       <Filter>Core\Manager</Filter>
     </ClInclude>
-    <ClInclude Include="include\Game\CrusObject.h">
-      <Filter>Game</Filter>
-    </ClInclude>
     <ClInclude Include="include\System\CrusWindow.h">
       <Filter>Core\System\Platform</Filter>
     </ClInclude>
@@ -213,13 +168,7 @@
     <ClInclude Include="include\System\CrusIsland.h">
       <Filter>Core\System\Reef</Filter>
     </ClInclude>
-    <ClInclude Include="include\System\CrusGamepad.h">
-      <Filter>Core\System\Input</Filter>
-    </ClInclude>
     <ClInclude Include="include\System\CrusInput.h">
-      <Filter>Core\System\Input</Filter>
-    </ClInclude>
-    <ClInclude Include="include\System\CrusJoystick.h">
       <Filter>Core\System\Input</Filter>
     </ClInclude>
     <ClInclude Include="include\Math\CrusQuaternion.h">
@@ -234,44 +183,14 @@
     <ClInclude Include="include\System\CrusTime.h">
       <Filter>Core\System</Filter>
     </ClInclude>
-    <ClInclude Include="include\Game\CrusEntity.h">
-      <Filter>Game</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Game\CrusRenderer.h">
-      <Filter>Game</Filter>
-    </ClInclude>
     <ClInclude Include="include\Renderer\CrusRender.h">
       <Filter>Core\Renderer</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Game\CrusRay.h">
-      <Filter>Game</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Game\CrusRect.h">
-      <Filter>Game</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Game\CrusSprite.h">
-      <Filter>Game</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Game\CrusSpriteRenderer.h">
-      <Filter>Game</Filter>
     </ClInclude>
     <ClInclude Include="include\Renderer\CrusUV.h">
       <Filter>Core\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="include\Renderer\CrusPosition.h">
       <Filter>Core\Renderer</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Game\CrusBounds.h">
-      <Filter>Game</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Game\CrusComponent.h">
-      <Filter>Game</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Renderer\CrusMaterial.h">
-      <Filter>Game</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Game\CrusTransform.h">
-      <Filter>Game</Filter>
     </ClInclude>
     <ClInclude Include="include\Renderer\CrusOpenGLExts.h">
       <Filter>Core\Renderer</Filter>
