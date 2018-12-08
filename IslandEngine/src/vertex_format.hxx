@@ -106,6 +106,8 @@ struct attribute_description_t {
     attribute_t attribute;
     bool normalized;
 
+    attribute_description_t() { }
+
     attribute_description_t(std::size_t offset, semantics_t semantic, attribute_t &&attribute, bool normalized)
         : offset{ offset }, semantic{ semantic }, attribute{ attribute }, normalized{ normalized } { }
 };
@@ -124,13 +126,13 @@ using indices_t = std::variant<std::uint8_t, std::uint16_t, std::uint32_t>;
 using index_buffer_t = wrap_variant_by_vector<indices_t>::type;
 
 struct indices_t_ {
-    std::size_t begin, end;
+    std::size_t begin, count;
 
     std::variant<std::uint8_t, std::uint16_t, std::uint32_t> type;
 };
 
 struct vertices_t {
-    std::size_t begin, end;
+    std::size_t begin, count;
 
     vertex_layout_t layout;
 };

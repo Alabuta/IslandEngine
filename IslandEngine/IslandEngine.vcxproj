@@ -209,6 +209,7 @@
     <ClInclude Include="resources\resource.h" />
     <ClInclude Include="src\Camera\CameraController.hxx" />
     <ClInclude Include="src\Camera\MouseHandler.hxx" />
+    <ClInclude Include="src\Loaders\AssetFabric.hxx" />
     <ClInclude Include="src\Loaders\glTF.hxx" />
     <ClInclude Include="src\mesh.hxx" />
     <ClInclude Include="src\System\InputManager.hxx" />

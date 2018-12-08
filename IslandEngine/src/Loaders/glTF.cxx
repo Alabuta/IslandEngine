@@ -47,6 +47,7 @@ namespace fs = boost::filesystem;
 #include "nlohmann/json.hpp"
 #endif
 
+#include "Loaders/AssetFabric.hxx"
 #include "Loaders/glTF.hxx"
 
 #ifdef max
@@ -114,6 +115,35 @@ std::optional<isle::semantics_t> get_semantic(std::string_view name)
 
 namespace isle::glTF
 {
+std::optional<PRIMITIVE_TOPOLOGY> constexpr get_primitive_topology(PRIMITIVE_MODE mode)
+{
+    switch (mode) {
+        case PRIMITIVE_MODE::POINTS:
+            return PRIMITIVE_TOPOLOGY::POINTS;
+
+        case PRIMITIVE_MODE::LINES:
+            return PRIMITIVE_TOPOLOGY::LINES;
+
+        case PRIMITIVE_MODE::LINE_LOOP:
+            return PRIMITIVE_TOPOLOGY::LINE_LOOP;
+
+        case PRIMITIVE_MODE::LINE_STRIP:
+            return PRIMITIVE_TOPOLOGY::LINE_STRIP;
+
+        case PRIMITIVE_MODE::TRIANGLES:
+            return PRIMITIVE_TOPOLOGY::TRIANGLES;
+
+        case PRIMITIVE_MODE::TRIANGLE_STRIP:
+            return PRIMITIVE_TOPOLOGY::TRIANGLE_STRIP;
+
+        case PRIMITIVE_MODE::TRIANGLE_FAN:
+            return PRIMITIVE_TOPOLOGY::TRIANGLE_FAN;
+
+        default:
+            return { };
+    }
+}
+
 template<std::size_t N>
 std::size_t constexpr attribute_size(GL componentType)
 {
@@ -162,7 +192,7 @@ std::size_t attribute_size(std::string_view type, GL componentType)
 }
 
 template<std::size_t N>
-std::optional<attribute_t> constexpr get_attribute(GL componentType)
+std::optional<attribute_t> constexpr instantiate_attribute(GL componentType)
 {
     switch (componentType) {
         case GL::BYTE:
@@ -191,19 +221,19 @@ std::optional<attribute_t> constexpr get_attribute(GL componentType)
     }
 }
 
-std::optional<attribute_t> get_attribute(std::string_view type, GL componentType)
+std::optional<attribute_t> instantiate_attribute(std::string_view type, GL componentType)
 {
     if (type == "SCALAR"sv)
-        return glTF::get_attribute<1>(componentType);
+        return glTF::instantiate_attribute<1>(componentType);
 
     else if (type == "VEC2"sv)
-        return glTF::get_attribute<2>(componentType);
+        return glTF::instantiate_attribute<2>(componentType);
 
     else if (type == "VEC3"sv)
-        return glTF::get_attribute<3>(componentType);
+        return glTF::instantiate_attribute<3>(componentType);
 
     else if (type == "VEC4"sv)
-        return glTF::get_attribute<4>(componentType);
+        return glTF::instantiate_attribute<4>(componentType);
 
     return { };
 }
@@ -219,6 +249,23 @@ std::optional<index_buffer_t> instantiate_index_buffer(GL componentType)
 
         case GL::UNSIGNED_INT:
             return std::vector<std::uint32_t>{};
+
+        default:
+            return { };
+    }
+}
+
+std::optional<indices_t> instantiate_index(GL componentType)
+{
+    switch (componentType) {
+        case GL::UNSIGNED_BYTE:
+            return std::uint8_t{};
+
+        case GL::UNSIGNED_SHORT:
+            return std::uint16_t{};
+
+        case GL::UNSIGNED_INT:
+            return std::uint32_t{};
 
         default:
             return { };
@@ -660,65 +707,237 @@ void from_json(nlohmann::json const &j, accessor_t &accessor)
 }
 }
 
-
 namespace isle
 {
-struct Asset final {
-    struct Submesh {
-        PRIMITIVE_TOPOLOGY topology;
+std::optional<Asset> AssetFabric::load_gltf(std::string_view name)
+{
+    fs::path contents{"contents/scenes"s};
 
-        vertices_t  vertices;
-        indices_t_ indices;
-    };
+    if (!fs::exists(fs::current_path() / contents))
+        contents = fs::current_path() / fs::path{"../"s} / contents;
 
-    struct Mesh {
-        std::vector<Submesh> submeshes;
-    };
+    auto folder = contents / name;
 
-    struct Scene {
-        std::vector<Mesh> meshes;
-    };
-};
+    nlohmann::json json;
 
-
-class AssetFabric final {
-public:
-
-    AssetFabric(std::vector<std::byte> &buffer) : buffer{buffer}
     {
-        ;
+        auto path = folder / fs::path{"scene.gltf"s};
+
+        std::ifstream file{path.native(), std::ios::in};
+
+        if (file.bad() || file.fail()) {
+            log::Error() << "failed to open file: "s << path;
+            return { };
+        }
+
+        file >> json;
     }
 
-    std::optional<Asset> load(std::string_view name)
-    {
-        fs::path contents{"contents/scenes"s};
+#if TEMPORARILY_DISABLED
+    auto scenes = json.at("scenes"s).get<std::vector<glTF::scene_t>>();
+    auto nodes = json.at("nodes"s).get<std::vector<glTF::node_t>>();
+   
+    auto images = ([&json] {
+        if (json.count("images"s))
+            return json.at("images"s).get<std::vector<glTF::image_t>>();
 
-        if (!fs::exists(fs::current_path() / contents))
-            contents = fs::current_path() / fs::path{"../"s} / contents;
+        return std::vector<glTF::image_t>{};
+    })();
 
-        auto folder = contents / name;
+    auto textures = ([&json] {
+        if (json.count("textures"s))
+            return json.at("textures"s).get<std::vector<glTF::texture_t>>();
 
-        nlohmann::json json;
+        return std::vector<glTF::texture_t>{};
+    })();
 
-        {
-            auto path = folder / fs::path{"scene.gltf"s};
+    auto samplers = ([&json] {
+        if (json.count("samplers"s))
+            return json.at("samplers"s).get<std::vector<glTF::sampler_t>>();
 
-            std::ifstream file{path.native(), std::ios::in};
+        return std::vector<glTF::sampler_t>{};
+    })();
 
-            if (file.bad() || file.fail()) {
-                log::Error() << "failed to open file: "s << path;
-                return { };
+    auto materials = json.at("materials"s).get<std::vector<glTF::material_t>>();
+
+    auto cameras = ([&json] {
+        if (json.count("cameras"s))
+            return json.at("cameras"s).get<std::vector<glTF::camera_t>>();
+
+        return std::vector<glTF::camera_t>{};
+    })();
+#endif
+
+    auto meshes = json.at("meshes"s).get<std::vector<glTF::mesh_t>>();
+
+    auto buffers = json.at("buffers"s).get<std::vector<glTF::buffer_t>>();
+    auto bufferViews = json.at("bufferViews"s).get<std::vector<glTF::buffer_view_t>>();
+    auto accessors = json.at("accessors"s).get<std::vector<glTF::accessor_t>>();
+
+    std::vector<std::vector<std::byte>> binBuffers;
+    binBuffers.reserve(std::size(buffers));
+
+    for (auto &&buffer : buffers) {
+        auto path = folder / fs::path{buffer.uri};
+
+        std::ifstream file{path.native(), std::ios::in | std::ios::binary};
+
+        if (file.bad() || file.fail()) {
+            log::Debug() << "failed to open file: "s << path;
+            return { };
+        }
+
+        std::vector<std::byte> byteCode(buffer.byteLength);
+
+        if (!byteCode.empty())
+            file.read(reinterpret_cast<char *>(std::data(byteCode)), std::size(byteCode));
+
+        binBuffers.push_back(std::move(byteCode));
+    }
+
+    Asset asset;
+
+    std::size_t bufferOffset = 0;
+
+    for (auto &&mesh : meshes) {
+        Asset::Mesh xmesh;
+
+        for (auto &&primitive : mesh.primitives) {
+            Asset::Submesh submesh;
+
+            if (auto mode = glTF::get_primitive_topology(primitive.mode); mode)
+                submesh.topology = *mode;
+
+            if (primitive.indices) {
+                auto &&accessor = accessors.at(primitive.indices.value());
+
+                if (auto instance = glTF::instantiate_index(accessor.componentType); instance) {
+                    indices_t_ indices;
+
+                    auto indexTypeSize = std::visit([&indices] (auto &&instance)
+                    {
+                        using T = std::decay_t<decltype(instance)>;
+
+                        indices.type = std::move(instance);
+
+                        return sizeof(T);
+
+                    }, std::move(*instance));
+
+                    auto &&bufferView = bufferViews.at(accessor.bufferView);
+                    auto &&binBuffer = binBuffers.at(bufferView.buffer);
+
+                    auto const length = accessor.count * indexTypeSize;
+
+                    auto const begin = accessor.byteOffset + bufferView.byteOffset;
+                    auto const end = begin + bufferView.byteLength;
+
+                    buffer.resize(bufferOffset + length);
+
+                    indices.begin = bufferOffset;
+                    indices.count = accessor.count;
+
+                    if (bufferView.byteStride) {
+                        std::size_t srcIndex = begin, dstIndex = 0;
+
+                        for (; srcIndex < end; srcIndex += *bufferView.byteStride, ++dstIndex)
+                            memcpy(&buffer.at(dstIndex), &binBuffer.at(srcIndex), indexTypeSize);
+                    }
+
+                    else memcpy(std::data(buffer), &binBuffer.at(begin), end - begin);
+
+                    bufferOffset += length;
+
+                    submesh.indices.emplace(std::move(indices));
+                }
             }
 
-            file >> json;
+            std::size_t vertexSize = 0;
+            std::size_t verticesNumber = 0;
+
+            for (auto &&attribute : primitive.attribute_accessors) {
+                auto [semantic, accessorIndex] = attribute;
+
+                auto &&accessor = accessors.at(accessorIndex);
+
+                if (auto instance = glTF::instantiate_attribute(accessor.type, accessor.componentType); instance) {
+                    verticesNumber = std::max(verticesNumber, accessor.count);
+
+                    auto offset = bufferOffset + vertexSize;
+                    auto normalized = accessor.normalized;
+
+                    auto &&layout = submesh.vertices.layout;
+
+                    auto attributeSize = std::visit([offset, semantic, normalized, &layout] (auto &&instance)
+                    {
+                        using T = std::decay_t<decltype(instance)>;
+
+                        layout.emplace_back(offset, semantic, std::move(instance), normalized);
+
+                        return sizeof(T);
+
+                    }, std::move(*instance));
+
+                    vertexSize += attributeSize;
+                }
+            }
+
+            buffer.resize(bufferOffset + verticesNumber * vertexSize);
+
+            std::size_t attributeOffset = 0;
+
+            for (auto &&attribute : primitive.attribute_accessors) {
+                auto [semantic, accessorIndex] = attribute;
+
+                auto &&accessor = accessors.at(accessorIndex);
+
+                if (auto instance = glTF::instantiate_attribute(accessor.type, accessor.componentType); instance) {
+                    auto attributeSize = std::visit([] (auto &&instance)
+                    {
+                        return sizeof(std::decay_t<decltype(instance)>);
+
+                    }, std::move(*instance));
+
+                    auto dstOffset = bufferOffset + attributeOffset;
+
+                    auto &&bufferView = bufferViews.at(accessor.bufferView);
+                    auto &&binBuffer = binBuffers.at(bufferView.buffer);
+
+                    auto const length = accessor.count * attributeSize;
+
+                    auto const begin = accessor.byteOffset + bufferView.byteOffset;
+                    auto const end = begin + bufferView.byteLength;
+
+                    auto const step = bufferView.byteStride ? *bufferView.byteStride : attributeSize;
+
+                    auto srcIndex = begin, dstIndex = dstOffset;
+
+                    for (; srcIndex < end; srcIndex += step, dstIndex += vertexSize)
+                        std::uninitialized_copy_n(&binBuffer.at(srcIndex), attributeSize,
+                                                  reinterpret_cast<std::byte *>(&buffer.at(dstIndex)));
+
+                    attributeOffset += attributeSize;
+
+                    std::vector<float> xxxxx((std::size(buffer) - 2 * 3) / 4);
+                    std::uninitialized_copy(std::next(std::begin(buffer), 2 * 3), std::end(buffer), reinterpret_cast<std::byte *>(std::data(xxxxx)));
+                }
+            }
+
+            submesh.vertices.begin = bufferOffset;
+            submesh.vertices.count = verticesNumber;
+
+            xmesh.submeshes.push_back(std::move(submesh));
+
+            bufferOffset += verticesNumber * vertexSize;
         }
+
+        asset.meshes.push_back(std::move(xmesh));
     }
 
-private:
-
-    std::vector<std::byte> &buffer;
-};
+    return asset;
 }
+}
+
 
 namespace isle::glTF
 {
@@ -912,7 +1131,7 @@ bool load(std::string_view name, vertex_buffer_t &vertices, index_buffer_t &indi
 
                 auto normalized = accessor.normalized;
 
-                if (auto attribute = glTF::get_attribute(accessor.type, accessor.componentType); attribute) {
+                if (auto attribute = glTF::instantiate_attribute(accessor.type, accessor.componentType); attribute) {
                     auto attributeSize = std::visit([dstOffset, semantic, normalized, &vertices] (auto &&attribute)
                     {
                         using A = std::decay_t<decltype(attribute)>;

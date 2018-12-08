@@ -61,6 +61,8 @@ std::ostream &operator<< (std::ostream &stream, T &&m)
 
 #include "engine.h"
 #include "Math/GaussRoutines.h"
+#include "Loaders/AssetFabric.hxx"
+
 
 
 struct per_object_t {
@@ -93,6 +95,15 @@ struct application_t {
     std::uint32_t mode{0};
     std::uint32_t count{0};
     std::uint32_t type{0};
+
+    struct Renderable {
+        u32 vao;
+        u32 mode;
+        u32 count;
+        u32 type;
+    };
+
+    std::vector<Renderable> renderables;
 
 } app;
 
@@ -961,14 +972,14 @@ void DrawFrame()
 
     mesh_program.bind();
 
-    app.object.world = glm::scale(glm::mat4{1}, glm::vec3{.01f});
+    app.object.world = glm::scale(glm::mat4{1}, glm::vec3{.1f});
     app.object.normal = glm::inverseTranspose(app.object.world);
 
     Render::inst().UpdateSSBO("PER_OBJECT"s, app.object);
 
     glBindVertexArray(app.vao);
-    //glDrawElements(app.mode, app.count, app.type, nullptr);
-    glDrawArrays(app.mode, 0, 3 * 3);
+    glDrawElements(app.mode, 3*app.count, app.type, nullptr);
+    //glDrawArrays(app.mode, 0, 3);
 
     app.object.world = glm::scale(glm::translate(glm::mat4{1}, {2, 0, 0}), glm::vec3{.01f});
     app.object.normal = glm::inverseTranspose(app.object.world);
@@ -1002,6 +1013,25 @@ auto constexpr get_type()
     else return GL_FALSE;
 }
 
+auto loadAtributes(isle::AssetFabric assetFabric, isle::Asset &&asset)
+{
+    using namespace isle;
+
+    std::vector<application_t::Renderable> renderables;
+
+    auto bufferObject = Render::inst().createBO();
+    glNamedBufferStorage(bufferObject, std::size(assetFabric.buffer), std::data(assetFabric.buffer), GL_DYNAMIC_STORAGE_BIT);
+
+    auto vao = Render::inst().createVAO();
+
+    for (auto &&mesh : asset.meshes) {
+        for (auto &&submesh : mesh.submeshes) {
+            if (submesh.indices) {
+                ;
+            }
+        }
+    }
+}
 
 auto loadAtributes(isle::vertex_buffer_t &&vertices, isle::index_buffer_t &&indices)
 {
@@ -1009,17 +1039,18 @@ auto loadAtributes(isle::vertex_buffer_t &&vertices, isle::index_buffer_t &&indi
 
     auto vao = Render::inst().createVAO();
 
-    auto[type, count] = std::visit([vao] (auto &&indices) -> std::pair<u32, u32> {
+    auto [type, count] = std::visit([vao] (auto &&indices) -> std::pair<u32, u32> {
         using T = std::decay_t<decltype(indices)>;
 
         if (indices.empty())
             return {0u, 0u};
 
         auto ebo = Render::inst().createBO();
+        glNamedBufferStorage(ebo, std::size(indices), nullptr, GL_DYNAMIC_STORAGE_BIT);
+
+        glNamedBufferSubData(ebo, 0, std::size(indices), std::data(indices));
 
         glVertexArrayElementBuffer(vao, ebo);
-
-        glNamedBufferStorage(ebo, std::size(indices), std::data(indices), 0);
 
         return {get_type<T::value_type>(), static_cast<u32>(std::size(indices))};
 
@@ -1049,7 +1080,9 @@ auto loadAtributes(isle::vertex_buffer_t &&vertices, isle::index_buffer_t &&indi
     }
 
     auto vbo = Render::inst().createBO();
-    glNamedBufferStorage(vbo, std::size(vertices.buffer), std::data(vertices.buffer), 0);
+    glNamedBufferStorage(vbo, std::size(vertices.buffer), nullptr, GL_DYNAMIC_STORAGE_BIT);
+
+    glNamedBufferSubData(vbo, 0, std::size(vertices.buffer), std::data(vertices.buffer));
 
     glVertexArrayVertexBuffer(vao, 0, vbo, 0, static_cast<i32>(vertex_size));
 
@@ -1063,10 +1096,15 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int)
 {
     isle::Window window(crus::names::kMAIN_WINDOW_NAME, hInstance, app.width, app.height);
 
+    std::vector<std::byte> buffer;// (0xF000'0000);
+    isle::AssetFabric assetFabric{buffer};
+
+    auto sceneLoaded2 = assetFabric.load("triangle-indexed"sv);
+
     isle::vertex_buffer_t vertices;
     isle::index_buffer_t indices;
 
-    auto sceneLoaded = loadScene("triangle-non-indexed"sv, vertices, indices);
+    auto sceneLoaded = loadScene("triangle-indexed"sv, vertices, indices);
 
     isle::InputManager inputManager{window.hWnd()};
     
@@ -1089,6 +1127,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int)
     app.cameraController = std::make_unique<isle::OrbitController>(app.camera, inputManager);
 
     app.cameraController->lookAt(glm::vec3{0, 4, 4}, {0, 2, 0});
+
+    if (auto asset = sceneLoaded2.get(); asset) {
+        isle::log::Debug() << 4444;
+    }
 
     if (sceneLoaded.get()) {
         auto [vao, mode, count, type] = loadAtributes(std::move(vertices), std::move(indices));

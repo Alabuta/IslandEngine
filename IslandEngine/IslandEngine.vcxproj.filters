@@ -225,6 +225,9 @@
     <ClInclude Include="src\Loaders\glTF.hxx">
       <Filter>Core\Loaders</Filter>
     </ClInclude>
+    <ClInclude Include="src\Loaders\AssetFabric.hxx">
+      <Filter>Core\Loaders</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="resources\resource.aps">
