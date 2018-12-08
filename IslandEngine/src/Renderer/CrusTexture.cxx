@@ -32,7 +32,7 @@ namespace isle
 {
 Texture::Texture(eTEXTURE_TYPE type, std::string_view path, u8 samplesCount) : samplesCount_{samplesCount}, type_{type}, path_{path}
 {
-    name_ = path.substr(0, path.find_last_of('.'));
+    //name_ = path.substr(0, path.find_last_of('.'));
 }
 
 bool Texture::Init()
@@ -125,6 +125,6 @@ void Texture::bind() const
 
 inline std::ostream &operator<< (std::ostream &_stream, Texture const &_texture)
 {
-    return _stream << _texture.name_;
+    return _stream << 1111;// _texture.name_;
 }
 };

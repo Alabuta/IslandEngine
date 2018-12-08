@@ -25,7 +25,6 @@ extern "C"
 }
 
 #include <vector>
-#include "Game\CrusObject.h"
 
 namespace isle
 {
@@ -53,7 +52,7 @@ struct Image {
     u8 BytesPerPixel() const;
 };
 
-class Texture final : public CrusObject {
+class Texture final {
 public:
     enum class eTEXTURE_TYPE {
         nUNKNOWN = 0, nNONE, n2D, n3D, nCUBE, n2D_ARRAY, nCUBE_ARRAY

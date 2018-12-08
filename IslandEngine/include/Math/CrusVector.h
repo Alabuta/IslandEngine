@@ -18,7 +18,7 @@
 namespace isle::math {
 class Vector {
 public:
-    UNIT_TEST_HERITABLE_CLASS;
+    ;
 
     Vector() = default;
 

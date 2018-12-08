@@ -36,16 +36,9 @@
 #include "Renderer\CrusProgram.h"
 #include "Renderer\CrusTexture.h"
 
-#include "Interface\CrusTextOut.h"
-
-#include "Game\CrusObject.h"
 
 #include "Interface\CrusGrid.h"
 
-#include "Game\CrusBounds.h"
-#include "Game\CrusRect.h"
-#include "Game\CrusSprite.h"
-#include "Renderer\CrusUV.h"
 
 #include "Manager\CrusMeshLoader.h"
 

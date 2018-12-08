@@ -59,7 +59,7 @@ struct Point {
 };
 
 namespace math {
-UNIT_TEST_HERITABLE_CLASS
+
 
 auto constexpr kPI = 3.14159265358979323846f;
 auto constexpr kPI_DIV_180 = 0.01745329251994329576f;

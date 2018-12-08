@@ -17,7 +17,7 @@
 namespace isle::math {
 class Matrix {
 public:
-    UNIT_TEST_HERITABLE_CLASS;
+    ;
 
     Matrix() = default;
 

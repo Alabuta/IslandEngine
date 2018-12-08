@@ -17,7 +17,7 @@
 namespace isle::math {
 class Quaternion {
 public:
-    UNIT_TEST_HERITABLE_CLASS;
+    ;
 
     Quaternion();
     ~Quaternion();
