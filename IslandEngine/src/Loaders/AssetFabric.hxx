@@ -40,12 +40,10 @@ struct Asset final {
 class AssetFabric final {
 public:
 
-    std::vector<std::byte> &buffer;
-
-    AssetFabric(std::vector<std::byte> &buffer) : buffer{buffer}
-    {
-        ;
-    }
+    struct buffer_t {
+        std::vector<std::byte> vertex;
+        std::vector<std::byte> index;
+    } buffer;
 
     std::future<std::optional<Asset>> load(std::string_view name)
     {

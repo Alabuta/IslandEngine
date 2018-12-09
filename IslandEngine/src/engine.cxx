@@ -91,16 +91,13 @@ struct application_t {
 
     i32 width{800}, height{1080};
 
-    std::uint32_t vao{0};
-    std::uint32_t mode{0};
-    std::uint32_t count{0};
-    std::uint32_t type{0};
-
     struct Renderable {
         u32 vao;
-        u32 mode;
+        i32 mode;
         u32 count;
         u32 type;
+        u32 begin;
+        u32 end;
     };
 
     std::vector<Renderable> renderables;
@@ -972,13 +969,19 @@ void DrawFrame()
 
     mesh_program.bind();
 
-    app.object.world = glm::scale(glm::mat4{1}, glm::vec3{.1f});
+    app.object.world = glm::scale(glm::mat4{1}, glm::vec3{1.f});
     app.object.normal = glm::inverseTranspose(app.object.world);
 
     Render::inst().UpdateSSBO("PER_OBJECT"s, app.object);
 
-    glBindVertexArray(app.vao);
-    glDrawElements(app.mode, 3*app.count, app.type, nullptr);
+    for (auto &&renderable : app.renderables) {
+        glBindVertexArray(renderable.vao);
+
+        //glDrawArrays(renderable.mode, renderable.begin, renderable.count);
+        glDrawRangeElements(renderable.mode, renderable.begin, renderable.end, renderable.count, renderable.type, nullptr);
+    }
+
+    //glDrawElements(app.mode, 3*app.count, app.type, nullptr);
     //glDrawArrays(app.mode, 0, 3);
 
     app.object.world = glm::scale(glm::translate(glm::mat4{1}, {2, 0, 0}), glm::vec3{.01f});
@@ -998,6 +1001,35 @@ auto loadScene(std::string_view name, isle::vertex_buffer_t &vertices, isle::ind
     return std::async(std::launch::async, isle::glTF::load, name, std::ref(vertices), std::ref(indices));
 }
 
+
+auto constexpr get_primitive_topology(isle::PRIMITIVE_TOPOLOGY mode)
+{
+    switch (mode) {
+        case isle::PRIMITIVE_TOPOLOGY::POINTS:
+            return GL_POINTS;
+
+        case isle::PRIMITIVE_TOPOLOGY::LINES:
+            return GL_LINES;
+
+        case isle::PRIMITIVE_TOPOLOGY::LINE_LOOP:
+            return GL_LINE_LOOP;
+
+        case isle::PRIMITIVE_TOPOLOGY::LINE_STRIP:
+            return GL_LINE_STRIP;
+
+        case isle::PRIMITIVE_TOPOLOGY::TRIANGLES:
+            return GL_TRIANGLES;
+
+        case isle::PRIMITIVE_TOPOLOGY::TRIANGLE_STRIP:
+            return GL_TRIANGLE_STRIP;
+
+        case isle::PRIMITIVE_TOPOLOGY::TRIANGLE_FAN:
+            return GL_TRIANGLE_FAN;
+
+        default:
+            return 0;
+    }
+}
 
 template<class T>
 auto constexpr get_type()
@@ -1019,18 +1051,76 @@ auto loadAtributes(isle::AssetFabric assetFabric, isle::Asset &&asset)
 
     std::vector<application_t::Renderable> renderables;
 
-    auto bufferObject = Render::inst().createBO();
-    glNamedBufferStorage(bufferObject, std::size(assetFabric.buffer), std::data(assetFabric.buffer), GL_DYNAMIC_STORAGE_BIT);
+    if (assetFabric.buffer.vertex.empty())
+        return renderables;
 
     auto vao = Render::inst().createVAO();
 
+    if (!assetFabric.buffer.index.empty()) {
+        auto ebo = Render::inst().createBO();
+
+        glNamedBufferStorage(ebo, std::size(assetFabric.buffer.index), std::data(assetFabric.buffer.index), GL_DYNAMIC_STORAGE_BIT);
+
+        glVertexArrayElementBuffer(vao, ebo);
+    }
+
+    auto vbo = Render::inst().createBO();
+    glNamedBufferStorage(vbo, std::size(assetFabric.buffer.vertex), std::data(assetFabric.buffer.vertex), GL_DYNAMIC_STORAGE_BIT);
+
+    std::size_t offsetVB = 0;
+
     for (auto &&mesh : asset.meshes) {
         for (auto &&submesh : mesh.submeshes) {
+            u32 type = 0;
+
             if (submesh.indices) {
-                ;
+                type = std::visit([] (auto &&type)
+                {
+                    using T = std::decay_t<decltype(type)>;
+
+                    return static_cast<u32>(get_type<T>());
+
+                }, std::move(submesh.indices->type));
             }
+
+            renderables.push_back(application_t::Renderable{
+                vao, get_primitive_topology(submesh.topology),
+                static_cast<u32>(), static_cast<u32>(),
+                static_cast<u32>(submesh.vertices.count),
+                type, static_cast<u32>(offsetVB)
+            });
+
+            offsetVB += submesh.vertices.count;
+
+            std::size_t vertexSize = 0;
+
+            for (auto &&description : submesh.vertices.layout) {
+                auto semanticIndex = std::visit([] (auto semantic)
+                {
+                    return decltype(semantic)::index;
+
+                }, description.semantic);
+
+                auto [size, number, type] = std::visit([] (auto &&attribute)
+                {
+                    using A = std::decay_t<decltype(attribute)>;
+
+                    return std::make_tuple(sizeof(A), A::number, get_type<A::type>());
+
+                }, std::move(description.attribute));
+
+                glEnableVertexArrayAttrib(vao, semanticIndex);
+                glVertexArrayAttribFormat(vao, semanticIndex, number, type, description.normalized, static_cast<u32>(description.offset));
+                glVertexArrayAttribBinding(vao, semanticIndex, 0);
+
+                vertexSize += size;
+            }
+
+            glVertexArrayVertexBuffer(vao, 0, vbo, submesh.vertices.begin, static_cast<i32>(vertexSize));
         }
     }
+
+    return renderables;
 }
 
 auto loadAtributes(isle::vertex_buffer_t &&vertices, isle::index_buffer_t &&indices)
@@ -1096,15 +1186,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int)
 {
     isle::Window window(crus::names::kMAIN_WINDOW_NAME, hInstance, app.width, app.height);
 
-    std::vector<std::byte> buffer;// (0xF000'0000);
     isle::AssetFabric assetFabric{buffer};
 
     auto sceneLoaded2 = assetFabric.load("triangle-indexed"sv);
 
-    isle::vertex_buffer_t vertices;
-    isle::index_buffer_t indices;
-
-    auto sceneLoaded = loadScene("triangle-indexed"sv, vertices, indices);
 
     isle::InputManager inputManager{window.hWnd()};
     
@@ -1128,17 +1213,13 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int)
 
     app.cameraController->lookAt(glm::vec3{0, 4, 4}, {0, 2, 0});
 
-    if (auto asset = sceneLoaded2.get(); asset) {
-        isle::log::Debug() << 4444;
-    }
+    if (auto asset = sceneLoaded2.get(); asset)
+        app.renderables = loadAtributes(assetFabric, std::move(*asset));
 
-    if (sceneLoaded.get()) {
-        auto [vao, mode, count, type] = loadAtributes(std::move(vertices), std::move(indices));
-        app.vao = vao;
-        app.count = count;
-        app.mode = mode;
-        app.type = type;
-    }
+    std::sort(std::begin(app.renderables), std::end(app.renderables), [] (auto &&lhs, auto &&rhs)
+    {
+        return lhs.vao < rhs.vao;
+    });
 
     return isle::System::Loop();
 }

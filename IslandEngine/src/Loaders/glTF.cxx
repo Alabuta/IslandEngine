@@ -797,7 +797,8 @@ std::optional<Asset> AssetFabric::load_gltf(std::string_view name)
 
     Asset asset;
 
-    std::size_t bufferOffset = 0;
+    std::size_t vertexBufferOffset = 0;
+    std::size_t indexBufferOffset = 0;
 
     for (auto &&mesh : meshes) {
         Asset::Mesh xmesh;
@@ -832,9 +833,9 @@ std::optional<Asset> AssetFabric::load_gltf(std::string_view name)
                     auto const begin = accessor.byteOffset + bufferView.byteOffset;
                     auto const end = begin + bufferView.byteLength;
 
-                    buffer.resize(bufferOffset + length);
+                    buffer.index.resize(indexBufferOffset + length);
 
-                    indices.begin = bufferOffset;
+                    indices.begin = indexBufferOffset;
                     indices.count = accessor.count;
 
                     if (bufferView.byteStride) {
@@ -846,7 +847,7 @@ std::optional<Asset> AssetFabric::load_gltf(std::string_view name)
 
                     else memcpy(std::data(buffer), &binBuffer.at(begin), end - begin);
 
-                    bufferOffset += length;
+                    indexBufferOffset += length;
 
                     submesh.indices.emplace(std::move(indices));
                 }
@@ -863,7 +864,7 @@ std::optional<Asset> AssetFabric::load_gltf(std::string_view name)
                 if (auto instance = glTF::instantiate_attribute(accessor.type, accessor.componentType); instance) {
                     verticesNumber = std::max(verticesNumber, accessor.count);
 
-                    auto offset = bufferOffset + vertexSize;
+                    auto offset = vertexBufferOffset + vertexSize;
                     auto normalized = accessor.normalized;
 
                     auto &&layout = submesh.vertices.layout;
@@ -882,7 +883,7 @@ std::optional<Asset> AssetFabric::load_gltf(std::string_view name)
                 }
             }
 
-            buffer.resize(bufferOffset + verticesNumber * vertexSize);
+            buffer.vertex.resize(vertexBufferOffset + verticesNumber * vertexSize);
 
             std::size_t attributeOffset = 0;
 
@@ -898,7 +899,7 @@ std::optional<Asset> AssetFabric::load_gltf(std::string_view name)
 
                     }, std::move(*instance));
 
-                    auto dstOffset = bufferOffset + attributeOffset;
+                    auto dstOffset = vertexBufferOffset + attributeOffset;
 
                     auto &&bufferView = bufferViews.at(accessor.bufferView);
                     auto &&binBuffer = binBuffers.at(bufferView.buffer);
@@ -918,17 +919,22 @@ std::optional<Asset> AssetFabric::load_gltf(std::string_view name)
 
                     attributeOffset += attributeSize;
 
+#if 1
                     std::vector<float> xxxxx((std::size(buffer) - 2 * 3) / 4);
                     std::uninitialized_copy(std::next(std::begin(buffer), 2 * 3), std::end(buffer), reinterpret_cast<std::byte *>(std::data(xxxxx)));
+#else
+                    std::vector<float> xxxxx((std::size(buffer)) / 4);
+                    std::uninitialized_copy(std::next(std::begin(buffer), 0), std::end(buffer), reinterpret_cast<std::byte *>(std::data(xxxxx)));
+#endif
                 }
             }
 
-            submesh.vertices.begin = bufferOffset;
+            submesh.vertices.begin = vertexBufferOffset;
             submesh.vertices.count = verticesNumber;
 
             xmesh.submeshes.push_back(std::move(submesh));
 
-            bufferOffset += verticesNumber * vertexSize;
+            vertexBufferOffset += verticesNumber * vertexSize;
         }
 
         asset.meshes.push_back(std::move(xmesh));
