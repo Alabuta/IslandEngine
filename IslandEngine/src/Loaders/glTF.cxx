@@ -842,10 +842,10 @@ std::optional<Asset> AssetFabric::load_gltf(std::string_view name)
                         std::size_t srcIndex = begin, dstIndex = 0;
 
                         for (; srcIndex < end; srcIndex += *bufferView.byteStride, ++dstIndex)
-                            memcpy(&buffer.at(dstIndex), &binBuffer.at(srcIndex), indexTypeSize);
+                            memcpy(&buffer.index.at(dstIndex), &binBuffer.at(srcIndex), indexTypeSize);
                     }
 
-                    else memcpy(std::data(buffer), &binBuffer.at(begin), end - begin);
+                    else memcpy(std::data(buffer.index), &binBuffer.at(begin), end - begin);
 
                     indexBufferOffset += length;
 
@@ -915,13 +915,13 @@ std::optional<Asset> AssetFabric::load_gltf(std::string_view name)
 
                     for (; srcIndex < end; srcIndex += step, dstIndex += vertexSize)
                         std::uninitialized_copy_n(&binBuffer.at(srcIndex), attributeSize,
-                                                  reinterpret_cast<std::byte *>(&buffer.at(dstIndex)));
+                                                  reinterpret_cast<std::byte *>(&buffer.vertex.at(dstIndex)));
 
                     attributeOffset += attributeSize;
 
 #if 1
-                    std::vector<float> xxxxx((std::size(buffer) - 2 * 3) / 4);
-                    std::uninitialized_copy(std::next(std::begin(buffer), 2 * 3), std::end(buffer), reinterpret_cast<std::byte *>(std::data(xxxxx)));
+                    std::vector<float> xxxxx((std::size(buffer.vertex) - 2 * 3) / 4);
+                    std::uninitialized_copy(std::next(std::begin(buffer.vertex), 2 * 3), std::end(buffer.vertex), reinterpret_cast<std::byte *>(std::data(xxxxx)));
 #else
                     std::vector<float> xxxxx((std::size(buffer)) / 4);
                     std::uninitialized_copy(std::next(std::begin(buffer), 0), std::end(buffer), reinterpret_cast<std::byte *>(std::data(xxxxx)));
