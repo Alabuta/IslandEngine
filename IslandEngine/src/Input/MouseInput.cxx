@@ -23,13 +23,13 @@ namespace isle
 {
 void MouseInput::connect(std::shared_ptr<IHandler> slot)
 {
-    onMove_.connect(decltype(onMove_)::slot_type(&IHandler::onMove, slot.get(), _1, _2).track_foreign(slot));
+   /* onMove_.connect(decltype(onMove_)::slot_type(&IHandler::onMove, slot.get(), _1, _2).track_foreign(slot));
 
     onWheel_.connect(decltype(onWheel_)::slot_type(&IHandler::onWheel, slot.get(), _1).track_foreign(slot));
 
     onDown_.connect(decltype(onDown_)::slot_type(&IHandler::onDown, slot.get(), _1).track_foreign(slot));
 
-    onUp_.connect(decltype(onUp_)::slot_type(&IHandler::onUp, slot.get(), _1).track_foreign(slot));
+    onUp_.connect(decltype(onUp_)::slot_type(&IHandler::onUp, slot.get(), _1).track_foreign(slot));*/
 }
 
 void MouseInput::update([[maybe_unused]] raw_mouse_t &&data)

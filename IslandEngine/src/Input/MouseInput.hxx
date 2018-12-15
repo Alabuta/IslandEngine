@@ -45,10 +45,10 @@ public:
 private:
 
     IHandler::buttons_t buttons_;
-
+/*
     boost::signals2::signal<void(i32, i32)> onMove_;
     boost::signals2::signal<void(i32)> onWheel_;
     boost::signals2::signal<void(IHandler::buttons_t)> onDown_;
-    boost::signals2::signal<void(IHandler::buttons_t)> onUp_;
+    boost::signals2::signal<void(IHandler::buttons_t)> onUp_;*/
 };
 }

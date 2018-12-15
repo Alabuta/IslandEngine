@@ -1210,7 +1210,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int)
     app.camera->aspect = static_cast<float>(app.width) / static_cast<float>(app.height);
 
     app.cameraController = std::make_unique<isle::OrbitController>(app.camera, inputManager);
-
     app.cameraController->lookAt(glm::vec3{0, 4, 4}, {0, 2, 0});
 
     if (auto asset = sceneLoaded2.get(); asset)
