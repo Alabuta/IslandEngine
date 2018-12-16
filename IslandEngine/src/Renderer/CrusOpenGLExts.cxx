@@ -13,6 +13,7 @@
 #define GL_PROC_INIT(name)\
     thread_local static auto name = isle::OpenGLContext::ThreadLocal().GetProcedureAddress<decltype(::name)>(std::string_view{#name});
 
+#if NOT_YET_IMPLEMENTED
 #define GL_PROC_INIT2(name)\
     template<class... Args>\
     auto APIENTRY #name(Args... args)\
@@ -20,14 +21,14 @@
         GL_PROC_INIT(name);\
         return name(args...);\
     }
+#endif
 
 
 // glA ---------------------------------------------------------------------------------
-template<class... Args>
-auto APIENTRY glActiveTexture(Args... args)
+void APIENTRY glActiveTexture(GLenum texture)
 {
     GL_PROC_INIT(glActiveTexture);
-    return glActiveTexture(args...);
+    return glActiveTexture(texture);
 }
 
 void APIENTRY glAttachShader(GLuint program, GLuint shader)

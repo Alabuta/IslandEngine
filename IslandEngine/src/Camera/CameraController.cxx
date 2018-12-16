@@ -1,4 +1,8 @@
-#include <execution>
+#ifdef _MSC_VER
+    #define USE_EXECUTION_POLICIES
+    #include <execution>
+#endif
+
 #include <iomanip>
 
 #include "Camera/CameraController.hxx"
@@ -40,12 +44,15 @@ glm::mat4 reversedPerspective(float yFOV, float aspect, float znear, float zfar)
     };
 }
 
-
 namespace isle
 {
 void CameraSystem::update()
 {
-    std::for_each(std::execution::par_unseq, std::begin(cameras_), std::end(cameras_), [] (auto &&camera)
+#ifdef _MSC_VER
+    std::for_each(std::execution::par_unseq, std::begin(cameras_), std::end(cameras_), [](auto &&camera)
+#else
+    std::for_each(std::begin(cameras_), std::end(cameras_), [] (auto &&camera)
+#endif
     {
         camera->data.projection = reversedPerspective(camera->yFOV, camera->aspect, camera->znear, camera->zfar);
         camera->data.invertedProjection = glm::inverse(camera->data.projection);
@@ -104,7 +111,7 @@ void OrbitController::update()
 
     auto xAxis = glm::vec3{world[0]};
     auto yAxis = glm::vec3{world[1]};
-    auto zAxis = glm::vec3{world[2]};
+    // auto zAxis = glm::vec3{world[2]};
 
     auto position = glm::vec3{world[3]};
 
@@ -126,11 +133,8 @@ void OrbitController::update()
     offset_ = glm::euclidean(polar_) * radius;
 
     /*auto yaw = std::atan2(zAxis.x, zAxis.z);
-
     orientation_ = glm::angleAxis(yaw, up_);
-
     zAxis = orientation_ * (directionLerped_ * glm::vec3{1, 0, -1});
-
     panOffset_ += zAxis * std::max(.1f, std::log(std::abs(distance) + 1.f));*/
 
     target_ += panOffset_;

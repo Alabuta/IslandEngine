@@ -13,6 +13,10 @@
 
 #include <stack>
 #include <mutex>
+
+#include <string>
+using namespace std::string_literals;
+
 #include <string_view>
 using namespace std::string_view_literals;
 
@@ -47,13 +51,13 @@ public:
             auto hModule = LoadLibraryW(L"OpenGL32.lib");
 
             if (hModule == nullptr)
-                isle::log::Fatal() << "can't load OpenGL32 library."sv;
+                isle::log::Fatal() << "can't load OpenGL32 library."s;
 
             else proc = reinterpret_cast<decltype(proc)>(GetProcAddress(hModule, std::data(_name)));
         }
 
         if (proc == nullptr)
-            isle::log::Fatal() << "can't get procedure address: "sv << _name;
+            isle::log::Fatal() << "can't get procedure address: "s << _name;
 
         return proc;
     }

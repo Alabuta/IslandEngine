@@ -1,22 +1,21 @@
+
 #pragma once
-
-auto constexpr kPI = 3.14159265358979323846f;
-
 
 #include <memory>
 
+
+auto constexpr kPI = 3.14159265358979323846f;
 
 #define GLM_FORCE_CXX17
 #define GLM_ENABLE_EXPERIMENTAL
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
+
 #define GLM_FORCE_SWIZZLE
 #define GLM_GTX_polar_coordinates
 #define GLM_GTX_quaternion
 #define GLM_GTX_transform
 
-//#pragma warning(push, 3)
-//#pragma warning(disable: 4201)
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
@@ -24,7 +23,6 @@ auto constexpr kPI = 3.14159265358979323846f;
 #include <glm/gtx/polar_coordinates.hpp> 
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/hash.hpp>
-//#pragma warning(pop)
 
 #include "System/CrusIsland.h"
 #include "System/CrusTypes.h"
@@ -38,7 +36,7 @@ namespace isle
 {
 struct Camera {
     float yFOV{glm::radians(75.f)};
-    float znear{.01f}, zfar{100.f};
+    float znear{.01f}, zfar{1000.f};
     float aspect{1.f};
 
     glm::vec3 up{0, 1, 0};
@@ -55,6 +53,7 @@ struct Camera {
 
     glm::mat4 world{1.f};
 };
+
 
 class CameraSystem {
 public:
@@ -74,6 +73,7 @@ private:
 
     std::vector<std::shared_ptr<Camera>> cameras_;
 };
+
 
 class MouseHandler;
 
@@ -104,7 +104,7 @@ private:
 
     float damping_{.5f};
 
-    glm::quat orientation_;
+    // glm::quat orientation_;
 
     float scale_{1.f};
 
