@@ -182,13 +182,12 @@ void OpenGLContext::DeleteContext()
 
     if (hRC_ != nullptr) {
         if (hRC_ == hMainRC_) {
+            //isle::Render::inst().DeleteContext();
+
             while (hSharedRCs_.size() > 0) {
                 wglDeleteContext(hSharedRCs_.top());
                 hSharedRCs_.pop();
             }
-
-            isle::Render::inst().DeleteContext();
-
 
             if (wglMakeCurrent(hMainWndDC_, nullptr) == TRUE) {
                 wglDeleteContext(hMainRC_);
