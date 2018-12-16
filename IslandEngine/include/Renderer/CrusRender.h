@@ -69,36 +69,6 @@ public:
     void Update();
     void DrawFrame();
 
-    void UpdateCMTS(size_t offset, size_t size, Color const *const colors) const;
-    void UpdateViewport(size_t offset, size_t count, math::Matrix const *const matrices) const;
-    void UpdateTransform(size_t offset, size_t count, math::Matrix const *const matrices) const;
-
-    template<class T, typename std::enable_if_t<is_container_v<std::decay_t<T>>>...>
-    void UpdateViewport(std::size_t offset, T &&matrices) const
-    {
-        static_assert(
-            std::is_same_v<typename std::decay_t<T>::value_type, glm::mat4>,
-            "container object has to contain glm::mat4 elements"
-        );
-
-        auto constexpr bytes = sizeof(glm::mat4);
-
-        glNamedBufferSubData(VIEWPORT_, offset * bytes, std::size(matrices) * bytes, std::data(matrices));
-    }
-
-    template<class T, typename std::enable_if_t<is_container_v<std::decay_t<T>>>...>
-    void UpdateTransform(std::size_t offset, T &&matrices) const
-    {
-        static_assert(
-            std::is_same_v<typename std::decay_t<T>::value_type, glm::mat4>,
-            "container object has to contain glm::mat4 elements"
-        );
-
-        auto constexpr bytes = sizeof(glm::mat4);
-
-        glNamedBufferSubData(TRANSFORM_, offset * bytes, std::size(matrices) * bytes, std::data(matrices));
-    }
-
     template<class T>
     void CreateSSBO(u32 programHandle, u32 binding, std::string name)
     {
@@ -143,25 +113,8 @@ private:
     Render() = default;
     ~Render();
 
-    void InitBufferObjects();
-
     void CleanUp();
 };
-
-inline void Render::UpdateCMTS(size_t _offset, size_t _size, Color const *const _colors) const
-{
-    glNamedBufferSubData(CMTS_, _offset, _size, _colors->rgba.data());
-}
-
-inline void Render::UpdateViewport(size_t _offset, size_t _count, math::Matrix const *const _matrices) const
-{
-    glNamedBufferSubData(VIEWPORT_, _offset * sizeof(math::Matrix), _count * sizeof(math::Matrix), _matrices->m.data());
-}
-
-inline void Render::UpdateTransform(size_t _offset, size_t _count, math::Matrix const *const _matrices) const
-{
-    glNamedBufferSubData(TRANSFORM_, _offset * sizeof(math::Matrix), _count * sizeof(math::Matrix), _matrices->m.data());
-}
 };
 
 #endif // CRUS_RENDERER_H

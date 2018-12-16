@@ -25,8 +25,6 @@ Render::~Render()
 
 void Render::Init()
 {
-    InitBufferObjects();
-
     wglSwapIntervalEXT(-1);
 
     glEnable(GL_DEPTH_TEST);
@@ -165,57 +163,6 @@ void Render::DrawFrame()
     return inst;
 }
 
-void Render::InitBufferObjects()
-{
-    Program ubo;
-
-    if (!ubo.AssignNew({R"(Defaults/Buffer-Objects-Initialization.glsl)"}))
-        log::Fatal() << "can't init the buffer objects.";
-
-    {
-        auto index = glGetUniformBlockIndex(ubo.handle(), "VIEWPORT");
-
-        auto size = -1;
-        glGetActiveUniformBlockiv(ubo.handle(), Render::eBUFFERS_BINDING::nVIEWPORT, GL_UNIFORM_BLOCK_DATA_SIZE, &size);
-
-        if (index == GL_INVALID_INDEX || size < 1)
-            log::Fatal() << "can't init the UBO: invalid index param: " << "VIEWPORT";
-
-        VIEWPORT_ = createBO();
-        glNamedBufferStorage(VIEWPORT_, size, nullptr, GL_DYNAMIC_STORAGE_BIT);
-
-        glBindBufferBase(GL_UNIFORM_BUFFER, Render::eBUFFERS_BINDING::nVIEWPORT, VIEWPORT_);
-        glUniformBlockBinding(ubo.handle(), index, Render::eBUFFERS_BINDING::nVIEWPORT);
-    }
-
-#if _CRUS_TEMP_DISABLED
-    {
-        auto index = glGetProgramResourceIndex(ubo.program(), GL_SHADER_STORAGE_BLOCK, "VIEWPORT");
-
-        if (index == GL_INVALID_INDEX)
-            log::Fatal() << "can't init the SSBO: invalid index param: " << "VIEWPORT";
-
-        VIEWPORT_ = CreateBO();
-        glNamedBufferStorage(VIEWPORT_, sizeof(math::Matrix) * 3, nullptr, GL_DYNAMIC_STORAGE_BIT);
-
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, Render::eBUFFERS_BINDING::nVIEWPORT), VIEWPORT_;
-        glShaderStorageBlockBinding(ubo.program(), index, Render::eBUFFERS_BINDING::nVIEWPORT);
-    }
-#endif
-
-    {
-        auto index = glGetProgramResourceIndex(ubo.handle(), GL_SHADER_STORAGE_BLOCK, "TRANSFORM");
-
-        if (index == GL_INVALID_INDEX)
-            log::Fatal() << "can't init the SSBO: invalid index param: " << "TRANSFORM";
-
-        TRANSFORM_ = createBO();
-        glNamedBufferStorage(TRANSFORM_, sizeof(math::Matrix) * 4, nullptr, GL_DYNAMIC_STORAGE_BIT);
-
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, Render::eBUFFERS_BINDING::nTRANSFORM, TRANSFORM_);
-        glShaderStorageBlockBinding(ubo.handle(), index, Render::eBUFFERS_BINDING::nTRANSFORM);
-    }
-}
 
 void Render::CleanUp()
 {
