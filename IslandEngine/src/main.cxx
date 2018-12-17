@@ -18,26 +18,26 @@ try {
 
     glfwInit();
 
-    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-    //glfwWindowHint(GLFW_CONTEXT_CREATION_API, GLFW_NATIVE_CONTEXT_API);
+    glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_API);
+    glfwWindowHint(GLFW_CONTEXT_CREATION_API, GLFW_NATIVE_CONTEXT_API);
 
-    //glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-    //glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
 
-    //glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
-    //glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_FALSE);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 //#if defined(_DEBUG)
 //	glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
 //#else
 //    glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_FALSE);
 //#endif
-//
-//    glfwWindowHint(GLFW_DEPTH_BITS, 32);
-//    glfwWindowHint(GLFW_STENCIL_BITS, 0);
-//
-//    glfwWindowHint(GLFW_DOUBLEBUFFER, GLFW_TRUE);
-//    glfwWindowHint(GLFW_SRGB_CAPABLE, GLFW_TRUE);
+
+    glfwWindowHint(GLFW_DEPTH_BITS, 32);
+    glfwWindowHint(GLFW_STENCIL_BITS, 0);
+
+    glfwWindowHint(GLFW_DOUBLEBUFFER, GLFW_TRUE);
+    glfwWindowHint(GLFW_SRGB_CAPABLE, GLFW_TRUE);
 
     // glfwSetErrorCallback(error_callback);
 
@@ -49,20 +49,21 @@ try {
     auto inputManager = std::make_shared<InputManager>();
     window.connectInputHandler(inputManager);
 
-    /*glfwMakeContextCurrent(window.handle());
+    glfwMakeContextCurrent(window.handle());
     glfwSwapInterval(1);
 
-    glClearColor(.5f, .5f, .5f, 1.f);*/
+    glClearColor(.5f, .5f, .5f, 1.f);
 
-    window.update([&width, &height] (auto &&window) {
+    window.update([&width, &height] (auto &&window)
+    {
         glfwPollEvents();
 
-        /*glfwGetFramebufferSize(window.handle(), &width, &height);
+        glfwGetFramebufferSize(window.handle(), &width, &height);
 
         glViewport(0, 0, width, height);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        glfwSwapBuffers(window.handle());*/
+        glfwSwapBuffers(window.handle());
     });
 
     glfwTerminate();
