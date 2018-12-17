@@ -1,0 +1,11 @@
+[requires]
+glm/0.9.9.1@g-truc/stable
+
+[requires]
+boost/1.69.0@conan/stable
+
+[requires]
+glfw/3.2.1@bincrafters/stable
+
+[generators]
+cmake
