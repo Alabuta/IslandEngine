@@ -1,32 +1,24 @@
 #pragma once
 
-#include <map>
-#include <vector>
+#include <memory>
+#include <variant>
+#include <tuple>
 
-#include <GLFW/glfw3.h>
+#if NOT_YET_IMPLEMENTED
+#include "platform/window.hxx"
+#include "mouseInput.hxx"
 
 
-#include "MouseInput.hxx"
-
-
-namespace isle
-{
-class InputManager final {
+class InputManager final : public Window::IInputHandler {
 public:
-
-    InputManager(GLFWwindow *hTargetWnd);
-
-    ~InputManager();
-
-    //void Process(WPARAM wParam, LPARAM lParam);
 
     MouseInput &mouse() noexcept { return mouse_; }
 
 private:
-    GLFWwindow *hTargetWnd_;
-
-    std::vector<std::byte> rawData_;
 
     MouseInput mouse_;
+
+    void onUpdate(input::RawData &data) override;
+
 };
-}
+#endif

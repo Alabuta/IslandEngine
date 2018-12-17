@@ -8,6 +8,11 @@
 #include "Camera/CameraController.hxx"
 #include "Camera/MouseHandler.hxx"
 
+#if NOT_YET_IMPLEMENTED
+#include "handlers/mouseHandler.hxx"
+#include "cameraController.hxx"
+#endif
+
 
 template<class U, class V>
 glm::quat fromTwoVec3(U &&u, V &&v)
@@ -67,7 +72,7 @@ void CameraSystem::update()
 OrbitController::OrbitController(std::shared_ptr<Camera> camera, InputManager &inputManager) : camera_{camera}
 {
     mouseHandler_ = std::make_shared<MouseHandler>(*this);
-    inputManager.mouse().connect(mouseHandler_);
+    inputManager.mouse().connectHandler(mouseHandler_);
 }
 
 void OrbitController::lookAt(glm::vec3 &&eye, glm::vec3 &&target)
@@ -82,18 +87,18 @@ void OrbitController::lookAt(glm::vec3 &&eye, glm::vec3 &&target)
 
 void OrbitController::rotate(float longitude, float latitude)
 {
-    auto speed = (1.f - damping_) * .008f;
+    auto speed = (1.f - damping_) * .0064f;
 
-    polarDelta_.x += latitude * speed;
-    polarDelta_.y -= longitude * speed;
+    polarDelta_.x -= latitude * speed;
+    polarDelta_.y += longitude * speed;
 }
 
 void OrbitController::pan(float x, float y)
 {
-    auto speed = (1.f - damping_) * .001f;
+    auto speed = (1.f - damping_) * .0024f;
 
-    panDelta_.x -= x * speed;
-    panDelta_.y += y * speed;
+    panDelta_.x += x * speed;
+    panDelta_.y -= y * speed;
 }
 
 void OrbitController::dolly(float delta)

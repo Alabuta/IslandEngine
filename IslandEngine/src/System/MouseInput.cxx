@@ -21,7 +21,7 @@ std::bitset<16> constexpr kDEPRESSED_MASK{
 
 namespace isle
 {
-void MouseInput::connect(std::shared_ptr<IHandler> slot)
+void MouseInput::connectHandler(std::shared_ptr<IHandler> slot)
 {
     onMove_.connect(decltype(onMove_)::slot_type(&IHandler::onMove, slot.get(), _1, _2).track_foreign(slot));
 

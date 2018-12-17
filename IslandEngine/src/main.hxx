@@ -1,8 +1,6 @@
 #pragma once
 
-#include "config.h"
+#include "GAPI/context.hxx"
 
-#include "Renderer/oglContext.hxx"
-
-#include "Input/InputManager.hxx"
-// #include "Camera/CameraController.hxx"
+#include "input/inputManager.hxx"
+#include "camera/cameraController.hxx"

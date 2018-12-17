@@ -31,6 +31,10 @@ auto constexpr kPI = 3.14159265358979323846f;
 #include "System/InputManager.hxx"
 //#include "Camera/MouseHandler.hxx"
 
+#if NOT_YET_IMPLEMENTED
+#include "input/inputManager.hxx"
+#endif
+
 
 namespace isle
 {
