@@ -4,13 +4,13 @@ if(NOT DEFINED PROJECT_VERSION)
     set(PROJECT_VERSION 1.0.0)
 endif()
 
-project(IslandEngine VERSION ${PROJECT_VERSION})
+project(IslandEngine VERSION ${PROJECT_VERSION} LANGUAGES CXX)
 
 include(build/conanbuildinfo.cmake)
 conan_basic_setup()
 
 configure_file(
-    "${PROJECT_SOURCE_DIR}/include/config.h.in"
+    "${PROJECT_SOURCE_DIR}/config.h.in"
     "${PROJECT_SOURCE_DIR}/include/config.h"
 )
 
@@ -30,10 +30,13 @@ include_directories(SYSTEM include)
 include_directories(src)
 
 set(SOURCE_FILES
-    src/input/InputManager.cxx
-    src/input/MouseInput.cxx
+    src/input/inputManager.cxx
+    src/input/mouseInput.cxx
 
     src/platform/window.cxx
+
+    src/camera/handlers/mouseHandler.cxx
+    src/camera/cameraController.cxx
     
     src/GAPI/procedures.cxx
 
@@ -110,27 +113,14 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     -Wl,-no-allow-shlib-undefined
     -Wl,-unresolved-symbols=report-all
 
-    #dl
-    #X11
-	#Xxf86vm
-	#Xcursor
-	#Xi
-	#Xrandr
-	#Xinerama
-	#rt
-	#m
-
     #pthread
 	
-    #stdc++fs
+    stdc++fs
 
     OpenGL::GL
     # OpenGL::OpenGL
 
-    #glm
-    #glfw3
-
-	 ${CONAN_LIBS}
+    ${CONAN_LIBS}
 
 	#CONAN_PKG::glm
 	#CONAN_PKG::boost

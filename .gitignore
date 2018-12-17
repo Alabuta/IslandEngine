@@ -13,7 +13,9 @@
 *_140.*
 
 .vs/
+build/
 [Bb]in/
+[Bb]in_d/
 x64/
 x86/
 Debug/
