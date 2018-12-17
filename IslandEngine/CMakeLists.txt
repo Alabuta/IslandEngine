@@ -7,7 +7,7 @@ endif()
 project(IslandEngine VERSION ${PROJECT_VERSION} LANGUAGES CXX)
 
 include(build/conanbuildinfo.cmake)
-conan_basic_setup()
+conan_basic_setup(TARGETS)
 
 configure_file(
     "${PROJECT_SOURCE_DIR}/config.h.in"
@@ -120,8 +120,8 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     OpenGL::GL
     # OpenGL::OpenGL
 
-    ${CONAN_LIBS}
-
-	#CONAN_PKG::glm
-	#CONAN_PKG::boost
+	CONAN_PKG::glm
+	CONAN_PKG::glfw
+	CONAN_PKG::stb
+	CONAN_PKG::boost
 )
