@@ -41,12 +41,12 @@ try {
 
     // glfwSetErrorCallback(error_callback);
 
-    Window window{"IslandEngine"sv, width, height};
+    isle::Window window{"IslandEngine"sv, width, height};
 
     /*auto resizeHandler = std::make_shared<ResizeHandler>(app);
     window.connectEventHandler(resizeHandler);*/
 
-    auto inputManager = std::make_shared<InputManager>();
+    auto inputManager = std::make_shared<isle::InputManager>();
     window.connectInputHandler(inputManager);
 
     glfwMakeContextCurrent(window.handle());

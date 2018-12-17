@@ -2,11 +2,13 @@
 
 #include "window.hxx"
 
-#pragma comment(lib, "glfw3.lib")
+// #pragma comment(lib, "glfw3.lib")
 
 using namespace std::string_literals;
 using namespace std::string_view_literals;
 
+namespace isle
+{
 Window::Window(std::string_view name, std::int32_t width, std::int32_t height)
     : handle_{nullptr}, width_{width}, height_{height}, name_{name}
 {
@@ -110,4 +112,5 @@ void Window::setCallbacks()
             instance->inputUpdateCallback_(data);
         }
     });
+}
 }

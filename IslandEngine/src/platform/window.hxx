@@ -11,7 +11,8 @@
 #include "input/inputDataTypes.hxx"
 
 
-
+namespace isle
+{
 class Window final {
 public:
 
@@ -52,3 +53,4 @@ private:
 
     void setCallbacks();
 };
+}
