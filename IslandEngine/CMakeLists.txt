@@ -14,17 +14,14 @@ configure_file(
     "${PROJECT_SOURCE_DIR}/include/config.h"
 )
 
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG "${PROJECT_SOURCE_DIR}/../bin")
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE "${PROJECT_SOURCE_DIR}/../bin")
+
 find_package(OpenGL REQUIRED)
-#find_package(glm REQUIRED)
-#find_package(glfw3 3.2.1 REQUIRED)
 
 if(NOT WIN32)
 	find_package(X11 REQUIRED)
 endif()
-
-#find_package(Boost REQUIRED COMPONENTS
-#    filesystem
-#)
 
 include_directories(SYSTEM include)
 include_directories(src)
