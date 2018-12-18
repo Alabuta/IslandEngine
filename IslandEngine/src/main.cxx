@@ -13,6 +13,17 @@ using namespace std::string_view_literals;
 
 #include "main.hxx"
 
+void initContext(isle::Window const &window)
+{
+    glfwMakeContextCurrent(window.handle());
+    glfwSwapInterval(1);
+
+    glewExperimental = true;
+
+    if (auto result = glewInit(); result != GLEW_OK)
+        throw std::runtime_error("failed to init GLEW"s);
+}
+
 
 int main()
 try {
@@ -22,30 +33,14 @@ try {
     if (auto result = glfwInit(); result != GLFW_TRUE)
         throw std::runtime_error("failed to init GLFW"s);
 
-    glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_API);
-    glfwWindowHint(GLFW_CONTEXT_CREATION_API, GLFW_NATIVE_CONTEXT_API);
-
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
-
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-//#if defined(_DEBUG)
-//	glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
-//#else
-//    glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_FALSE);
-//#endif
-
-    glfwWindowHint(GLFW_DEPTH_BITS, 32);
-    glfwWindowHint(GLFW_STENCIL_BITS, 0);
-
-    glfwWindowHint(GLFW_DOUBLEBUFFER, GLFW_TRUE);
-    glfwWindowHint(GLFW_SRGB_CAPABLE, GLFW_TRUE);
-
-    // glfwSetErrorCallback(error_callback);
+    glfwSetErrorCallback([] (auto code, auto description)
+    {
+        std::cerr << code << ' ' << description << '\n';
+    });
 
     isle::Window window{"IslandEngine"sv, width, height};
+
+    initContext(window);
 
     /*auto resizeHandler = std::make_shared<ResizeHandler>(app);
     window.connectEventHandler(resizeHandler);*/
@@ -53,82 +48,30 @@ try {
     auto inputManager = std::make_shared<isle::InputManager>();
     window.connectInputHandler(inputManager);
 
-    glfwMakeContextCurrent(window.handle());
-    glfwSwapInterval(1);
-
-    glewExperimental = true;
-
-    if (auto result = glewInit(); result != GLEW_OK)
-        throw std::runtime_error("failed to init GLEW"s);
-
     glClearColor(.5f, .5f, .5f, 1.f);
 
-
+#if 0
     auto fbo = 0u;
     glCreateFramebuffers(1, &fbo);
-
-    if (auto result = glGetError(); result != GL_NO_ERROR)
-        throw std::runtime_error("1: "s + std::to_string(result));
 
     auto rt_cubemap = 0u;
     glCreateTextures(GL_TEXTURE_CUBE_MAP, 1, &rt_cubemap);
 
-    if (auto result = glGetError(); result != GL_NO_ERROR)
-        throw std::runtime_error("2: "s + std::to_string(result));
-
     glTextureStorage2D(rt_cubemap, 1, GL_RGBA16F, width, height);
-
-    if (auto result = glGetError(); result != GL_NO_ERROR)
-        throw std::runtime_error("3: "s + std::to_string(result));
 
     std::vector<float> buffer(static_cast<std::size_t>(width * height * 4), .16f);
 
     for (auto face : {0, 1, 2, 3, 4, 5})
         glTextureSubImage3D(rt_cubemap, 0, 0, 0, face, width, height, 1, GL_RGBA, GL_FLOAT, std::data(buffer));
 
-    if (auto result = glGetError(); result != GL_NO_ERROR)
-        throw std::runtime_error("4: "s + std::to_string(result));
-
     glNamedFramebufferTextureLayer(fbo, GL_COLOR_ATTACHMENT0, rt_cubemap, 0, 0);
-
-    if (auto result = glGetError(); result != GL_NO_ERROR)
-        throw std::runtime_error("5: "s + std::to_string(result));
 
     std::array<std::uint32_t, 1> constexpr drawBuffers{ GL_COLOR_ATTACHMENT0 };
     glNamedFramebufferDrawBuffers(fbo, static_cast<std::int32_t>(std::size(drawBuffers)), std::data(drawBuffers));
 
-    if (auto result = glGetError(); result != GL_NO_ERROR)
-        throw std::runtime_error("6: "s + std::to_string(result));
-
-    if (auto result = glCheckNamedFramebufferStatus(fbo, GL_FRAMEBUFFER); result != GL_FRAMEBUFFER_COMPLETE) {
-        std::string error;
-        switch (result) {
-            case GL_FRAMEBUFFER_UNDEFINED: error = "GL_FRAMEBUFFER_UNDEFINED"s; break;
-            case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT: error = "GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT"s; break;
-            case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT: error = "GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT"s; break;
-            case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER: error = "GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER"s; break;
-            case GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER: error = "GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER"s; break;
-            case GL_FRAMEBUFFER_UNSUPPORTED: error = "GL_FRAMEBUFFER_UNSUPPORTED"s; break;
-            case GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE: error = "GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE"s; break;
-            case GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS: error = "GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS"s; break;
-            default: {
-                std::stringstream stream;
-                stream << std::hex << result;
-                error = stream.str();
-
-                if (auto xresult = glGetError(); xresult != GL_NO_ERROR) {
-                    switch (xresult) {
-                        case GL_INVALID_OPERATION: error = "GL_INVALID_OPERATION"s; break;
-                        case GL_INVALID_ENUM: error = "GL_INVALID_ENUM"s; break;
-                        case GL_INVALID_VALUE: error = "GL_INVALID_VALUE"s; break;
-                        default: break;
-                    }
-                }
-            } break;
-        }
-
-        throw std::runtime_error("framebuffer: "s + error);
-    }
+    if (auto result = glCheckNamedFramebufferStatus(fbo, GL_FRAMEBUFFER); result != GL_FRAMEBUFFER_COMPLETE)
+        throw std::runtime_error("framebuffer: "s + std::to_string(result));
+#endif
 
     window.update([&width, &height] (auto &&window)
     {
