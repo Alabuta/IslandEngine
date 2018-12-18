@@ -2,6 +2,8 @@
 
 #define GL_GLEXT_PROTOTYPES 0
 
+#include <GL/glew.h>
+
 #include <GL/glcorearb.h>
 //#include <GL/glext.h>
 

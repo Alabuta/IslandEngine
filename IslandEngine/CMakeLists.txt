@@ -35,7 +35,7 @@ set(SOURCE_FILES
     src/camera/handlers/mouseHandler.cxx
     src/camera/cameraController.cxx
     
-    src/GAPI/procedures.cxx
+    # src/GAPI/procedures.cxx
 
     src/main.cxx
 )
@@ -118,6 +118,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     # OpenGL::OpenGL
 
 	CONAN_PKG::glm
+	CONAN_PKG::glew
 	CONAN_PKG::glfw
 	CONAN_PKG::stb
 	CONAN_PKG::boost

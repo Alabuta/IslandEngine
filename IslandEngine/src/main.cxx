@@ -19,7 +19,8 @@ try {
     auto width = 512;
     auto height = 512;
 
-    glfwInit();
+    if (auto result = glfwInit(); result != GLFW_TRUE)
+        throw std::runtime_error("failed to init GLFW"s);
 
     glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_API);
     glfwWindowHint(GLFW_CONTEXT_CREATION_API, GLFW_NATIVE_CONTEXT_API);
@@ -27,7 +28,7 @@ try {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
 
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_FALSE);
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 //#if defined(_DEBUG)
@@ -54,6 +55,11 @@ try {
 
     glfwMakeContextCurrent(window.handle());
     glfwSwapInterval(1);
+
+    glewExperimental = true;
+
+    if (auto result = glewInit(); result != GLEW_OK)
+        throw std::runtime_error("failed to init GLEW"s);
 
     glClearColor(.5f, .5f, .5f, 1.f);
 

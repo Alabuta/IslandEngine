@@ -1,3 +1,4 @@
+#if 0
 #include <vector>
 #include <stdexcept>
 #include <cinttypes>
@@ -2243,3 +2244,4 @@ BOOL WINAPI wglSwapIntervalEXT(int interval)
 #endif
 
 #undef GL_PROC_INIT
+#endif

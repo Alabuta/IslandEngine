@@ -9,13 +9,14 @@ class IslandEngineConan(ConanFile):
     settings = 'os', 'compiler', 'build_type', 'arch'
     generators = 'cmake'
 
-    default_options = { 'boost:shared': True, 'glfw:shared': True }
+    default_options = { 'boost:shared': True, 'glew:shared': True, 'glfw:shared': True }
 
     def requirements(self):
-        self.requires('boost/1.69.0@conan/stable')
-        self.requires('stb/20180214@conan/stable')
+        self.requires('glew/2.1.0@bincrafters/stable')
         self.requires('glfw/3.2.1@bincrafters/stable')
         self.requires('glm/0.9.9.1@g-truc/stable')
+        self.requires('boost/1.69.0@conan/stable')
+        self.requires('stb/20180214@conan/stable')
 
     def build(self):
         cmake=CMake(self)
