@@ -1,5 +1,7 @@
 from conans import ConanFile, CMake
 
+dstFolder='../../bin'
+
 class IslandEngineConan(ConanFile):
     name = 'IslandEngine'
     version = '1.0.0'
@@ -16,14 +18,17 @@ class IslandEngineConan(ConanFile):
         self.requires('glm/0.9.9.1@g-truc/stable')
 
     def build(self):
-        cmake = CMake(self)
-        cmake.configure(defs = {
+        cmake=CMake(self)
+        cmake.configure(defs={
             'PROJECT_VERSION': self.version
         })
         cmake.configure()
         cmake.build()
 
+    def package(self):
+        self.copy(self.name+'*', dst=dstFolder)
+
     def imports(self):
-        self.copy('*.dll', dst='bin', src='bin')
-        self.copy('*.dylib*', dst='bin', src='lib')
-        self.copy('*.so*', dst='bin', src='lib')
+        self.copy('*.dll', dst=dstFolder, src='bin')
+        self.copy('*.dylib*', dst=dstFolder, src='lib')
+        self.copy('*.so*', dst=dstFolder, src='lib')
