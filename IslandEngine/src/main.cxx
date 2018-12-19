@@ -1,17 +1,53 @@
 #include "config.h"
 
-#include <iostream>
-#include <sstream>
-#include <array>
-#include <vector>
-
-#include <string>
-using namespace std::string_literals;
-
-#include <string_view>
-using namespace std::string_view_literals;
+#if defined(_MSC_VER) && defined(DEBUG)
+    #define _CRTDBG_MAP_ALLOC
+    #include <crtdbg.h>
+#endif
 
 #include "main.hxx"
+
+struct per_object_t {
+    glm::mat4 world{1};
+    glm::mat4 normal{1};  // Transposed of the inversed of the upper left 3x3 sub-matrix of model(world)-view matrix.
+};
+
+struct application_t {
+    isle::CameraSystem cameraSystem;
+    std::shared_ptr<isle::Camera> camera;
+
+    std::unique_ptr<isle::OrbitController> cameraController;
+
+    per_object_t object;
+
+    std::int32_t width{800}, height{1080};
+
+    // struct Renderable {
+    //     u32 vao;
+    //     i32 mode;
+    //     u32 count;
+    //     u32 type;
+    //     u32 begin;
+    //     u32 end;
+    // };
+
+    // std::vector<Renderable> renderables;
+
+};
+
+struct WindowEventHandler final : isle::Window::IEventHandler {
+    WindowEventHandler(application_t &app) : app{app} { }
+    
+    void onResize(std::int32_t width, std::int32_t height) override
+    {
+        app.width = width;
+        app.height = height;
+
+        app.camera->aspect = static_cast<float>(width) / static_cast<float>(height);
+    }
+
+    application_t &app;
+};
 
 void initContext(isle::Window const &window)
 {
@@ -24,29 +60,51 @@ void initContext(isle::Window const &window)
         throw std::runtime_error("failed to init GLEW"s);
 }
 
+void update(application_t &app)
+{
+    app.cameraController->update();
+    app.cameraSystem.update();
+}
+
+void drawFrame(application_t &app)
+{
+    glViewport(0, 0, app.width, app.height);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+}
+
 
 int main()
 try {
-    auto width = 512;
-    auto height = 512;
+#if defined(_MSC_VER) && defined(DEBUG)
+    _CrtSetDbgFlag(_CrtSetDbgFlag(_CRTDBG_REPORT_FLAG) | _CRTDBG_ALLOC_MEM_DF | _CRTDBG_DELAY_FREE_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+    //_CrtSetBreakAlloc(84);
+#endif
 
     if (auto result = glfwInit(); result != GLFW_TRUE)
         throw std::runtime_error("failed to init GLFW"s);
 
-    glfwSetErrorCallback([] (auto code, auto description)
-    {
-        std::cerr << code << ' ' << description << '\n';
-    });
+    // glfwSetErrorCallback([] (auto code, auto description)
+    // {
+    //     std::cerr << code << ' ' << description << '\n';
+    // });
 
-    isle::Window window{"IslandEngine"sv, width, height};
+    application_t app;
+
+    isle::Window window{"IslandEngine"sv, app.width, app.height};
 
     initContext(window);
 
-    /*auto resizeHandler = std::make_shared<ResizeHandler>(app);
-    window.connectEventHandler(resizeHandler);*/
+    auto windowEventHandler = std::make_shared<WindowEventHandler>(app);
+    window.connectEventHandler(windowEventHandler);
 
     auto inputManager = std::make_shared<isle::InputManager>();
     window.connectInputHandler(inputManager);
+
+    app.camera = app.cameraSystem.createCamera();
+    app.camera->aspect = static_cast<float>(app.width) / static_cast<float>(app.height);
+
+    app.cameraController = std::make_unique<isle::OrbitController>(app.camera, *inputManager);
+    app.cameraController->lookAt(glm::vec3{8, 24, 24}, {0, 8, 0});
 
     glClearColor(.5f, .5f, .5f, 1.f);
 
@@ -73,14 +131,13 @@ try {
         throw std::runtime_error("framebuffer: "s + std::to_string(result));
 #endif
 
-    window.update([&width, &height] (auto &&window)
+    window.update([&app] (auto &&window)
     {
         glfwPollEvents();
 
-        glfwGetFramebufferSize(window.handle(), &width, &height);
+        // glfwGetFramebufferSize(window.handle(), &app.width, &app.height);
 
-        glViewport(0, 0, width, height);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        drawFrame(app);
 
         glfwSwapBuffers(window.handle());
     });
