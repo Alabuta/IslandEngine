@@ -24,9 +24,6 @@
     <ClInclude Include="src/camera/cameraController.hxx">
       <Filter>Source files\Camera</Filter>
     </ClInclude>
-    <ClInclude Include="resources/resource.h">
-      <Filter>Resources</Filter>
-    </ClInclude>
     <ClInclude Include="src/platform/window.hxx">
       <Filter>Source files\platform</Filter>
     </ClInclude>
@@ -95,9 +92,7 @@
     <None Include="..\contents\shaders\Interface\grid.glsl">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="resources\resource.aps">
-      <Filter>Resources</Filter>
-    </None>
+    <None Include="conanfile.py" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Shaders">
@@ -124,10 +119,5 @@
     <Filter Include="Source files\platform">
       <UniqueIdentifier>{c98432ca-d53e-4b13-8740-b66780a1b48e}</UniqueIdentifier>
     </Filter>
-  </ItemGroup>
-  <ItemGroup>
-    <ResourceCompile Include="resources\resource.rc">
-      <Filter>Resources</Filter>
-    </ResourceCompile>
   </ItemGroup>
 </Project>

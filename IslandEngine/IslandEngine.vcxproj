@@ -45,13 +45,13 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <OutDir>$(SolutionDir)bin\</OutDir>
-    <TargetName>$(ProjectName) $(PlatformShortName) ($(Configuration))</TargetName>
+    <TargetName>$(ProjectName).d</TargetName>
     <IntDir>$(Platform)\$(Configuration)\$(DefaultPlatformToolset)\$(ProjectName)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(SolutionDir)bin\</OutDir>
-    <TargetName>$(ProjectName) $(PlatformShortName)</TargetName>
+    <TargetName>$(ProjectName)</TargetName>
     <IntDir>$(Platform)\$(Configuration)\$(DefaultPlatformToolset)\$(ProjectName)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -60,18 +60,19 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>__STDC_LIMIT_MACROS;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(BOOST_ROOT);$(ProjectDir)include;$(ProjectDir)src</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>__STDC_LIMIT_MACROS;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(BOOST_ROOT);$(ProjectDir)include;$(ProjectDir)src;C:/Users/auqol/.conan/data/glew/2.1.0/bincrafters/stable/package/ff82a1e70ba8430648a79986385b20a3648f8c19/include;C:/Users/auqol/.conan/data/glfw/3.2.1/bincrafters/stable/package/ff82a1e70ba8430648a79986385b20a3648f8c19/include;C:/Users/auqol/.conan/data/glm/0.9.9.1/g-truc/stable/package/5ab84d6acfe1f23c4fae0ab88f26e3a396351ac9/include;C:/.conan/7mrg_p83/1/include;C:/Users/auqol/.conan/data/stb/20180214/conan/stable/package/5ab84d6acfe1f23c4fae0ab88f26e3a396351ac9/include;C:/Users/auqol/.conan/data/zlib/1.2.11/conan/stable/package/8cf01e2f50fcd6b63525e70584df0326550364e1/include;C:/Users/auqol/.conan/data/bzip2/1.0.6/conan/stable/package/8cf01e2f50fcd6b63525e70584df0326550364e1/include</AdditionalIncludeDirectories>
       <StringPooling>true</StringPooling>
       <AssemblerOutput>AssemblyAndSourceCode</AssemblerOutput>
       <AdditionalOptions>/std:c++latest /bigobj %(AdditionalOptions)</AdditionalOptions>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <EnableModules>true</EnableModules>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(BOOST_ROOT)\lib;$(ProjectDir)lib</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(BOOST_ROOT)\lib;$(ProjectDir)lib;C:/Users/auqol/.conan/data/glew/2.1.0/bincrafters/stable/package/ff82a1e70ba8430648a79986385b20a3648f8c19/lib;C:/Users/auqol/.conan/data/glfw/3.2.1/bincrafters/stable/package/ff82a1e70ba8430648a79986385b20a3648f8c19/lib;C:/.conan/7mrg_p83/1/lib;C:/Users/auqol/.conan/data/bzip2/1.0.6/conan/stable/package/8cf01e2f50fcd6b63525e70584df0326550364e1/lib;C:/Users/auqol/.conan/data/zlib/1.2.11/conan/stable/package/8cf01e2f50fcd6b63525e70584df0326550364e1/lib</AdditionalLibraryDirectories>
       <ProgramDatabaseFile>$(IntDir)$(TargetName).pdb</ProgramDatabaseFile>
       <ProfileGuidedDatabase>$(IntDir)$(TargetName).pgd</ProfileGuidedDatabase>
     </Link>
@@ -97,8 +98,8 @@
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>__STDC_LIMIT_MACROS;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(BOOST_ROOT);$(ProjectDir)include;$(ProjectDir)src</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>__STDC_LIMIT_MACROS;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(BOOST_ROOT);$(ProjectDir)include;$(ProjectDir)src;C:/Users/auqol/.conan/data/glew/2.1.0/bincrafters/stable/package/ff82a1e70ba8430648a79986385b20a3648f8c19/include;C:/Users/auqol/.conan/data/glfw/3.2.1/bincrafters/stable/package/ff82a1e70ba8430648a79986385b20a3648f8c19/include;C:/Users/auqol/.conan/data/glm/0.9.9.1/g-truc/stable/package/5ab84d6acfe1f23c4fae0ab88f26e3a396351ac9/include;C:/.conan/7mrg_p83/1/include;C:/Users/auqol/.conan/data/stb/20180214/conan/stable/package/5ab84d6acfe1f23c4fae0ab88f26e3a396351ac9/include;C:/Users/auqol/.conan/data/zlib/1.2.11/conan/stable/package/8cf01e2f50fcd6b63525e70584df0326550364e1/include;C:/Users/auqol/.conan/data/bzip2/1.0.6/conan/stable/package/8cf01e2f50fcd6b63525e70584df0326550364e1/include</AdditionalIncludeDirectories>
       <DebugInformationFormat>OldStyle</DebugInformationFormat>
       <SDLCheck>true</SDLCheck>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
@@ -109,11 +110,11 @@
       <EnableModules>true</EnableModules>
     </ClCompile>
     <Link>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>No</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(BOOST_ROOT)\lib;$(ProjectDir)lib</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(BOOST_ROOT)\lib;$(ProjectDir)lib;C:/Users/auqol/.conan/data/glew/2.1.0/bincrafters/stable/package/ff82a1e70ba8430648a79986385b20a3648f8c19/lib;C:/Users/auqol/.conan/data/glfw/3.2.1/bincrafters/stable/package/ff82a1e70ba8430648a79986385b20a3648f8c19/lib;C:/.conan/7mrg_p83/1/lib;C:/Users/auqol/.conan/data/bzip2/1.0.6/conan/stable/package/8cf01e2f50fcd6b63525e70584df0326550364e1/lib;C:/Users/auqol/.conan/data/zlib/1.2.11/conan/stable/package/8cf01e2f50fcd6b63525e70584df0326550364e1/lib</AdditionalLibraryDirectories>
       <ProgramDatabaseFile>$(IntDir)$(TargetName).pdb</ProgramDatabaseFile>
       <ProfileGuidedDatabase>$(IntDir)$(TargetName).pgd</ProfileGuidedDatabase>
     </Link>
@@ -140,9 +141,6 @@
     <ClCompile Include="src/main.cxx" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="resources\resource.rc" />
-  </ItemGroup>
-  <ItemGroup>
     <None Include="..\contents\shaders\Defaults\Radiance-Cube-Map.glsl" />
     <None Include="..\contents\shaders\Defaults\SSAO.glsl" />
     <None Include="..\contents\shaders\Defaults\Fullscreen-Quad.glsl" />
@@ -157,10 +155,9 @@
     <None Include="..\contents\shaders\Includes\ShaderHelpers.glsl" />
     <None Include="..\contents\shaders\Includes\ShaderVariables.glsl" />
     <None Include="..\contents\shaders\Interface\grid.glsl" />
-    <None Include="resources\resource.aps" />
+    <None Include="conanfile.py" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="resources/resource.h" />
     <ClInclude Include="src/helpers.hxx" />
     <ClInclude Include="src/camera/cameraController.hxx" />
     <ClInclude Include="src/camera/handlers/mouseHandler.hxx" />
