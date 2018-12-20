@@ -134,12 +134,9 @@
   <ItemGroup>
     <ClCompile Include="src/camera/cameraController.cxx" />
     <ClCompile Include="src/camera/handlers/mouseHandler.cxx" />
-
     <ClCompile Include="src/input/inputManager.cxx" />
     <ClCompile Include="src/input/mouseInput.cxx" />
-
     <ClCompile Include="src/platform/window.cxx" />
-
     <ClCompile Include="src/main.cxx" />
   </ItemGroup>
   <ItemGroup>
@@ -160,33 +157,19 @@
     <None Include="..\contents\shaders\Includes\ShaderHelpers.glsl" />
     <None Include="..\contents\shaders\Includes\ShaderVariables.glsl" />
     <None Include="..\contents\shaders\Interface\grid.glsl" />
-    <None Include="include\Renderer\CrusUV.inl" />
-    <None Include="include\Math\CrusMatrix.inl" />
-    <None Include="include\Math\CrusQuaternion.inl" />
-    <None Include="include\Math\CrusVector.inl" />
-    <None Include="include\Renderer\CrusPosition.inl" />
     <None Include="resources\resource.aps" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="resources/resource.h" />
-
     <ClInclude Include="src/helpers.hxx" />
-
     <ClInclude Include="src/camera/cameraController.hxx" />
     <ClInclude Include="src/camera/handlers/mouseHandler.hxx" />
-
     <ClInclude Include="src/GAPI/context.hxx" />
-
     <ClInclude Include="src/input/inputDataTypes.hxx" />
     <ClInclude Include="src/input/inputManager.hxx" />
     <ClInclude Include="src/input/mouseInput.hxx" />
-
     <ClInclude Include="src/platform/window.hxx" />
-
     <ClInclude Include="src/main.hxx" />
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="..\book.log" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

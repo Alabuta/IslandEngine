@@ -1,0 +1,133 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="src/camera/cameraController.cxx">
+      <Filter>Source files\Camera</Filter>
+    </ClCompile>
+    <ClCompile Include="src/platform/window.cxx">
+      <Filter>Source files\platform</Filter>
+    </ClCompile>
+    <ClCompile Include="src/camera/handlers/mouseHandler.cxx">
+      <Filter>Source files\Camera\Handlers</Filter>
+    </ClCompile>
+    <ClCompile Include="src/input/inputManager.cxx">
+      <Filter>Source files\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="src/input/mouseInput.cxx">
+      <Filter>Source files\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="src/main.cxx">
+      <Filter>Source files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src/camera/cameraController.hxx">
+      <Filter>Source files\Camera</Filter>
+    </ClInclude>
+    <ClInclude Include="resources/resource.h">
+      <Filter>Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="src/platform/window.hxx">
+      <Filter>Source files\platform</Filter>
+    </ClInclude>
+    <ClInclude Include="src/camera/handlers/mouseHandler.hxx">
+      <Filter>Source files\Camera\Handlers</Filter>
+    </ClInclude>
+    <ClInclude Include="src/input/inputDataTypes.hxx">
+      <Filter>Source files\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="src/input/inputManager.hxx">
+      <Filter>Source files\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="src/input/mouseInput.hxx">
+      <Filter>Source files\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="src/GAPI/context.hxx">
+      <Filter>Source files\GAPI</Filter>
+    </ClInclude>
+    <ClInclude Include="src/helpers.hxx">
+      <Filter>Source files</Filter>
+    </ClInclude>
+    <ClInclude Include="src/main.hxx">
+      <Filter>Source files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\contents\shaders\Defaults\Buffer-Objects-Initialization.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\contents\shaders\Defaults\Debug-SSAO-Kernel.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\contents\shaders\Defaults\Diffuse-Lambert.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\contents\shaders\Defaults\Dummy-Shader.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\contents\shaders\Defaults\Fullscreen-Quad.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\contents\shaders\Defaults\Radiance-Cube-Map.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\contents\shaders\Includes\ShaderHelpers.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\contents\shaders\Defaults\Skybox-Cubed.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\contents\shaders\Includes\ShaderVariables.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\contents\shaders\Defaults\Solid-Wireframe.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\contents\shaders\Defaults\Sprites-Default.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\contents\shaders\Defaults\SSAO.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\contents\shaders\Defaults\Unlit-Simple.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\contents\shaders\Interface\grid.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="resources\resource.aps">
+      <Filter>Resources</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Shaders">
+      <UniqueIdentifier>{5d3ab2fc-3d97-4383-bdb3-88c601e61904}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source files">
+      <UniqueIdentifier>{9985e7cb-fa34-4c51-8e6b-01f66e8b04ac}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resources">
+      <UniqueIdentifier>{153764fd-13c5-411a-ab1b-1b3ebf67f88b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source files\Camera">
+      <UniqueIdentifier>{20aede47-08ea-40c4-9f8e-20a5438fbcb9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source files\Camera\Handlers">
+      <UniqueIdentifier>{07b541e2-19c7-4d68-988a-99be2d0c15a4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source files\Input">
+      <UniqueIdentifier>{b52b33af-045a-49ec-88a2-f25f8ade642a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source files\GAPI">
+      <UniqueIdentifier>{1e42e065-223c-4ba7-ac93-394e990d0375}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source files\platform">
+      <UniqueIdentifier>{c98432ca-d53e-4b13-8740-b66780a1b48e}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="resources\resource.rc">
+      <Filter>Resources</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+</Project>
