@@ -132,28 +132,15 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="src\Camera\CameraController.cxx" />
-    <ClCompile Include="src\Camera\MouseHandler.cxx" />
-    <ClCompile Include="src\Loaders\glTF.cxx" />
-    <ClCompile Include="src\Manager\CrusMeshLoader.cxx" />
-    <ClCompile Include="src\Samples\Cubemap.cxx" />
-    <ClCompile Include="src\Renderer\CrusOpenGLContext.cxx" />
-    <ClCompile Include="src\Interface\CrusGrid.cxx" />
-    <ClCompile Include="src\Manager\CrusTARGA.cxx" />
-    <ClCompile Include="src\Math\CrusMatrix.cxx" />
-    <ClCompile Include="src\Renderer\CrusOpenGLExts.cxx" />
-    <ClCompile Include="src\Renderer\CrusProgram.cxx" />
-    <ClCompile Include="src\Renderer\CrusRender.cxx" />
-    <ClCompile Include="src\Renderer\CrusTexture.cxx" />
-    <ClCompile Include="src\System\CrusBook.cxx" />
-    <ClCompile Include="src\System\CrusInput.cxx" />
-    <ClCompile Include="src\System\CrusSplash.cxx" />
-    <ClCompile Include="src\System\CrusSystem.cxx" />
-    <ClCompile Include="src\System\CrusTime.cxx" />
-    <ClCompile Include="src\System\CrusWindow.cxx" />
-    <ClCompile Include="src\engine.cxx" />
-    <ClCompile Include="src\System\InputManager.cxx" />
-    <ClCompile Include="src\System\MouseInput.cxx" />
+    <ClCompile Include="src/camera/cameraController.cxx" />
+    <ClCompile Include="src/camera/handlers/mouseHandler.cxx" />
+
+    <ClCompile Include="src/input/inputManager.cxx" />
+    <ClCompile Include="src/input/mouseInput.cxx" />
+
+    <ClCompile Include="src/platform/window.cxx" />
+
+    <ClCompile Include="src/main.cxx" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resources\resource.rc" />
@@ -181,40 +168,22 @@
     <None Include="resources\resource.aps" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="include\Math\GaussRoutines.h" />
-    <ClInclude Include="include\Manager\CrusMeshLoader.h" />
-    <ClInclude Include="include\Renderer\CrusOpenGLContext.h" />
-    <ClInclude Include="include\Renderer\CrusUV.h" />
-    <ClInclude Include="include\Manager\CrusTARGA.h" />
-    <ClInclude Include="include\Math\CrusMath.h" />
-    <ClInclude Include="include\Math\CrusMatrix.h" />
-    <ClInclude Include="include\Math\CrusQuaternion.h" />
-    <ClInclude Include="include\Math\CrusVector.h" />
-    <ClInclude Include="include\Renderer\CrusColors.h" />
-    <ClInclude Include="include\Renderer\CrusOpenGLExts.h" />
-    <ClInclude Include="include\Renderer\CrusProgram.h" />
-    <ClInclude Include="include\Renderer\CrusRender.h" />
-    <ClInclude Include="include\Renderer\CrusTexture.h" />
-    <ClInclude Include="include\Renderer\CrusPosition.h" />
-    <ClInclude Include="include\System\CrusBook.h" />
-    <ClInclude Include="include\System\CrusInput.h" />
-    <ClInclude Include="include\System\CrusIsland.h" />
-    <ClInclude Include="include\System\CrusSplash.h" />
-    <ClInclude Include="include\System\CrusSystem.h" />
-    <ClInclude Include="include\System\CrusTime.h" />
-    <ClInclude Include="include\System\CrusTypes.h" />
-    <ClInclude Include="include\System\CrusWindow.h" />
-    <ClInclude Include="include\engine.h" />
-    <ClInclude Include="include\Interface\CrusGrid.h" />
-    <ClInclude Include="resources\resource.h" />
-    <ClInclude Include="src\Camera\CameraController.hxx" />
-    <ClInclude Include="src\Camera\MouseHandler.hxx" />
-    <ClInclude Include="src\Loaders\AssetFabric.hxx" />
-    <ClInclude Include="src\Loaders\glTF.hxx" />
-    <ClInclude Include="src\mesh.hxx" />
-    <ClInclude Include="src\System\InputManager.hxx" />
-    <ClInclude Include="src\System\MouseInput.hxx" />
-    <ClInclude Include="src\vertex_format.hxx" />
+    <ClInclude Include="resources/resource.h" />
+
+    <ClInclude Include="src/helpers.hxx" />
+
+    <ClInclude Include="src/camera/cameraController.hxx" />
+    <ClInclude Include="src/camera/handlers/mouseHandler.hxx" />
+
+    <ClInclude Include="src/GAPI/context.hxx" />
+
+    <ClInclude Include="src/input/inputDataTypes.hxx" />
+    <ClInclude Include="src/input/inputManager.hxx" />
+    <ClInclude Include="src/input/mouseInput.hxx" />
+
+    <ClInclude Include="src/platform/window.hxx" />
+
+    <ClInclude Include="src/main.hxx" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="..\book.log" />
