@@ -34,8 +34,10 @@ set(SOURCE_FILES
 
     src/camera/handlers/mouseHandler.cxx
     src/camera/cameraController.cxx
-    
+
     # src/GAPI/procedures.cxx
+
+    src/resource.cxx
 
     src/main.cxx
 )

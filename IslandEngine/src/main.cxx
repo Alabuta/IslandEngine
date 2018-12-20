@@ -21,18 +21,6 @@ struct application_t {
     per_object_t object;
 
     std::int32_t width{800}, height{1080};
-
-    // struct Renderable {
-    //     u32 vao;
-    //     i32 mode;
-    //     u32 count;
-    //     u32 type;
-    //     u32 begin;
-    //     u32 end;
-    // };
-
-    // std::vector<Renderable> renderables;
-
 };
 
 struct WindowEventHandler final : isle::Window::IEventHandler {
