@@ -25,8 +25,8 @@ public:
     CreateImageSampler(std::uint32_t mipLevels) noexcept;
 #endif
 
-    [[nodiscard]] std::shared_ptr<class DeviceBuffer>
-    CreateBuffer(std::size_t size, eBUFFER_USAGE usage) noexcept;
+    [[nodiscard]]
+    std::shared_ptr<class DeviceBuffer> CreateBuffer(std::size_t size, eBUFFER_USAGE usage) noexcept;
 
 private:
 

@@ -4,15 +4,20 @@
 
 #include "GAPI/context.hxx"
 
+// #include "resource.hxx"
+
 namespace isle
 {
 enum class eBUFFER_USAGE : std::uint32_t {
-    VERTEX = 0x01,
-    INDEX = 0x02,
-    TEXTURE = 0x04,
-    UNIFORM = 0x08,
-    STORAGE = 0x10,
-    INDIRECT = 0x20
+    VERTEX = 1,
+    INDEX,
+    UNIFORM,
+    STORAGE,
+    INDIRECT,
+    TEXTURE_1D,
+    TEXTURE_2D,
+    TEXTURE_3D,
+    TEXTURE_CUBE_MAP
 };
 
 class DeviceBuffer final {
@@ -23,7 +28,7 @@ public:
     std::uint32_t handle() const noexcept { return handle_; }
 
 private:
-    std::shared_ptr<class DeviceMemory> memory_;
+    // std::shared_ptr<class DeviceMemory> memory_;
 
     std::uint32_t handle_;
 
