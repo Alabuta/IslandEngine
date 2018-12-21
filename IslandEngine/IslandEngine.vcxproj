@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|x64">
@@ -139,6 +139,7 @@
     <ClCompile Include="src/input/mouseInput.cxx" />
     <ClCompile Include="src/platform/window.cxx" />
     <ClCompile Include="src/main.cxx" />
+    <ClCompile Include="src/resource.cxx" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\contents\shaders\Defaults\Radiance-Cube-Map.glsl" />
@@ -167,6 +168,9 @@
     <ClInclude Include="src/input/mouseInput.hxx" />
     <ClInclude Include="src/platform/window.hxx" />
     <ClInclude Include="src/main.hxx" />
+    <ClInclude Include="src/buffers.hxx" />
+    <ClInclude Include="src/memoryManager.hxx" />
+    <ClInclude Include="src/resource.hxx" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

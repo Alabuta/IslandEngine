@@ -33,6 +33,9 @@ ResourceManager::CreateBuffer(std::size_t size, eBUFFER_USAGE usage) noexcept
 
     switch (usage) {
         case eBUFFER_USAGE::VERTEX:
+        case eBUFFER_USAGE::INDEX:
+        case eBUFFER_USAGE::UNIFORM:
+        case eBUFFER_USAGE::STORAGE:
             glCreateBuffers(1, &handle);
             glObjectLabel(GL_BUFFER, handle, -1, "[buffer object]");
             break;
@@ -44,11 +47,6 @@ ResourceManager::CreateBuffer(std::size_t size, eBUFFER_USAGE usage) noexcept
             glCreateTextures(getTarget(usage), 1, &handle);
             glObjectLabel(GL_TEXTURE, handle, -1, "[texture object]");
             break;
-
-        // case eBUFFER_USAGE::VERTEX:
-        //     glCreateBuffers(1, &handle);
-        //     glObjectLabel(GL_BUFFER, handle, -1, "[buffer object]");
-        //     break;
 
         default:
             return { };
