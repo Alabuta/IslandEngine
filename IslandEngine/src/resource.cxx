@@ -8,13 +8,13 @@ using namespace std::string_literals;
 
 namespace
 {
-auto constexpr getTarget(isle::eBUFFER_USAGE usage)
+auto constexpr getTarget(isle::eOBJECT_TYPE usage)
 {
     switch (usage) {
-        case isle::eBUFFER_USAGE::TEXTURE_1D: return GL_TEXTURE_1D;
-        case isle::eBUFFER_USAGE::TEXTURE_2D: return GL_TEXTURE_2D;
-        case isle::eBUFFER_USAGE::TEXTURE_3D: return GL_TEXTURE_3D;
-        case isle::eBUFFER_USAGE::TEXTURE_CUBE_MAP: return GL_TEXTURE_CUBE_MAP;
+        case isle::eOBJECT_TYPE::TEXTURE_1D: return GL_TEXTURE_1D;
+        case isle::eOBJECT_TYPE::TEXTURE_2D: return GL_TEXTURE_2D;
+        case isle::eOBJECT_TYPE::TEXTURE_3D: return GL_TEXTURE_3D;
+        case isle::eOBJECT_TYPE::TEXTURE_CUBE_MAP: return GL_TEXTURE_CUBE_MAP;
         
         default: return GL_FALSE;
     }
@@ -24,26 +24,26 @@ auto constexpr getTarget(isle::eBUFFER_USAGE usage)
 
 namespace isle
 {
-std::shared_ptr<DeviceBuffer>
-ResourceManager::CreateBuffer(std::size_t size, eBUFFER_USAGE usage) noexcept
+std::shared_ptr<DeviceObject>
+ResourceManager::CreateObject(std::size_t size, eOBJECT_TYPE usage) noexcept
 {
-    std::shared_ptr<DeviceBuffer> buffer;
+    std::shared_ptr<DeviceObject> buffer;
 
     std::uint32_t handle{0u};
 
     switch (usage) {
-        case eBUFFER_USAGE::VERTEX:
-        case eBUFFER_USAGE::INDEX:
-        case eBUFFER_USAGE::UNIFORM:
-        case eBUFFER_USAGE::STORAGE:
+        case eOBJECT_TYPE::VERTEX:
+        case eOBJECT_TYPE::INDEX:
+        case eOBJECT_TYPE::UNIFORM:
+        case eOBJECT_TYPE::STORAGE:
             glCreateBuffers(1, &handle);
             glObjectLabel(GL_BUFFER, handle, -1, "[buffer object]");
             break;
 
-        case eBUFFER_USAGE::TEXTURE_1D:
-        case eBUFFER_USAGE::TEXTURE_2D:
-        case eBUFFER_USAGE::TEXTURE_3D:
-        case eBUFFER_USAGE::TEXTURE_CUBE_MAP:
+        case eOBJECT_TYPE::TEXTURE_1D:
+        case eOBJECT_TYPE::TEXTURE_2D:
+        case eOBJECT_TYPE::TEXTURE_3D:
+        case eOBJECT_TYPE::TEXTURE_CUBE_MAP:
             glCreateTextures(getTarget(usage), 1, &handle);
             glObjectLabel(GL_TEXTURE, handle, -1, "[texture object]");
             break;
@@ -56,7 +56,7 @@ ResourceManager::CreateBuffer(std::size_t size, eBUFFER_USAGE usage) noexcept
         std::cerr << "failed to create buffer: "s << std::hex << error << '\n';
 
     else {
-        buffer = std::make_shared<DeviceBuffer>(handle);
+        buffer = std::make_shared<DeviceObject>(handle);
 
 #if NOT_YET_IMLPEMENTED
         if (memory) {

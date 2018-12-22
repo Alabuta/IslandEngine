@@ -40,7 +40,7 @@ struct WindowEventHandler final : isle::Window::IEventHandler {
 void initContext(isle::Window const &window)
 {
     glfwMakeContextCurrent(window.handle());
-    glfwSwapInterval(1);
+    glfwSwapInterval(-1);
 
     glewExperimental = true;
 

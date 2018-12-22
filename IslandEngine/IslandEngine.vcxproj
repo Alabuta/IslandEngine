@@ -171,6 +171,7 @@
     <ClInclude Include="src/buffers.hxx" />
     <ClInclude Include="src/memoryManager.hxx" />
     <ClInclude Include="src/resource.hxx" />
+    <ClInclude Include="src\deviceObject.hxx" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

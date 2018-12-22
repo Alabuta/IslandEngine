@@ -6,7 +6,7 @@
 
 #include "GAPI/context.hxx"
 
-#include "buffers.hxx"
+#include "deviceObject.hxx"
 
 namespace isle
 {
@@ -26,11 +26,11 @@ public:
 #endif
 
     [[nodiscard]]
-    std::shared_ptr<class DeviceBuffer> CreateBuffer(std::size_t size, eBUFFER_USAGE usage) noexcept;
+    std::shared_ptr<class DeviceObject> CreateObject(std::size_t size, eOBJECT_TYPE usage) noexcept;
 
 private:
 
-    template<class T, std::enable_if_t<is_one_of_v<std::decay_t<T>, class DeviceBuffer>>...>
+    template<class T, std::enable_if_t<is_one_of_v<std::decay_t<T>, class DeviceObject>>...>
     void ReleaseResource(T &&resource) noexcept;
 
     ResourceManager(ResourceManager const &) = delete;

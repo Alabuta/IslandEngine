@@ -8,7 +8,7 @@
 
 namespace isle
 {
-enum class eBUFFER_USAGE : std::uint32_t {
+enum class eOBJECT_TYPE : std::uint32_t {
     VERTEX = 1,
     INDEX,
     UNIFORM,
