@@ -67,12 +67,12 @@
       <AdditionalOptions>/std:c++latest /bigobj %(AdditionalOptions)</AdditionalOptions>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <EnableModules>true</EnableModules>
-      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <MultiProcessorCompilation>Yes</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(BOOST_ROOT)\lib;$(ProjectDir)lib;C:/Users/auqol/.conan/data/glew/2.1.0/bincrafters/stable/package/ff82a1e70ba8430648a79986385b20a3648f8c19/lib;C:/Users/auqol/.conan/data/glfw/3.2.1/bincrafters/stable/package/ff82a1e70ba8430648a79986385b20a3648f8c19/lib;C:/.conan/7mrg_p83/1/lib;C:/Users/auqol/.conan/data/bzip2/1.0.6/conan/stable/package/8cf01e2f50fcd6b63525e70584df0326550364e1/lib;C:/Users/auqol/.conan/data/zlib/1.2.11/conan/stable/package/8cf01e2f50fcd6b63525e70584df0326550364e1/lib</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(BOOST_ROOT)\lib;$(ProjectDir)lib;C:/Users/User/.conan/data/glew/2.1.0/bincrafters/stable/package/ff82a1e70ba8430648a79986385b20a3648f8c19/lib;C:/Users/User/.conan/data/glfw/3.2.1/bincrafters/stable/package/ff82a1e70ba8430648a79986385b20a3648f8c19/lib;C:/.conan/ckrpt6zq/1/lib;C:/Users/User/.conan/data/bzip2/1.0.6/conan/stable/package/8cf01e2f50fcd6b63525e70584df0326550364e1/lib;C:/Users/User/.conan/data/zlib/1.2.11/conan/stable/package/8cf01e2f50fcd6b63525e70584df0326550364e1/lib</AdditionalLibraryDirectories>
       <ProgramDatabaseFile>$(IntDir)$(TargetName).pdb</ProgramDatabaseFile>
       <ProfileGuidedDatabase>$(IntDir)$(TargetName).pgd</ProfileGuidedDatabase>
     </Link>
@@ -108,6 +108,7 @@
       <AdditionalOptions>/std:c++latest %(AdditionalOptions)</AdditionalOptions>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <EnableModules>true</EnableModules>
+      <MultiProcessorCompilation>Yes</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
