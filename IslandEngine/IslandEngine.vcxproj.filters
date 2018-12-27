@@ -19,7 +19,9 @@
     <ClCompile Include="src/main.cxx">
       <Filter>Source files</Filter>
     </ClCompile>
-    <ClCompile Include="src/resource.cxx" />
+    <ClCompile Include="src/resource.cxx">
+      <Filter>Source files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src/camera/cameraController.hxx">
@@ -49,10 +51,16 @@
     <ClInclude Include="src/main.hxx">
       <Filter>Source files</Filter>
     </ClInclude>
-    <ClInclude Include="src/buffers.hxx" />
-    <ClInclude Include="src/memoryManager.hxx" />
-    <ClInclude Include="src/resource.hxx" />
     <ClInclude Include="src\deviceObject.hxx">
+      <Filter>Source files</Filter>
+    </ClInclude>
+    <ClInclude Include="src/memoryManager.hxx">
+      <Filter>Source files</Filter>
+    </ClInclude>
+    <ClInclude Include="src/buffers.hxx">
+      <Filter>Source files</Filter>
+    </ClInclude>
+    <ClInclude Include="src/resource.hxx">
       <Filter>Source files</Filter>
     </ClInclude>
   </ItemGroup>

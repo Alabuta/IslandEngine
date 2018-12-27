@@ -25,7 +25,7 @@ auto constexpr getTarget(isle::eOBJECT_TYPE usage)
 namespace isle
 {
 std::shared_ptr<DeviceObject>
-ResourceManager::CreateObject(std::size_t size, eOBJECT_TYPE usage) noexcept
+ResourceManager::CreateObject(eOBJECT_TYPE usage) noexcept
 {
     std::shared_ptr<DeviceObject> buffer;
 
@@ -36,6 +36,7 @@ ResourceManager::CreateObject(std::size_t size, eOBJECT_TYPE usage) noexcept
         case eOBJECT_TYPE::INDEX:
         case eOBJECT_TYPE::UNIFORM:
         case eOBJECT_TYPE::STORAGE:
+        case eOBJECT_TYPE::INDIRECT:
             glCreateBuffers(1, &handle);
             glObjectLabel(GL_BUFFER, handle, -1, "[buffer object]");
             break;
@@ -56,7 +57,14 @@ ResourceManager::CreateObject(std::size_t size, eOBJECT_TYPE usage) noexcept
         std::cerr << "failed to create buffer: "s << std::hex << error << '\n';
 
     else {
-        buffer = std::make_shared<DeviceObject>(handle);
+        buffer.reset(
+            new DeviceObject{handle}, [this, usage] (DeviceObject *object)
+            {
+                ReleaseResource(*object, usage);
+
+                delete object;
+            }
+        );
 
 #if NOT_YET_IMLPEMENTED
         if (memory) {
@@ -77,5 +85,29 @@ ResourceManager::CreateObject(std::size_t size, eOBJECT_TYPE usage) noexcept
     }
 
     return buffer;
+}
+
+template<class T, std::enable_if_t<is_one_of_v<std::decay_t<T>, DeviceObject>>...>
+void isle::ResourceManager::ReleaseResource(T &&resource, eOBJECT_TYPE usage) noexcept
+{
+    switch (usage) {
+        case eOBJECT_TYPE::VERTEX:
+        case eOBJECT_TYPE::INDEX:
+        case eOBJECT_TYPE::UNIFORM:
+        case eOBJECT_TYPE::STORAGE:
+        case eOBJECT_TYPE::INDIRECT:
+            glDeleteBuffers(1, std::data(std::array{ resource.handle() }));
+            break;
+
+        case eOBJECT_TYPE::TEXTURE_1D:
+        case eOBJECT_TYPE::TEXTURE_2D:
+        case eOBJECT_TYPE::TEXTURE_3D:
+        case eOBJECT_TYPE::TEXTURE_CUBE_MAP:
+            glDeleteTextures(1, std::data(std::array{ resource.handle() }));
+            break;
+
+        default:
+            break;
+    }
 }
 }

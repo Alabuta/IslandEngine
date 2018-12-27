@@ -15,5 +15,7 @@ using namespace std::string_view_literals;
 
 #include "GAPI/context.hxx"
 
+#include "resource.hxx"
+
 #include "input/inputManager.hxx"
 #include "camera/cameraController.hxx"

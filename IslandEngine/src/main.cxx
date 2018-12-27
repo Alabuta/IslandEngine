@@ -13,6 +13,8 @@ struct per_object_t {
 };
 
 struct application_t {
+    isle::ResourceManager resourceManager;
+
     isle::CameraSystem cameraSystem;
     std::shared_ptr<isle::Camera> camera;
 
@@ -96,18 +98,22 @@ try {
 
     glClearColor(.5f, .5f, .5f, 1.f);
 
+    auto rt_cubemap = app.resourceManager.CreateObject(isle::eOBJECT_TYPE::TEXTURE_CUBE_MAP);
+
 #if 0
+    auto width = 512, height = 512;
+
     auto fbo = 0u;
     glCreateFramebuffers(1, &fbo);
 
     auto rt_cubemap = 0u;
     glCreateTextures(GL_TEXTURE_CUBE_MAP, 1, &rt_cubemap);
 
-    glTextureStorage2D(rt_cubemap, 1, GL_RGBA16F, width, height);
+    glTextureStorage2D(rt_cubemap, 1, GL_RGBA32F, width, height);
 
     std::vector<float> buffer(static_cast<std::size_t>(width * height * 4), .16f);
 
-    for (auto face : {0, 1, 2, 3, 4, 5})
+    for (auto face : { 0, 1, 2, 3, 4, 5 })
         glTextureSubImage3D(rt_cubemap, 0, 0, 0, face, width, height, 1, GL_RGBA, GL_FLOAT, std::data(buffer));
 
     glNamedFramebufferTextureLayer(fbo, GL_COLOR_ATTACHMENT0, rt_cubemap, 0, 0);
