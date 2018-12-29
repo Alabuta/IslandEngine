@@ -98,10 +98,14 @@ try {
 
     glClearColor(.5f, .5f, .5f, 1.f);
 
+    auto width = 512, height = 512;
+
+    auto fbo = app.resourceManager.CreateObject(isle::eOBJECT_TYPE::FRAMEBUFFER);
     auto rt_cubemap = app.resourceManager.CreateObject(isle::eOBJECT_TYPE::TEXTURE_CUBE_MAP);
 
+    glTextureStorage2D(rt_cubemap->handle(), 1, GL_RGBA32F, width, height);
+
 #if 0
-    auto width = 512, height = 512;
 
     auto fbo = 0u;
     glCreateFramebuffers(1, &fbo);

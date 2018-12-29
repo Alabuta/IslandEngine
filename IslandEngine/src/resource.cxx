@@ -49,6 +49,11 @@ ResourceManager::CreateObject(eOBJECT_TYPE usage) noexcept
             glObjectLabel(GL_TEXTURE, handle, -1, "[texture object]");
             break;
 
+        case eOBJECT_TYPE::FRAMEBUFFER:
+            glCreateFramebuffers(1, &handle);
+            glObjectLabel(GL_BUFFER, handle, -1, "[framebuffer object]");
+            break;
+
         default:
             return { };
     }
@@ -104,6 +109,10 @@ void isle::ResourceManager::ReleaseResource(T &&resource, eOBJECT_TYPE usage) no
         case eOBJECT_TYPE::TEXTURE_3D:
         case eOBJECT_TYPE::TEXTURE_CUBE_MAP:
             glDeleteTextures(1, std::data(std::array{ resource.handle() }));
+            break;
+
+        case eOBJECT_TYPE::FRAMEBUFFER:
+            glDeleteFramebuffers(1, std::data(std::array{ resource.handle() }));
             break;
 
         default:

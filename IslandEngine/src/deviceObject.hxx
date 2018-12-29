@@ -11,13 +11,18 @@ namespace isle
 enum class eOBJECT_TYPE : std::uint32_t {
     VERTEX = 1,
     INDEX,
+
     UNIFORM,
     STORAGE,
+
     INDIRECT,
+
     TEXTURE_1D,
     TEXTURE_2D,
     TEXTURE_3D,
-    TEXTURE_CUBE_MAP
+    TEXTURE_CUBE_MAP,
+
+    FRAMEBUFFER
 };
 
 class DeviceObject final {
